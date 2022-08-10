@@ -24,10 +24,13 @@ model User {
 model Repository {
   id           String @id @default(cuid())
   name         String
-  description  String
-  version      String
+  description  String?
+  version      String?
   userId       String
   user         User @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("repositories")
+  @@unique([userId, name, version])
 }
