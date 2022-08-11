@@ -5,6 +5,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 
 import { JwtGuard } from '../auth/guard';
 import { RepositoryCreationDto } from './dto';
+import { CompetenceCreationDto } from './dto/competence-creation.dto';
 import { RepositoryMgmtService } from './repository-mgmt.service';
 
 @ApiBearerAuth()
@@ -21,5 +22,10 @@ export class RepositoryMgmtController {
   @Post('create')
   createRepository(@GetUser('id') userId: string, @Body() dto: RepositoryCreationDto) {
     return this.repositoryService.createRepository(userId, dto);
+  }
+
+  @Post('competence/add')
+  addConcept(@GetUser('id') userId: string, @Body() dto: CompetenceCreationDto) {
+    return this.repositoryService.createCompetence(userId, dto);
   }
 }

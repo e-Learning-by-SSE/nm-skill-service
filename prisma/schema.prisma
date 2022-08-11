@@ -25,12 +25,27 @@ model Repository {
   id           String @id @default(cuid())
   name         String
   description  String?
-  version      String?
+  version      String @default("")
   userId       String
   user         User @relation(fields: [userId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  competencies Competence[]
 
   @@map("repositories")
   @@unique([userId, name, version])
+}
+
+model Competence {
+  id           String @id @default(cuid())
+  skill        String
+  level        Int
+  description  String?
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("competencies")
+  @@unique([repositoryId, skill])
 }

@@ -8,6 +8,22 @@ The Competence Repository Service allows content creators / teachers to develop 
 npm install
 ```
 
+## Database operations
+
+```bash
+# Start the dev-db docker container
+npm run db:dev:start
+
+# Wipe and restart dev-db, also applies current db schema
+db:dev:restart
+
+# Create and deploy a new db migration (after the db schema has been changed)
+npx prisma migrate dev
+
+# Run the web-based client to browse and manipulate the dev-db
+npx prisma studio
+```
+
 ## Running the app
 
 ```bash

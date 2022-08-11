@@ -2,7 +2,10 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
 
-export class RepositoryCreationDto {
+/**
+ * Identifies an existing Repository.
+ */
+export class RepositoryDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty()
@@ -11,10 +14,5 @@ export class RepositoryCreationDto {
   @IsString()
   @IsOptional()
   @ApiProperty()
-  version?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty()
-  description?: string;
+  version = '';
 }
