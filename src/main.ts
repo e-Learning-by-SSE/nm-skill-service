@@ -13,7 +13,6 @@ async function bootstrap() {
     .setTitle('Competence Repository')
     .setDescription('The API description of the Competence Repository.')
     .setVersion('0.0.1')
-    .addTag('api')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);

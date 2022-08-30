@@ -1,8 +1,6 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
-
-import { RepositoryDto } from './repository.dto';
 
 /**
  * Creates a new Concept
@@ -18,13 +16,12 @@ export class CompetenceCreationDto {
   @ApiProperty()
   level: number;
 
-  @IsOptional()
-  @IsString()
-  @ApiProperty()
+  @ApiProperty({ required: false })
   description?: string;
 
   // Specifies at which repository the concept shall be added to
   @IsNotEmpty()
+  @IsString()
   @ApiProperty()
-  repository: RepositoryDto;
+  repositoryID: string;
 }

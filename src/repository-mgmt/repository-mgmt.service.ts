@@ -6,6 +6,10 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { CompetenceCreationDto } from './dto/competence-creation.dto';
 import { RepositoryCreationDto } from './dto/repository-creation.dto';
 
+/**
+ * Service that manages the creation/update/deletion of repositories.
+ * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
+ */
 @Injectable()
 export class RepositoryMgmtService {
   constructor(private db: PrismaService) {}
@@ -23,6 +27,7 @@ export class RepositoryMgmtService {
   }
 
   async createRepository(userId: string, dto: RepositoryCreationDto) {
+    console.log(dto);
     try {
       const repository = await this.db.repository.create({
         data: {
@@ -30,6 +35,7 @@ export class RepositoryMgmtService {
           name: dto.name,
           version: dto.version,
           description: dto.description,
+          taxonomy: dto.taxonomy,
         },
       });
 
@@ -52,24 +58,19 @@ export class RepositoryMgmtService {
    * @returns The newly created competence
    */
   async createCompetence(userId: string, dto: CompetenceCreationDto) {
-    // Add default value manually, which should be done by the DTO
-    if (dto.repository.version == null) {
-      dto.repository.version = '';
-    }
-
     // Retrieve the repository, at which the competence shall be stored to
     const repository = await this.db.repository.findUnique({
       where: {
-        userId_name_version: {
-          userId: userId,
-          name: dto.repository.name,
-          version: dto.repository.version,
-        },
+        id: dto.repositoryID,
       },
     });
 
     if (repository == null) {
-      throw new NotFoundException('Specified repository not found: ' + dto.repository);
+      throw new NotFoundException('Specified repository not found: ' + dto.repositoryID);
+    }
+
+    if (repository.userId != userId) {
+      throw new ForbiddenException('Repository owned by another user');
     }
 
     // Create and return competence

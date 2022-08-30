@@ -15,7 +15,7 @@ npm install
 npm run db:dev:start
 
 # Wipe and restart dev-db, also applies current db schema
-db:dev:restart
+npm run db:dev:restart
 
 # Create and deploy a new db migration (after the db schema has been changed)
 npx prisma migrate dev
