@@ -2,3 +2,4 @@
 export * from './repository.dto';
 export * from './repository-creation.dto';
 export * from './competence-creation.dto';
+export * from './ueber-competence-creation.dto';

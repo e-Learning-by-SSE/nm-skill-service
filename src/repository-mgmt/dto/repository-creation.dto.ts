@@ -1,11 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 import { RepositoryDto } from './repository.dto';
 
 export class RepositoryCreationDto extends RepositoryDto {
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   description?: string;
 
-  @ApiProperty({ required: false, default: 'Bloom' })
+  @ApiPropertyOptional({ required: false, default: 'Bloom' })
   taxonomy = 'Bloom';
 }

@@ -22,16 +22,17 @@ model User {
 }
 
 model Repository {
-  id           String @id @default(cuid())
-  name         String
-  description  String?
-  taxonomy     String?
-  version      String @default("")
-  userId       String
-  user         User @relation(fields: [userId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  competencies Competence[]
+  id                String @id @default(cuid())
+  name              String
+  description       String?
+  taxonomy          String?
+  version           String @default("")
+  userId            String
+  user              User @relation(fields: [userId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  competencies      Competence[]
+  uebercompetencies UeberCompetence[]
 
   @@map("repositories")
   @@unique([userId, name, version])
@@ -42,11 +43,40 @@ model Competence {
   skill        String
   level        Int
   description  String?
+
   repositoryId String
-  repository   Repository @relation(fields: [repositoryId], references: [id])
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  // Implicit Many-to-Many relation:
+  // https://www.prisma.io/docs/concepts/components/prisma-schema/relations/many-to-many-relations#implicit-many-to-many-relations
+  parentUeberCompetences UeberCompetence[]
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("competencies")
   @@unique([repositoryId, skill])
+}
+
+model UeberCompetence {
+  id           String @id @default(cuid())
+  name         String
+  description  String?
+
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  // Implicit Many-to-Many relation:
+  // https://www.prisma.io/docs/concepts/components/prisma-schema/relations/many-to-many-relations#implicit-many-to-many-relations
+  subCompetences Competence[]
+  // Implicit Many-to-Many self relation:
+  // https://www.prisma.io/docs/concepts/components/prisma-schema/relations/self-relations#many-to-many-self-relations
+  subUeberCompetences UeberCompetence[] @relation("nesting")
+  parentUeberCompetences UeberCompetence[] @relation("nesting")
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("ueber_competencies")
+  @@unique([repositoryId, name])
 }

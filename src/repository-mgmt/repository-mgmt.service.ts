@@ -3,8 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
-import { CompetenceCreationDto } from './dto/competence-creation.dto';
-import { RepositoryCreationDto } from './dto/repository-creation.dto';
+import { CompetenceCreationDto, RepositoryCreationDto, UeberCompetenceCreationDto } from './dto';
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -51,6 +50,25 @@ export class RepositoryMgmtService {
     }
   }
 
+  private async getRepository(userId: string, repositoryId: string) {
+    // Retrieve the repository, at which the competence shall be stored to
+    const repository = await this.db.repository.findUnique({
+      where: {
+        id: repositoryId,
+      },
+    });
+
+    if (repository == null) {
+      throw new NotFoundException('Specified repository not found: ' + repositoryId);
+    }
+
+    if (repository.userId != userId) {
+      throw new ForbiddenException('Repository owned by another user');
+    }
+
+    return repository;
+  }
+
   /**
    * Adds a new competence to a specified repository
    * @param userId The ID of the user who wants to create a competence at one of his repositories
@@ -58,20 +76,10 @@ export class RepositoryMgmtService {
    * @returns The newly created competence
    */
   async createCompetence(userId: string, dto: CompetenceCreationDto) {
+    console.log(dto);
+
     // Retrieve the repository, at which the competence shall be stored to
-    const repository = await this.db.repository.findUnique({
-      where: {
-        id: dto.repositoryID,
-      },
-    });
-
-    if (repository == null) {
-      throw new NotFoundException('Specified repository not found: ' + dto.repositoryID);
-    }
-
-    if (repository.userId != userId) {
-      throw new ForbiddenException('Repository owned by another user');
-    }
+    const repository = await this.getRepository(userId, dto.repositoryID);
 
     // Create and return competence
     try {
@@ -89,7 +97,33 @@ export class RepositoryMgmtService {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
         if (error.code === 'P2002') {
-          throw new ForbiddenException('Concept already present in specified repository');
+          throw new ForbiddenException('Competence already exists in specified repository');
+        }
+      }
+      throw error;
+    }
+  }
+
+  async createUeberCompetence(userId: string, dto: UeberCompetenceCreationDto) {
+    // Retrieve the repository, at which the competence shall be stored to
+    const repository = await this.getRepository(userId, dto.repositoryID);
+
+    // Create and return competence
+    try {
+      const competence = await this.db.ueberCompetence.create({
+        data: {
+          repositoryId: repository.id,
+          name: dto.name,
+          description: dto.description,
+        },
+      });
+
+      return competence;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // unique field already exists
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('Competence already exists in specified repository');
         }
       }
       throw error;
