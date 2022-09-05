@@ -1,6 +1,6 @@
 import { GetUser } from 'src/auth/decorator';
 
-import { Body, Controller, Get, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { JwtGuard } from '../auth/guard';

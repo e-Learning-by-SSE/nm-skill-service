@@ -1,8 +1,7 @@
-import { PrismaService } from 'src/prisma/prisma.service';
-
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
+import { PrismaService } from '../prisma/prisma.service';
 import { CompetenceCreationDto, RepositoryCreationDto, UeberCompetenceCreationDto } from './dto';
 
 /**
