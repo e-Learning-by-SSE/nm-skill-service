@@ -26,13 +26,10 @@ export class RepositoryMgmtController {
 
   /**
    * Creates a new competence repository for the specified user.
-   *
-   * UsePipes ensures that default values of DTO will be initialized correctly: https://stackoverflow.com/a/55480479
    * @param userId The user for which the new repository shall be created.
    * @param dto specifies the attributes of the new repository
    * @returns The newly created repository or an error message.
    */
-  @UsePipes(new ValidationPipe({ transform: true }))
   @Post('create')
   createRepository(@GetUser('id') userId: string, @Body() dto: RepositoryCreationDto) {
     return this.repositoryService.createRepository(userId, dto);
