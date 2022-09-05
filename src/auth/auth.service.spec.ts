@@ -37,9 +37,14 @@ describe('AuthService', () => {
     return user;
   }
 
-  beforeAll(async () => {
+  beforeAll(() => {
     config = new ConfigService();
     db = new PrismaService(config);
+  });
+
+  beforeEach(async () => {
+    jwt = new JwtService();
+    authService = new AuthService(db, jwt, config);
 
     // Wipe DB before test
     await db.repository.deleteMany();
@@ -48,18 +53,13 @@ describe('AuthService', () => {
     testUser = await createTestUser('1', 'A Test User', 'mail@example.com', 'pw');
   });
 
-  beforeEach(() => {
-    jwt = new JwtService();
-    authService = new AuthService(db, jwt, config);
-  });
-
-  it('Login: Wrong Mail', async () => {
+  it('Login (fail): Wrong Mail', async () => {
     await expect(authService.login({ email: 'mail@not_existing.com', password: 'pw' })).rejects.toThrow(
       ForbiddenException,
     );
   });
 
-  it('Login: Wrong Password', async () => {
+  it('Login (fail): Wrong Password', async () => {
     await expect(authService.login({ email: testUser.email, password: 'wrong pw' })).rejects.toThrow(
       ForbiddenException,
     );
@@ -67,5 +67,20 @@ describe('AuthService', () => {
 
   it('Login: Correct creddentials', async () => {
     await expect(authService.login({ email: testUser.email, password: 'pw' })).resolves.toHaveProperty('access_token');
+  });
+
+  it('Register (fail): eMail already used', async () => {
+    await expect(authService.register({ email: testUser.email, name: 'a name', password: 'pw' })).rejects.toThrow(
+      ForbiddenException,
+    );
+  });
+
+  it('Register: New user added', async () => {
+    try {
+      const new_user = await authService.register({ email: 'mail2@example.com', name: 'a name', password: 'pw' });
+      expect(new_user).toHaveProperty('access_token');
+    } catch (e) {
+      fail(e);
+    }
   });
 });
