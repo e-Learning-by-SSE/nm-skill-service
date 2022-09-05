@@ -8,7 +8,7 @@ pipeline {
         stage('Git') {
             steps {
                 cleanWs()
-                git 'https://github.com/e-Learning-by-SSE/Competence-Repository.git'
+                git branch: 'main', url: 'https://github.com/e-Learning-by-SSE/Competence-Repository.git'
             }
         }
 
