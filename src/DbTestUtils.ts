@@ -32,7 +32,7 @@ export class DbTestUtils {
   /**
    * Creates a new user.
    */
-  public async createTestUser(id: string, name: string, email: string, pw: string) {
+  public async createUser(id: string, name: string, email: string, pw: string) {
     // Isn't required to be the exact hash function, which is also used in production code
     const hash = await argon.hash(pw);
 
@@ -51,13 +51,7 @@ export class DbTestUtils {
   /**
    * Creates a new repository for an existing user.
    */
-  async createTestRepository(
-    userId: string,
-    repoName: string,
-    version?: string,
-    description?: string,
-    taxonomy?: string,
-  ) {
+  async createRepository(userId: string, repoName: string, version?: string, description?: string, taxonomy?: string) {
     const repository = await this.db.repository.create({
       data: {
         userId: userId,

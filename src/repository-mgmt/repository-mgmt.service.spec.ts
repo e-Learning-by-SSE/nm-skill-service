@@ -1,3 +1,4 @@
+import { DEFAULT_FACTORY_CLASS_METHOD_KEY } from '@nestjs/common/module-utils/constants';
 import { ConfigService } from '@nestjs/config';
 
 import { DbTestUtils } from '../DbTestUtils';
@@ -31,20 +32,20 @@ describe('Repository-Mgmt-Service', () => {
   });
 
   it('List Repositories: User with no repository -> empty list', async () => {
-    const user = await dbUtils.createTestUser('1', 'An user', 'mail@example.com', 'pw');
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
 
     await expect(repositoryService.listRepositories(user.id)).resolves.toEqual({ repositories: [] });
   });
 
   it('List Repositories: User has multiple repositories', async () => {
-    const user = await dbUtils.createTestUser('1', 'An user', 'mail@example.com', 'pw');
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
 
     // Precondition: No repositories
     await expect(repositoryService.listRepositories(user.id)).resolves.toEqual({ repositories: [] });
 
     // Action: Add 2 repositores
-    const repo1 = await dbUtils.createTestRepository(user.id, 'Repository 1');
-    const repo2 = await dbUtils.createTestRepository(user.id, 'Repository 2');
+    const repo1 = await dbUtils.createRepository(user.id, 'Repository 1');
+    const repo2 = await dbUtils.createRepository(user.id, 'Repository 2');
 
     // Test Postcondition: 2 repositories created with expected names
     const repoList = await repositoryService.listRepositories(user.id);
@@ -57,13 +58,42 @@ describe('Repository-Mgmt-Service', () => {
     expect(repoList.repositories).toEqual(expected);
   });
 
+  it('Get Repository: Return repository with no competencies + show competencies', async () => {
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+    const repository = await dbUtils.createRepository(user.id, 'Repository');
+
+    // Retrieve repository from Db via service
+    const includeCompetencies = true;
+    const expectedData = { id: repository.id, userId: user.id };
+    const actualRepository = await repositoryService.getRepository(user.id, repository.id, includeCompetencies);
+
+    expect(actualRepository).toEqual(expect.objectContaining(expectedData));
+    expect(actualRepository.competencies.length).toEqual(0);
+    expect(actualRepository.uebercompetencies.length).toEqual(0);
+  });
+
+  it('Get Repository: Return repository with no competencies + do not show competencies', async () => {
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+    const repository = await dbUtils.createRepository(user.id, 'Repository');
+
+    // Retrieve repository from Db via service
+    const includeCompetencies = false;
+    const expectedData = { id: repository.id, userId: user.id };
+    const actualRepository = await repositoryService.getRepository(user.id, repository.id, includeCompetencies);
+
+    // Test Postcondition: 1 Repository with no displayed competencies
+    expect(actualRepository).toEqual(expect.objectContaining(expectedData));
+    expect(actualRepository).not.toHaveProperty('competencies');
+    expect(actualRepository).not.toHaveProperty('uebercompetencies');
+  });
+
   it('Create Repository: Create first repository', async () => {
-    const user = await dbUtils.createTestUser('1', 'An user', 'mail@example.com', 'pw');
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
 
     // Precondition: No repositories
     await expect(repositoryService.listRepositories(user.id)).resolves.toEqual({ repositories: [] });
 
-    // Action: Create first repositry
+    // Action: Create first repository
     const creationData = {
       name: '1st Repository',
       taxonomy: 'Bloom',

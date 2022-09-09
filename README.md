@@ -40,7 +40,7 @@ npm run start:prod
 ## Test
 
 ```bash
-# unit tests
+# unit / integreation tests (requires empty DB)
 npm run test
 
 # e2e tests

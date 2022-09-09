@@ -30,10 +30,9 @@ describe('AuthService', () => {
     authService = new AuthService(db, jwt, config);
 
     // Wipe DB before test
-    await db.repository.deleteMany();
-    await db.user.deleteMany();
+    await dbUtils.wipeDb();
 
-    testUser = await dbUtils.createTestUser('1', 'A Test User', 'mail@example.com', 'pw');
+    testUser = await dbUtils.createUser('1', 'A Test User', 'mail@example.com', 'pw');
   });
 
   it('Login (fail): Wrong Mail', async () => {
