@@ -1,10 +1,9 @@
-import * as argon from 'argon2';
-
 import { ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 
+import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from './auth.service';
 
@@ -13,33 +12,17 @@ describe('AuthService', () => {
   let authService: AuthService;
 
   let db: PrismaService;
+  let dbUtils: DbTestUtils;
   let testUser: User;
 
   // Auxillary
   let jwt: JwtService;
   let config: ConfigService;
 
-  /**
-   * Auxillary function for testing: Creates a new user.
-   */
-  async function createTestUser(id: string, name: string, email: string, pw: string) {
-    const hash = await argon.hash(pw);
-
-    const user = await db.user.create({
-      data: {
-        id: id,
-        name: name,
-        email: email,
-        pw: hash,
-      },
-    });
-
-    return user;
-  }
-
   beforeAll(() => {
     config = new ConfigService();
     db = new PrismaService(config);
+    dbUtils = DbTestUtils.getInstance();
   });
 
   beforeEach(async () => {
@@ -50,7 +33,7 @@ describe('AuthService', () => {
     await db.repository.deleteMany();
     await db.user.deleteMany();
 
-    testUser = await createTestUser('1', 'A Test User', 'mail@example.com', 'pw');
+    testUser = await dbUtils.createTestUser('1', 'A Test User', 'mail@example.com', 'pw');
   });
 
   it('Login (fail): Wrong Mail', async () => {
