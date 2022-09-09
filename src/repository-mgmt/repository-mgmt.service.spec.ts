@@ -93,7 +93,7 @@ describe('Repository-Mgmt-Service', () => {
     const repository = await dbUtils.createRepository(userOwner.id, 'Repository');
 
     // Retrieve repository from Db via service
-    expect(await repositoryService.getRepository(userCaller.id, repository.id)).rejects.toThrow(ForbiddenException);
+    await expect(repositoryService.getRepository(userCaller.id, repository.id)).rejects.toThrow(ForbiddenException);
   });
 
   it('Create Repository: Create first repository', async () => {
@@ -121,4 +121,6 @@ describe('Repository-Mgmt-Service', () => {
     expect(repository.competencies.length).toEqual(0);
     expect(repository.uebercompetencies.length).toEqual(0);
   });
+
+  // it('Add Competencies: Create first competency', async () => {});
 });

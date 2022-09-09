@@ -18,10 +18,4 @@ export class CompetenceCreationDto {
 
   @ApiProperty({ required: false })
   description?: string;
-
-  // Specifies at which repository the concept shall be added to
-  @IsNotEmpty()
-  @IsString()
-  @ApiProperty()
-  repositoryID: string;
 }

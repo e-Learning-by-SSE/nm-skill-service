@@ -12,9 +12,4 @@ export class UeberCompetenceCreationDto {
 
   @ApiProperty({ required: false })
   description?: string;
-
-  // Specifies at which repository the concept shall be added to
-  @IsNotEmpty()
-  @ApiProperty({ required: true })
-  repositoryID: string;
 }

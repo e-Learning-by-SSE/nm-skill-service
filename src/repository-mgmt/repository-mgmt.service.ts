@@ -78,17 +78,15 @@ export class RepositoryMgmtService {
    * @param dto Specifies the competence to be created and the repository at which it shall be created
    * @returns The newly created competence
    */
-  async createCompetence(userId: string, dto: CompetenceCreationDto) {
-    console.log(dto);
-
-    // Retrieve the repository, at which the competence shall be stored to
-    const repository = await this.getRepository(userId, dto.repositoryID);
+  async createCompetence(userId: string, repositoryId: string, dto: CompetenceCreationDto) {
+    // Checks that the user is the owner of the repository / repository exists
+    await this.getRepository(userId, repositoryId);
 
     // Create and return competence
     try {
       const competence = await this.db.competence.create({
         data: {
-          repositoryId: repository.id,
+          repositoryId: repositoryId,
           skill: dto.skill,
           level: dto.level,
           description: dto.description,
@@ -107,15 +105,15 @@ export class RepositoryMgmtService {
     }
   }
 
-  async createUeberCompetence(userId: string, dto: UeberCompetenceCreationDto) {
-    // Retrieve the repository, at which the competence shall be stored to
-    const repository = await this.getRepository(userId, dto.repositoryID);
+  async createUeberCompetence(userId: string, repositoryId: string, dto: UeberCompetenceCreationDto) {
+    // Checks that the user is the owner of the repository
+    await this.getRepository(userId, repositoryId);
 
     // Create and return competence
     try {
       const competence = await this.db.ueberCompetence.create({
         data: {
-          repositoryId: repository.id,
+          repositoryId: repositoryId,
           name: dto.name,
           description: dto.description,
         },

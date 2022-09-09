@@ -29,10 +29,6 @@ export class RepositoryMgmtController {
    * @returns The repositories of the specified user.
    */
   @Get(':repositoryId')
-  @ApiParam({
-    name: 'repositoryId',
-    description: 'The id of the desired repository',
-  })
   async showRepository(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string) {
     return this.repositoryService.getRepository(userId, repositoryId, true);
   }
@@ -48,13 +44,21 @@ export class RepositoryMgmtController {
     return this.repositoryService.createRepository(userId, dto);
   }
 
-  @Post('competencies/add_competence')
-  addCompetence(@GetUser('id') userId: string, @Body() dto: CompetenceCreationDto) {
-    return this.repositoryService.createCompetence(userId, dto);
+  @Post(':repositoryId/competencies/add_competence')
+  addCompetence(
+    @GetUser('id') userId: string,
+    @Param('repositoryId') repositoryId: string,
+    @Body() dto: CompetenceCreationDto,
+  ) {
+    return this.repositoryService.createCompetence(userId, repositoryId, dto);
   }
 
-  @Post('competencies/add_uebercompetence')
-  addUeberCompetence(@GetUser('id') userId: string, @Body() dto: UeberCompetenceCreationDto) {
-    return this.repositoryService.createUeberCompetence(userId, dto);
+  @Post(':repositoryId/competencies/add_uebercompetence')
+  addUeberCompetence(
+    @GetUser('id') userId: string,
+    @Param('repositoryId') repositoryId: string,
+    @Body() dto: UeberCompetenceCreationDto,
+  ) {
+    return this.repositoryService.createUeberCompetence(userId, repositoryId, dto);
   }
 }
