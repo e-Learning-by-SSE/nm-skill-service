@@ -1,4 +1,4 @@
-import { DEFAULT_FACTORY_CLASS_METHOD_KEY } from '@nestjs/common/module-utils/constants';
+import { ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { DbTestUtils } from '../DbTestUtils';
@@ -85,6 +85,15 @@ describe('Repository-Mgmt-Service', () => {
     expect(actualRepository).toEqual(expect.objectContaining(expectedData));
     expect(actualRepository).not.toHaveProperty('competencies');
     expect(actualRepository).not.toHaveProperty('uebercompetencies');
+  });
+
+  it('Get Repository (fail): Return Repository of different user', async () => {
+    const userOwner = await dbUtils.createUser('1', 'First user', 'owner@example.com', 'pw');
+    const userCaller = await dbUtils.createUser('2', 'Second user', 'caller@example.com', 'pw');
+    const repository = await dbUtils.createRepository(userOwner.id, 'Repository');
+
+    // Retrieve repository from Db via service
+    expect(await repositoryService.getRepository(userCaller.id, repository.id)).rejects.toThrow(ForbiddenException);
   });
 
   it('Create Repository: Create first repository', async () => {
