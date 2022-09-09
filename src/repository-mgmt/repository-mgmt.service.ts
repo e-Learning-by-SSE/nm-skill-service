@@ -49,11 +49,15 @@ export class RepositoryMgmtService {
     }
   }
 
-  private async getRepository(userId: string, repositoryId: string) {
+  public async getRepository(userId: string, repositoryId: string, includeCompetencies = false) {
     // Retrieve the repository, at which the competence shall be stored to
     const repository = await this.db.repository.findUnique({
       where: {
         id: repositoryId,
+      },
+      include: {
+        competencies: includeCompetencies,
+        uebercompetencies: includeCompetencies,
       },
     });
 

@@ -76,6 +76,10 @@ describe('Repository-Mgmt-Service', () => {
     const repoList = await repositoryService.listRepositories(user.id);
     expect(repoList.repositories.length).toEqual(1);
     expect(repoList.repositories[0]).toEqual(expect.objectContaining(expectedData));
-    // TODO: Check no existing competencies
+
+    // Test that newly created repository is empty
+    const repository = await repositoryService.getRepository(user.id, repoList.repositories[0].id, true);
+    expect(repository.competencies.length).toEqual(0);
+    expect(repository.uebercompetencies.length).toEqual(0);
   });
 });
