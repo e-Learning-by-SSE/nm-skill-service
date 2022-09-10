@@ -1,8 +1,12 @@
+import { validate } from 'class-validator';
+
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Competence, UeberCompetence } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CompetenceCreationDto, RepositoryCreationDto, UeberCompetenceCreationDto } from './dto';
+import { UeberCompetenceModificationDto } from './dto/ueber-competence-modification.dto';
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -72,6 +76,20 @@ export class RepositoryMgmtService {
     return repository;
   }
 
+  public async loadFullRepository(userId: string, repositoryId: string) {
+    const repository = await this.getRepository(userId, repositoryId, true);
+
+    const competenceMap = new Map<string, Competence>();
+    repository.competencies.forEach((c) => {
+      competenceMap.set(c.id, c);
+    });
+
+    const ueberCompetenceMap = new Map<string, UeberCompetence>();
+    repository.uebercompetencies.forEach((uc) => {
+      ueberCompetenceMap.set(uc.id, uc);
+    });
+  }
+
   /**
    * Adds a new competence to a specified repository
    * @param userId The ID of the user who wants to create a competence at one of his repositories
@@ -129,5 +147,104 @@ export class RepositoryMgmtService {
       }
       throw error;
     }
+  }
+
+  private async loadCompetence(competenceId: string, repositoryId?: string) {
+    const competence = await this.db.competence.findUnique({ where: { id: competenceId } });
+
+    if (!competence) {
+      throw new NotFoundException('Specified competence  not found: ' + competenceId);
+    }
+
+    if (repositoryId) {
+      if (competence.repositoryId != repositoryId) {
+        throw new ForbiddenException('Competence belongs to another repository.');
+      }
+    }
+
+    return competence;
+  }
+
+  async loadUeberCompetence(ueberCompetenceId: string, repositoryId?: string, includeNested = false) {
+    const ueberCompetence = await this.db.ueberCompetence.findUnique({
+      where: {
+        id: ueberCompetenceId,
+      },
+      include: {
+        subCompetences: includeNested,
+        subUeberCompetences: includeNested,
+      },
+    });
+
+    if (!ueberCompetence) {
+      throw new NotFoundException('Specified ueber-competence  not found: ' + ueberCompetenceId);
+    }
+
+    if (repositoryId) {
+      if (ueberCompetence.repositoryId != repositoryId) {
+        throw new ForbiddenException('Ueber-competence belongs to another repository.');
+      }
+    }
+
+    return ueberCompetence;
+  }
+
+  async modifyUeberCompetence(userId: string, repositoryId: string, dto: UeberCompetenceModificationDto) {
+    // Checks that the user is the owner of the repository
+    await this.getRepository(userId, repositoryId);
+
+    // Load ueber-competence to be changed and check that this belongs to specifed repository
+    const ueberCompetence = await this.loadUeberCompetence(dto.ueberCompetenceId, repositoryId, true);
+
+    // Check that all competencies belong to this repository
+    if (dto.nestedCompetences) {
+      dto.nestedCompetences.forEach(async (item) => {
+        await this.loadCompetence(item, repositoryId);
+      });
+    }
+
+    // Check that all competencies belong to this repository
+    if (dto.nestedUeberCompetences) {
+      dto.nestedUeberCompetences.forEach(async function (value) {
+        await this.loadUeberCompetence(value, repositoryId);
+      });
+    }
+
+    // Old records needs to be deleted first
+    // https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#disconnect-all-related-records
+    await this.db.ueberCompetence.update({
+      where: { id: ueberCompetence.id },
+      data: {
+        subCompetences: {
+          set: [],
+        },
+        subUeberCompetences: {
+          set: [],
+        },
+      },
+    });
+
+    // Map array of ids to object array
+    const competencies = dto.nestedCompetences.map((i) => ({ id: i }));
+    const ueberCompetencies = dto.nestedUeberCompetences.map((i) => ({ id: i }));
+
+    // Apply upate
+    const updatedUeberComp = this.db.ueberCompetence.update({
+      where: { id: ueberCompetence.id },
+      data: {
+        subCompetences: {
+          connect: competencies,
+        },
+        subUeberCompetences: {
+          connect: ueberCompetencies,
+        },
+      },
+      include: {
+        subCompetences: true,
+        subUeberCompetences: true,
+      },
+    });
+
+    return updatedUeberComp;
   }
 }

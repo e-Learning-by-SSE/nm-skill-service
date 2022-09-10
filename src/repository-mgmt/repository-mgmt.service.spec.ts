@@ -121,6 +121,4 @@ describe('Repository-Mgmt-Service', () => {
     expect(repository.competencies.length).toEqual(0);
     expect(repository.uebercompetencies.length).toEqual(0);
   });
-
-  // it('Add Competencies: Create first competency', async () => {});
 });

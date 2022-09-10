@@ -4,6 +4,7 @@ import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { CompetenceCreationDto, RepositoryCreationDto, UeberCompetenceCreationDto } from './dto';
+import { UeberCompetenceModificationDto } from './dto/ueber-competence-modification.dto';
 import { RepositoryMgmtService } from './repository-mgmt.service';
 
 @ApiBearerAuth()
@@ -60,5 +61,14 @@ export class RepositoryMgmtController {
     @Body() dto: UeberCompetenceCreationDto,
   ) {
     return this.repositoryService.createUeberCompetence(userId, repositoryId, dto);
+  }
+
+  @Post(':repositoryId/competencies/modify_uebercompetence')
+  modify(
+    @GetUser('id') userId: string,
+    @Param('repositoryId') repositoryId: string,
+    @Body() dto: UeberCompetenceModificationDto,
+  ) {
+    return this.repositoryService.modifyUeberCompetence(userId, repositoryId, dto);
   }
 }
