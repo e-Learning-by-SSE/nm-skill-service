@@ -1,8 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-import { RepositoryDto } from './repository.dto';
+import { RepositorySelectionDto } from './repository-selection.dto';
 
-export class RepositoryCreationDto extends RepositoryDto {
+export class RepositoryCreationDto extends RepositorySelectionDto {
   @ApiPropertyOptional()
   description?: string;
 

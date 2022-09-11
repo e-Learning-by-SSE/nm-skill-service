@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, ParseBoolPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
@@ -30,8 +30,18 @@ export class RepositoryMgmtController {
    * @returns The repositories of the specified user.
    */
   @Get(':repositoryId')
-  async showRepository(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string) {
-    return this.repositoryService.getRepository(userId, repositoryId, true);
+  @ApiQuery({ name: 'resolveCompetencies', type: Boolean })
+  async showRepository(
+    @GetUser('id') userId: string,
+    @Param('repositoryId') repositoryId: string,
+    // String query -> boolean: https://stackoverflow.com/a/61066189
+    @Query('resolveCompetencies', ParseBoolPipe) resolveCompetencies: boolean,
+  ) {
+    if (resolveCompetencies.valueOf()) {
+      return this.repositoryService.loadFullRepository(userId, repositoryId);
+    } else {
+      return this.repositoryService.getRepository(userId, repositoryId, true);
+    }
   }
 
   /**

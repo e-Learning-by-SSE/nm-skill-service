@@ -5,8 +5,10 @@ import { Competence, UeberCompetence } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { CompetenceCreationDto, RepositoryCreationDto, UeberCompetenceCreationDto } from './dto';
+import { CompetenceCreationDto, RepositoryCreationDto, RepositoryDto, UeberCompetenceCreationDto } from './dto';
+import { CompetenceDto } from './dto/competence.dto';
 import { UeberCompetenceModificationDto } from './dto/ueber-competence-modification.dto';
+import { UeberCompetenceDto } from './dto/ueber-competence.dto';
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -78,16 +80,62 @@ export class RepositoryMgmtService {
 
   public async loadFullRepository(userId: string, repositoryId: string) {
     const repository = await this.getRepository(userId, repositoryId, true);
+    // Object Destructuring & Property: https://stackoverflow.com/a/39333479
+    const tmp: any = (({ id, name, taxonomy, description }) => ({ id, name, taxonomy, description }))(repository);
+    tmp.competencies = new Array<CompetenceDto>();
+    tmp.ueberCompetencies = new Array<UeberCompetenceDto>();
+    const result = tmp as RepositoryDto;
 
-    const competenceMap = new Map<string, Competence>();
+    // Load all Competencies of Repository
+    const competenceMap = new Map<string, CompetenceDto>();
     repository.competencies.forEach((c) => {
-      competenceMap.set(c.id, c);
+      // Convert DAO -> DTO
+      const tmp: any = (({ id, skill, level }) => ({ id, skill, level }))(c);
+      tmp.description = c.description ?? '';
+      const competence = tmp as CompetenceDto;
+
+      competenceMap.set(c.id, competence);
+      result.competencies.push(competence);
     });
 
-    const ueberCompetenceMap = new Map<string, UeberCompetence>();
+    // Load all Ueber-Competencies of Repository
+    const ueberCompetenceMap = new Map<string, UeberCompetenceDto>();
     repository.uebercompetencies.forEach((uc) => {
-      ueberCompetenceMap.set(uc.id, uc);
+      // Convert DAO -> DTO
+      const tmp: any = (({ id, name }) => ({ id, name }))(uc);
+      tmp.description = uc.description ?? '';
+      tmp.nestedCompetencies = new Array(CompetenceDto);
+      tmp.nestedUeberCompetencies = new Array(UeberCompetenceDto);
+      const ueberCompetence = tmp as UeberCompetenceDto;
+
+      ueberCompetenceMap.set(uc.id, ueberCompetence);
+      result.ueberCompetencies.push(ueberCompetence);
     });
+
+    // Resolve nested elements of all Ueber-Competencies
+    await result.ueberCompetencies.forEach(async (uc) => {
+      // Load relations from DB
+      const tmp = await this.db.ueberCompetence.findUnique({
+        where: {
+          id: uc.id,
+        },
+        include: {
+          subCompetences: true,
+          subUeberCompetences: true,
+          parentUeberCompetences: true,
+        },
+      });
+
+      // Load all nested Competencies
+      tmp?.subCompetences.forEach((child) => {
+        const resolved = competenceMap.get(child.id);
+        if (resolved) {
+          uc.nestedCompetencies.push(resolved);
+        }
+      });
+    });
+
+    return result;
   }
 
   /**
