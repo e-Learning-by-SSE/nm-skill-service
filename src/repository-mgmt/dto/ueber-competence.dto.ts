@@ -13,7 +13,7 @@ export class UeberCompetenceDto extends UeberCompetenceCreationDto {
 
   @IsOptional()
   @ApiProperty()
-  parent: UeberCompetenceDto;
+  parents: UeberCompetenceDto[];
   @IsOptional()
   @ApiProperty()
   nestedCompetencies: CompetenceDto[];

@@ -1,7 +1,4 @@
-import { validate } from 'class-validator';
-
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Competence, UeberCompetence } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -82,8 +79,8 @@ export class RepositoryMgmtService {
     const repository = await this.getRepository(userId, repositoryId, true);
     // Object Destructuring & Property: https://stackoverflow.com/a/39333479
     const tmp: any = (({ id, name, taxonomy, description }) => ({ id, name, taxonomy, description }))(repository);
-    tmp.competencies = new Array<CompetenceDto>();
-    tmp.ueberCompetencies = new Array<UeberCompetenceDto>();
+    tmp.competencies = <CompetenceDto[]>[];
+    tmp.ueberCompetencies = <UeberCompetenceDto[]>[];
     const result = tmp as RepositoryDto;
 
     // Load all Competencies of Repository
@@ -104,38 +101,67 @@ export class RepositoryMgmtService {
       // Convert DAO -> DTO
       const tmp: any = (({ id, name }) => ({ id, name }))(uc);
       tmp.description = uc.description ?? '';
-      tmp.nestedCompetencies = new Array(CompetenceDto);
-      tmp.nestedUeberCompetencies = new Array(UeberCompetenceDto);
+      tmp.nestedCompetencies = <CompetenceDto[]>[];
+      tmp.nestedUeberCompetencies = <UeberCompetenceDto[]>[];
+      tmp.parents = <UeberCompetenceDto[]>[];
       const ueberCompetence = tmp as UeberCompetenceDto;
 
       ueberCompetenceMap.set(uc.id, ueberCompetence);
       result.ueberCompetencies.push(ueberCompetence);
     });
 
-    // Resolve nested elements of all Ueber-Competencies
-    await result.ueberCompetencies.forEach(async (uc) => {
-      // Load relations from DB
-      const tmp = await this.db.ueberCompetence.findUnique({
-        where: {
-          id: uc.id,
-        },
-        include: {
-          subCompetences: true,
-          subUeberCompetences: true,
-          parentUeberCompetences: true,
-        },
-      });
+    // Runs all asynchronous functions in parallel and waits for the result: https://stackoverflow.com/a/37576787
+    await Promise.all(
+      result.ueberCompetencies.map(async (uc) => {
+        await this.resolveUberCompetence(uc, competenceMap, ueberCompetenceMap);
+      }),
+    );
 
-      // Load all nested Competencies
-      tmp?.subCompetences.forEach((child) => {
+    return result;
+  }
+
+  private async resolveUberCompetence(
+    uc: UeberCompetenceDto,
+    competenceMap: Map<string, CompetenceDto>,
+    ueberCompetenceMap: Map<string, UeberCompetenceDto>,
+  ) {
+    // Load relations from DB
+    const tmp = await this.db.ueberCompetence.findUnique({
+      where: {
+        id: uc.id,
+      },
+      include: {
+        subCompetences: true,
+        subUeberCompetences: true,
+        parentUeberCompetences: true,
+      },
+    });
+
+    if (tmp) {
+      // Load all nested Competences
+      tmp.subCompetences.forEach((child) => {
         const resolved = competenceMap.get(child.id);
         if (resolved) {
           uc.nestedCompetencies.push(resolved);
         }
       });
-    });
 
-    return result;
+      // Load all nested Ueber-Competences
+      for (const child of tmp.subUeberCompetences) {
+        const resolved = ueberCompetenceMap.get(child.id);
+        if (resolved) {
+          uc.nestedUeberCompetencies.push(resolved);
+        }
+      }
+
+      // Load parent
+      for (const parent of tmp.parentUeberCompetences) {
+        const resolved = ueberCompetenceMap.get(parent.id);
+        if (resolved) {
+          uc.parents.push(resolved);
+        }
+      }
+    }
   }
 
   /**
