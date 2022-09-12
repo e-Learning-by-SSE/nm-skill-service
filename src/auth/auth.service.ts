@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto, LoginDto } from './dto';
+import { AuthDto, LoginAckDto, LoginDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +31,13 @@ export class AuthService {
     }
 
     // Return User
-    return this.signToken(user.id, user.email, user.name);
+    const result: LoginAckDto = {
+      id: user.id,
+      email: user.email,
+      name: user.name ?? '',
+      ...(await this.signToken(user.id, user.email, user.name)),
+    };
+    return result;
   }
 
   async register(dto: AuthDto) {
@@ -55,7 +61,13 @@ export class AuthService {
       });
 
       // Return saved user
-      return this.signToken(user.id, user.email, user.name);
+      const result: LoginAckDto = {
+        id: user.id,
+        email: user.email,
+        name: user.name ?? '',
+        ...(await this.signToken(user.id, user.email, user.name)),
+      };
+      return result;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists

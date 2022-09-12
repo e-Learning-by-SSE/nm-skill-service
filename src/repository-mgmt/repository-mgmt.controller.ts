@@ -31,7 +31,6 @@ export class RepositoryMgmtController {
    * @returns The repositories of the specified user.
    */
   @Get(':repositoryId')
-  @ApiQuery({ name: 'resolveCompetencies', type: Boolean })
   async showRepository(
     @GetUser('id') userId: string,
     @Param('repositoryId') repositoryId: string,
@@ -56,7 +55,13 @@ export class RepositoryMgmtController {
     return this.repositoryService.createRepository(userId, dto);
   }
 
-  @ApiOkResponse({ type: CompetenceDto, description: 'Creates new atomic competence.' })
+  /**
+   * Creates a new competence at the specified repository and returns the created competence.
+   * @param userId The owner of the repository
+   * @param repositoryId The repository at which the competence shall be added to.
+   * @param dto The competence description
+   * @returns The created competence.
+   */
   @Post(':repositoryId/competencies/add_competence')
   addCompetence(
     @GetUser('id') userId: string,

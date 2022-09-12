@@ -1,19 +1,15 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
-import { ApiProperty } from '@nestjs/swagger';
-
+/**
+ * Request object to register a new user to the system.
+ */
 export class AuthDto {
   @IsEmail()
-  @ApiProperty()
   email: string;
 
   @IsNotEmpty()
-  @IsString()
-  @ApiProperty()
   name: string;
 
   @IsNotEmpty()
-  @IsString()
-  @ApiProperty()
   password: string;
 }
