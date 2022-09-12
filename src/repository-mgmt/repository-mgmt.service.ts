@@ -303,8 +303,8 @@ export class RepositoryMgmtService {
     });
 
     // Map array of ids to object array
-    const competencies = dto.nestedCompetencies.map((i) => ({ id: i }));
-    const ueberCompetencies = dto.nestedUeberCompetencies.map((i) => ({ id: i }));
+    const competencies = dto.nestedCompetencies?.map((i) => ({ id: i }));
+    const ueberCompetencies = dto.nestedUeberCompetencies?.map((i) => ({ id: i }));
 
     // Apply upate
     const updatedUeberComp = this.db.ueberCompetence.update({
