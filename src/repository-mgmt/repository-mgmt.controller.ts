@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Param, ParseBoolPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { CompetenceCreationDto, RepositoryCreationDto, UeberCompetenceCreationDto } from './dto';
+import { CompetenceDto } from './dto/competence.dto';
 import { UeberCompetenceModificationDto } from './dto/ueber-competence-modification.dto';
 import { RepositoryMgmtService } from './repository-mgmt.service';
 
@@ -55,6 +56,7 @@ export class RepositoryMgmtController {
     return this.repositoryService.createRepository(userId, dto);
   }
 
+  @ApiOkResponse({ type: CompetenceDto, description: 'Creates new atomic competence.' })
   @Post(':repositoryId/competencies/add_competence')
   addCompetence(
     @GetUser('id') userId: string,

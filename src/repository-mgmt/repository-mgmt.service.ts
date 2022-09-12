@@ -179,7 +179,7 @@ export class RepositoryMgmtService {
         },
       });
 
-      return competence;
+      return competence as CompetenceDto;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists

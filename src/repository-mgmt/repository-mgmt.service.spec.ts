@@ -262,13 +262,11 @@ describe('Repository-Mgmt-Service', () => {
         id: topUeberCompetence.id,
         nestedCompetencies: [],
         nestedUeberCompetencies: [],
-        parents: [],
       }),
       expect.objectContaining({
         id: nestedUeberCompetence.id,
         nestedCompetencies: [],
         nestedUeberCompetencies: [],
-        parents: [],
       }),
     ]);
     expect(repoData.ueberCompetencies).toEqual(expected);
@@ -290,13 +288,11 @@ describe('Repository-Mgmt-Service', () => {
         id: topUeberCompetence.id,
         nestedCompetencies: [],
         nestedUeberCompetencies: [expect.objectContaining({ id: nestedUeberCompetence.id })],
-        parents: [],
       }),
       expect.objectContaining({
         id: nestedUeberCompetence.id,
         nestedCompetencies: [],
         nestedUeberCompetencies: [],
-        parents: [expect.objectContaining({ id: topUeberCompetence.id })],
       }),
     ]);
     expect(repoData.ueberCompetencies).toEqual(expected);
