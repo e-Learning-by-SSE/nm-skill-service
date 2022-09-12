@@ -245,4 +245,60 @@ describe('Repository-Mgmt-Service', () => {
     nestedCompetenceData = ueberCompetenceData.nestedCompetencies[0];
     expect(nestedCompetenceData.id).toEqual(secondCompetence.id);
   });
+
+  it('Modify Competence: Nesting of Ueber-Competencies', async () => {
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+    const repository = await dbUtils.createRepository(user.id, 'Repository');
+    const topUeberCompetence = await dbUtils.createUeberCompetence(repository.id, '1st Ueber-Competence');
+    const nestedUeberCompetence = await dbUtils.createUeberCompetence(repository.id, '2nd Ueber-Competence');
+
+    // Precondition: Repository contains 2 competences; Ueber-Competencies are empty
+    let repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    expect(repoData.competencies.length).toEqual(0);
+    expect(repoData.ueberCompetencies.length).toEqual(2);
+    // Partial matching with any order based on: https://codewithhugo.com/jest-array-object-match-contain/
+    let expected = expect.arrayContaining([
+      expect.objectContaining({
+        id: topUeberCompetence.id,
+        nestedCompetencies: [],
+        nestedUeberCompetencies: [],
+        parents: [],
+      }),
+      expect.objectContaining({
+        id: nestedUeberCompetence.id,
+        nestedCompetencies: [],
+        nestedUeberCompetencies: [],
+        parents: [],
+      }),
+    ]);
+    expect(repoData.ueberCompetencies).toEqual(expected);
+
+    // Action: Create competence
+    const modifyData: UeberCompetenceModificationDto = {
+      ueberCompetenceId: topUeberCompetence.id,
+      nestedCompetencies: [],
+      nestedUeberCompetencies: [nestedUeberCompetence.id],
+    };
+    await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
+
+    // Postcondition: Same amount of competences; Ueber-Competence contains desired competence
+    repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    expect(repoData.competencies.length).toEqual(0);
+    expect(repoData.ueberCompetencies.length).toEqual(2);
+    expected = expect.arrayContaining([
+      expect.objectContaining({
+        id: topUeberCompetence.id,
+        nestedCompetencies: [],
+        // nestedUeberCompetencies: [{ id: nestedUeberCompetence.id }],
+        parents: [],
+      }),
+      expect.objectContaining({
+        id: nestedUeberCompetence.id,
+        nestedCompetencies: [],
+        nestedUeberCompetencies: [],
+        //parents: [{ id: topUeberCompetence.id }],
+      }),
+    ]);
+    expect(repoData.ueberCompetencies).toEqual(expected);
+  });
 });

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, ParseBoolPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';

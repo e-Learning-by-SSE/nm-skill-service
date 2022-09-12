@@ -272,16 +272,20 @@ export class RepositoryMgmtService {
 
     // Check that all competencies belong to this repository
     if (dto.nestedCompetencies) {
-      dto.nestedCompetencies.forEach(async (item) => {
-        await this.loadCompetence(item, repositoryId);
-      });
+      await Promise.all(
+        dto.nestedCompetencies.map(async (c) => {
+          await this.loadCompetence(c, repositoryId);
+        }),
+      );
     }
 
     // Check that all competencies belong to this repository
     if (dto.nestedUeberCompetencies) {
-      dto.nestedUeberCompetencies.forEach(async function (value) {
-        await this.loadUeberCompetence(value, repositoryId);
-      });
+      await Promise.all(
+        dto.nestedUeberCompetencies.map(async (uc) => {
+          await this.loadUeberCompetence(uc, repositoryId);
+        }),
+      );
     }
 
     // Old records needs to be deleted first
