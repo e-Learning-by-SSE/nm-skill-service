@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
+import { CompetenceCreationDto } from './dto/competence-creation.dto';
+import { UeberCompetenceCreationDto } from './dto/ueber-competence-creation.dto';
 import { RepositoryMgmtService } from './repository-mgmt.service';
 
 describe('Repository-Mgmt-Service', () => {
@@ -120,5 +122,54 @@ describe('Repository-Mgmt-Service', () => {
     const repository = await repositoryService.getRepository(user.id, repoList.repositories[0].id, true);
     expect(repository.competencies.length).toEqual(0);
     expect(repository.uebercompetencies.length).toEqual(0);
+  });
+
+  it('Create Competence: Create first competence', async () => {
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+    const repository = await dbUtils.createRepository(user.id, 'Repository');
+
+    // Precondition: Repository contains no competences
+    let repoData = await repositoryService.getRepository(user.id, repository.id, true);
+    expect(repoData.competencies.length).toEqual(0);
+    expect(repoData.uebercompetencies.length).toEqual(0);
+
+    // Action: Create competence
+    const compCreationData: CompetenceCreationDto = {
+      skill: 'A skill',
+      level: 1,
+      description: 'A description',
+    };
+    await repositoryService.createCompetence(user.id, repository.id, compCreationData);
+
+    // Postcondition: Repository contains only created competence
+    repoData = await repositoryService.getRepository(user.id, repository.id, true);
+    expect(repoData.competencies.length).toEqual(1);
+    expect(repoData.uebercompetencies.length).toEqual(0);
+    const newCompetence = repoData.competencies[0];
+    expect(newCompetence).toEqual(expect.objectContaining(compCreationData));
+  });
+
+  it('Create Competence: Create first & empty Ueber-Competence', async () => {
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+    const repository = await dbUtils.createRepository(user.id, 'Repository');
+
+    // Precondition: Repository contains no competences
+    let repoData = await repositoryService.getRepository(user.id, repository.id, true);
+    expect(repoData.competencies.length).toEqual(0);
+    expect(repoData.uebercompetencies.length).toEqual(0);
+
+    // Action: Create competence
+    const compCreationData: UeberCompetenceCreationDto = {
+      name: 'Ueber-Competence',
+      description: 'A description',
+    };
+    await repositoryService.createUeberCompetence(user.id, repository.id, compCreationData);
+
+    // Postcondition: Repository contains only created competence
+    repoData = await repositoryService.getRepository(user.id, repository.id, true);
+    expect(repoData.competencies.length).toEqual(0);
+    expect(repoData.uebercompetencies.length).toEqual(1);
+    const newUeberCompetence = repoData.uebercompetencies[0];
+    expect(newUeberCompetence).toEqual(expect.objectContaining(compCreationData));
   });
 });
