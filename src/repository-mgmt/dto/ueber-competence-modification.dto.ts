@@ -16,12 +16,12 @@ export class UeberCompetenceModificationDto {
     default: [],
     description: 'Complete list of all directly nested Competencies. Will overwirte old settings.',
   })
-  nestedCompetences: string[];
+  nestedCompetencies: string[];
 
   @ApiProperty({
     required: true,
     default: [],
     description: 'Complete list of all directly nested Ueber-Competencies. Will overwirte old settings.',
   })
-  nestedUeberCompetences: string[];
+  nestedUeberCompetencies: string[];
 }

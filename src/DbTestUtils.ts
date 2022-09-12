@@ -25,6 +25,8 @@ export class DbTestUtils {
   }
 
   public async wipeDb() {
+    await this.db.ueberCompetence.deleteMany();
+    await this.db.competence.deleteMany();
     await this.db.repository.deleteMany();
     await this.db.user.deleteMany();
   }
@@ -63,5 +65,36 @@ export class DbTestUtils {
     });
 
     return repository;
+  }
+
+  /**
+   * Creates a new competence for an existing repository
+   */
+  async createCompetence(repoId: string, skill: string, level: number, description?: string) {
+    const competence = await this.db.competence.create({
+      data: {
+        repositoryId: repoId,
+        skill: skill,
+        level: level,
+        description: description,
+      },
+    });
+
+    return competence;
+  }
+
+  /**
+   * Creates a new competence for an existing repository
+   */
+  async createUeberCompetence(repoId: string, name: string, description?: string) {
+    const ueberCompetence = await this.db.ueberCompetence.create({
+      data: {
+        repositoryId: repoId,
+        name: name,
+        description: description,
+      },
+    });
+
+    return ueberCompetence;
   }
 }

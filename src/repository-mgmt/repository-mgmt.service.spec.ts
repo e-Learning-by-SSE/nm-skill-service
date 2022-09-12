@@ -5,6 +5,7 @@ import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
 import { CompetenceCreationDto } from './dto/competence-creation.dto';
 import { UeberCompetenceCreationDto } from './dto/ueber-competence-creation.dto';
+import { UeberCompetenceModificationDto } from './dto/ueber-competence-modification.dto';
 import { RepositoryMgmtService } from './repository-mgmt.service';
 
 describe('Repository-Mgmt-Service', () => {
@@ -171,5 +172,77 @@ describe('Repository-Mgmt-Service', () => {
     expect(repoData.uebercompetencies.length).toEqual(1);
     const newUeberCompetence = repoData.uebercompetencies[0];
     expect(newUeberCompetence).toEqual(expect.objectContaining(compCreationData));
+  });
+
+  it('Modify Competence: Add first competences to empty Ueber-Competence', async () => {
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+    const repository = await dbUtils.createRepository(user.id, 'Repository');
+    await dbUtils.createCompetence(repository.id, 'Untouched Competence', 1);
+    const movedCompetence = await dbUtils.createCompetence(repository.id, 'Moved Competence', 1);
+    const ueberCompetence = await dbUtils.createUeberCompetence(repository.id, 'Ueber-Competence');
+
+    // Precondition: Repository contains 3 competences; Ueber-Competence is empty
+    let repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    expect(repoData.competencies.length).toEqual(2);
+    expect(repoData.ueberCompetencies.length).toEqual(1);
+    let ueberCompetenceData = repoData.ueberCompetencies[0];
+    expect(ueberCompetenceData.nestedCompetencies.length).toEqual(0);
+
+    // Action: Create competence
+    const modifyData: UeberCompetenceModificationDto = {
+      ueberCompetenceId: ueberCompetence.id,
+      nestedCompetencies: [movedCompetence.id],
+      nestedUeberCompetencies: [],
+    };
+    await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
+
+    // Postcondition: Same amount of competences; Ueber-Competence contains desired competence
+    repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    expect(repoData.competencies.length).toEqual(2);
+    expect(repoData.ueberCompetencies.length).toEqual(1);
+    ueberCompetenceData = repoData.ueberCompetencies[0];
+    expect(ueberCompetenceData.nestedCompetencies.length).toEqual(1);
+    const nestedCompetenceData = ueberCompetenceData.nestedCompetencies[0];
+    expect(nestedCompetenceData.id).toEqual(movedCompetence.id);
+  });
+
+  it('Modify Competence: Exchange competences of Ueber-Competence', async () => {
+    const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+    const repository = await dbUtils.createRepository(user.id, 'Repository');
+    const firstCompetence = await dbUtils.createCompetence(repository.id, '1st Competence', 1);
+    const secondCompetence = await dbUtils.createCompetence(repository.id, '2nd Competence', 1);
+    const ueberCompetence = await dbUtils.createUeberCompetence(repository.id, 'Ueber-Competence');
+    let modifyData: UeberCompetenceModificationDto = {
+      ueberCompetenceId: ueberCompetence.id,
+      nestedCompetencies: [firstCompetence.id],
+      nestedUeberCompetencies: [],
+    };
+    await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
+
+    // Precondition: Repository contains 3 competences; Ueber-Competence contains 1st competence
+    let repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    expect(repoData.competencies.length).toEqual(2);
+    expect(repoData.ueberCompetencies.length).toEqual(1);
+    let ueberCompetenceData = repoData.ueberCompetencies[0];
+    expect(ueberCompetenceData.nestedCompetencies.length).toEqual(1);
+    let nestedCompetenceData = ueberCompetenceData.nestedCompetencies[0];
+    expect(nestedCompetenceData.id).toEqual(firstCompetence.id);
+
+    // Action: Create competence
+    modifyData = {
+      ueberCompetenceId: ueberCompetence.id,
+      nestedCompetencies: [secondCompetence.id],
+      nestedUeberCompetencies: [],
+    };
+    await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
+
+    // Postcondition: Same amount of competences; Ueber-Competence contains desired competence
+    repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    expect(repoData.competencies.length).toEqual(2);
+    expect(repoData.ueberCompetencies.length).toEqual(1);
+    ueberCompetenceData = repoData.ueberCompetencies[0];
+    expect(ueberCompetenceData.nestedCompetencies.length).toEqual(1);
+    nestedCompetenceData = ueberCompetenceData.nestedCompetencies[0];
+    expect(nestedCompetenceData.id).toEqual(secondCompetence.id);
   });
 });

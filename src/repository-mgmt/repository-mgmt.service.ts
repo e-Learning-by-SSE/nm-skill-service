@@ -271,15 +271,15 @@ export class RepositoryMgmtService {
     const ueberCompetence = await this.loadUeberCompetence(dto.ueberCompetenceId, repositoryId, true);
 
     // Check that all competencies belong to this repository
-    if (dto.nestedCompetences) {
-      dto.nestedCompetences.forEach(async (item) => {
+    if (dto.nestedCompetencies) {
+      dto.nestedCompetencies.forEach(async (item) => {
         await this.loadCompetence(item, repositoryId);
       });
     }
 
     // Check that all competencies belong to this repository
-    if (dto.nestedUeberCompetences) {
-      dto.nestedUeberCompetences.forEach(async function (value) {
+    if (dto.nestedUeberCompetencies) {
+      dto.nestedUeberCompetencies.forEach(async function (value) {
         await this.loadUeberCompetence(value, repositoryId);
       });
     }
@@ -299,8 +299,8 @@ export class RepositoryMgmtService {
     });
 
     // Map array of ids to object array
-    const competencies = dto.nestedCompetences.map((i) => ({ id: i }));
-    const ueberCompetencies = dto.nestedUeberCompetences.map((i) => ({ id: i }));
+    const competencies = dto.nestedCompetencies.map((i) => ({ id: i }));
+    const ueberCompetencies = dto.nestedUeberCompetencies.map((i) => ({ id: i }));
 
     // Apply upate
     const updatedUeberComp = this.db.ueberCompetence.update({
