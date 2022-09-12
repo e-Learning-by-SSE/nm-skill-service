@@ -127,6 +127,9 @@ async function createCompetencies() {
       });
     }),
   );
+
+  // wait 1 second
+  await new Promise((f) => setTimeout(f, 1000));
 }
 
 async function createUeberCompetencies() {
