@@ -1,10 +1,9 @@
 import { Body, Controller, Get, Param, ParseBoolPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { CompetenceCreationDto, RepositoryCreationDto, UeberCompetenceCreationDto } from './dto';
-import { CompetenceDto } from './dto/competence.dto';
 import { UeberCompetenceModificationDto } from './dto/ueber-competence-modification.dto';
 import { RepositoryMgmtService } from './repository-mgmt.service';
 
