@@ -46,6 +46,13 @@ const competencies = [
     description: 'Variable Usage in Expressions',
     level: 3,
   },
+  {
+    id: '4',
+    repository: '1',
+    name: 'Compiler Usage',
+    description: 'How to use commands: javac & java',
+    level: 3,
+  },
 ];
 
 const ueberCompetencies = [
@@ -68,6 +75,8 @@ async function seed(): Promise<void> {
   console.log('✅ Repositories');
   createCompetencies();
   console.log('✅ Competencies');
+  // wait 1 second
+  await new Promise((f) => setTimeout(f, 1000));
   createUeberCompetencies();
   console.log('✅ Ueber-Competencies');
 }
@@ -127,9 +136,6 @@ async function createCompetencies() {
       });
     }),
   );
-
-  // wait 1 second
-  await new Promise((f) => setTimeout(f, 1000));
 }
 
 async function createUeberCompetencies() {
