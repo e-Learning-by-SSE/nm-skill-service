@@ -95,6 +95,8 @@ export class RepositoryMgmtService {
       result.competencies.push(competence);
     });
 
+    console.log(result.ueberCompetencies);
+
     // Load all Ueber-Competencies of Repository
     const ueberCompetenceMap = new Map<string, UeberCompetenceDto>();
     repository.uebercompetencies.forEach((uc) => {
@@ -103,7 +105,6 @@ export class RepositoryMgmtService {
       tmp.description = uc.description ?? '';
       tmp.nestedCompetencies = <CompetenceDto[]>[];
       tmp.nestedUeberCompetencies = <UeberCompetenceDto[]>[];
-      tmp.parents = <UeberCompetenceDto[]>[];
       const ueberCompetence = tmp as UeberCompetenceDto;
 
       ueberCompetenceMap.set(uc.id, ueberCompetence);
@@ -133,7 +134,8 @@ export class RepositoryMgmtService {
       include: {
         subCompetences: true,
         subUeberCompetences: true,
-        parentUeberCompetences: true,
+        // Avoid infinite circles
+        parentUeberCompetences: false,
       },
     });
 
@@ -151,14 +153,6 @@ export class RepositoryMgmtService {
         const resolved = ueberCompetenceMap.get(child.id);
         if (resolved) {
           uc.nestedUeberCompetencies.push(resolved);
-        }
-      }
-
-      // Load parent
-      for (const parent of tmp.parentUeberCompetences) {
-        const resolved = ueberCompetenceMap.get(parent.id);
-        if (resolved) {
-          uc.parents.push(resolved);
         }
       }
     }

@@ -49,6 +49,34 @@ const competencies = [
   {
     id: '4',
     repository: '1',
+    name: 'if-statement',
+    description: 'if wo/ else',
+    level: 3,
+  },
+  {
+    id: '5',
+    repository: '1',
+    name: 'else-statement',
+    description: 'else-statement',
+    level: 3,
+  },
+  {
+    id: '6',
+    repository: '1',
+    name: 'if-block',
+    description: 'Using curly brackets to nest more than 1 statement',
+    level: 3,
+  },
+  {
+    id: '7',
+    repository: '1',
+    name: 'if nesting',
+    description: 'Nest multiple if-statements',
+    level: 3,
+  },
+  {
+    id: '8',
+    repository: '1',
     name: 'Compiler Usage',
     description: 'How to use commands: javac & java',
     level: 3,
@@ -60,10 +88,19 @@ const ueberCompetencies = [
     id: '1',
     repository: '1',
     name: 'Expressions',
-    description: 'Complete understanding to formulate expressions in Java',
+    description: 'Complete understanding of expressions in Java',
     nestedCompetencies: ['1', '2', '3'],
     nestedUeberCompetencies: [],
     parents: [],
+  },
+  {
+    id: '2',
+    repository: '1',
+    name: 'if/else concept',
+    description: 'Complete understanding if/else in Java',
+    nestedCompetencies: ['4', '5', '6', '7'],
+    nestedUeberCompetencies: ['1'],
+    // parents: [],
   },
 ];
 
@@ -139,29 +176,25 @@ async function createCompetencies() {
 }
 
 async function createUeberCompetencies() {
-  await Promise.all(
-    ueberCompetencies.map(async (competence) => {
-      const competencies = competence.nestedCompetencies?.map((i) => ({ id: i }));
-      const ueberCompetencies = competence.nestedUeberCompetencies?.map((i) => ({ id: i }));
-      const parents = competence.parents?.map((i) => ({ id: i }));
+  // Need to preserve ordering and wait to be finished before creating the next one!
+  for (const competence of ueberCompetencies) {
+    const competencies = competence.nestedCompetencies?.map((i) => ({ id: i }));
+    const ueberCompetencies = competence.nestedUeberCompetencies?.map((i) => ({ id: i }));
+    // const parents = competence.parents?.map((i) => ({ id: i }));
 
-      await prisma.ueberCompetence.create({
-        data: {
-          id: competence.id,
-          repositoryId: competence.repository,
-          name: competence.name,
-          description: competence.description,
-          subCompetences: {
-            connect: competencies,
-          },
-          subUeberCompetences: {
-            connect: ueberCompetencies,
-          },
-          parentUeberCompetences: {
-            connect: parents,
-          },
+    await prisma.ueberCompetence.create({
+      data: {
+        id: competence.id,
+        repositoryId: competence.repository,
+        name: competence.name,
+        description: competence.description,
+        subCompetences: {
+          connect: competencies,
         },
-      });
-    }),
-  );
+        subUeberCompetences: {
+          connect: ueberCompetencies,
+        },
+      },
+    });
+  }
 }
