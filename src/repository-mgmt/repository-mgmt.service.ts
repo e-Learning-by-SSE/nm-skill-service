@@ -14,6 +14,7 @@ import {
     UeberCompetenceModificationDto,
 } from './dto';
 import { RepositoryDto } from './dto/repository-export/repository.dto';
+import { UnResolvedUeberCompetenceDto } from './dto/repository-export/unresolved-ueber-competence.dto';
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -228,7 +229,15 @@ export class RepositoryMgmtService {
         },
       });
 
-      return competence;
+      const result: UnResolvedUeberCompetenceDto = {
+        id: competence.id,
+        name: competence.name,
+        description: competence.description ?? undefined,
+        nestedCompetencies: [],
+        nestedUeberCompetencies: [],
+        parents: [],
+      };
+      return result;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -324,7 +333,7 @@ export class RepositoryMgmtService {
     const ueberCompetencies = dto.nestedUeberCompetencies?.map((i) => ({ id: i }));
 
     // Apply upate
-    const updatedUeberComp = this.db.ueberCompetence.update({
+    const updatedUeberComp = await this.db.ueberCompetence.update({
       where: { id: ueberCompetence.id },
       data: {
         subCompetences: {
@@ -337,9 +346,18 @@ export class RepositoryMgmtService {
       include: {
         subCompetences: true,
         subUeberCompetences: true,
+        parentUeberCompetences: true,
       },
     });
 
-    return updatedUeberComp;
+    const result: UnResolvedUeberCompetenceDto = {
+      id: ueberCompetence.id,
+      name: ueberCompetence.name,
+      description: ueberCompetence.description ?? undefined,
+      nestedCompetencies: updatedUeberComp.subCompetences.map((c) => c.id),
+      nestedUeberCompetencies: updatedUeberComp.subUeberCompetences.map((uc) => uc.id),
+      parents: updatedUeberComp.parentUeberCompetences.map((p) => p.id),
+    };
+    return result;
   }
 }
