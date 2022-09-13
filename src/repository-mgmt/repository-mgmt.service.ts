@@ -14,6 +14,7 @@ import {
     UeberCompetenceModificationDto,
 } from './dto';
 import { RepositoryDto } from './dto/repository-export/repository.dto';
+import { UnresolvedRepositoryDto } from './dto/repository-export/unresolved-repository.dto';
 import { UnResolvedUeberCompetenceDto } from './dto/repository-export/unresolved-ueber-competence.dto';
 
 /**
@@ -101,7 +102,18 @@ export class RepositoryMgmtService {
     return repository;
   }
 
-  public async loadFullRepository(userId: string, repositoryId: string) {
+  public async loadRepository(userId: string, repositoryId: string) {
+    const repository = await this.getRepository(userId, repositoryId, true);
+    const result: UnresolvedRepositoryDto = {
+      ...this.mapRepositoryToDto(repository),
+      competencies: repository.competencies.map((c) => c.id),
+      ueberCompetencies: repository.uebercompetencies.map((uc) => uc.id),
+    };
+
+    return result;
+  }
+
+  public async loadResolvedRepository(userId: string, repositoryId: string) {
     const repository = await this.getRepository(userId, repositoryId, true);
     // Object Destructuring & Property: https://stackoverflow.com/a/39333479
     const tmp: any = (({ id, name, taxonomy, description }) => ({ id, name, taxonomy, description }))(repository);

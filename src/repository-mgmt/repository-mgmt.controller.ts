@@ -25,22 +25,25 @@ export class RepositoryMgmtController {
   }
 
   /**
-   * Returns one repository and its elements.
+   * Returns one repository and its unresolved elements.
+   * Competences and their relations are handled as IDs and need to be resolved on the client-side.
    * @param userId The user for which the repositories shall be listed.
    * @returns The repositories of the specified user.
    */
   @Get(':repositoryId')
-  async showRepository(
-    @GetUser('id') userId: string,
-    @Param('repositoryId') repositoryId: string,
-    // String query -> boolean: https://stackoverflow.com/a/61066189
-    @Query('resolveCompetencies', ParseBoolPipe) resolveCompetencies: boolean,
-  ) {
-    if (resolveCompetencies.valueOf()) {
-      return this.repositoryService.loadFullRepository(userId, repositoryId);
-    } else {
-      return this.repositoryService.getRepository(userId, repositoryId, true);
-    }
+  async loadRepository(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string) {
+    return this.repositoryService.loadRepository(userId, repositoryId);
+  }
+
+  /**
+   * Returns one resolved repository and its elements.
+   * Competencies and their relations are resolved at the server.
+   * @param userId The user for which the repositories shall be listed.
+   * @returns The repositories of the specified user.
+   */
+  @Get('resolve/:repositoryId')
+  async loadResolvedRepository(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string) {
+    return this.repositoryService.loadResolvedRepository(userId, repositoryId);
   }
 
   /**

@@ -182,7 +182,7 @@ describe('Repository-Mgmt-Service', () => {
     const ueberCompetence = await dbUtils.createUeberCompetence(repository.id, 'Ueber-Competence');
 
     // Precondition: Repository contains 3 competences; Ueber-Competence is empty
-    let repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    let repoData = await repositoryService.loadResolvedRepository(user.id, repository.id);
     expect(repoData.competencies.length).toEqual(2);
     expect(repoData.ueberCompetencies.length).toEqual(1);
     let ueberCompetenceData = repoData.ueberCompetencies[0];
@@ -197,7 +197,7 @@ describe('Repository-Mgmt-Service', () => {
     await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
 
     // Postcondition: Same amount of competences; Ueber-Competence contains desired competence
-    repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    repoData = await repositoryService.loadResolvedRepository(user.id, repository.id);
     expect(repoData.competencies.length).toEqual(2);
     expect(repoData.ueberCompetencies.length).toEqual(1);
     ueberCompetenceData = repoData.ueberCompetencies[0];
@@ -220,7 +220,7 @@ describe('Repository-Mgmt-Service', () => {
     await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
 
     // Precondition: Repository contains 3 competences; Ueber-Competence contains 1st competence
-    let repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    let repoData = await repositoryService.loadResolvedRepository(user.id, repository.id);
     expect(repoData.competencies.length).toEqual(2);
     expect(repoData.ueberCompetencies.length).toEqual(1);
     let ueberCompetenceData = repoData.ueberCompetencies[0];
@@ -237,7 +237,7 @@ describe('Repository-Mgmt-Service', () => {
     await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
 
     // Postcondition: Same amount of competences; Ueber-Competence contains desired competence
-    repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    repoData = await repositoryService.loadResolvedRepository(user.id, repository.id);
     expect(repoData.competencies.length).toEqual(2);
     expect(repoData.ueberCompetencies.length).toEqual(1);
     ueberCompetenceData = repoData.ueberCompetencies[0];
@@ -253,7 +253,7 @@ describe('Repository-Mgmt-Service', () => {
     const nestedUeberCompetence = await dbUtils.createUeberCompetence(repository.id, '2nd Ueber-Competence');
 
     // Precondition: Repository contains 2 competences; Ueber-Competencies are empty
-    let repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    let repoData = await repositoryService.loadResolvedRepository(user.id, repository.id);
     expect(repoData.competencies.length).toEqual(0);
     expect(repoData.ueberCompetencies.length).toEqual(2);
     // Partial matching with any order based on: https://codewithhugo.com/jest-array-object-match-contain/
@@ -280,7 +280,7 @@ describe('Repository-Mgmt-Service', () => {
     await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
 
     // Postcondition: Same amount of competences; Ueber-Competence contains desired competence
-    repoData = await repositoryService.loadFullRepository(user.id, repository.id);
+    repoData = await repositoryService.loadResolvedRepository(user.id, repository.id);
     expect(repoData.competencies.length).toEqual(0);
     expect(repoData.ueberCompetencies.length).toEqual(2);
     expected = expect.arrayContaining([
