@@ -44,6 +44,7 @@ export class RepositoryMgmtService {
 
   private mapRepositoryToDto(repository: Repository): RepositoryDto {
     return {
+      userId: repository.userId,
       id: repository.id,
       name: repository.name,
       version: repository.version,
