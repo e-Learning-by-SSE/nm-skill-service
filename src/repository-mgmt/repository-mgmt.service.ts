@@ -1,11 +1,19 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Repository } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { CompetenceCreationDto, RepositoryCreationDto, RepositoryDto, UeberCompetenceCreationDto } from './dto';
-import { CompetenceDto } from './dto/competence.dto';
-import { UeberCompetenceModificationDto } from './dto/ueber-competence-modification.dto';
-import { UeberCompetenceDto } from './dto/ueber-competence.dto';
+import {
+    CompetenceCreationDto,
+    CompetenceDto,
+    RepositoryCreationDto,
+    RepositoryListDto,
+    ResolvedRepositoryDto,
+    ResolvedUeberCompetenceDto,
+    UeberCompetenceCreationDto,
+    UeberCompetenceModificationDto,
+} from './dto';
+import { RepositoryDto } from './dto/repository-export/repository.dto';
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -15,20 +23,36 @@ import { UeberCompetenceDto } from './dto/ueber-competence.dto';
 export class RepositoryMgmtService {
   constructor(private db: PrismaService) {}
 
+  /**
+   * Returns a list of all repositories owned by the specified user.
+   * Won't include any information about nested competencies.
+   * @param userId The owner of the repositories
+   * @returns The list of his repositories
+   */
   async listRepositories(userId: string) {
-    console.log(userId);
     const repositories = await this.db.repository.findMany({
       where: {
         userId: userId,
       },
     });
-    console.log(repositories);
 
-    return { repositories: repositories };
+    const repoList = new RepositoryListDto();
+    repoList.repositories = repositories.map((repository) => this.mapRepositoryToDto(repository));
+
+    return repoList;
+  }
+
+  private mapRepositoryToDto(repository: Repository): RepositoryDto {
+    return {
+      id: repository.id,
+      name: repository.name,
+      version: repository.version,
+      taxonomy: repository.taxonomy ?? undefined,
+      description: repository.description ?? undefined,
+    };
   }
 
   async createRepository(userId: string, dto: RepositoryCreationDto) {
-    console.log(dto);
     try {
       const repository = await this.db.repository.create({
         data: {
@@ -40,7 +64,7 @@ export class RepositoryMgmtService {
         },
       });
 
-      return repository;
+      return this.mapRepositoryToDto(repository);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -80,8 +104,8 @@ export class RepositoryMgmtService {
     // Object Destructuring & Property: https://stackoverflow.com/a/39333479
     const tmp: any = (({ id, name, taxonomy, description }) => ({ id, name, taxonomy, description }))(repository);
     tmp.competencies = <CompetenceDto[]>[];
-    tmp.ueberCompetencies = <UeberCompetenceDto[]>[];
-    const result = tmp as RepositoryDto;
+    tmp.ueberCompetencies = <ResolvedUeberCompetenceDto[]>[];
+    const result = tmp as ResolvedRepositoryDto;
 
     // Load all Competencies of Repository
     const competenceMap = new Map<string, CompetenceDto>();
@@ -98,14 +122,14 @@ export class RepositoryMgmtService {
     console.log(result.ueberCompetencies);
 
     // Load all Ueber-Competencies of Repository
-    const ueberCompetenceMap = new Map<string, UeberCompetenceDto>();
+    const ueberCompetenceMap = new Map<string, ResolvedUeberCompetenceDto>();
     repository.uebercompetencies.forEach((uc) => {
       // Convert DAO -> DTO
       const tmp: any = (({ id, name }) => ({ id, name }))(uc);
       tmp.description = uc.description ?? '';
       tmp.nestedCompetencies = <CompetenceDto[]>[];
-      tmp.nestedUeberCompetencies = <UeberCompetenceDto[]>[];
-      const ueberCompetence = tmp as UeberCompetenceDto;
+      tmp.nestedUeberCompetencies = <ResolvedUeberCompetenceDto[]>[];
+      const ueberCompetence = tmp as ResolvedUeberCompetenceDto;
 
       ueberCompetenceMap.set(uc.id, ueberCompetence);
       result.ueberCompetencies.push(ueberCompetence);
@@ -122,9 +146,9 @@ export class RepositoryMgmtService {
   }
 
   private async resolveUberCompetence(
-    uc: UeberCompetenceDto,
+    uc: ResolvedUeberCompetenceDto,
     competenceMap: Map<string, CompetenceDto>,
-    ueberCompetenceMap: Map<string, UeberCompetenceDto>,
+    ueberCompetenceMap: Map<string, ResolvedUeberCompetenceDto>,
   ) {
     // Load relations from DB
     const tmp = await this.db.ueberCompetence.findUnique({

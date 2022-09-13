@@ -1,18 +1,11 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
-
-import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
 
 /**
  * Identifies an existing Repository.
  */
 export class RepositorySelectionDto {
   @IsNotEmpty()
-  @IsString()
-  @ApiProperty()
   name: string;
 
-  @IsString()
-  @IsOptional()
-  @ApiProperty()
   version = '';
 }
