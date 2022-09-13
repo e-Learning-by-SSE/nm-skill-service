@@ -87,7 +87,7 @@ export class AuthService {
     };
 
     const options = {
-      expiresIn: '15m',
+      expiresIn: this.config.get('JWT_EXPIRATION') ?? '30m',
       secret: this.config.get('JWT_SECRET'),
     };
 
