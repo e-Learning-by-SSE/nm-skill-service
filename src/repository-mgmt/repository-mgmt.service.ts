@@ -120,8 +120,6 @@ export class RepositoryMgmtService {
       result.competencies.push(competence);
     });
 
-    console.log(result.ueberCompetencies);
-
     // Load all Ueber-Competencies of Repository
     const ueberCompetenceMap = new Map<string, ResolvedUeberCompetenceDto>();
     repository.uebercompetencies.forEach((uc) => {
