@@ -3,6 +3,13 @@ pipeline {
 
     tools {nodejs "NodeJS 16.13"}
     
+    environment {
+        DEMO_SERVER = '147.172.178.30'
+        DEMO_SERVER_PORT = '3100'
+        API_FILE = 'api-json'
+        API_URL = "http://${env.DEMO_SERVER}:${env.DEMO_SERVER_PORT}/${env.API_FILE}"
+    }
+    
     stages {
 
         stage('Git') {
@@ -57,6 +64,34 @@ pipeline {
                 // sh 'tar czf Backend.tar.gz dist src test config package.json package-lock.json ormconfig.ts tsconfig.json'
             }
         }
+        
+        // Based on: https://medium.com/@mosheezderman/c51581cc783c
+        stage('Deploy') {
+            steps {
+                sshagent(credentials: ['Stu-Mgmt_Demo-System']) {
+                    sh """
+                        # [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
+                        # ssh-keyscan -t rsa,dsa example.com >> ~/.ssh/known_hosts
+                        ssh -i ~/.ssh/id_rsa_student_mgmt_backend elscha@${env.DEMO_SERVER} <<EOF
+                            cd ~/nm-competence-repository-service
+                            git reset --hard
+                            git pull
+                            npm install
+                            cp -f ~/Competence-Repository.env ~/nm-competence-repository-service/.env
+                            npx prisma db push --accept-data-loss
+                            npx prisma db seed
+                            npm run build --prod
+                            rm ~/.pm2/logs/npm-error.log
+                            pm2 restart Competence-Repository --wait-ready # requires project intialized with: pm2 --name "Competence-Repository" start npm -- run start
+                            cd ..
+                            sleep 30
+                            ./chk_logs_for_err.sh
+                            exit
+                        EOF"""
+                }
+                findText(textFinders: [textFinder(regexp: '(- error TS\\*)|(Cannot find module.*or its corresponding type declarations\\.)', alsoCheckConsoleOutput: true, buildResult: 'FAILURE')])
+            }
+        }        
         
         stage('Lint') {
             steps {
