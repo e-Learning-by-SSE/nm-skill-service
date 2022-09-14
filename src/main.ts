@@ -28,6 +28,6 @@ async function bootstrap() {
 
   const port = app.get(ConfigService).get('APP_PORT') ?? 3000;
   console.log(`Starting application on ${port}...`);
-  await app.listen(3000);
+  await app.listen(port);
 }
 bootstrap();
