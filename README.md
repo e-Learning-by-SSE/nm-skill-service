@@ -19,8 +19,14 @@ npm run db:dev:start
 # Wipe and restart dev-db, also applies current db schema
 npm run db:dev:restart
 
-# Create and deploy a new db migration (after the db schema has been changed)
+# Create and deploy a new db migration (after the db schema has been changed), will also seed the db (applying sample data)
 npx prisma migrate dev
+
+# Apply sample data (without clearing existing data)
+npx prisma db seed
+
+# Clear data and seed
+npx prisma migrate reset
 
 # Run the web-based client to browse and manipulate the dev-db
 npx prisma studio
