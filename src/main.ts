@@ -1,4 +1,5 @@
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -25,7 +26,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = app.get('ConfigService').get('APP_PORT') ?? 3000;
+  const port = app.get(ConfigService).get('APP_PORT') ?? 3000;
   console.log(`Starting application on ${port}...`);
   await app.listen(3000);
 }
