@@ -81,7 +81,7 @@ pipeline {
                             npx prisma db push --accept-data-loss
                             npx prisma db seed
                             npm run build --prod
-                            rm ~/.pm2/logs/npm-error.log
+                            rm ~/.pm2/logs/Competence-Repository-error.log
                             pm2 restart Competence-Repository --wait-ready # requires project intialized with: pm2 --name "Competence-Repository" start npm -- run start
                             cd ..
                             sleep 30
