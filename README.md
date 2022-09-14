@@ -1,5 +1,7 @@
 # Competence Repository Service
 
+![Build Status](https://jenkins-2.sse.uni-hildesheim.de/buildStatus/icon?job=Teaching_Competence-Repository "Build Status")
+
 The Competence Repository Service allows content creators / teachers to develop their own competence repositories (i.e., taxonomies), share them with others, and use them to model required and offered compenences of a course.
 
 ## Installation
