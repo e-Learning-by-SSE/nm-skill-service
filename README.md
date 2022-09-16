@@ -71,6 +71,10 @@ npm run test:cov
 - [@nestjs/passport, passport, @nestjs/jwt passport-jwt, @types/passport-jwt](https://docs.nestjs.com/security/authentication): For authentication
 - [swagger](https://swagger.io/): REST API documentation
 
+## Docker
+
+Automatically built docker images are available at our [GitHub Docker Repository](https://github.com/orgs/e-learning-by-sse/packages/container/package/nm-competence-repository)
+
 ## License
 
 This project is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).

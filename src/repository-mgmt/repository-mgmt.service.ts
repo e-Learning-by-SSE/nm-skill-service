@@ -7,15 +7,15 @@ import {
     CompetenceCreationDto,
     CompetenceDto,
     RepositoryCreationDto,
+    RepositoryDto,
     RepositoryListDto,
     ResolvedRepositoryDto,
     ResolvedUeberCompetenceDto,
     UeberCompetenceCreationDto,
     UeberCompetenceModificationDto,
+    UnresolvedRepositoryDto,
+    UnResolvedUeberCompetenceDto,
 } from './dto';
-import { RepositoryDto } from './dto/repository-export/repository.dto';
-import { UnresolvedRepositoryDto } from './dto/repository-export/unresolved-repository.dto';
-import { UnResolvedUeberCompetenceDto } from './dto/repository-export/unresolved-ueber-competence.dto';
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -39,20 +39,29 @@ export class RepositoryMgmtService {
     });
 
     const repoList = new RepositoryListDto();
-    repoList.repositories = repositories.map((repository) => this.mapRepositoryToDto(repository));
+    repoList.repositories = repositories.map((repository) =>
+      RepositoryDto.create(
+        repository.id,
+        repository.userId,
+        repository.name,
+        repository.version,
+        repository.taxonomy,
+        repository.description,
+      ),
+    );
 
     return repoList;
   }
 
   private mapRepositoryToDto(repository: Repository): RepositoryDto {
-    return {
-      userId: repository.userId,
-      id: repository.id,
-      name: repository.name,
-      version: repository.version,
-      taxonomy: repository.taxonomy ?? undefined,
-      description: repository.description ?? undefined,
-    };
+    return RepositoryDto.create(
+      repository.id,
+      repository.userId,
+      repository.name,
+      repository.version,
+      repository.taxonomy,
+      repository.description,
+    );
   }
 
   async createRepository(userId: string, dto: RepositoryCreationDto) {
@@ -115,22 +124,19 @@ export class RepositoryMgmtService {
 
   public async loadResolvedRepository(userId: string, repositoryId: string) {
     const repository = await this.getRepository(userId, repositoryId, true);
-    // Object Destructuring & Property: https://stackoverflow.com/a/39333479
-    const tmp: any = (({ id, name, taxonomy, description }) => ({ id, name, taxonomy, description }))(repository);
-    tmp.competencies = <CompetenceDto[]>[];
-    tmp.ueberCompetencies = <ResolvedUeberCompetenceDto[]>[];
-    const result = tmp as ResolvedRepositoryDto;
+    const result = ResolvedRepositoryDto.create(
+      repository.id,
+      repository.name,
+      repository.version,
+      repository.taxonomy,
+      repository.description,
+    );
 
     // Load all Competencies of Repository
     const competenceMap = new Map<string, CompetenceDto>();
     repository.competencies.forEach((c) => {
       // Convert DAO -> DTO
-      const competence: CompetenceDto = (({ id, skill, level }) => ({
-        id,
-        skill,
-        level,
-        description: c.description ?? '',
-      }))(c);
+      const competence: CompetenceDto = CompetenceDto.create(c.id, c.skill, c.level, c.description);
 
       competenceMap.set(c.id, competence);
       result.competencies.push(competence);

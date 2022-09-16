@@ -11,4 +11,22 @@ export class RepositoryDto extends RepositorySelectionDto {
 
   taxonomy?: string;
   description?: string;
+
+  static create(
+    id: string,
+    userId: string,
+    name: string,
+    version: string,
+    taxonomy?: string | null,
+    description?: string | null,
+  ): RepositoryDto {
+    return {
+      id: id,
+      userId: userId,
+      name: name,
+      version: version,
+      taxonomy: taxonomy ?? undefined,
+      description: description ?? undefined,
+    };
+  }
 }
