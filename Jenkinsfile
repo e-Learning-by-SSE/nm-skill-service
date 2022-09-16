@@ -58,12 +58,10 @@ pipeline {
         }
 
         stage('Build') {
-            steps {
-                script{
-                    docker.withRegistry('ghcr.io', 'github-ssejenkins') {
-                        docker.build('e-learning-by-sse/nm-competence-repository').push('0.1.0')
-                    }
-                }
+            def app = docker.build('e-learning-by-sse/nm-competence-repository')
+            docker.withRegistry('ghcr.io', 'github-ssejenkins') {
+                app.push('0.1.0')
+                app.push('latest')
             }
         }
 
