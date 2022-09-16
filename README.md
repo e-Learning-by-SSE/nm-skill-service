@@ -10,6 +10,10 @@ The Competence Repository Service allows content creators / teachers to develop 
 npm install
 ```
 
+## Configuration
+
+The service can be configured via the `.env` file placed in the root of this repository. These paramters may be overwritten by environment variables, as environment variable takes precedence over the parameters defined in the configuration file.
+
 ## Database operations
 
 ```bash

@@ -125,9 +125,12 @@ export class RepositoryMgmtService {
     const competenceMap = new Map<string, CompetenceDto>();
     repository.competencies.forEach((c) => {
       // Convert DAO -> DTO
-      const tmp: any = (({ id, skill, level }) => ({ id, skill, level }))(c);
-      tmp.description = c.description ?? '';
-      const competence = tmp as CompetenceDto;
+      const competence: CompetenceDto = (({ id, skill, level }) => ({
+        id,
+        skill,
+        level,
+        description: c.description ?? '',
+      }))(c);
 
       competenceMap.set(c.id, competence);
       result.competencies.push(competence);
