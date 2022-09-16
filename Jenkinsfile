@@ -64,7 +64,7 @@ pipeline {
                 sh 'mv docker/Dockerfile Dockerfile'
                 script {
                     dockerImage = docker.build 'e-learning-by-sse/nm-competence-repository'
-                    docker.withRegistry('ghcr.io', 'github-ssejenkins') {
+                    docker.withRegistry('https://ghcr.io', 'github-ssejenkins') {
                         dockerImage.push("0.1.0")
                         dockerImage.push('latest')
                     }
