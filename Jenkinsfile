@@ -61,6 +61,7 @@ pipeline {
 
         stage('Build') {
             steps {
+                sh 'mv docker/Dockerfile Dockerfile'
                 script {
                     dockerImage = docker.build 'e-learning-by-sse/nm-competence-repository'
                     docker.withRegistry('ghcr.io', 'github-ssejenkins') {
