@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     tools {nodejs "NodeJS 16.13"}
-    
+
     environment {
         DEMO_SERVER = '147.172.178.30'
         DEMO_SERVER_PORT = '3100'
         API_FILE = 'api-json'
         API_URL = "http://${env.DEMO_SERVER}:${env.DEMO_SERVER_PORT}/${env.API_FILE}"
     }
-    
+
     stages {
 
         stage('Git') {
@@ -59,12 +59,12 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'npm run build'
-                // sh 'rm -f Backend.tar.gz'
-                // sh 'tar czf Backend.tar.gz dist src test config package.json package-lock.json ormconfig.ts tsconfig.json'
+                docker.withRegistry('ghcr.io', 'github-ssejenkins') {
+                    docker.build('e-learning-by-sse/nm-competence-repository').push('0.1.0')
+                }
             }
         }
-        
+
         // Based on: https://medium.com/@mosheezderman/c51581cc783c
         stage('Deploy') {
             steps {
@@ -91,22 +91,22 @@ pipeline {
                 }
                 findText(textFinders: [textFinder(regexp: '(- error TS\\*)|(Cannot find module.*or its corresponding type declarations\\.)', alsoCheckConsoleOutput: true, buildResult: 'FAILURE')])
             }
-        }        
-        
+        }
+
         stage('Lint') {
             steps {
                 sh 'npm run lint:ci'
             }
         }
     }
-    
+
     post {
         always {
              // Send e-mails if build becomes unstable/fails or returns stable
              // Based on: https://stackoverflow.com/a/39178479
-             load "$JENKINS_HOME/.envvars/emails.groovy" 
+             load "$JENKINS_HOME/.envvars/emails.groovy"
              step([$class: 'Mailer', recipients: "${env.elsharkawy}", notifyEveryUnstableBuild: true, sendToIndividuals: false])
-             
+
              // Report static analyses
              recordIssues enabledForFailure: false, tool: checkStyle(pattern: 'output/eslint/eslint.xml')
         }
