@@ -8,6 +8,8 @@ pipeline {
         DEMO_SERVER_PORT = '3100'
         API_FILE = 'api-json'
         API_URL = "http://${env.DEMO_SERVER}:${env.DEMO_SERVER_PORT}/${env.API_FILE}"
+
+        dockerImage = ''
     }
 
     stages {
@@ -58,10 +60,14 @@ pipeline {
         }
 
         stage('Build') {
-            def app = docker.build('e-learning-by-sse/nm-competence-repository')
-            docker.withRegistry('ghcr.io', 'github-ssejenkins') {
-                app.push('0.1.0')
-                app.push('latest')
+            steps {
+                script {
+                    dockerImage = docker.build 'e-learning-by-sse/nm-competence-repository'
+                    docker.withRegistry('ghcr.io', 'github-ssejenkins') {
+                        dockerImage.push("0.1.0")
+                        dockerImage.push('latest')
+                    }
+                }
             }
         }
 
