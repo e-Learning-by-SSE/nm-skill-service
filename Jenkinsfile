@@ -80,19 +80,8 @@ pipeline {
                         # [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
                         # ssh-keyscan -t rsa,dsa example.com >> ~/.ssh/known_hosts
                         ssh -i ~/.ssh/id_rsa_student_mgmt_backend elscha@${env.DEMO_SERVER} <<EOF
-                            cd ~/nm-competence-repository-service
-                            git reset --hard
-                            git pull
-                            npm install
-                            cp -f ~/Competence-Repository.env ~/nm-competence-repository-service/.env
-                            npx prisma db push --accept-data-loss
-                            npx prisma db seed
-                            npm run build --prod
-                            rm ~/.pm2/logs/Competence-Repository-error.log
-                            pm2 restart Competence-Repository --wait-ready # requires project intialized with: pm2 --name "Competence-Repository" start npm -- run start
-                            cd ..
-                            sleep 30
-                            ./chk_logs_for_err.sh
+                            cd ~/Competence-Repository
+                            ./recreate.sh
                             exit
                         EOF"""
                 }
