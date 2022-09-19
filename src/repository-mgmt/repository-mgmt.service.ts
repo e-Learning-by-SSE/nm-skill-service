@@ -374,7 +374,7 @@ export class RepositoryMgmtService {
     const result: UnResolvedUeberCompetenceDto = {
       id: ueberCompetence.id,
       name: ueberCompetence.name,
-      description: ueberCompetence.description ?? undefined,
+      description: ueberCompetence.description ?? '',
       nestedCompetencies: updatedUeberComp.subCompetences.map((c) => c.id),
       nestedUeberCompetencies: updatedUeberComp.subUeberCompetences.map((uc) => uc.id),
       parents: updatedUeberComp.parentUeberCompetences.map((p) => p.id),

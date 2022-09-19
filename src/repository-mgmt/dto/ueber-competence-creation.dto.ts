@@ -1,15 +1,12 @@
-import { IsNotEmpty } from 'class-validator';
-
-import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
  * Creates a new Ueber-Competence
  */
 export class UeberCompetenceCreationDto {
   @IsNotEmpty()
-  @ApiProperty({ required: true })
   name: string;
 
-  @ApiProperty({ required: false })
+  @IsOptional()
   description?: string;
 }

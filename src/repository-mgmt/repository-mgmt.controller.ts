@@ -9,7 +9,7 @@ import { RepositoryMgmtService } from './repository-mgmt.service';
 
 @ApiBearerAuth()
 @UseGuards(JwtGuard)
-@ApiTags('repositories')
+@ApiTags('Competencies')
 @Controller('repositories')
 export class RepositoryMgmtController {
   constructor(private repositoryService: RepositoryMgmtService) {}

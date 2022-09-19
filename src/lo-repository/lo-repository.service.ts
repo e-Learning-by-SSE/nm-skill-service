@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { LoRepositoryDto, LoRepositoryListDto, ShallowLoRepositoryDto } from './dto';
+import { LoRepositoryCreationDto, LoRepositoryDto, LoRepositoryListDto, ShallowLoRepositoryDto } from './dto';
 
 @Injectable()
 export class LoRepositoryService {
@@ -45,5 +46,33 @@ export class LoRepositoryService {
     }
 
     return result;
+  }
+
+  async createNewRepository(userId: string, dto: LoRepositoryCreationDto) {
+    console.log(dto);
+    try {
+      const newRepository = await this.db.loRepository.create({
+        data: {
+          name: dto.name,
+          description: dto.description,
+          userId: userId,
+        },
+      });
+
+      return new ShallowLoRepositoryDto(
+        newRepository.id,
+        newRepository.name,
+        newRepository.userId,
+        newRepository.description,
+      );
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // unique field already exists
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('Repository with specified name already owned');
+        }
+      }
+      throw error;
+    }
   }
 }

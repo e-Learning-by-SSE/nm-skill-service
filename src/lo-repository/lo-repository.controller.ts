@@ -1,7 +1,12 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+import { GetUser } from '../auth/decorator';
+import { JwtGuard } from '../auth/guard';
+import { LoRepositoryCreationDto } from './dto/lo-repository-creation.dto';
 import { LoRepositoryService } from './lo-repository.service';
 
+@ApiTags('Learning Objects')
 @Controller('learning_objects')
 export class LoRepositoryController {
   constructor(private loService: LoRepositoryService) {}
@@ -9,6 +14,13 @@ export class LoRepositoryController {
   @Get()
   listRepositories() {
     return this.loService.listRepositories();
+  }
+
+  @Post('add')
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
+  async createRepository(@GetUser('id') userId: string, @Body() dto: LoRepositoryCreationDto) {
+    return this.loService.createNewRepository(userId, dto);
   }
 
   @Get(':repositoryId')

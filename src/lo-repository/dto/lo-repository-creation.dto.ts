@@ -1,12 +1,12 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
- * Identifies an existing Repository.
+ * Request data to create a new LO repository.
  */
-export class RepositorySelectionDto {
+export class LoRepositoryCreationDto {
   @IsNotEmpty()
   name: string;
 
   @IsOptional()
-  version = '';
+  description: string;
 }

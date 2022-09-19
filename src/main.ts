@@ -29,8 +29,6 @@ async function bootstrap() {
 
   const port = app.get(ConfigService).get('APP_PORT') ?? 3000;
   console.log(`Starting application on ${port}...`);
-  const db_connection = app.get(ConfigService).get('DB_URL');
-  console.log(`Connection to DB via ${db_connection}`);
   await app.listen(port);
 }
 bootstrap();
