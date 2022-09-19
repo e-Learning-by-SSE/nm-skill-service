@@ -66,10 +66,11 @@ pipeline {
                     // Based on:
                     // - https://stackoverflow.com/a/16817748
                     // - https://stackoverflow.com/a/51991389
-                    apiVersion = sh returnStdout: true, script: 'grep -Po \'(?<=export const VERSION = ")[^";]+\' src/version.ts'
+                    env.API_VERSION = sh returnStdout: true, script: 'grep -Po \'(?<=export const VERSION = ")[^";]+\' src/version.ts'
+                    sh echo "API: ${env.API_VERSION}"
                     dockerImage = docker.build 'e-learning-by-sse/nm-competence-repository'
                     docker.withRegistry('https://ghcr.io', 'github-ssejenkins') {
-                        dockerImage.push("$apiVersion")
+                        dockerImage.push(${env.API_VERSION})
                         dockerImage.push('latest')
                     }
                 }
