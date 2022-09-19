@@ -9,8 +9,6 @@ pipeline {
         API_FILE = 'api-json'
         API_URL = "http://${env.DEMO_SERVER}:${env.DEMO_SERVER_PORT}/${env.API_FILE}"
 
-        //API_VERSION = "${sh(returnStdout: true, script: 'grep -Po \'(?<=export const VERSION = ")[^";]+\' src/version.ts').trim()}"
-
         dockerImage = ''
     }
 

@@ -3,8 +3,11 @@ FROM node:16-alpine
 
 # Required for Prisma Client to work in container
 RUN apk add --no-cache openssl
-# Required for entry script
+
+# Required for entry-script
 RUN apk add --no-cache bash
+# pg_isready to test if DB is up, bevor application starts
+RUN apk add --no-cache postgresql-libs postgresql-client
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -27,9 +30,8 @@ RUN chown node:node -R node_modules/.prisma
 RUN npm run build
 
 # Prepare startup script
-ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /wait-for-it.sh
 COPY docker/entry.sh /entry.sh
-RUN chmod +x /*.sh
+RUN chmod +x /entry.sh
 
 # Use the node user from the image (instead of the root user)
 USER node
