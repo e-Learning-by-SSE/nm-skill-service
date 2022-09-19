@@ -63,11 +63,13 @@ pipeline {
             steps {
                 sh 'mv docker/Dockerfile Dockerfile'
                 script {
+                    // Based on:
+                    // - https://stackoverflow.com/a/16817748
+                    // - https://stackoverflow.com/a/51991389
                     def api_version = sh returnStdout: true, script: 'grep -Po \'(?<=export const VERSION = ")[^";]+\' src/version.ts'
-                    echo "API version: ${api_version}"
                     dockerImage = docker.build 'e-learning-by-sse/nm-competence-repository'
                     docker.withRegistry('https://ghcr.io', 'github-ssejenkins') {
-                        dockerImage.push("0.2.0")
+                        dockerImage.push("${api_version}")
                         dockerImage.push('latest')
                     }
                 }
