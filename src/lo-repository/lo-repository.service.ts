@@ -3,6 +3,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { LoRepositoryCreationDto, LoRepositoryDto, LoRepositoryListDto, ShallowLoRepositoryDto } from './dto';
+import { LearningObjectDto } from './dto/export/learning-object.dto';
 
 @Injectable()
 export class LoRepositoryService {
@@ -49,7 +50,6 @@ export class LoRepositoryService {
   }
 
   async createNewRepository(userId: string, dto: LoRepositoryCreationDto) {
-    console.log(dto);
     try {
       const newRepository = await this.db.loRepository.create({
         data: {
@@ -74,5 +74,38 @@ export class LoRepositoryService {
       }
       throw error;
     }
+  }
+
+  async loadLearningObject(learningObjectId: string) {
+    const lo = await this.db.learningObject.findUnique({
+      where: {
+        id: learningObjectId,
+      },
+      include: {
+        requiredCompetencies: true,
+        requiredUeberCompetencies: true,
+        offeredCompetencies: true,
+        offeredUeberCompetencies: true,
+      },
+    });
+
+    if (!lo) {
+      throw new NotFoundException('Specified Learning Object not found: ' + learningObjectId);
+    }
+
+    const result = new LearningObjectDto(lo.id, lo.loRepositoryId, lo.name, lo.description);
+    for (const requirement of lo.requiredCompetencies) {
+      result.requiredCompetencies.push(requirement.id);
+    }
+    for (const requirement of lo.requiredUeberCompetencies) {
+      result.requiredUeberCompetencies.push(requirement.id);
+    }
+    for (const offered of lo.offeredCompetencies) {
+      result.offeredCompetencies.push(offered.id);
+    }
+    for (const offered of lo.offeredUeberCompetencies) {
+      result.offeredUeberCompetencies.push(offered.id);
+    }
+    return result;
   }
 }

@@ -55,8 +55,8 @@ model Competence {
   parentUeberCompetences UeberCompetence[]
 
   // Use in Learning Objects
-  requiredFor LearningObject[] @relation("requires")
-  offeredFor LearningObject[] @relation("offers")
+  requiredFor LearningObject[] @relation("requiredCompetencies")
+  offeredFor LearningObject[] @relation("offeredCompetencies")
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -82,8 +82,8 @@ model UeberCompetence {
   parentUeberCompetences UeberCompetence[] @relation("nesting")
 
   // Use in Learning Objects
-  requiredFor LearningObject[] @relation("requires")
-  offeredFor LearningObject[] @relation("offers")
+  requiredFor LearningObject[] @relation("requiredUeberCompetencies")
+  offeredFor LearningObject[] @relation("offeredUeberCompetencies")
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -113,12 +113,12 @@ model LearningObject {
   loRepository            LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
 
   // Requires/Offers on Competencies
-  requiredCompetencies    Competence[] @relation("requires")
-  offeredCompetencies     Competence[] @relation("offers")
+  requiredCompetencies    Competence[] @relation("requiredCompetencies")
+  offeredCompetencies     Competence[] @relation("offeredCompetencies")
 
   // Requires/Offers on Competencies
-  requiredUeberCompetencies    UeberCompetence[] @relation("requires")
-  offeredUeberCompetencies     UeberCompetence[] @relation("offers")
+  requiredUeberCompetencies    UeberCompetence[] @relation("requiredUeberCompetencies")
+  offeredUeberCompetencies     UeberCompetence[] @relation("offeredUeberCompetencies")
 
   @@map("learning_objects")
   @@unique([loRepositoryId, name])

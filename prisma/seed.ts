@@ -1,6 +1,6 @@
 import * as argon from 'argon2';
 
-import { PrismaClient } from '@prisma/client';
+import { LoRepository, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -190,6 +190,25 @@ const loRepositories = [
     description: 'Java Self-Learning Course',
     userId: '1',
   },
+  {
+    id: '2',
+    name: '2nd Repository',
+    description: 'Another repository for upcoming courses',
+    userId: '1',
+  },
+];
+
+const learningObjectives = [
+  {
+    id: '1',
+    repositoryId: '1',
+    name: 'Literals',
+    description: 'Constant expressions',
+    requiredCompetencies: [],
+    requiredUeberCompetencies: ['2'],
+    offeredCompetencies: ['5'],
+    offeredUeberCompetencies: [],
+  },
 ];
 
 async function seed(): Promise<void> {
@@ -199,14 +218,18 @@ async function seed(): Promise<void> {
   console.log('✅ Users');
   await createRepositories();
   console.log('✅ Repositories');
-  createCompetencies();
+  await createCompetencies();
   console.log('✅ Competencies');
   // wait 1 second to avoid concurrency problems
   await new Promise((f) => setTimeout(f, 1000));
-  createUeberCompetencies();
+  await createUeberCompetencies();
   console.log('✅ Ueber-Competencies');
-  createLoRepositories();
+  await createLoRepositories();
   console.log('✅ LO-Repositories');
+  // wait 1 second to avoid concurrency problems
+  await new Promise((f) => setTimeout(f, 1000));
+  await createLearningObjectives();
+  console.log('✅ Learning Objectives');
 
   console.log('Seeding completed 😎');
 }
@@ -292,9 +315,10 @@ async function createUeberCompetencies() {
 }
 
 async function createLoRepositories() {
+  const result = <LoRepository[]>[];
   await Promise.all(
     loRepositories.map(async (repository) => {
-      await prisma.loRepository.create({
+      const r = await prisma.loRepository.create({
         data: {
           id: repository.id,
           userId: repository.userId,
@@ -302,6 +326,39 @@ async function createLoRepositories() {
           description: repository.description,
         },
       });
+      result.push(r);
     }),
   );
+
+  return result;
+}
+
+async function createLearningObjectives() {
+  for (const lo of learningObjectives) {
+    const reqCompetencies = lo.requiredCompetencies.map((i) => ({ id: i }));
+    const reqUeberCompetencies = lo.requiredUeberCompetencies.map((i) => ({ id: i }));
+    const offCompetencies = lo.offeredCompetencies.map((i) => ({ id: i }));
+    const offUeberCompetencies = lo.offeredUeberCompetencies.map((i) => ({ id: i }));
+
+    await prisma.learningObject.create({
+      data: {
+        id: lo.id,
+        loRepositoryId: lo.repositoryId,
+        name: lo.name,
+        description: lo.description,
+        requiredCompetencies: {
+          connect: reqCompetencies,
+        },
+        requiredUeberCompetencies: {
+          connect: reqUeberCompetencies,
+        },
+        offeredCompetencies: {
+          connect: offCompetencies,
+        },
+        offeredUeberCompetencies: {
+          connect: offUeberCompetencies,
+        },
+      },
+    });
+  }
 }

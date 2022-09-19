@@ -28,12 +28,14 @@ The image does not contain a database. Either the db connection parameters or th
 Parameters (and illustrative values) that may be passed as environment variables via an docker-compose script.
 
 ```bash
-DB_USER="postgres"
-DB_PASSWORD="admin"
-DB_HOST="localhost"
-DB_PORT="5432"
-DB_DATABASE="competence-repository-db"
+DB_USER=postgres
+DB_PASSWORD=admin
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=competence-repository-db
 ```
+
+The container will check and wait for a running postgres instance, if and only if **DB_HOST** is defined.
 
 ### Configuration via a Single Connection String
 

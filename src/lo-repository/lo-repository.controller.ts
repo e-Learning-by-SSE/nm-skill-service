@@ -7,7 +7,7 @@ import { LoRepositoryCreationDto } from './dto/lo-repository-creation.dto';
 import { LoRepositoryService } from './lo-repository.service';
 
 @ApiTags('Learning Objects')
-@Controller('learning_objects')
+@Controller('lo_repository')
 export class LoRepositoryController {
   constructor(private loService: LoRepositoryService) {}
 
@@ -26,5 +26,10 @@ export class LoRepositoryController {
   @Get(':repositoryId')
   async loadRepository(@Param('repositoryId') repositoryId: string) {
     return this.loService.loadRepository(repositoryId);
+  }
+
+  @Get('learning_objects/:learningObjectId')
+  async loadLearningObject(@Param('learningObjectId') learningObjectId: string) {
+    return this.loService.loadLearningObject(learningObjectId);
   }
 }
