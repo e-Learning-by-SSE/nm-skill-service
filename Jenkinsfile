@@ -70,7 +70,7 @@ pipeline {
                     sh echo "API: ${env.API_VERSION}"
                     dockerImage = docker.build 'e-learning-by-sse/nm-competence-repository'
                     docker.withRegistry('https://ghcr.io', 'github-ssejenkins') {
-                        dockerImage.push(${env.API_VERSION})
+                        dockerImage.push($API_VERSION)
                         dockerImage.push('latest')
                     }
                 }
