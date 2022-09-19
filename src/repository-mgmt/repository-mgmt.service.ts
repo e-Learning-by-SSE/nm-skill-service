@@ -100,7 +100,7 @@ export class RepositoryMgmtService {
       },
     });
 
-    if (repository == null) {
+    if (!repository) {
       throw new NotFoundException('Specified repository not found: ' + repositoryId);
     }
 

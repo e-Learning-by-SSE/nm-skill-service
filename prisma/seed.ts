@@ -78,7 +78,7 @@ const competencies = [
     id: '8',
     repository: '1',
     name: 'Expressions',
-    description: 'Knwoing how to forumalte arbitrary expressions on primitives',
+    description: 'Knowing how to formulate arbitrary expressions on primitives',
     level: 3,
   },
   {
@@ -126,7 +126,7 @@ const competencies = [
   {
     id: '15',
     repository: '1',
-    name: 'Programm Structure',
+    name: 'Program Structure',
     description: 'Knowing how to add own code into a template',
     level: 1,
   },
@@ -137,7 +137,7 @@ const ueberCompetencies = [
     id: '1',
     repository: '1',
     name: 'Commands Usage',
-    description: 'Commands to compile and execute own programms, wo/ deeper understanding',
+    description: 'Commands to compile and execute own programs, wo/ deeper understanding',
     nestedCompetencies: ['1', '2'],
     nestedUeberCompetencies: [],
   },
@@ -145,7 +145,7 @@ const ueberCompetencies = [
     id: '2',
     repository: '1',
     name: 'Commands Understanding',
-    description: 'Commands to compile and execute own programms, wo/ deeper understanding',
+    description: 'Commands to compile and execute own programs, wo/ deeper understanding',
     nestedCompetencies: ['3', '4'],
     nestedUeberCompetencies: [],
   },
@@ -183,18 +183,32 @@ const ueberCompetencies = [
   },
 ];
 
+const loRepositories = [
+  {
+    id: '1',
+    name: 'Java Course',
+    description: 'Java Self-Learning Course',
+    userId: '1',
+  },
+];
+
 async function seed(): Promise<void> {
   console.log('😅 Seeding...');
+
   await createUsers();
   console.log('✅ Users');
   await createRepositories();
   console.log('✅ Repositories');
   createCompetencies();
   console.log('✅ Competencies');
-  // wait 1 second
+  // wait 1 second to avoid concurrency problems
   await new Promise((f) => setTimeout(f, 1000));
   createUeberCompetencies();
   console.log('✅ Ueber-Competencies');
+  createLoRepositories();
+  console.log('✅ LO-Repositories');
+
+  console.log('Seeding completed 😎');
 }
 
 seed()
@@ -275,4 +289,19 @@ async function createUeberCompetencies() {
       },
     });
   }
+}
+
+async function createLoRepositories() {
+  await Promise.all(
+    loRepositories.map(async (repository) => {
+      await prisma.loRepository.create({
+        data: {
+          id: repository.id,
+          userId: repository.userId,
+          name: repository.name,
+          description: repository.description,
+        },
+      });
+    }),
+  );
 }

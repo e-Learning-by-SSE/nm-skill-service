@@ -16,7 +16,10 @@ model User {
   email        String @unique
   pw           String
   createdAt    DateTime @default(now())
+
+  // Relations to user created items
   repositories Repository[]
+  lo_repositories LoRepository[]
 
   @@map("users")
 }
@@ -51,6 +54,10 @@ model Competence {
   // https://www.prisma.io/docs/concepts/components/prisma-schema/relations/many-to-many-relations#implicit-many-to-many-relations
   parentUeberCompetences UeberCompetence[]
 
+  // Use in Learning Objects
+  requiredFor LearningObject[] @relation("requires")
+  offeredFor LearningObject[] @relation("offers")
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -74,9 +81,45 @@ model UeberCompetence {
   subUeberCompetences UeberCompetence[] @relation("nesting")
   parentUeberCompetences UeberCompetence[] @relation("nesting")
 
+  // Use in Learning Objects
+  requiredFor LearningObject[] @relation("requires")
+  offeredFor LearningObject[] @relation("offers")
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("ueber_competencies")
   @@unique([repositoryId, name])
+}
+
+model LoRepository {
+  id                String @id @default(cuid())
+  name              String
+  description       String?
+  userId            String
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  learningObjects   LearningObject[]
+
+  @@map("lo-repositories")
+  @@unique([userId, name])
+}
+
+model LearningObject {
+  id                      String @id @default(cuid())
+  name                    String
+  description             String?
+  loRepositoryId          String
+  loRepository            LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
+
+  // Requires/Offers on Competencies
+  requiredCompetencies    Competence[] @relation("requires")
+  offeredCompetencies     Competence[] @relation("offers")
+
+  // Requires/Offers on Competencies
+  requiredUeberCompetencies    UeberCompetence[] @relation("requires")
+  offeredUeberCompetencies     UeberCompetence[] @relation("offers")
+
+  @@map("learning_objects")
+  @@unique([loRepositoryId, name])
 }
