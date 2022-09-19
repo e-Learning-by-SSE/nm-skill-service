@@ -9,7 +9,7 @@ pipeline {
         API_FILE = 'api-json'
         API_URL = "http://${env.DEMO_SERVER}:${env.DEMO_SERVER_PORT}/${env.API_FILE}"
 
-        API_VERSION = "${sh(returnStdout: true, script: 'grep -Po \'(?<=export const VERSION = ")[^";]+\' src/version.ts').trim()}"
+        //API_VERSION = "${sh(returnStdout: true, script: 'grep -Po \'(?<=export const VERSION = ")[^";]+\' src/version.ts').trim()}"
 
         dockerImage = ''
     }
@@ -66,13 +66,14 @@ pipeline {
                 sh 'mv docker/Dockerfile Dockerfile'
                 script {
                     // Based on:
+                    // - https://e.printstacktrace.blog/jenkins-pipeline-environment-variables-the-definitive-guide/
                     // - https://stackoverflow.com/a/16817748
                     // - https://stackoverflow.com/a/51991389
-                    //env.API_VERSION = sh(returnStdout: true, script: 'grep -Po \'(?<=export const VERSION = ")[^";]+\' src/version.ts').trim()
+                    env.API_VERSION = sh(returnStdout: true, script: 'grep -Po \'(?<=export const VERSION = ")[^";]+\' src/version.ts').trim()
                     echo "API: ${env.API_VERSION}"
                     dockerImage = docker.build 'e-learning-by-sse/nm-competence-repository'
                     docker.withRegistry('https://ghcr.io', 'github-ssejenkins') {
-                        dockerImage.push(${env.API_VERSION})
+                        dockerImage.push("${env.API_VERSION}")
                         dockerImage.push('latest')
                     }
                 }
