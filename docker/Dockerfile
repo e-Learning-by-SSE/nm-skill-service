@@ -27,8 +27,9 @@ RUN chown node:node -R node_modules/.prisma
 RUN npm run build
 
 # Prepare startup script
-ADD docker/entry.sh /entry.sh
-RUN chmod +x /entry.sh
+ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /wait-for-it.sh
+COPY docker/entry.sh /entry.sh
+RUN chmod +x /*.sh
 
 # Use the node user from the image (instead of the root user)
 USER node

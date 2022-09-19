@@ -5,6 +5,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
+import { VERSION } from './version';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -20,7 +21,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Competence Repository')
     .setDescription('The API description of the Competence Repository.')
-    .setVersion('0.2.0')
+    .setVersion(VERSION)
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
