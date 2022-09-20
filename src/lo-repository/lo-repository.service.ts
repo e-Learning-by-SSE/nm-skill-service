@@ -2,7 +2,13 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { LoRepositoryCreationDto, LoRepositoryDto, LoRepositoryListDto, ShallowLoRepositoryDto } from './dto';
+import {
+    LoRepositoryCreationDto,
+    LoRepositoryDto,
+    LoRepositoryListDto,
+    LoRepositoryModifyDto,
+    ShallowLoRepositoryDto,
+} from './dto';
 import { LearningObjectDto } from './dto/export/learning-object.dto';
 
 @Injectable()
@@ -33,7 +39,7 @@ export class LoRepositoryService {
     });
 
     if (!loRepository) {
-      throw new NotFoundException('Specified repository not found: ' + repositoryId);
+      throw new NotFoundException('Specified LO-Repository not found: ' + repositoryId);
     }
 
     const result = new LoRepositoryDto(
@@ -69,11 +75,56 @@ export class LoRepositoryService {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
         if (error.code === 'P2002') {
-          throw new ForbiddenException('Repository with specified name already owned');
+          throw new ForbiddenException('LO-Repository with specified name already owned');
         }
       }
       throw error;
     }
+  }
+
+  async modifyRepository(userId: string, repositoryId: string, dto: LoRepositoryModifyDto) {
+    let repository = await this.db.loRepository.findUnique({
+      where: {
+        id: repositoryId,
+      },
+    });
+
+    // Check ownership
+    if (!repository) {
+      throw new NotFoundException(`Specified LO-Repository not found: ${repositoryId}`);
+    }
+    if (repository.userId != userId) {
+      throw new ForbiddenException('Specified LO-Repository owned by another user');
+    }
+
+    // Determine data to change
+    console.log(dto);
+    console.log(repository);
+    const changeData: any = {};
+    if (dto.name && dto.name !== repository.name) {
+      // Name must not be null and different
+      changeData['name'] = dto.name;
+    }
+    // Make description comparable (same type definition)
+    const newDescription = dto.description ?? null;
+    if (newDescription !== repository.description) {
+      // New description should be changed (can also be set to undefined)
+      changeData['description'] = dto.description ?? null;
+    }
+    console.log(changeData);
+
+    // Apply update, only if there is a (valid) change
+    if (Object.keys(changeData).length > 0) {
+      repository = await this.db.loRepository.update({
+        where: {
+          id: repository.id,
+        },
+        data: changeData,
+      });
+      return new LoRepositoryDto(repository.id, repository.name, repository.userId, repository.description);
+    }
+
+    throw new RangeError('Nothing to change.');
   }
 
   async loadLearningObject(learningObjectId: string) {
