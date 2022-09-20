@@ -314,7 +314,7 @@ export class RepositoryMgmtService {
     // Checks that the user is the owner of the repository
     await this.getRepository(userId, repositoryId);
 
-    // Load ueber-competence to be changed and check that this belongs to specifed repository
+    // Load ueber-competence to be changed and check that this belongs to specified repository
     const ueberCompetence = await this.loadUeberCompetence(dto.ueberCompetenceId, repositoryId, true);
 
     // Check that all competencies belong to this repository
@@ -353,7 +353,7 @@ export class RepositoryMgmtService {
     const competencies = dto.nestedCompetencies?.map((i) => ({ id: i }));
     const ueberCompetencies = dto.nestedUeberCompetencies?.map((i) => ({ id: i }));
 
-    // Apply upate
+    // Apply update
     const updatedUeberComp = await this.db.ueberCompetence.update({
       where: { id: ueberCompetence.id },
       data: {

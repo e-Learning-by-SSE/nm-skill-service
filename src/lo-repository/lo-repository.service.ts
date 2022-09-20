@@ -1,6 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { LearningObject } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
+import { computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
     LoRepositoryCreationDto,
@@ -11,6 +13,7 @@ import {
 } from './dto';
 import { LearningObjectDto } from './dto/export/learning-object.dto';
 import { LearningObjectCreationDto } from './dto/learning-object-creation.dto';
+import { LearningObjectModificationDto } from './dto/learning-object-modification.dto';
 
 @Injectable()
 export class LoRepositoryService {
@@ -107,12 +110,49 @@ export class LoRepositoryService {
     return repository;
   }
 
+  /**
+   * Loads the specified learning object and checks if it is owned by the specified user.
+   * @param userId The owner of the repository, who is allowed to make modifications.
+   * @param repositoryId The ID of the specified repository to open.
+   * @returns The repository object or an exception if the repository doesn't exist or if it is owned by somebody else.
+   */
+  private async loadLearningObjectForModification(
+    userId: string,
+    repositoryId: string,
+    learningObjectId: string,
+    includeCompetencies = true,
+  ) {
+    // Check if repository is owned by user
+    await this.loadRepositoryForModification(userId, repositoryId);
+
+    // Check if learning object belongs to specified repository and is owned by user
+    const learningObject = await this.db.learningObject.findUnique({
+      where: {
+        id: learningObjectId,
+      },
+      include: {
+        requiredCompetencies: includeCompetencies,
+        requiredUeberCompetencies: includeCompetencies,
+        offeredCompetencies: includeCompetencies,
+        offeredUeberCompetencies: includeCompetencies,
+      },
+    });
+
+    // Check ownership
+    if (!learningObject) {
+      throw new NotFoundException(`Specified Learning Object not found: ${repositoryId}`);
+    }
+    if (learningObject.loRepositoryId != repositoryId) {
+      throw new ForbiddenException('Specified Learning Object belongs to another LO-Repository');
+    }
+
+    return learningObject;
+  }
+
   async modifyRepository(userId: string, repositoryId: string, dto: LoRepositoryModifyDto) {
     let repository = await this.loadRepositoryForModification(userId, repositoryId);
 
     // Determine data to change
-    console.log(dto);
-    console.log(repository);
     const changeData: any = {};
     if (dto.name && dto.name !== repository.name) {
       // Name must not be null and different
@@ -124,7 +164,6 @@ export class LoRepositoryService {
       // New description should be changed (can also be set to undefined)
       changeData['description'] = dto.description ?? null;
     }
-    console.log(changeData);
 
     // Apply update, only if there is a (valid) change
     if (Object.keys(changeData).length > 0) {
@@ -154,7 +193,7 @@ export class LoRepositoryService {
     });
 
     if (!lo) {
-      throw new NotFoundException('Specified Learning Object not found: ' + learningObjectId);
+      throw new NotFoundException(`Specified Learning Object not found: ${learningObjectId}`);
     }
 
     const result = new LearningObjectDto(lo.id, lo.loRepositoryId, lo.name, lo.description);
@@ -210,5 +249,62 @@ export class LoRepositoryService {
     });
 
     return LearningObjectDto.createFromDao(newLo);
+  }
+
+  async modifyLearningObject(
+    userId: string,
+    repositoryId: string,
+    learningObjectId: string,
+    dto: LearningObjectModificationDto,
+  ) {
+    const oldLo = await this.loadLearningObjectForModification(userId, repositoryId, learningObjectId);
+
+    // Determine data to change
+    const changeData: any = {};
+    if (dto.name && dto.name !== oldLo.name) {
+      // Name must not be null and different
+      changeData['name'] = dto.name;
+    }
+    // Make description comparable (same type definition)
+    const newDescription = dto.description ?? null;
+    if (newDescription !== oldLo.description) {
+      // New description should be changed (can also be set to undefined)
+      changeData['description'] = dto.description ?? null;
+    }
+
+    // Determine relations to competencies to update
+    let changedRelations = computeRelationUpdate(oldLo.requiredCompetencies, dto.requiredCompetencies);
+    if (changedRelations) {
+      changeData['requiredCompetencies'] = changedRelations;
+    }
+    changedRelations = computeRelationUpdate(oldLo.requiredUeberCompetencies, dto.requiredUeberCompetencies);
+    if (changedRelations) {
+      changeData['requiredUeberCompetencies'] = changedRelations;
+    }
+    changedRelations = computeRelationUpdate(oldLo.offeredCompetencies, dto.offeredCompetencies);
+    if (changedRelations) {
+      changeData['offeredCompetencies'] = changedRelations;
+    }
+    changedRelations = computeRelationUpdate(oldLo.offeredUeberCompetencies, dto.offeredUeberCompetencies);
+    if (changedRelations) {
+      changeData['offeredUeberCompetencies'] = changedRelations;
+    }
+
+    if (Object.keys(changeData).length > 0) {
+      const newLo = await this.db.learningObject.update({
+        where: {
+          id: learningObjectId,
+        },
+        data: changeData,
+        include: {
+          requiredCompetencies: true,
+          requiredUeberCompetencies: true,
+          offeredCompetencies: true,
+          offeredUeberCompetencies: true,
+        },
+      });
+
+      return LearningObjectDto.createFromDao(newLo);
+    }
   }
 }
