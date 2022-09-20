@@ -10,6 +10,7 @@ import {
     ShallowLoRepositoryDto,
 } from './dto';
 import { LearningObjectDto } from './dto/export/learning-object.dto';
+import { LearningObjectCreationDto } from './dto/learning-object-creation.dto';
 
 @Injectable()
 export class LoRepositoryService {
@@ -82,8 +83,14 @@ export class LoRepositoryService {
     }
   }
 
-  async modifyRepository(userId: string, repositoryId: string, dto: LoRepositoryModifyDto) {
-    let repository = await this.db.loRepository.findUnique({
+  /**
+   * Loads the specified repository and checks if it is owned by the specified user.
+   * @param userId The owner of the repository, who is allowed to make modifications.
+   * @param repositoryId The ID of the specified repository to open.
+   * @returns The repository object or an exception if the repository doesn't exist or if it is owned by somebody else.
+   */
+  private async loadRepositoryForModification(userId: string, repositoryId: string) {
+    const repository = await this.db.loRepository.findUnique({
       where: {
         id: repositoryId,
       },
@@ -96,6 +103,12 @@ export class LoRepositoryService {
     if (repository.userId != userId) {
       throw new ForbiddenException('Specified LO-Repository owned by another user');
     }
+
+    return repository;
+  }
+
+  async modifyRepository(userId: string, repositoryId: string, dto: LoRepositoryModifyDto) {
+    let repository = await this.loadRepositoryForModification(userId, repositoryId);
 
     // Determine data to change
     console.log(dto);
@@ -158,5 +171,44 @@ export class LoRepositoryService {
       result.offeredUeberCompetencies.push(offered.id);
     }
     return result;
+  }
+
+  async createLearningObject(userId: string, repositoryId: string, dto: LearningObjectCreationDto) {
+    // Check if repository is owned by user
+    await this.loadRepositoryForModification(userId, repositoryId);
+
+    // Expand array of IDs to appropriate objects
+    const reqCompetencies = dto.requiredCompetencies.map((i) => ({ id: i }));
+    const reqUeberCompetencies = dto.requiredUeberCompetencies.map((i) => ({ id: i }));
+    const offCompetencies = dto.offeredCompetencies.map((i) => ({ id: i }));
+    const offUeberCompetencies = dto.offeredUeberCompetencies.map((i) => ({ id: i }));
+
+    const newLo = await this.db.learningObject.create({
+      data: {
+        loRepositoryId: repositoryId,
+        name: dto.name,
+        description: dto.description,
+        requiredCompetencies: {
+          connect: reqCompetencies,
+        },
+        requiredUeberCompetencies: {
+          connect: reqUeberCompetencies,
+        },
+        offeredCompetencies: {
+          connect: offCompetencies,
+        },
+        offeredUeberCompetencies: {
+          connect: offUeberCompetencies,
+        },
+      },
+      include: {
+        requiredCompetencies: true,
+        requiredUeberCompetencies: true,
+        offeredCompetencies: true,
+        offeredUeberCompetencies: true,
+      },
+    });
+
+    return LearningObjectDto.createFromDao(newLo);
   }
 }

@@ -147,7 +147,7 @@ describe('LO-Repository Service (Repositories)', () => {
         }),
         expect.objectContaining({
           owner: user2.id,
-          id: (await result).id,
+          id: result.id,
           ...creationData,
         }),
       ]);

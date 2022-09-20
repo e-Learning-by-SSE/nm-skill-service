@@ -5,6 +5,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
+import { LearningObjectCreationDto } from './dto/learning-object-creation.dto';
 import { LoRepositoryCreationDto } from './dto/lo-repository-creation.dto';
 import { LoRepositoryModifyDto } from './dto/lo-repository-modify.dto';
 import { LoRepositoryService } from './lo-repository.service';
@@ -48,6 +49,17 @@ export class LoRepositoryController {
       }
       throw error;
     }
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
+  @Post(':repositoryId/add_learning_object')
+  async createLearningObject(
+    @GetUser('id') userId: string,
+    @Param('repositoryId') repositoryId: string,
+    @Body() dto: LearningObjectCreationDto,
+  ) {
+    return this.loService.createLearningObject(userId, repositoryId, dto);
   }
 
   @Get('learning_objects/:learningObjectId')

@@ -1,5 +1,7 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
+import { Competence, LearningObject, UeberCompetence } from '@prisma/client';
+
 export class LearningObjectDto {
   @IsNotEmpty()
   id: string;
@@ -27,5 +29,43 @@ export class LearningObjectDto {
     this.requiredUeberCompetencies = [];
     this.offeredCompetencies = [];
     this.offeredUeberCompetencies = [];
+  }
+
+  /**
+   * Creates a new DTO based on the DAO created by prisma.
+   * @param dao The data access object created by prisma
+   * @returns A DTO instance representing the DAO
+   */
+  static createFromDao(
+    dao: LearningObject & {
+      requiredCompetencies?: Competence[];
+      requiredUeberCompetencies?: UeberCompetence[];
+      offeredCompetencies?: Competence[];
+      offeredUeberCompetencies?: UeberCompetence[];
+    },
+  ) {
+    const result = new LearningObjectDto(dao.id, dao.loRepositoryId, dao.name, dao.description);
+    if (dao.requiredCompetencies) {
+      dao.requiredCompetencies.map((r) => {
+        result.requiredCompetencies.push(r.id);
+      });
+    }
+    if (dao.requiredUeberCompetencies) {
+      dao.requiredUeberCompetencies.map((r) => {
+        result.requiredUeberCompetencies.push(r.id);
+      });
+    }
+    if (dao.offeredCompetencies) {
+      dao.offeredCompetencies.map((r) => {
+        result.offeredCompetencies.push(r.id);
+      });
+    }
+    if (dao.offeredCompetencies) {
+      dao.offeredCompetencies.map((r) => {
+        result.offeredUeberCompetencies.push(r.id);
+      });
+    }
+
+    return result;
   }
 }

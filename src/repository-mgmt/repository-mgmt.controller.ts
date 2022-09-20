@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseBoolPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseBoolPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
@@ -82,7 +82,7 @@ export class RepositoryMgmtController {
     return this.repositoryService.createUeberCompetence(userId, repositoryId, dto);
   }
 
-  @Post(':repositoryId/competencies/modify_uebercompetence')
+  @Patch(':repositoryId/competencies/modify_uebercompetence')
   modify(
     @GetUser('id') userId: string,
     @Param('repositoryId') repositoryId: string,
