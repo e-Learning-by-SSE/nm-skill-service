@@ -1,6 +1,7 @@
 import * as argon from 'argon2';
 
 import { ConfigService } from '@nestjs/config';
+import { Repository } from '@prisma/client';
 
 import { PrismaService } from './prisma/prisma.service';
 
@@ -25,9 +26,15 @@ export class DbTestUtils {
   }
 
   public async wipeDb() {
+    // Learning Objects
+    await this.db.learningObject.deleteMany();
+    await this.db.loRepository.deleteMany();
+
+    // Competencies
     await this.db.ueberCompetence.deleteMany();
     await this.db.competence.deleteMany();
     await this.db.repository.deleteMany();
+
     await this.db.user.deleteMany();
   }
 
@@ -96,5 +103,15 @@ export class DbTestUtils {
     });
 
     return ueberCompetence;
+  }
+
+  async createLoRepository(userId: string, name: string, description?: string) {
+    return await this.db.loRepository.create({
+      data: {
+        userId: userId,
+        name: name,
+        description: description,
+      },
+    });
   }
 }

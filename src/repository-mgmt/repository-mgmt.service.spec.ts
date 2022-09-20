@@ -48,11 +48,11 @@ describe('Repository-Mgmt-Service', () => {
       // Precondition: No repositories
       await expect(repositoryService.listRepositories(user.id)).resolves.toEqual({ repositories: [] });
 
-      // Action: Add 2 repositores
+      // Action: Add 2 repositories
       const repo1 = await dbUtils.createRepository(user.id, 'Repository 1');
       const repo2 = await dbUtils.createRepository(user.id, 'Repository 2');
 
-      // Test Postcondition: 2 repositories created with expected names
+      // Post-condition: 2 repositories created with expected names
       const repoList = await repositoryService.listRepositories(user.id);
       expect(repoList.repositories.length).toEqual(2);
       // Partial matching with any order based on: https://codewithhugo.com/jest-array-object-match-contain/
