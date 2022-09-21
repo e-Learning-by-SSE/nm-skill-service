@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoRepositoryCreationDto } from './dto';
+import { LoRepositoryModifyDto } from './dto/lo-repository-modify.dto';
 import { LoRepositoryService } from './lo-repository.service';
 
 describe('LO-Repository Service (Repositories)', () => {
@@ -112,6 +113,26 @@ describe('LO-Repository Service (Repositories)', () => {
       // Post condition: Repository exists and represents created values
       await expect(loaded).rejects.toThrow(NotFoundException);
     });
+
+    it('Load existing, non-empty repository', async () => {
+      const user = await dbUtils.createUser('1', 'User', 'mail@example.com', 'pw');
+      const repository = await dbUtils.createLoRepository(user.id, 'First Repository', undefined);
+      const lo = await dbUtils.createLearningObject(repository.id, 'A LO', undefined);
+
+      // Action: Load specified repository
+      const loaded = repositoryService.loadRepository(repository.id);
+
+      // Post condition: Repository exists and represents created values
+      expect(await loaded).toEqual(
+        expect.objectContaining({
+          id: repository.id,
+          name: repository.name,
+          owner: user.id,
+          description: repository.description ?? undefined,
+          learningObjects: [lo.id],
+        }),
+      );
+    });
   });
 
   describe('Repository Creation', () => {
@@ -185,6 +206,52 @@ describe('LO-Repository Service (Repositories)', () => {
       ]);
 
       expect(repositoryList.repositories).toEqual(expected);
+    });
+  });
+
+  describe('Repository Modification', () => {
+    it('Rename repository and delete description', async () => {
+      const user = await dbUtils.createUser('1', 'User', 'mail@example.com', 'pw');
+      const repository = await dbUtils.createLoRepository(user.id, 'First Repository', 'A description');
+
+      // Action: Rename repository
+      const modification: LoRepositoryModifyDto = {
+        name: 'Renamed Repository',
+      };
+      await repositoryService.modifyRepository(user.id, repository.id, modification);
+
+      // Post condition: New name, old description
+      const changedRepository = await repositoryService.loadRepository(repository.id);
+      expect(changedRepository).toEqual(
+        expect.objectContaining({
+          id: repository.id,
+          name: modification.name,
+          description: modification.description,
+          owner: user.id,
+        }),
+      );
+    });
+
+    it('Change description, keep name untouched', async () => {
+      const user = await dbUtils.createUser('1', 'User', 'mail@example.com', 'pw');
+      const repository = await dbUtils.createLoRepository(user.id, 'First Repository', 'A description');
+
+      // Action: Rename repository
+      const modification: LoRepositoryModifyDto = {
+        description: 'A new description',
+      };
+      await repositoryService.modifyRepository(user.id, repository.id, modification);
+
+      // Post condition: New name, old description
+      const changedRepository = await repositoryService.loadRepository(repository.id);
+      expect(changedRepository).toEqual(
+        expect.objectContaining({
+          id: repository.id,
+          name: repository.name,
+          description: modification.description,
+          owner: user.id,
+        }),
+      );
     });
   });
 });

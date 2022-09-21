@@ -114,4 +114,14 @@ export class DbTestUtils {
       },
     });
   }
+
+  async createLearningObject(repositoryId: string, name: string, description?: string) {
+    return await this.db.learningObject.create({
+      data: {
+        loRepositoryId: repositoryId,
+        name: name,
+        description: description,
+      },
+    });
+  }
 }
