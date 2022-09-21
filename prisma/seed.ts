@@ -126,9 +126,16 @@ const competencies = [
   {
     id: '15',
     repository: '1',
-    name: 'Program Structure',
+    name: 'Program Structure I',
     description: 'Knowing how to add own code into a template',
     level: 1,
+  },
+  {
+    id: '16',
+    repository: '1',
+    name: 'Program Structure II',
+    description: 'Knowing how to add own code into a template',
+    level: 2,
   },
 ];
 
@@ -199,8 +206,40 @@ const loRepositories = [
 ];
 
 const learningObjectives = [
+  // Java Chapter 1
   {
     id: '1',
+    repositoryId: '1',
+    name: 'Introduction',
+    description: 'Motivation & Hello-World Example',
+    requiredCompetencies: [],
+    requiredUeberCompetencies: [],
+    offeredCompetencies: ['15'],
+    offeredUeberCompetencies: ['1'],
+  },
+  {
+    id: '2',
+    repositoryId: '1',
+    name: 'Compiler vs. Interpreter',
+    description: 'Explanation what javac & java do',
+    requiredCompetencies: [],
+    requiredUeberCompetencies: ['1'],
+    offeredCompetencies: [],
+    offeredUeberCompetencies: ['2'],
+  },
+  {
+    id: '3',
+    repositoryId: '1',
+    name: 'Writing Simple Programs',
+    description: 'How to write first programs / program structure',
+    requiredCompetencies: ['15'],
+    requiredUeberCompetencies: [],
+    offeredCompetencies: ['16'],
+    offeredUeberCompetencies: [],
+  },
+  // Java Chapter 2
+  {
+    id: '4',
     repositoryId: '1',
     name: 'Literals',
     description: 'Constant expressions',
@@ -340,7 +379,7 @@ async function createLearningObjectives() {
     const offCompetencies = lo.offeredCompetencies.map((i) => ({ id: i }));
     const offUeberCompetencies = lo.offeredUeberCompetencies.map((i) => ({ id: i }));
 
-    await prisma.learningObject.create({
+    const createdLo = await prisma.learningObject.create({
       data: {
         id: lo.id,
         loRepositoryId: lo.repositoryId,
