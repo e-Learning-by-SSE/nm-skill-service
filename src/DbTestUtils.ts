@@ -1,7 +1,6 @@
 import * as argon from 'argon2';
 
 import { ConfigService } from '@nestjs/config';
-import { Repository } from '@prisma/client';
 
 import { PrismaService } from './prisma/prisma.service';
 
