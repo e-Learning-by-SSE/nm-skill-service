@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { DbTestUtils } from '../DbTestUtils';
@@ -79,6 +79,38 @@ describe('LO-Repository Service (Repositories)', () => {
       ]);
 
       expect(repositoryList.repositories).toEqual(expected);
+    });
+  });
+
+  describe('Load Repository', () => {
+    it('Load existing, empty repository', async () => {
+      const user = await dbUtils.createUser('1', 'User', 'mail@example.com', 'pw');
+      const repository = await dbUtils.createLoRepository(user.id, 'First Repository', undefined);
+
+      // Action: Load specified repository
+      const loaded = repositoryService.loadRepository(repository.id);
+
+      // Post condition: Repository exists and represents created values
+      expect(await loaded).toEqual(
+        expect.objectContaining({
+          id: repository.id,
+          name: repository.name,
+          owner: user.id,
+          description: repository.description ?? undefined,
+          learningObjects: [],
+        }),
+      );
+    });
+
+    it('Load non-existing repository (fail)', async () => {
+      const user = await dbUtils.createUser('1', 'User', 'mail@example.com', 'pw');
+      const repository = await dbUtils.createLoRepository(user.id, 'First Repository', undefined);
+
+      // Action: Load specified repository
+      const loaded = repositoryService.loadRepository('non-existing-id');
+
+      // Post condition: Repository exists and represents created values
+      await expect(loaded).rejects.toThrow(NotFoundException);
     });
   });
 
