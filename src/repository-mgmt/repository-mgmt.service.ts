@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { Repository } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
+import { computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
     CompetenceCreationDto,
@@ -335,50 +336,31 @@ export class RepositoryMgmtService {
       );
     }
 
-    // Old records needs to be deleted first
-    // https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#disconnect-all-related-records
-    await this.db.ueberCompetence.update({
-      where: { id: ueberCompetence.id },
-      data: {
-        subCompetences: {
-          set: [],
-        },
-        subUeberCompetences: {
-          set: [],
-        },
-      },
-    });
+    // Determine data to change
+    const changeData: any = {};
+    // Determine relations to competencies to update
+    let changedRelations = computeRelationUpdate(ueberCompetence.subCompetences, dto.nestedCompetencies);
+    if (changedRelations) {
+      changeData['subCompetences'] = changedRelations;
+    }
+    changedRelations = computeRelationUpdate(ueberCompetence.subUeberCompetences, dto.nestedUeberCompetencies);
+    if (changedRelations) {
+      changeData['subUeberCompetences'] = changedRelations;
+    }
 
-    // Map array of ids to object array
-    const competencies = dto.nestedCompetencies?.map((i) => ({ id: i }));
-    const ueberCompetencies = dto.nestedUeberCompetencies?.map((i) => ({ id: i }));
-
-    // Apply update
-    const updatedUeberComp = await this.db.ueberCompetence.update({
-      where: { id: ueberCompetence.id },
-      data: {
-        subCompetences: {
-          connect: competencies,
+    if (Object.keys(changeData).length > 0) {
+      // Apply update
+      const updatedUeberComp = await this.db.ueberCompetence.update({
+        where: { id: ueberCompetence.id },
+        data: changeData,
+        include: {
+          subCompetences: true,
+          subUeberCompetences: true,
+          parentUeberCompetences: true,
         },
-        subUeberCompetences: {
-          connect: ueberCompetencies,
-        },
-      },
-      include: {
-        subCompetences: true,
-        subUeberCompetences: true,
-        parentUeberCompetences: true,
-      },
-    });
+      });
 
-    const result: UnResolvedUeberCompetenceDto = {
-      id: ueberCompetence.id,
-      name: ueberCompetence.name,
-      description: ueberCompetence.description ?? '',
-      nestedCompetencies: updatedUeberComp.subCompetences.map((c) => c.id),
-      nestedUeberCompetencies: updatedUeberComp.subUeberCompetences.map((uc) => uc.id),
-      parents: updatedUeberComp.parentUeberCompetences.map((p) => p.id),
-    };
-    return result;
+      return UnResolvedUeberCompetenceDto.createFromDao(updatedUeberComp);
+    }
   }
 }

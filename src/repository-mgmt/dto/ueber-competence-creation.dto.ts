@@ -9,4 +9,9 @@ export class UeberCompetenceCreationDto {
 
   @IsOptional()
   description?: string;
+
+  constructor(name: string, description?: string | null) {
+    this.name = name;
+    this.description = description ?? undefined;
+  }
 }
