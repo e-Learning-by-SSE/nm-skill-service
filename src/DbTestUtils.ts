@@ -124,7 +124,7 @@ export class DbTestUtils {
     offeredCompetencies?: string[],
     offeredUeberCompetencies?: string[],
   ) {
-    const lo = await this.db.learningObject.create({
+    let lo = await this.db.learningObject.create({
       data: {
         loRepositoryId: repositoryId,
         name: name,
@@ -151,11 +151,17 @@ export class DbTestUtils {
         changeData['offeredUeberCompetencies'] = changedRelations;
       }
 
-      await this.db.learningObject.update({
+      lo = await this.db.learningObject.update({
         where: {
           id: lo.id,
         },
         data: changeData,
+        include: {
+          requiredCompetencies: true,
+          requiredUeberCompetencies: true,
+          offeredCompetencies: true,
+          offeredUeberCompetencies: true,
+        },
       });
     }
 

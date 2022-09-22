@@ -4,11 +4,9 @@ import { Competence, LoRepository, Repository, UeberCompetence, User } from '@pr
 
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
-import { LoRepositoryCreationDto } from './dto';
 import { LearningObjectDto } from './dto/export/learning-object.dto';
 import { LearningObjectCreationDto } from './dto/learning-object-creation.dto';
 import { LearningObjectModificationDto } from './dto/learning-object-modification.dto';
-import { LoRepositoryModifyDto } from './dto/lo-repository-modify.dto';
 import { LoRepositoryService } from './lo-repository.service';
 
 describe('LO-Repository Service (Learning Objects)', () => {
@@ -204,6 +202,73 @@ describe('LO-Repository Service (Learning Objects)', () => {
 
       // Post-Condition: NotFoundException
       await expect(modifyResult).rejects.toThrow(NotFoundException);
+    });
+
+    it('Modify LO of different repository then specified -> fail', async () => {
+      const loRepository2 = await dbUtils.createLoRepository(owner.id, 'A second repository');
+      const lo = await dbUtils.createLearningObject(loRepository.id, 'A LO');
+
+      // Action: Try to modify
+      const modData: LearningObjectModificationDto = {
+        name: 'Changed Name',
+      };
+      const modifyResult = repositoryService.modifyLearningObject(owner.id, loRepository2.id, lo.id, modData);
+
+      // Post-Condition: ForbiddenException
+      await expect(modifyResult).rejects.toThrow(ForbiddenException);
+    });
+
+    it('Change name and description of LO', async () => {
+      const lo = await dbUtils.createLearningObject(loRepository.id, 'A LO');
+      const modData: LearningObjectModificationDto = {
+        name: 'Changed Name',
+        description: 'Changed description',
+      };
+
+      // Pre-Condition: Different name and description as to change
+      expect(lo).toEqual(expect.not.objectContaining(modData));
+
+      // Action: Try to modify
+      const modifyResult = await repositoryService.modifyLearningObject(owner.id, loRepository.id, lo.id, modData);
+
+      // Post-Condition: DTO should contain modified data
+      expect(modifyResult).toEqual(expect.objectContaining(modData));
+    });
+
+    it('Exchange competencies of LO', async () => {
+      await createCompetenceRepository();
+      const lo = await dbUtils.createLearningObject(
+        loRepository.id,
+        'A LO',
+        'A description',
+        [competence1.id],
+        [ueberCompetence1.id],
+        [competence2.id],
+        [ueberCompetence2.id],
+      );
+
+      // Pre-Condition: Competencies as specified during creation
+      // Test on DAO: Requires nested objectContaining-matcher
+      expect(lo).toEqual(
+        expect.objectContaining({
+          requiredCompetencies: [expect.objectContaining({ id: competence1.id })],
+          requiredUeberCompetencies: [expect.objectContaining({ id: ueberCompetence1.id })],
+          offeredCompetencies: [expect.objectContaining({ id: competence2.id })],
+          offeredUeberCompetencies: [expect.objectContaining({ id: ueberCompetence2.id })],
+        }),
+      );
+
+      // Action: Try to modify (exchange all competencies: 1 <-> 2)
+      const modData: LearningObjectModificationDto = {
+        requiredCompetencies: [competence2.id],
+        requiredUeberCompetencies: [ueberCompetence2.id],
+        offeredCompetencies: [competence1.id],
+        offeredUeberCompetencies: [ueberCompetence1.id],
+      };
+      const modifyResult = await repositoryService.modifyLearningObject(owner.id, loRepository.id, lo.id, modData);
+
+      // Post-Condition: DTO should contain modified data
+      expect(modifyResult).toEqual(expect.objectContaining(modData));
     });
   });
 });
