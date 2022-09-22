@@ -278,7 +278,7 @@ describe('LO-Repository Service (Repositories)', () => {
       };
       const change = repositoryService.modifyRepository(owner.id, 'non-existing-id', modification);
 
-      // Post condition: Change should be forbidden
+      // Post condition: Repository not found
       await expect(change).rejects.toThrow(NotFoundException);
     });
 
@@ -293,7 +293,7 @@ describe('LO-Repository Service (Repositories)', () => {
       };
       const change = repositoryService.modifyRepository(owner.id, repository.id, modification);
 
-      // Post condition: Change should be forbidden
+      // Post condition: No changed data (range error)
       await expect(change).rejects.toThrow(RangeError);
     });
   });

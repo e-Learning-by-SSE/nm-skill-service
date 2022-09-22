@@ -35,7 +35,6 @@ export function computeRelationUpdate(oldData: ReferableItem[], newData?: string
     const oldItems = oldData.map((c) => c.id);
     const addItems = newData.filter((i) => !oldItems.includes(i));
     const removeItems = oldItems.filter((i) => !newData.includes(i));
-    //newData.map((i) => result?.push({ id: i }));
     result = {
       connect: addItems.map((i) => ({ id: i })),
       disconnect: removeItems.map((i) => ({ id: i })),

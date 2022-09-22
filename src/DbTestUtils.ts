@@ -2,6 +2,7 @@ import * as argon from 'argon2';
 
 import { ConfigService } from '@nestjs/config';
 
+import { computeRelationUpdate } from './db_utils';
 import { PrismaService } from './prisma/prisma.service';
 
 /**
@@ -114,13 +115,50 @@ export class DbTestUtils {
     });
   }
 
-  async createLearningObject(repositoryId: string, name: string, description?: string) {
-    return await this.db.learningObject.create({
+  async createLearningObject(
+    repositoryId: string,
+    name: string,
+    description?: string,
+    requiredCompetencies?: string[],
+    requiredUeberCompetencies?: string[],
+    offeredCompetencies?: string[],
+    offeredUeberCompetencies?: string[],
+  ) {
+    const lo = await this.db.learningObject.create({
       data: {
         loRepositoryId: repositoryId,
         name: name,
         description: description,
       },
     });
+
+    if (requiredCompetencies || requiredUeberCompetencies || offeredUeberCompetencies || offeredUeberCompetencies) {
+      const changeData: any = {};
+      let changedRelations = computeRelationUpdate([], requiredCompetencies);
+      if (changedRelations) {
+        changeData['requiredCompetencies'] = changedRelations;
+      }
+      changedRelations = computeRelationUpdate([], requiredUeberCompetencies);
+      if (changedRelations) {
+        changeData['requiredUeberCompetencies'] = changedRelations;
+      }
+      changedRelations = computeRelationUpdate([], offeredCompetencies);
+      if (changedRelations) {
+        changeData['offeredCompetencies'] = changedRelations;
+      }
+      changedRelations = computeRelationUpdate([], offeredUeberCompetencies);
+      if (changedRelations) {
+        changeData['offeredUeberCompetencies'] = changedRelations;
+      }
+
+      await this.db.learningObject.update({
+        where: {
+          id: lo.id,
+        },
+        data: changeData,
+      });
+    }
+
+    return lo;
   }
 }
