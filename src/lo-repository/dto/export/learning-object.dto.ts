@@ -60,8 +60,8 @@ export class LearningObjectDto {
         result.offeredCompetencies.push(r.id);
       });
     }
-    if (dao.offeredCompetencies) {
-      dao.offeredCompetencies.map((r) => {
+    if (dao.offeredUeberCompetencies) {
+      dao.offeredUeberCompetencies.map((r) => {
         result.offeredUeberCompetencies.push(r.id);
       });
     }
