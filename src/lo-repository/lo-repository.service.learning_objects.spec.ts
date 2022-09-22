@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LoRepositoryCreationDto } from './dto';
 import { LearningObjectDto } from './dto/export/learning-object.dto';
 import { LearningObjectCreationDto } from './dto/learning-object-creation.dto';
+import { LearningObjectModificationDto } from './dto/learning-object-modification.dto';
 import { LoRepositoryModifyDto } from './dto/lo-repository-modify.dto';
 import { LoRepositoryService } from './lo-repository.service';
 
@@ -170,5 +171,39 @@ describe('LO-Repository Service (Learning Objects)', () => {
       loRepositoryId: loRepository.id,
     });
     expect(newLo).toEqual(expectedData);
+  });
+
+  describe('Modify Learning Objects', () => {
+    it('Modify LO of different user -> fail', async () => {
+      const anotherUser = await dbUtils.createUser('2', 'Another user', 'mail@example.com', 'pw');
+      const lo = await dbUtils.createLearningObject(loRepository.id, 'A LO');
+
+      // Action: Try to modify
+      const modData: LearningObjectModificationDto = {
+        name: 'Changed Name',
+      };
+      const modifyResult = repositoryService.modifyLearningObject(anotherUser.id, loRepository.id, lo.id, modData);
+
+      // Post-Condition: ForbiddenException
+      await expect(modifyResult).rejects.toThrow(ForbiddenException);
+    });
+
+    it('Modify non-existent LO -> fail', async () => {
+      await dbUtils.createLearningObject(loRepository.id, 'A LO');
+
+      // Action: Try to modify
+      const modData: LearningObjectModificationDto = {
+        name: 'Changed Name',
+      };
+      const modifyResult = repositoryService.modifyLearningObject(
+        owner.id,
+        loRepository.id,
+        'non-existent-id',
+        modData,
+      );
+
+      // Post-Condition: NotFoundException
+      await expect(modifyResult).rejects.toThrow(NotFoundException);
+    });
   });
 });
