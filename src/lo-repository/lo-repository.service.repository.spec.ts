@@ -253,5 +253,48 @@ describe('LO-Repository Service (Repositories)', () => {
         }),
       );
     });
+
+    it('Change repository of different user -> fail', async () => {
+      const owner = await dbUtils.createUser('1', 'Owner', 'owner@example.com', 'pw');
+      const otherUser = await dbUtils.createUser('2', 'Another User', 'other@example.com', 'pw');
+      const repository = await dbUtils.createLoRepository(owner.id, 'First Repository', 'A description');
+
+      // Action: Rename repository
+      const modification: LoRepositoryModifyDto = {
+        name: 'Renamed Repository',
+      };
+      const change = repositoryService.modifyRepository(otherUser.id, repository.id, modification);
+
+      // Post condition: Change should be forbidden
+      await expect(change).rejects.toThrow(ForbiddenException);
+    });
+
+    it('Change non existent repository -> fail', async () => {
+      const owner = await dbUtils.createUser('1', 'Owner', 'owner@example.com', 'pw');
+
+      // Action: Rename repository
+      const modification: LoRepositoryModifyDto = {
+        name: 'Renamed Repository',
+      };
+      const change = repositoryService.modifyRepository(owner.id, 'non-existing-id', modification);
+
+      // Post condition: Change should be forbidden
+      await expect(change).rejects.toThrow(NotFoundException);
+    });
+
+    it('Modify repository without any change -> fail', async () => {
+      const owner = await dbUtils.createUser('1', 'Owner', 'owner@example.com', 'pw');
+      const repository = await dbUtils.createLoRepository(owner.id, 'First Repository', 'A description');
+
+      // Action: Rename repository
+      const modification: LoRepositoryModifyDto = {
+        name: repository.name,
+        description: repository.description ?? undefined,
+      };
+      const change = repositoryService.modifyRepository(owner.id, repository.id, modification);
+
+      // Post condition: Change should be forbidden
+      await expect(change).rejects.toThrow(RangeError);
+    });
   });
 });
