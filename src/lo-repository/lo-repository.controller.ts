@@ -1,6 +1,16 @@
 import e from 'express';
 
-import { Body, Controller, Get, HttpException, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Get,
+    HttpException,
+    Param,
+    Patch,
+    Post,
+    UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
@@ -77,14 +87,6 @@ export class LoRepositoryController {
     @Param('learningObjectId') learningObjectId: string,
     @Body() dto: LearningObjectModificationDto,
   ) {
-    try {
-      return await this.loService.modifyLearningObject(userId, repositoryId, learningObjectId, dto);
-    } catch (error) {
-      if (error instanceof RangeError) {
-        // Not an internal error (500) but wrong user input (422)
-        throw new HttpException(error.message, 422);
-      }
-      throw error;
-    }
+    return await this.loService.modifyLearningObject(userId, repositoryId, learningObjectId, dto);
   }
 }

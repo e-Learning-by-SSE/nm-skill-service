@@ -5,11 +5,17 @@ import { IsNotEmpty, IsOptional } from 'class-validator';
  */
 export class CompetenceCreationDto {
   @IsNotEmpty()
-  skill: string;
+  skill!: string;
 
   @IsNotEmpty()
-  level: number;
+  level!: number;
 
   @IsOptional()
   description?: string;
+
+  constructor(skill: string, level: number, description?: string | null) {
+    this.skill = skill;
+    this.level = level;
+    this.description = description ?? undefined;
+  }
 }

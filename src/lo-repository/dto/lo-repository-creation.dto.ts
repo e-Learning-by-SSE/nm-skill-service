@@ -5,8 +5,8 @@ import { IsNotEmpty, IsOptional } from 'class-validator';
  */
 export class LoRepositoryCreationDto {
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsOptional()
-  description: string;
+  description?: string;
 }

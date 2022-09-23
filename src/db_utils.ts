@@ -29,7 +29,7 @@ export type ReferableItem = {
  * @returns null if nothing shall be changed, or an object that can directly by used by prisma.
  */
 export function computeRelationUpdate(oldData: ReferableItem[], newData?: string[] | null) {
-  let result: RelationUpdate | null = null;
+  let result: RelationUpdate | undefined = undefined;
   // Change links only for defined properties
   if (newData) {
     const oldItems = oldData.map((c) => c.id);

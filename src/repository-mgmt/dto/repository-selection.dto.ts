@@ -5,8 +5,13 @@ import { IsNotEmpty, IsOptional } from 'class-validator';
  */
 export class RepositorySelectionDto {
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsOptional()
-  version = '';
+  version?: string;
+
+  constructor(name: string, version?: string | null) {
+    this.name = name;
+    this.version = version ?? undefined;
+  }
 }

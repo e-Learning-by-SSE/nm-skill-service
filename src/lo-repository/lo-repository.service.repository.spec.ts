@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { DbTestUtils } from '../DbTestUtils';
@@ -62,7 +62,7 @@ describe('LO-Repository Service (Repositories)', () => {
       // Action: Retrieve complete repository list
       const repositoryList = await repositoryService.listRepositories();
 
-      // Post-Condition: List should contain 1 repository, created by user.
+      // Post-Condition: List should contain 2 repositories, 1 created by each user.
       expect(repositoryList.repositories.length).toBe(2);
       const expected = expect.arrayContaining([
         expect.objectContaining({
@@ -294,7 +294,7 @@ describe('LO-Repository Service (Repositories)', () => {
       const change = repositoryService.modifyRepository(owner.id, repository.id, modification);
 
       // Post condition: No changed data (range error)
-      await expect(change).rejects.toThrow(RangeError);
+      await expect(change).rejects.toThrow(BadRequestException);
     });
   });
 });

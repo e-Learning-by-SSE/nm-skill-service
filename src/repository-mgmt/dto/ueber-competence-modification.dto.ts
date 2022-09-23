@@ -1,23 +1,24 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsDefined } from 'class-validator';
 
 /**
- * Creates a new Ueber-Competence
+ * Modifies an existing Ueber-Competence
  */
 export class UeberCompetenceModificationDto {
-  @IsNotEmpty()
+  @IsDefined()
   /**
    * The Ueber-Competence to change
    */
-  ueberCompetenceId: string;
+  ueberCompetenceId!: string;
 
-  @IsNotEmpty()
+  @IsDefined()
   /**
    * Complete list of all directly nested Competencies. Overwrites old settings.
    */
-  nestedCompetencies: string[];
+  nestedCompetencies!: string[];
 
+  @IsDefined()
   /**
    * Complete list of all directly nested Ueber-Competencies. Overwrites old settings.
    */
-  nestedUeberCompetencies: string[];
+  nestedUeberCompetencies!: string[];
 }

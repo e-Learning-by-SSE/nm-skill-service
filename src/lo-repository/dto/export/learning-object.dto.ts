@@ -1,24 +1,28 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
 import { Competence, LearningObject, UeberCompetence } from '@prisma/client';
 
 export class LearningObjectDto {
   @IsNotEmpty()
-  id: string;
+  id!: string;
 
   @IsNotEmpty()
-  loRepositoryId: string;
+  loRepositoryId!: string;
 
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsOptional()
   description?: string;
 
-  requiredCompetencies: string[];
-  requiredUeberCompetencies: string[];
-  offeredCompetencies: string[];
-  offeredUeberCompetencies: string[];
+  @IsDefined()
+  requiredCompetencies!: string[];
+  @IsDefined()
+  requiredUeberCompetencies!: string[];
+  @IsDefined()
+  offeredCompetencies!: string[];
+  @IsDefined()
+  offeredUeberCompetencies!: string[];
 
   constructor(id: string, loRepositoryId: string, name: string, description?: string | null) {
     this.id = id;
@@ -45,26 +49,10 @@ export class LearningObjectDto {
     },
   ) {
     const result = new LearningObjectDto(dao.id, dao.loRepositoryId, dao.name, dao.description);
-    if (dao.requiredCompetencies) {
-      dao.requiredCompetencies.map((r) => {
-        result.requiredCompetencies.push(r.id);
-      });
-    }
-    if (dao.requiredUeberCompetencies) {
-      dao.requiredUeberCompetencies.map((r) => {
-        result.requiredUeberCompetencies.push(r.id);
-      });
-    }
-    if (dao.offeredCompetencies) {
-      dao.offeredCompetencies.map((r) => {
-        result.offeredCompetencies.push(r.id);
-      });
-    }
-    if (dao.offeredUeberCompetencies) {
-      dao.offeredUeberCompetencies.map((r) => {
-        result.offeredUeberCompetencies.push(r.id);
-      });
-    }
+    result.requiredCompetencies = dao.requiredCompetencies?.map((rc) => rc.id) ?? [];
+    result.requiredUeberCompetencies = dao.requiredUeberCompetencies?.map((ruc) => ruc.id) ?? [];
+    result.offeredCompetencies = dao.offeredCompetencies?.map((oc) => oc.id) ?? [];
+    result.offeredUeberCompetencies = dao.offeredUeberCompetencies?.map((ouc) => ouc.id) ?? [];
 
     return result;
   }

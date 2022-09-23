@@ -1,5 +1,4 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { computeRelationUpdate } from '../db_utils';
@@ -40,29 +39,9 @@ export class RepositoryMgmtService {
     });
 
     const repoList = new RepositoryListDto();
-    repoList.repositories = repositories.map((repository) =>
-      RepositoryDto.create(
-        repository.id,
-        repository.userId,
-        repository.name,
-        repository.version,
-        repository.taxonomy,
-        repository.description,
-      ),
-    );
+    repoList.repositories = repositories.map((repository) => RepositoryDto.createFromDao(repository));
 
     return repoList;
-  }
-
-  private mapRepositoryToDto(repository: Repository): RepositoryDto {
-    return RepositoryDto.create(
-      repository.id,
-      repository.userId,
-      repository.name,
-      repository.version,
-      repository.taxonomy,
-      repository.description,
-    );
   }
 
   async createRepository(userId: string, dto: RepositoryCreationDto) {
@@ -77,7 +56,7 @@ export class RepositoryMgmtService {
         },
       });
 
-      return this.mapRepositoryToDto(repository);
+      return RepositoryDto.createFromDao(repository);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -115,7 +94,7 @@ export class RepositoryMgmtService {
   public async loadRepository(userId: string, repositoryId: string) {
     const repository = await this.getRepository(userId, repositoryId, true);
     const result: UnresolvedRepositoryDto = {
-      ...this.mapRepositoryToDto(repository),
+      ...RepositoryDto.createFromDao(repository),
       competencies: repository.competencies.map((c) => c.id),
       ueberCompetencies: repository.uebercompetencies.map((uc) => uc.id),
     };
@@ -137,7 +116,7 @@ export class RepositoryMgmtService {
     const competenceMap = new Map<string, CompetenceDto>();
     repository.competencies.forEach((c) => {
       // Convert DAO -> DTO
-      const competence: CompetenceDto = CompetenceDto.create(c.id, c.skill, c.level, c.description);
+      const competence = CompetenceDto.createFromDao(c);
 
       competenceMap.set(c.id, competence);
       result.competencies.push(competence);
@@ -275,7 +254,7 @@ export class RepositoryMgmtService {
     const competence = await this.db.competence.findUnique({ where: { id: competenceId } });
 
     if (!competence) {
-      throw new NotFoundException('Specified competence  not found: ' + competenceId);
+      throw new NotFoundException('Specified competence not found: ' + competenceId);
     }
 
     if (repositoryId) {
@@ -299,7 +278,7 @@ export class RepositoryMgmtService {
     });
 
     if (!ueberCompetence) {
-      throw new NotFoundException('Specified ueber-competence  not found: ' + ueberCompetenceId);
+      throw new NotFoundException('Specified ueber-competence not found: ' + ueberCompetenceId);
     }
 
     if (repositoryId) {

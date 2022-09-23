@@ -5,7 +5,7 @@ import { IsNotEmpty, IsOptional } from 'class-validator';
  */
 export class UeberCompetenceCreationDto {
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsOptional()
   description?: string;

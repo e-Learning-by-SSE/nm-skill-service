@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
  * Represents a LO-Repository, but doesn't list its nested Learning Objects.
@@ -13,6 +13,7 @@ export class ShallowLoRepositoryDto {
   @IsNotEmpty()
   owner: string;
 
+  @IsOptional()
   description?: string;
 
   constructor(id: string, name: string, owner: string, description?: string | null) {

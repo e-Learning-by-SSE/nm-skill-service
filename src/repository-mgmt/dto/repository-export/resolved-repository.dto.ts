@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
 import { RepositorySelectionDto } from '../repository-selection.dto';
 import { CompetenceDto } from './competence.dto';
@@ -6,13 +6,17 @@ import { ResolvedUeberCompetenceDto } from './resolved-ueber-competence.dto';
 
 export class ResolvedRepositoryDto extends RepositorySelectionDto {
   @IsNotEmpty()
-  id: string;
+  id!: string;
 
+  @IsOptional()
   taxonomy?: string;
+  @IsOptional()
   description?: string;
 
-  competencies: CompetenceDto[];
-  ueberCompetencies: ResolvedUeberCompetenceDto[];
+  @IsDefined()
+  competencies!: CompetenceDto[];
+  @IsDefined()
+  ueberCompetencies!: ResolvedUeberCompetenceDto[];
 
   static create(
     id: string,

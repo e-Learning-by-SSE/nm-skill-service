@@ -1,5 +1,5 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { LearningObject } from '@prisma/client';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { computeRelationUpdate } from '../db_utils';
@@ -176,7 +176,7 @@ export class LoRepositoryService {
       return new LoRepositoryDto(repository.id, repository.name, repository.userId, repository.description);
     }
 
-    throw new RangeError('Nothing to change.');
+    throw new BadRequestException('Nothing to change.');
   }
 
   async loadLearningObject(learningObjectId: string) {
@@ -260,35 +260,29 @@ export class LoRepositoryService {
     const oldLo = await this.loadLearningObjectForModification(userId, repositoryId, learningObjectId);
 
     // Determine data to change
-    const changeData: any = {};
+    const changeData: Prisma.LearningObjectUpdateInput = {};
     if (dto.name && dto.name !== oldLo.name) {
       // Name must not be null and different
-      changeData['name'] = dto.name;
+      changeData.name = dto.name;
     }
     // Make description comparable (same type definition)
     const newDescription = dto.description ?? null;
     if (newDescription !== oldLo.description) {
       // New description should be changed (can also be set to undefined)
-      changeData['description'] = dto.description ?? null;
+      changeData.description = dto.description ?? null;
     }
 
     // Determine relations to competencies to update
-    let changedRelations = computeRelationUpdate(oldLo.requiredCompetencies, dto.requiredCompetencies);
-    if (changedRelations) {
-      changeData['requiredCompetencies'] = changedRelations;
-    }
-    changedRelations = computeRelationUpdate(oldLo.requiredUeberCompetencies, dto.requiredUeberCompetencies);
-    if (changedRelations) {
-      changeData['requiredUeberCompetencies'] = changedRelations;
-    }
-    changedRelations = computeRelationUpdate(oldLo.offeredCompetencies, dto.offeredCompetencies);
-    if (changedRelations) {
-      changeData['offeredCompetencies'] = changedRelations;
-    }
-    changedRelations = computeRelationUpdate(oldLo.offeredUeberCompetencies, dto.offeredUeberCompetencies);
-    if (changedRelations) {
-      changeData['offeredUeberCompetencies'] = changedRelations;
-    }
+    changeData.requiredCompetencies = computeRelationUpdate(oldLo.requiredCompetencies, dto.requiredCompetencies);
+    changeData.requiredUeberCompetencies = computeRelationUpdate(
+      oldLo.requiredUeberCompetencies,
+      dto.requiredUeberCompetencies,
+    );
+    changeData.offeredCompetencies = computeRelationUpdate(oldLo.offeredCompetencies, dto.offeredCompetencies);
+    changeData.offeredUeberCompetencies = computeRelationUpdate(
+      oldLo.offeredUeberCompetencies,
+      dto.offeredUeberCompetencies,
+    );
 
     if (Object.keys(changeData).length > 0) {
       const newLo = await this.db.learningObject.update({

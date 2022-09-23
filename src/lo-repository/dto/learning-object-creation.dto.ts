@@ -1,17 +1,21 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
  * Creates a new Learning Object.
  */
 export class LearningObjectCreationDto {
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsOptional()
   description?: string;
 
-  requiredCompetencies: string[];
-  requiredUeberCompetencies: string[];
-  offeredCompetencies: string[];
-  offeredUeberCompetencies: string[];
+  @IsDefined()
+  requiredCompetencies!: string[];
+  @IsDefined()
+  requiredUeberCompetencies!: string[];
+  @IsDefined()
+  offeredCompetencies!: string[];
+  @IsDefined()
+  offeredUeberCompetencies!: string[];
 }

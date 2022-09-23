@@ -1,17 +1,19 @@
 import { IsNotEmpty } from 'class-validator';
 
+import { Competence } from '@prisma/client';
+
 import { CompetenceCreationDto } from '../competence-creation.dto';
 
 export class CompetenceDto extends CompetenceCreationDto {
   @IsNotEmpty()
-  id: string;
+  id!: string;
 
-  static create(id: string, skill: string, level: number, description?: string | null): CompetenceDto {
-    return {
-      id: id,
-      skill: skill,
-      level: level,
-      description: description ?? undefined,
-    };
+  constructor(id: string, skill: string, level: number, description?: string | null) {
+    super(skill, level, description);
+    this.id = id;
+  }
+
+  static createFromDao(competence: Competence): CompetenceDto {
+    return new CompetenceDto(competence.id, competence.skill, competence.level, competence.description);
   }
 }
