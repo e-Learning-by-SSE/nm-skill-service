@@ -1,5 +1,9 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
+import { LoRepository } from '@prisma/client';
+
+import { LoRepositoryDto } from './lo-repository-full.dto';
+
 /**
  * Represents a LO-Repository, but doesn't list its nested Learning Objects.
  */
@@ -21,5 +25,14 @@ export class ShallowLoRepositoryDto {
     this.name = name;
     this.owner = owner;
     this.description = description ?? undefined;
+  }
+
+  static createFromDao(loRepository: LoRepository) {
+    return new ShallowLoRepositoryDto(
+      loRepository.id,
+      loRepository.name,
+      loRepository.userId,
+      loRepository.description,
+    );
   }
 }

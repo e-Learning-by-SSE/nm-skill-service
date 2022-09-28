@@ -51,15 +51,7 @@ export class LoRepositoryController {
     @Param('repositoryId') repositoryId: string,
     @Body() dto: LoRepositoryModifyDto,
   ) {
-    try {
-      return await this.loService.modifyRepository(userId, repositoryId, dto);
-    } catch (error) {
-      if (error instanceof RangeError) {
-        // Not an internal error (500) but wrong user input (422)
-        throw new HttpException(error.message, 422);
-      }
-      throw error;
-    }
+    return await this.loService.modifyRepository(userId, repositoryId, dto);
   }
 
   @ApiBearerAuth()

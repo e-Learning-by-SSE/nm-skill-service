@@ -69,12 +69,7 @@ export class LoRepositoryService {
         },
       });
 
-      return new ShallowLoRepositoryDto(
-        newRepository.id,
-        newRepository.name,
-        newRepository.userId,
-        newRepository.description,
-      );
+      return ShallowLoRepositoryDto.createFromDao(newRepository);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -196,20 +191,7 @@ export class LoRepositoryService {
       throw new NotFoundException(`Specified Learning Object not found: ${learningObjectId}`);
     }
 
-    const result = new LearningObjectDto(lo.id, lo.loRepositoryId, lo.name, lo.description);
-    for (const requirement of lo.requiredCompetencies) {
-      result.requiredCompetencies.push(requirement.id);
-    }
-    for (const requirement of lo.requiredUeberCompetencies) {
-      result.requiredUeberCompetencies.push(requirement.id);
-    }
-    for (const offered of lo.offeredCompetencies) {
-      result.offeredCompetencies.push(offered.id);
-    }
-    for (const offered of lo.offeredUeberCompetencies) {
-      result.offeredUeberCompetencies.push(offered.id);
-    }
-    return result;
+    return LearningObjectDto.createFromDao(lo);
   }
 
   async createLearningObject(userId: string, repositoryId: string, dto: LearningObjectCreationDto) {

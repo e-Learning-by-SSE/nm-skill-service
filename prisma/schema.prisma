@@ -55,8 +55,11 @@ model Competence {
   parentUeberCompetences UeberCompetence[]
 
   // Use in Learning Objects
-  requiredFor LearningObject[] @relation("requiredCompetencies")
-  offeredFor LearningObject[] @relation("offeredCompetencies")
+  requiredFor  LearningObject[] @relation("requiredCompetencies")
+  offeredFor   LearningObject[] @relation("offeredCompetencies")
+
+  // Use in Learning Goals
+  goalOf       LearningGoal[] @relation("lowlevelGoals")
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -85,6 +88,9 @@ model UeberCompetence {
   requiredFor LearningObject[] @relation("requiredUeberCompetencies")
   offeredFor LearningObject[] @relation("offeredUeberCompetencies")
 
+  // Use in Learning Goals
+  goalOf       LearningGoal[] @relation("highlevelGoals")
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -100,6 +106,7 @@ model LoRepository {
   user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt         DateTime @default(now())
   learningObjects   LearningObject[]
+  learningGoals     LearningGoal[]
 
   @@map("lo-repositories")
   @@unique([userId, name])
@@ -116,10 +123,25 @@ model LearningObject {
   requiredCompetencies    Competence[] @relation("requiredCompetencies")
   offeredCompetencies     Competence[] @relation("offeredCompetencies")
 
-  // Requires/Offers on Competencies
+  // Requires/Offers on Ueber-Competencies
   requiredUeberCompetencies    UeberCompetence[] @relation("requiredUeberCompetencies")
   offeredUeberCompetencies     UeberCompetence[] @relation("offeredUeberCompetencies")
 
   @@map("learning_objects")
+  @@unique([loRepositoryId, name])
+}
+
+model LearningGoal {
+  id                           String @id @default(cuid())
+  name                         String
+  description                  String?
+  loRepositoryId               String
+  loRepository                 LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
+
+  // Definition of Goals by (Ueber-) Competencies
+  lowlevelGoals                Competence[] @relation("lowlevelGoals")
+  highlevelGoals               UeberCompetence[] @relation("highlevelGoals")
+
+  @@map("learning_goals")
   @@unique([loRepositoryId, name])
 }
