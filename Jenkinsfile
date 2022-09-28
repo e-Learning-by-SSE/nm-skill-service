@@ -86,7 +86,7 @@ pipeline {
                         # [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
                         # ssh-keyscan -t rsa,dsa example.com >> ~/.ssh/known_hosts
                         ssh -i ~/.ssh/id_rsa_student_mgmt_backend elscha@${env.DEMO_SERVER} <<EOF
-                            cd ~/Competence-Repository
+                            cd /staging/nm-competence-repository
                             ./recreate.sh
                             exit
                         EOF"""
