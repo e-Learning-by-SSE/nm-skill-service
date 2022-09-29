@@ -137,6 +137,27 @@ const competencies = [
     description: 'Knowing how to add own code into a template',
     level: 2,
   },
+  {
+    id: '17',
+    repository: '1',
+    name: 'Casting Primitive Datatypes',
+    description: '',
+    level: 3,
+  },
+  {
+    id: '18',
+    repository: '1',
+    name: 'What are Expressions',
+    description: '',
+    level: 1,
+  },
+  {
+    id: '19',
+    repository: '1',
+    name: 'Constants',
+    description: 'final, static',
+    level: 3,
+  },
 ];
 
 const ueberCompetencies = [
@@ -161,7 +182,7 @@ const ueberCompetencies = [
     repository: '1',
     name: 'Expressions',
     description: 'Complete understanding of expressions in Java',
-    nestedCompetencies: ['5', '6', '7', '8'],
+    nestedCompetencies: ['5', '6', '7', '8', '18'],
     nestedUeberCompetencies: [],
   },
   {
@@ -243,9 +264,29 @@ const learningObjectives = [
     repositoryId: '1',
     name: 'Literals',
     description: 'Constant expressions',
+    requiredCompetencies: ['16'],
+    requiredUeberCompetencies: ['2'],
+    offeredCompetencies: ['18'],
+    offeredUeberCompetencies: [],
+  },
+  {
+    id: '5',
+    repositoryId: '1',
+    name: 'Basic Datatypes, Literals, Casts',
+    description: 'Constant expressions',
+    requiredCompetencies: ['16', '18'],
+    requiredUeberCompetencies: ['2'],
+    offeredCompetencies: ['5', '6', '17'],
+    offeredUeberCompetencies: [],
+  },
+  {
+    id: '6',
+    repositoryId: '1',
+    name: 'Variables / Constants',
+    description: 'Constant expressions',
     requiredCompetencies: [],
     requiredUeberCompetencies: ['2'],
-    offeredCompetencies: ['5'],
+    offeredCompetencies: ['7', '19'],
     offeredUeberCompetencies: [],
   },
 ];
