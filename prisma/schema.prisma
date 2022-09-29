@@ -139,8 +139,8 @@ model LearningGoal {
   loRepository                 LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
 
   // Definition of Goals by (Ueber-) Competencies
-  lowlevelGoals                Competence[] @relation("lowlevelGoals")
-  highlevelGoals               UeberCompetence[] @relation("highlevelGoals")
+  lowLevelGoals                Competence[] @relation("lowlevelGoals")
+  highLevelGoals               UeberCompetence[] @relation("highlevelGoals")
 
   @@map("learning_goals")
   @@unique([loRepositoryId, name])

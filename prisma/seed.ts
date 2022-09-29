@@ -250,6 +250,17 @@ const learningObjectives = [
   },
 ];
 
+const learningGoals = [
+  {
+    id: '1',
+    repositoryId: '1',
+    name: 'Imperative Programming with Java',
+    description: 'Writing algorithms with Java, without OO',
+    lowLevelGoals: [],
+    highLevelGoals: ['6'],
+  },
+];
+
 async function seed(): Promise<void> {
   console.log('😅 Seeding...');
 
@@ -267,8 +278,10 @@ async function seed(): Promise<void> {
   console.log('✅ LO-Repositories');
   // wait 1 second to avoid concurrency problems
   await new Promise((f) => setTimeout(f, 1000));
-  await createLearningObjectives();
-  console.log('✅ Learning Objectives');
+  await createLearningObjects();
+  console.log('✅ Learning Objects');
+  await createGoals();
+  console.log('✅ Goals');
 
   console.log('Seeding completed 😎');
 }
@@ -372,32 +385,58 @@ async function createLoRepositories() {
   return result;
 }
 
-async function createLearningObjectives() {
-  for (const lo of learningObjectives) {
-    const reqCompetencies = lo.requiredCompetencies.map((i) => ({ id: i }));
-    const reqUeberCompetencies = lo.requiredUeberCompetencies.map((i) => ({ id: i }));
-    const offCompetencies = lo.offeredCompetencies.map((i) => ({ id: i }));
-    const offUeberCompetencies = lo.offeredUeberCompetencies.map((i) => ({ id: i }));
+async function createLearningObjects() {
+  await Promise.all(
+    learningObjectives.map(async (lo) => {
+      const reqCompetencies = lo.requiredCompetencies.map((i) => ({ id: i }));
+      const reqUeberCompetencies = lo.requiredUeberCompetencies.map((i) => ({ id: i }));
+      const offCompetencies = lo.offeredCompetencies.map((i) => ({ id: i }));
+      const offUeberCompetencies = lo.offeredUeberCompetencies.map((i) => ({ id: i }));
 
-    const createdLo = await prisma.learningObject.create({
-      data: {
-        id: lo.id,
-        loRepositoryId: lo.repositoryId,
-        name: lo.name,
-        description: lo.description,
-        requiredCompetencies: {
-          connect: reqCompetencies,
+      await prisma.learningObject.create({
+        data: {
+          id: lo.id,
+          loRepositoryId: lo.repositoryId,
+          name: lo.name,
+          description: lo.description,
+          requiredCompetencies: {
+            connect: reqCompetencies,
+          },
+          requiredUeberCompetencies: {
+            connect: reqUeberCompetencies,
+          },
+          offeredCompetencies: {
+            connect: offCompetencies,
+          },
+          offeredUeberCompetencies: {
+            connect: offUeberCompetencies,
+          },
         },
-        requiredUeberCompetencies: {
-          connect: reqUeberCompetencies,
+      });
+    }),
+  );
+}
+
+async function createGoals() {
+  await Promise.all(
+    learningGoals.map(async (goal) => {
+      const lowLevel = goal.lowLevelGoals.map((i) => ({ id: i }));
+      const highLevel = goal.highLevelGoals.map((i) => ({ id: i }));
+
+      await prisma.learningGoal.create({
+        data: {
+          id: goal.id,
+          loRepositoryId: goal.repositoryId,
+          name: goal.name,
+          description: goal.description,
+          lowLevelGoals: {
+            connect: lowLevel,
+          },
+          highLevelGoals: {
+            connect: highLevel,
+          },
         },
-        offeredCompetencies: {
-          connect: offCompetencies,
-        },
-        offeredUeberCompetencies: {
-          connect: offUeberCompetencies,
-        },
-      },
-    });
-  }
+      });
+    }),
+  );
 }

@@ -32,19 +32,26 @@ export class LoRepositoryService {
     return result;
   }
 
-  async loadRepository(repositoryId: string) {
+  async getRepository(repositoryId: string, showLearningObjects: boolean, showGoals: boolean) {
     const loRepository = await this.db.loRepository.findUnique({
       where: {
         id: repositoryId,
       },
       include: {
-        learningObjects: true,
+        learningObjects: showLearningObjects,
+        learningGoals: showGoals,
       },
     });
 
     if (!loRepository) {
-      throw new NotFoundException('Specified LO-Repository not found: ' + repositoryId);
+      throw new NotFoundException(`Specified LO-Repository not found: ${repositoryId}`);
     }
+
+    return loRepository;
+  }
+
+  async loadRepository(repositoryId: string) {
+    const loRepository = await this.getRepository(repositoryId, true, false);
 
     const result = new LoRepositoryDto(
       loRepository.id,

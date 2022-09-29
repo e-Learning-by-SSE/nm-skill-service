@@ -1,16 +1,4 @@
-import e from 'express';
-
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    Get,
-    HttpException,
-    Param,
-    Patch,
-    Post,
-    UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
@@ -19,12 +7,13 @@ import { LearningObjectCreationDto } from './dto/learning-object-creation.dto';
 import { LearningObjectModificationDto } from './dto/learning-object-modification.dto';
 import { LoRepositoryCreationDto } from './dto/lo-repository-creation.dto';
 import { LoRepositoryModifyDto } from './dto/lo-repository-modify.dto';
+import { LearningGoalService } from './learning-goal.service';
 import { LoRepositoryService } from './lo-repository.service';
 
 @ApiTags('Learning Objects')
 @Controller('lo_repository')
 export class LoRepositoryController {
-  constructor(private loService: LoRepositoryService) {}
+  constructor(private loService: LoRepositoryService, private goalService: LearningGoalService) {}
 
   @Get()
   listRepositories() {
@@ -80,5 +69,15 @@ export class LoRepositoryController {
     @Body() dto: LearningObjectModificationDto,
   ) {
     return await this.loService.modifyLearningObject(userId, repositoryId, learningObjectId, dto);
+  }
+
+  @Get(':repositoryId/goals')
+  async showGoals(@Param('repositoryId') repositoryId: string) {
+    return this.goalService.listGoals(repositoryId);
+  }
+
+  @Get('goals/:goalId')
+  async showGoal(@Param('goalId') goalId: string) {
+    return this.goalService.showGoal(goalId);
   }
 }
