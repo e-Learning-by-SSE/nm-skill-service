@@ -1,3 +1,5 @@
+import { BadRequestException } from '@nestjs/common';
+
 /**
  * Used by prisma to update relations among tables.
  * - connect: New elements for which a relation shall be created
@@ -41,4 +43,40 @@ export function computeRelationUpdate(oldData: ReferableItem[], newData?: string
     };
   }
   return result;
+}
+
+export type PageableItem = {
+  pageSize?: number;
+
+  page?: number;
+
+  name?: string;
+};
+
+export function computePageQuery(queryDto: PageableItem, itemName = 'name') {
+  const query: any = {};
+
+  const searchItems = queryDto.name?.split(/\s+/) ?? undefined;
+  console.log(searchItems);
+  if (searchItems) {
+    const whereElements = searchItems.map((i) => ({
+      [itemName]: {
+        contains: i,
+      },
+    }));
+    console.log(whereElements);
+    query.where = { OR: whereElements };
+  }
+
+  if (queryDto.pageSize) {
+    query.take = queryDto.pageSize;
+
+    if (queryDto.page && queryDto.page >= 0) {
+      query.skip = queryDto.pageSize * queryDto.page;
+    }
+  } else if (queryDto.page) {
+    throw new BadRequestException(`Page (${queryDto.page}) but no page size was defined`);
+  }
+
+  return query;
 }

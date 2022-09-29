@@ -1,7 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
-import { computeRelationUpdate } from '../db_utils';
+import { computePageQuery, computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
     CompetenceCreationDto,
@@ -16,6 +17,7 @@ import {
     UnresolvedRepositoryDto,
     UnResolvedUeberCompetenceDto,
 } from './dto';
+import { RepositorySearchDto } from './dto/repository-search.dto';
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -24,6 +26,16 @@ import {
 @Injectable()
 export class RepositoryMgmtService {
   constructor(private db: PrismaService) {}
+
+  async findRepositories(dto: RepositorySearchDto) {
+    const query: Prisma.RepositoryFindManyArgs = computePageQuery(dto);
+    const repositories = await this.db.repository.findMany(query);
+
+    const repoList = new RepositoryListDto();
+    repoList.repositories = repositories.map((repository) => RepositoryDto.createFromDao(repository));
+
+    return repoList;
+  }
 
   /**
    * Returns a list of all repositories owned by the specified user.
