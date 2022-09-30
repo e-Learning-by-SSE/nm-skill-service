@@ -8,14 +8,16 @@ if [[ -z "${DB_HOST}" ]]; then
     done
 fi
 
-CONTAINER_ALREADY_STARTED="CONTAINER_ALREADY_STARTED_PLACEHOLDER"
 # Applies DB schema on first boot only,
 # based on: https://stackoverflow.com/a/50638207
-if [ ! -e /home/node/$CONTAINER_ALREADY_STARTED ]; then
+if [ ! -e /home/node/db_initialized ]; then
+    cd /usr/src/app/
     # Clear database and apply sample data on first boot
     npx prisma migrate reset --force --skip-generate
 
-    touch /home/node/$CONTAINER_ALREADY_STARTED
+    touch /home/node/db_initialized
+    
+    cd -
 fi
 
 # Start NestJS
