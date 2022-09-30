@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Wait until DB is running (only if a host was specified)
-if [[ -z "${DB_HOST}" ]]; then
+if [[ ! -z "${DB_HOST}" ]]; then
     while ! pg_isready -h $DB_HOST -p $DB_PORT &> /dev/null; do
         sleep 1
         echo waiting postgres
