@@ -57,14 +57,12 @@ export function computePageQuery(queryDto: PageableItem, itemName = 'name') {
   const query: any = {};
 
   const searchItems = queryDto.name?.split(/\s+/) ?? undefined;
-  console.log(searchItems);
   if (searchItems) {
     const whereElements = searchItems.map((i) => ({
       [itemName]: {
         contains: i,
       },
     }));
-    console.log(whereElements);
     query.where = { OR: whereElements };
   }
 

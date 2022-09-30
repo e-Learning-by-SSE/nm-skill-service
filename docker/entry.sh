@@ -2,10 +2,12 @@
 
 # Wait until DB is running (only if a host was specified)
 if [[ ! -z "${DB_HOST}" ]]; then
+    printf "Waiting for DB at %s" "${DB_HOST} "
     while ! pg_isready -h $DB_HOST -p $DB_PORT &> /dev/null; do
         sleep 1
-        echo waiting postgres
+        printf "."
     done
+    printf " done.\n"
 fi
 
 # Applies DB schema on first boot only,
