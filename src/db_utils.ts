@@ -53,8 +53,14 @@ export type PageableItem = {
   name?: string;
 };
 
-export function computePageQuery(queryDto: PageableItem, itemName = 'name') {
-  const query: any = {};
+export type FindManyArgs = {
+  where?: any | null;
+  take?: number;
+  skip?: number;
+};
+
+export function computePageQuery<T extends FindManyArgs>(queryDto: PageableItem, itemName = 'name') {
+  const query: FindManyArgs = {};
 
   const searchItems = queryDto.name?.split(/\s+/) ?? undefined;
   if (searchItems) {
