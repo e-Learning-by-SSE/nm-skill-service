@@ -4,13 +4,13 @@ import { Competence, LearningGoal, UeberCompetence } from '@prisma/client';
 
 export class LoGoalDto {
   @IsNotEmpty()
-  id: String;
+  id: string;
 
   @IsNotEmpty()
-  repositoryId: String;
+  repositoryId: string;
 
   @IsNotEmpty()
-  name: String;
+  name: string;
 
   @IsOptional()
   description?: string;

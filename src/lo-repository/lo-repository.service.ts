@@ -94,7 +94,7 @@ export class LoRepositoryService {
    * @param repositoryId The ID of the specified repository to open.
    * @returns The repository object or an exception if the repository doesn't exist or if it is owned by somebody else.
    */
-  private async loadRepositoryForModification(userId: string, repositoryId: string) {
+  async loadRepositoryForModification(userId: string, repositoryId: string) {
     const repository = await this.db.loRepository.findUnique({
       where: {
         id: repositoryId,
