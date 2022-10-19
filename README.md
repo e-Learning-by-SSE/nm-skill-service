@@ -2,7 +2,7 @@
 
 ![Build Status](https://jenkins-2.sse.uni-hildesheim.de/buildStatus/icon?job=Teaching_Competence-Repository "Build Status")
 
-The Competence Repository Service allows content creators / teachers to develop their own competence repositories (i.e., taxonomies), share them with others, and use them to model required and offered compenences of a course.
+The Competence Repository Service allows content creators / teachers to develop their own competence repositories (i.e., taxonomies), share them with others, and use them to model required and offered competencies of a course.
 
 ## Installation
 
@@ -12,7 +12,7 @@ npm install
 
 ## Configuration
 
-The service can be configured via the `.env` file placed in the root of this repository. These paramters may be overwritten by environment variables, as environment variable takes precedence over the parameters defined in the configuration file.
+The service can be configured via the `.env` file placed in the root of this repository. These parameters may be overwritten by environment variables, as environment variable takes precedence over the parameters defined in the configuration file.
 
 ## Database operations
 
@@ -52,7 +52,7 @@ npm run start:prod
 ## Test
 
 ```bash
-# unit / integreation tests (requires empty DB)
+# unit / integration tests (requires empty DB)
 npm run test
 
 # e2e tests

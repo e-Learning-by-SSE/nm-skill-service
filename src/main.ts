@@ -20,6 +20,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Competence Repository')
+    .addApiKey({ type: 'apiKey', name: 'api_key', in: 'header', description: 'API Key For External calls' })
     .setDescription('The API description of the Competence Repository.')
     .setVersion(VERSION)
     .addBearerAuth()

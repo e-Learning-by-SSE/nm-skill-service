@@ -59,7 +59,7 @@ export type FindManyArgs = {
   skip?: number;
 };
 
-export function computePageQuery<T extends FindManyArgs>(queryDto: PageableItem, itemName = 'name') {
+export function computePageQuery(queryDto: PageableItem, itemName = 'name') {
   const query: FindManyArgs = {};
 
   const searchItems = queryDto.name?.split(/\s+/) ?? undefined;
