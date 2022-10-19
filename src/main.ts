@@ -20,10 +20,10 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Competence Repository')
-    .addApiKey({ type: 'apiKey', name: 'api_key', in: 'header', description: 'API Key For External calls' })
+    .addBearerAuth({ type: 'apiKey', name: 'api_key', in: 'header', description: 'API Key For External calls' })
+    // .addApiKey({ type: 'apiKey', name: 'api_key', in: 'header', description: 'API Key For External calls' })
     .setDescription('The API description of the Competence Repository.')
     .setVersion(VERSION)
-    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
