@@ -4,12 +4,14 @@ pipeline {
     tools {nodejs "NodeJS 16.13"}
 
     environment {
-        DEMO_SERVER = '147.172.178.30'
+        DEMO_SERVER = 'staging.sse.uni-hildesheim.de'
         DEMO_SERVER_PORT = '3100'
+        DEMO_SERVER_USER = "elscha"
         API_FILE = 'api-json'
         API_URL = "http://${env.DEMO_SERVER}:${env.DEMO_SERVER_PORT}/${env.API_FILE}"
-
+        
         dockerImage = ''
+        REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
     }
 
     stages {
@@ -82,14 +84,9 @@ pipeline {
         stage('Deploy') {
             steps {
                 sshagent(credentials: ['Stu-Mgmt_Demo-System']) {
-                    sh """
-                        # [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
-                        # ssh-keyscan -t rsa,dsa example.com >> ~/.ssh/known_hosts
-                        ssh -i ~/.ssh/id_rsa_student_mgmt_backend elscha@${env.DEMO_SERVER} <<EOF
-                            cd /staging/nm-competence-repository
-                            ./recreate.sh
-                            exit
-                        EOF"""
+                    // [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
+                    // ssh-keyscan -t rsa,dsa example.com >> ~/.ssh/known_hosts
+                    sh(ssh -i ~/.ssh/id_rsa_student_mgmt_backend ${DEMO_SERVER_USER}@${env.DEMO_SERVER} ${REMOTE_UPDATE_SCRIPT})
                 }
                 findText(textFinders: [textFinder(regexp: '(- error TS\\*)|(Cannot find module.*or its corresponding type declarations\\.)', alsoCheckConsoleOutput: true, buildResult: 'FAILURE')])
             }
