@@ -86,7 +86,7 @@ pipeline {
                 sshagent(credentials: ['Stu-Mgmt_Demo-System']) {
                     // [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
                     // ssh-keyscan -t rsa,dsa example.com >> ~/.ssh/known_hosts
-                    sh(ssh -i ~/.ssh/id_rsa_student_mgmt_backend ${DEMO_SERVER_USER}@${env.DEMO_SERVER} ${REMOTE_UPDATE_SCRIPT})
+                    sh "ssh -i ~/.ssh/id_rsa_student_mgmt_backend ${DEMO_SERVER_USER}@${env.DEMO_SERVER} ${REMOTE_UPDATE_SCRIPT}"
                 }
                 findText(textFinders: [textFinder(regexp: '(- error TS\\*)|(Cannot find module.*or its corresponding type declarations\\.)', alsoCheckConsoleOutput: true, buildResult: 'FAILURE')])
             }
