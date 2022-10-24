@@ -1,3 +1,5 @@
+import { identity } from 'rxjs';
+
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
@@ -12,11 +14,13 @@ import {
     RepositoryListDto,
     ResolvedRepositoryDto,
     ResolvedUeberCompetenceDto,
+    UberCompetenceResolveRequestDto,
     UeberCompetenceCreationDto,
     UeberCompetenceModificationDto,
     UnresolvedRepositoryDto,
     UnResolvedUeberCompetenceDto,
 } from './dto';
+import { CompetenceListDto } from './dto/repository-export/competence-list.dto';
 import { RepositorySearchDto } from './dto/repository-search.dto';
 
 /**
@@ -155,6 +159,81 @@ export class RepositoryMgmtService {
       }),
     );
 
+    return result;
+  }
+
+  async resolveUberCompetencies(repositoryId: string, dto: UberCompetenceResolveRequestDto) {
+    // Retrieve the repository, at which the competence shall be stored to
+    const repository = await this.db.repository.findUnique({
+      where: {
+        id: repositoryId,
+      },
+      include: {
+        competencies: true,
+        uebercompetencies: true,
+      },
+    });
+
+    if (!repository) {
+      throw new NotFoundException('Specified repository not found: ' + repositoryId);
+    }
+
+    // Load all Competencies of Repository
+    const competenceMap = new Map<string, CompetenceDto>();
+    repository.competencies.forEach((c) => {
+      // Convert DAO -> DTO
+      const competence = CompetenceDto.createFromDao(c);
+
+      competenceMap.set(c.id, competence);
+    });
+
+    // list of all (unique) resolved competencies
+    const resultSet = new Set<CompetenceDto>();
+    // First determine all UberCompetencies
+    const unresolvedUCs = new Set<string>();
+    const doneUCs = new Set<string>();
+    for (const id of dto.uberCompetencies) {
+      unresolvedUCs.add(id);
+    }
+    while (unresolvedUCs.size > 0) {
+      const tmp = new Set(unresolvedUCs);
+      unresolvedUCs.clear();
+
+      for (const id of tmp) {
+        doneUCs.add(id);
+        const uc = await this.db.ueberCompetence.findUnique({
+          where: {
+            id: id,
+          },
+          include: {
+            subCompetences: true,
+            subUeberCompetences: true,
+          },
+        });
+
+        if (uc) {
+          // Store Competence
+          uc.subCompetences.map((c) => c.id).map((i) => competenceMap.get(i));
+          for (const nested of uc.subCompetences) {
+            const competence = competenceMap.get(nested.id);
+            if (competence) {
+              resultSet.add(competence);
+            }
+          }
+
+          // Consider UberCompetences for further resolving
+          for (const nested of uc.subUeberCompetences) {
+            const id = nested.id;
+            if (!doneUCs.has(id) && !tmp.has(id)) {
+              unresolvedUCs.add(id);
+            }
+          }
+        }
+      }
+    }
+
+    const result = new CompetenceListDto();
+    result.competencies = Array.from(resultSet.values());
     return result;
   }
 

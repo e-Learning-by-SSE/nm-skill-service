@@ -75,13 +75,6 @@ const competencies = [
     level: 3,
   },
   {
-    id: '8',
-    repository: '1',
-    name: 'Expressions',
-    description: 'Knowing how to formulate arbitrary expressions on primitives',
-    level: 3,
-  },
-  {
     id: '9',
     repository: '1',
     name: 'if-statement',
@@ -245,7 +238,7 @@ const ueberCompetencies = [
     repository: '1',
     name: 'Expressions',
     description: 'Complete understanding of expressions in Java',
-    nestedCompetencies: ['5', '6', '7', '8', '18'],
+    nestedCompetencies: ['5', '6', '7', '18'],
     nestedUeberCompetencies: [],
   },
   {

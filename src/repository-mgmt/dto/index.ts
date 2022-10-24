@@ -7,3 +7,4 @@ export * from './competence-creation.dto';
 export * from './ueber-competence-creation.dto';
 export * from './ueber-competence-modification.dto';
 export * from './repository-export';
+export * from './ubercompetence-resolve-request.dto';
