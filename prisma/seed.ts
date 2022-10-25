@@ -435,9 +435,9 @@ const learningObjectives = [
     name: 'Code-Blocks',
     description: 'Allowing more than 1 statement & scope',
     requiredCompetencies: ['16'],
-    requiredUeberCompetencies: ['2', '3'],
-    offeredCompetencies: ['6'],
-    offeredUeberCompetencies: ['5'],
+    requiredUeberCompetencies: ['2'],
+    offeredCompetencies: ['23', '24'],
+    offeredUeberCompetencies: [],
   },
   {
     id: '14',
