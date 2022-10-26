@@ -476,7 +476,7 @@ const learningObjectives = [
     description: 'Do-While-Loop',
     requiredCompetencies: ['16', '25'],
     requiredUeberCompetencies: ['2', '6'],
-    offeredCompetencies: ['27'],
+    offeredCompetencies: ['28'],
     offeredUeberCompetencies: [],
   },
 ];
