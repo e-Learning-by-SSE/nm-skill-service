@@ -88,7 +88,7 @@ describe('Repository-Mgmt-Service', () => {
       const expectedData = { id: repository.id, userId: user.id };
       const actualRepository = await repositoryService.getRepository(user.id, repository.id, includeCompetencies);
 
-      // Test Postcondition: 1 Repository with no displayed competencies
+      // Test Post-condition: 1 Repository with no displayed competencies
       expect(actualRepository).toEqual(expect.objectContaining(expectedData));
       expect(actualRepository).not.toHaveProperty('competencies');
       expect(actualRepository).not.toHaveProperty('uebercompetencies');
@@ -119,7 +119,7 @@ describe('Repository-Mgmt-Service', () => {
       };
       await repositoryService.createRepository(user.id, creationData);
 
-      // Test Postcondition: 1 Repository with no competencies
+      // Test Post-condition: 1 Repository with no competencies
       const expectedData = { ...creationData, userId: user.id };
       const repoList = await repositoryService.listRepositories(user.id);
       expect(repoList.repositories.length).toEqual(1);
@@ -170,7 +170,7 @@ describe('Repository-Mgmt-Service', () => {
       };
       await repositoryService.createCompetence(user.id, repository.id, compCreationData);
 
-      // Postcondition: Repository contains only created competence
+      // Post-condition: Repository contains only created competence
       repoData = await repositoryService.getRepository(user.id, repository.id, true);
       expect(repoData.competencies.length).toEqual(1);
       expect(repoData.uebercompetencies.length).toEqual(0);
@@ -194,7 +194,7 @@ describe('Repository-Mgmt-Service', () => {
       };
       await repositoryService.createUeberCompetence(user.id, repository.id, compCreationData);
 
-      // Postcondition: Repository contains only created competence
+      // Post-condition: Repository contains only created competence
       repoData = await repositoryService.getRepository(user.id, repository.id, true);
       expect(repoData.competencies.length).toEqual(0);
       expect(repoData.uebercompetencies.length).toEqual(1);
@@ -226,7 +226,7 @@ describe('Repository-Mgmt-Service', () => {
       };
       await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
 
-      // Postcondition: Same amount of competences; Ueber-Competence contains desired competence
+      // Post-condition: Same amount of competences; Ueber-Competence contains desired competence
       repoData = await repositoryService.loadResolvedRepository(user.id, repository.id);
       expect(repoData.competencies.length).toEqual(2);
       expect(repoData.ueberCompetencies.length).toEqual(1);
@@ -266,7 +266,7 @@ describe('Repository-Mgmt-Service', () => {
       };
       await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
 
-      // Postcondition: Same amount of competences; Ueber-Competence contains desired competence
+      // Post-condition: Same amount of competences; Ueber-Competence contains desired competence
       repoData = await repositoryService.loadResolvedRepository(user.id, repository.id);
       expect(repoData.competencies.length).toEqual(2);
       expect(repoData.ueberCompetencies.length).toEqual(1);
@@ -276,7 +276,7 @@ describe('Repository-Mgmt-Service', () => {
       expect(nestedCompetenceData.id).toEqual(secondCompetence.id);
     });
 
-    it('Nesting of Ueber-Competencies', async () => {
+    it('Nesting of Uber-Competencies', async () => {
       const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
       const repository = await dbUtils.createRepository(user.id, 'Repository');
       const topUeberCompetence = await dbUtils.createUeberCompetence(repository.id, '1st Ueber-Competence');
@@ -309,7 +309,7 @@ describe('Repository-Mgmt-Service', () => {
       };
       await repositoryService.modifyUeberCompetence(user.id, repository.id, modifyData);
 
-      // Postcondition: Same amount of competences; Ueber-Competence contains desired competence
+      // Post-condition: Same amount of competences; Ueber-Competence contains desired competence
       repoData = await repositoryService.loadResolvedRepository(user.id, repository.id);
       expect(repoData.competencies.length).toEqual(0);
       expect(repoData.ueberCompetencies.length).toEqual(2);

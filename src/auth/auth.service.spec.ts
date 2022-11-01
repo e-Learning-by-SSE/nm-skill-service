@@ -47,7 +47,7 @@ describe('AuthService', () => {
     );
   });
 
-  it('Login: Correct creddentials', async () => {
+  it('Login: Correct credentials', async () => {
     await expect(authService.login({ email: testUser.email, password: 'pw' })).resolves.toHaveProperty('access_token');
   });
 

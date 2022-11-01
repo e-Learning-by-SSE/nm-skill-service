@@ -98,6 +98,8 @@ describe('LO-Repository Service (Repositories)', () => {
           name: repository.name,
           owner: user.id,
           description: repository.description ?? undefined,
+          goals: [],
+          learningObjectsGroups: [],
           learningObjects: [],
         }),
       );
@@ -105,7 +107,7 @@ describe('LO-Repository Service (Repositories)', () => {
 
     it('Load non-existing repository (fail)', async () => {
       const user = await dbUtils.createUser('1', 'User', 'mail@example.com', 'pw');
-      const repository = await dbUtils.createLoRepository(user.id, 'First Repository', undefined);
+      await dbUtils.createLoRepository(user.id, 'First Repository', undefined);
 
       // Action: Load specified repository
       const loaded = repositoryService.loadRepository('non-existing-id');
@@ -129,7 +131,9 @@ describe('LO-Repository Service (Repositories)', () => {
           name: repository.name,
           owner: user.id,
           description: repository.description ?? undefined,
-          learningObjects: [lo.id],
+          goals: [],
+          learningObjectsGroups: [],
+          learningObjects: [expect.objectContaining({ id: lo.id })],
         }),
       );
     });

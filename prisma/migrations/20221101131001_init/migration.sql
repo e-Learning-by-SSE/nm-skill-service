@@ -234,7 +234,7 @@ CREATE UNIQUE INDEX "_highlevelGoals_AB_unique" ON "_highlevelGoals"("A", "B");
 CREATE INDEX "_highlevelGoals_B_index" ON "_highlevelGoals"("B");
 
 -- AddForeignKey
-ALTER TABLE "repositories" ADD CONSTRAINT "repositories_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "repositories" ADD CONSTRAINT "repositories_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "competencies" ADD CONSTRAINT "competencies_repositoryId_fkey" FOREIGN KEY ("repositoryId") REFERENCES "repositories"("id") ON DELETE CASCADE ON UPDATE CASCADE;

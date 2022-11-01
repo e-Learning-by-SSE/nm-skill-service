@@ -31,7 +31,7 @@ model Repository {
   taxonomy          String?
   version           String @default("")
   userId            String
-  user              User @relation(fields: [userId], references: [id])
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   competencies      Competence[]

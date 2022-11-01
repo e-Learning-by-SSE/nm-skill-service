@@ -27,6 +27,8 @@ export class DbTestUtils {
 
   public async wipeDb() {
     // Learning Objects
+    await this.db.learningGoal.deleteMany();
+    await this.db.groupedLearningObjects.deleteMany();
     await this.db.learningObject.deleteMany();
     await this.db.loRepository.deleteMany();
 
@@ -35,6 +37,7 @@ export class DbTestUtils {
     await this.db.competence.deleteMany();
     await this.db.repository.deleteMany();
 
+    // Users
     await this.db.user.deleteMany();
   }
 
