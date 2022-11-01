@@ -587,8 +587,6 @@ async function createLoGroups() {
       const nestedLos = group.nestedLOs.map((i) => ({ id: i }));
       const nestedGroups = group.nestedGroups.map((i) => ({ id: i }));
 
-      console.log(nestedLos);
-
       await prisma.groupedLearningObjects.create({
         data: {
           id: group.id,

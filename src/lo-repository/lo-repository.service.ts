@@ -72,8 +72,6 @@ export class LoRepositoryService {
     const nonNestedLOs = new Set(loList.filter((lo) => lo.parentGroups.length == 0).map((lo) => lo.id));
     const loMap: Map<LearningObjectDto, string[]> = new Map();
 
-    console.log(nonNestedLOs);
-
     // Convert Learning Objects and safe elements that should be grouped
     loList.forEach((dao) => {
       const dto = LearningObjectDto.createFromDao(dao);
