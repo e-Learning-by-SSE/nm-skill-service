@@ -54,7 +54,7 @@ export class LoRepositoryService {
   }
 
   async loadRepository(repositoryId: string) {
-    const loRepository = await this.getRepository(repositoryId, true, false);
+    const loRepository = await this.getRepository(repositoryId, true, true);
     const result = LoRepositoryDto.createFromDao(loRepository);
 
     // Handle Learning Objects:
@@ -126,6 +126,9 @@ export class LoRepositoryService {
         groupDtos.get(id)!.nestedGroups.push(dto);
       });
     });
+
+    // After processing: Add Goals
+    result.goals = loRepository.learningGoals.map((g) => LoGoalDto.createFromDao(g));
 
     return result;
   }

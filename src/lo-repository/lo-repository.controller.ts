@@ -72,11 +72,6 @@ export class LoRepositoryController {
     return await this.loService.modifyLearningObject(userId, repositoryId, learningObjectId, dto);
   }
 
-  @Get(':repositoryId/goals')
-  async showGoals(@Param('repositoryId') repositoryId: string) {
-    return this.goalService.listGoals(repositoryId);
-  }
-
   @Get('goals/:goalId')
   async showGoal(@Param('goalId') goalId: string) {
     return this.goalService.showGoal(goalId);

@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { LoGoalListDto } from './dto/export/lo-goal-list.dto';
 import { LoGoalDto } from './dto/export/lo-goal.dto';
 import { LoGoalCreationDto } from './dto/lo-goal-creation.dto';
 import { LoRepositoryService } from './lo-repository.service';
@@ -27,18 +26,6 @@ export class LearningGoalService {
     }
 
     return LoGoalDto.createFromDao(goal);
-  }
-
-  async listGoals(repositoryId: string) {
-    const repository = await this.loRepositoryService.getRepository(repositoryId, false, true);
-    const result = LoGoalListDto.createFromDao(repository);
-
-    for (const goal of repository.learningGoals) {
-      const g = await this.getGoal(goal.id);
-      result.goals.push(g);
-    }
-
-    return result;
   }
 
   async showGoal(goalId: string) {

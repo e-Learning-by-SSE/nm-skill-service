@@ -2,9 +2,7 @@ import { IsDefined } from 'class-validator';
 
 import { LoRepository } from '@prisma/client';
 
-import { LearningObjectDto } from './learning-object.dto';
-import { LearningObjectGroupDto } from './lo-group.dto';
-import { ShallowLoRepositoryDto } from './lo-repository-shallow.dto';
+import { LearningObjectDto, LearningObjectGroupDto, LoGoalDto, ShallowLoRepositoryDto } from './';
 
 /**
  * Represents a LO-Repository and its nested Learning Objects.
@@ -16,10 +14,14 @@ export class LoRepositoryDto extends ShallowLoRepositoryDto {
   @IsDefined()
   learningObjectsGroups!: LearningObjectGroupDto[];
 
+  @IsDefined()
+  goals: LoGoalDto[];
+
   constructor(id: string, name: string, owner: string, description?: string | null) {
     super(id, name, owner, description);
     this.learningObjects = [];
     this.learningObjectsGroups = [];
+    this.goals = [];
   }
 
   static createFromDao(loRepository: LoRepository) {
