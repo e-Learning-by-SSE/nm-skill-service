@@ -18,8 +18,8 @@ import { RepositoryMgmtService } from './repository-mgmt.service';
 export class RepositoryMgmtController {
   constructor(private repositoryService: RepositoryMgmtService) {}
 
-  @Post('find')
-  searchForRepositories(@Body() dto: RepositorySearchDto) {
+  @Post()
+  searchForRepositories(@Body() dto?: RepositorySearchDto | undefined) {
     return this.repositoryService.findRepositories(dto);
   }
 
@@ -30,7 +30,7 @@ export class RepositoryMgmtController {
    */
   @ApiBearerAuth()
   @UseGuards(JwtGuard)
-  @Get()
+  @Get('showOwn')
   listRepositories(@GetUser('id') userId: string) {
     return this.repositoryService.listRepositories(userId);
   }

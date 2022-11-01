@@ -59,27 +59,29 @@ export type FindManyArgs = {
   skip?: number;
 };
 
-export function computePageQuery(queryDto: PageableItem, itemName = 'name') {
+export function computePageQuery(queryDto?: PageableItem, itemName = 'name') {
   const query: FindManyArgs = {};
 
-  const searchItems = queryDto.name?.split(/\s+/) ?? undefined;
-  if (searchItems) {
-    const whereElements = searchItems.map((i) => ({
-      [itemName]: {
-        contains: i,
-      },
-    }));
-    query.where = { OR: whereElements };
-  }
-
-  if (queryDto.pageSize) {
-    query.take = queryDto.pageSize;
-
-    if (queryDto.page && queryDto.page >= 0) {
-      query.skip = queryDto.pageSize * queryDto.page;
+  if (queryDto) {
+    const searchItems = queryDto.name?.split(/\s+/) ?? undefined;
+    if (searchItems) {
+      const whereElements = searchItems.map((i) => ({
+        [itemName]: {
+          contains: i,
+        },
+      }));
+      query.where = { OR: whereElements };
     }
-  } else if (queryDto.page) {
-    throw new BadRequestException(`Page (${queryDto.page}) but no page size was defined`);
+
+    if (queryDto.pageSize) {
+      query.take = queryDto.pageSize;
+
+      if (queryDto.page && queryDto.page >= 0) {
+        query.skip = queryDto.pageSize * queryDto.page;
+      }
+    } else if (queryDto.page) {
+      throw new BadRequestException(`Page (${queryDto.page}) but no page size was defined`);
+    }
   }
 
   return query;

@@ -31,7 +31,7 @@ import { RepositorySearchDto } from './dto/repository-search.dto';
 export class RepositoryMgmtService {
   constructor(private db: PrismaService) {}
 
-  async findRepositories(dto: RepositorySearchDto) {
+  async findRepositories(dto?: RepositorySearchDto) {
     const query: Prisma.RepositoryFindManyArgs = computePageQuery(dto);
     const repositories = await this.db.repository.findMany(query);
 

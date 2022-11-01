@@ -1,6 +1,6 @@
 import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
-import { LearningGoal, LoRepository } from '@prisma/client';
+import { LoRepository } from '@prisma/client';
 
 import { LoGoalDto } from './';
 

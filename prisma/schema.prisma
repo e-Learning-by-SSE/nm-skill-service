@@ -79,8 +79,6 @@ model UeberCompetence {
   // Implicit Many-to-Many relation:
   // https://www.prisma.io/docs/concepts/components/prisma-schema/relations/many-to-many-relations#implicit-many-to-many-relations
   subCompetences Competence[]
-  // Implicit Many-to-Many self relation:
-  // https://www.prisma.io/docs/concepts/components/prisma-schema/relations/self-relations#many-to-many-self-relations
   subUeberCompetences UeberCompetence[] @relation("nesting")
   parentUeberCompetences UeberCompetence[] @relation("nesting")
 
@@ -99,35 +97,57 @@ model UeberCompetence {
 }
 
 model LoRepository {
-  id                String @id @default(cuid())
-  name              String
-  description       String?
-  userId            String
-  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt         DateTime @default(now())
-  learningObjects   LearningObject[]
-  learningGoals     LearningGoal[]
+  id                  String @id @default(cuid())
+  name                String
+  description         String?
+  userId              String
+  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+
+  learningObjects     LearningObject[]
+  learningComposites  GroupedLearningObjects[]
+  learningGoals       LearningGoal[]
 
   @@map("lo-repositories")
   @@unique([userId, name])
 }
 
+// Atomic learning object (has no childs)
 model LearningObject {
+  id                           String @id @default(cuid())
+  name                         String
+  description                  String?
+  loRepositoryId               String
+  loRepository                 LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
+
+  // Requires/Offers on Competencies
+  requiredCompetencies         Competence[] @relation("requiredCompetencies")
+  offeredCompetencies          Competence[] @relation("offeredCompetencies")
+
+  // Requires/Offers on Ueber-Competencies
+  requiredUeberCompetencies    UeberCompetence[] @relation("requiredUeberCompetencies")
+  offeredUeberCompetencies     UeberCompetence[] @relation("offeredUeberCompetencies")
+
+  parentGroups                 GroupedLearningObjects[]
+
+  @@map("learning_objects")
+  @@unique([loRepositoryId, name])
+}
+
+// Grouped Learning Objects (have childs)
+model GroupedLearningObjects {
   id                      String @id @default(cuid())
   name                    String
   description             String?
   loRepositoryId          String
   loRepository            LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
 
-  // Requires/Offers on Competencies
-  requiredCompetencies    Competence[] @relation("requiredCompetencies")
-  offeredCompetencies     Competence[] @relation("offeredCompetencies")
+  // Learning Objects
+  nestedLOs               LearningObject[]
+  nestedGroups            GroupedLearningObjects[] @relation("nesting_of_grouped_los")
+  parentGroups            GroupedLearningObjects[] @relation("nesting_of_grouped_los")
 
-  // Requires/Offers on Ueber-Competencies
-  requiredUeberCompetencies    UeberCompetence[] @relation("requiredUeberCompetencies")
-  offeredUeberCompetencies     UeberCompetence[] @relation("offeredUeberCompetencies")
-
-  @@map("learning_objects")
+  @@map("grouped_learning_objects")
   @@unique([loRepositoryId, name])
 }
 

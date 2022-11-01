@@ -1,6 +1,6 @@
 import * as argon from 'argon2';
 
-import { LoRepository, PrismaClient } from '@prisma/client';
+import { LoRepository, Prisma, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -25,163 +25,163 @@ const repository = {
 const competencies = [
   {
     id: '1',
-    name: 'Compiler Calling',
+    skill: 'Compiler Calling',
     description: 'Calling javac, wo/ knowing what it exactly does',
     level: 1,
   },
   {
     id: '2',
-    name: 'Interpreter Calling',
+    skill: 'Interpreter Calling',
     description: 'Calling java, wo/ knowing what it exactly does',
     level: 1,
   },
   {
     id: '3',
-    name: 'Compiler Usage',
+    skill: 'Compiler Usage',
     description: 'Knowing how & why to use javac',
     level: 3,
   },
   {
     id: '4',
-    name: 'Interpreter Usage',
+    skill: 'Interpreter Usage',
     description: 'Knowing how & why to use java',
     level: 3,
   },
   {
     id: '5',
-    name: 'Literals',
+    skill: 'Literals',
     description: 'Constant expressions',
     level: 3,
   },
   {
     id: '6',
-    name: 'Primitive Datatypes & Operators',
+    skill: 'Primitive Datatypes & Operators',
     description: '',
     level: 3,
   },
   {
     id: '7',
-    name: 'Variables',
+    skill: 'Variables',
     description: 'Variable Usage in Expressions',
     level: 3,
   },
   {
     id: '9',
-    name: 'if-statement',
+    skill: 'if-statement',
     description: 'if wo/ else',
     level: 3,
   },
   {
     id: '10',
-    name: 'else-statement',
+    skill: 'else-statement',
     description: 'else-statement',
     level: 3,
   },
   {
     id: '11',
-    name: 'if-block',
+    skill: 'if-block',
     description: 'Using curly brackets to nest more than 1 statement',
     level: 3,
   },
   {
     id: '12',
-    name: 'if nesting',
+    skill: 'if nesting',
     description: 'Nest multiple if-statements',
     level: 3,
   },
   {
     id: '13',
-    name: 'switch/case basics',
+    skill: 'switch/case basics',
     description: 'switch, case, break, default',
     level: 3,
   },
   {
     id: '14',
-    name: 'switch/case advanced',
+    skill: 'switch/case advanced',
     description: 'falls through, expressions, strings',
     level: 3,
   },
   {
     id: '15',
-    name: 'Program Structure I',
+    skill: 'Program Structure I',
     description: 'Knowing how to add own code into a template',
     level: 1,
   },
   {
     id: '16',
-    name: 'Program Structure II',
+    skill: 'Program Structure II',
     description: 'Knowing how to add own code into a template',
     level: 2,
   },
   {
     id: '17',
-    name: 'Casting Primitive Datatypes',
+    skill: 'Casting Primitive Datatypes',
     description: '',
     level: 3,
   },
   {
     id: '18',
-    name: 'What are Expressions',
+    skill: 'What are Expressions',
     description: '',
     level: 1,
   },
   {
     id: '19',
-    name: 'Constants',
+    skill: 'Constants',
     description: 'final, static',
     level: 3,
   },
   {
     id: '20',
-    name: 'Input',
+    skill: 'Input',
     description: 'User input via Scanner',
     level: 3,
   },
   {
     id: '21',
-    name: 'Writing Import',
+    skill: 'Writing Import',
     description: 'Writing Import statements wo/ knowing the background',
     level: 1,
   },
   {
     id: '22',
-    name: 'Math.random',
+    skill: 'Math.random',
     description: 'Using Math.random',
     level: 2,
   },
   {
     id: '23',
-    name: 'Code Block I',
+    skill: 'Code Block I',
     description: 'More than one statement wo/scope',
     level: 3,
   },
   {
     id: '24',
-    name: 'Code Block II',
+    skill: 'Code Block II',
     description: 'With scope',
     level: 3,
   },
   {
     id: '25',
-    name: 'Foundations of Loops',
+    skill: 'Foundations of Loops',
     description: 'Explains general use of Loops',
     level: 2,
   },
   {
     id: '26',
-    name: 'For-Loop',
+    skill: 'For-Loop',
     description: 'For-Loop',
     level: 3,
   },
   {
     id: '27',
-    name: 'While-Loop',
+    skill: 'While-Loop',
     description: 'While-Loop',
     level: 3,
   },
   {
     id: '28',
-    name: 'Do-While-Loop',
+    skill: 'Do-While-Loop',
     description: 'Do-While-Loop',
     level: 3,
   },
@@ -426,6 +426,17 @@ const learningObjectives = [
   },
 ];
 
+const loGroups = [
+  {
+    id: '1',
+    name: 'Imperative Loops',
+    description: 'Loops wo/ for each',
+    loRepositoryId: '1',
+    nestedLOs: ['14', '15', '16', '17'],
+    nestedGroups: [],
+  },
+];
+
 const learningGoals = [
   {
     id: '1',
@@ -439,19 +450,21 @@ const learningGoals = [
 
 export async function javaSeed(): Promise<void> {
   await createUsers();
-  console.log('  %s\x1b[32m ✔\x1b[0m', 'Users');
+  console.log(' - %s\x1b[32m ✔\x1b[0m', 'Users');
   await createRepositories();
-  console.log('  %s\x1b[32m ✔\x1b[0m', 'Repositories');
+  console.log(' - %s\x1b[32m ✔\x1b[0m', 'Repositories');
   await createCompetencies();
-  console.log('  %s\x1b[32m ✔\x1b[0m', 'Competencies');
+  console.log(' - %s\x1b[32m ✔\x1b[0m', 'Competencies');
   await createUeberCompetencies();
-  console.log('  %s\x1b[32m ✔\x1b[0m', 'Uber-Competencies');
+  console.log(' - %s\x1b[32m ✔\x1b[0m', 'Uber-Competencies');
   await createLoRepositories();
-  console.log('  %s\x1b[32m ✔\x1b[0m', 'LO-Repositories');
+  console.log(' - %s\x1b[32m ✔\x1b[0m', 'LO-Repositories');
   await createLearningObjects();
-  console.log('  %s\x1b[32m ✔\x1b[0m', 'Learning Objects');
+  console.log(' - %s\x1b[32m ✔\x1b[0m', 'Learning Objects');
+  await createLoGroups();
+  console.log(' - %s\x1b[32m ✔\x1b[0m', 'Learning Object Groups');
   await createGoals();
-  console.log('  %s\x1b[32m ✔\x1b[0m', 'Goals');
+  console.log(' - %s\x1b[32m ✔\x1b[0m', 'Goals');
 }
 
 async function createUsers() {
@@ -485,14 +498,10 @@ async function createRepositories() {
 async function createCompetencies() {
   await Promise.all(
     competencies.map(async (competence) => {
+      const input: Prisma.CompetenceUncheckedCreateInput = { repositoryId: repository.id, ...competence };
+
       await prisma.competence.create({
-        data: {
-          id: competence.id,
-          repositoryId: repository.id,
-          skill: competence.name,
-          level: competence.level,
-          description: competence.description,
-        },
+        data: input,
       });
     }),
   );
@@ -565,6 +574,32 @@ async function createLearningObjects() {
           },
           offeredUeberCompetencies: {
             connect: offUeberCompetencies,
+          },
+        },
+      });
+    }),
+  );
+}
+
+async function createLoGroups() {
+  await Promise.all(
+    loGroups.map(async (group) => {
+      const nestedLos = group.nestedLOs.map((i) => ({ id: i }));
+      const nestedGroups = group.nestedGroups.map((i) => ({ id: i }));
+
+      console.log(nestedLos);
+
+      await prisma.groupedLearningObjects.create({
+        data: {
+          id: group.id,
+          loRepositoryId: group.loRepositoryId,
+          name: group.name,
+          description: group.description,
+          nestedLOs: {
+            connect: nestedLos,
+          },
+          nestedGroups: {
+            connect: nestedGroups,
           },
         },
       });

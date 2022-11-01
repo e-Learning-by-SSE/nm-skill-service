@@ -1,10 +1,12 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { GroupedLearningObjects, Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+    LearningObjectGroupDto,
+    LoGoalDto,
     LoRepositoryCreationDto,
     LoRepositoryDto,
     LoRepositoryListDto,
@@ -39,6 +41,7 @@ export class LoRepositoryService {
       },
       include: {
         learningObjects: showLearningObjects,
+        learningComposites: showLearningObjects,
         learningGoals: showGoals,
       },
     });
@@ -52,16 +55,79 @@ export class LoRepositoryService {
 
   async loadRepository(repositoryId: string) {
     const loRepository = await this.getRepository(repositoryId, true, false);
+    const result = LoRepositoryDto.createFromDao(loRepository);
 
-    const result = new LoRepositoryDto(
-      loRepository.id,
-      loRepository.name,
-      loRepository.userId,
-      loRepository.description,
-    );
-    for (const lo of loRepository.learningObjects) {
-      result.learningObjects.push(lo.id);
+    // Handle Learning Objects:
+    // - Non-nested are added to result DTO
+    // - Nested elements are temporarily stored at a map
+    const loList = await this.db.learningObject.findMany({
+      where: {
+        loRepositoryId: repositoryId,
+      },
+      include: {
+        parentGroups: true,
+      },
+    });
+
+    const nonNestedLOs = new Set(loList.filter((lo) => lo.parentGroups.length == 0).map((lo) => lo.id));
+    const loMap: Map<LearningObjectDto, string[]> = new Map();
+
+    console.log(nonNestedLOs);
+
+    // Convert Learning Objects and safe elements that should be grouped
+    loList.forEach((dao) => {
+      const dto = LearningObjectDto.createFromDao(dao);
+      // Store only top-level elements in result DTO
+      if (nonNestedLOs.has(dao.id)) {
+        result.learningObjects.push(dto);
+      } else {
+        loMap.set(
+          dto,
+          dao.parentGroups.map((g) => g.id),
+        );
+      }
+    });
+
+    // Handle Learning Object Groups
+    const groupDaoList = await this.db.groupedLearningObjects.findMany({
+      where: {
+        loRepositoryId: repositoryId,
+      },
+      include: {
+        nestedLOs: true,
+        nestedGroups: true,
+        parentGroups: true,
+      },
+    });
+
+    const groupDtos: Map<string, LearningObjectGroupDto> = new Map();
+    const groupParents: Map<LearningObjectGroupDto, string[]> = new Map();
+    for (const dao of groupDaoList) {
+      const dto = LearningObjectGroupDto.createFromDao(dao);
+      groupDtos.set(dto.id, dto);
+      // Store only top-level elements in result DTO
+      if (dao.parentGroups.length == 0) {
+        result.learningObjectsGroups.push(dto);
+      } else {
+        groupParents.set(
+          dto,
+          dao.parentGroups.map((p) => p.id),
+        );
+      }
     }
+
+    // Finally at all nested elements to their parent groups
+    loMap.forEach((parents, dto) => {
+      parents.forEach((id) => {
+        groupDtos.get(id)!.nestedLearningObjects.push(dto);
+      });
+    });
+
+    groupParents.forEach((parents, dto) => {
+      parents.forEach((id) => {
+        groupDtos.get(id)!.nestedGroups.push(dto);
+      });
+    });
 
     return result;
   }
