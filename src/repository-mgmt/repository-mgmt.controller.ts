@@ -19,7 +19,7 @@ export class RepositoryMgmtController {
   constructor(private repositoryService: RepositoryMgmtService) {}
 
   @Post()
-  searchForRepositories(@Body() dto?: RepositorySearchDto | undefined) {
+  searchForRepositories(@Body() dto?: RepositorySearchDto) {
     return this.repositoryService.findRepositories(dto);
   }
 
