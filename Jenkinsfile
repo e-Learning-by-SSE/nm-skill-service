@@ -97,6 +97,12 @@ pipeline {
                 sh 'npm run lint:ci'
             }
         }
+        
+        stage ('Triggering API Generation') {
+           steps {
+               build job: 'Teaching_NanoModules_API_Generation'
+           }
+        }
     }
 
     post {
