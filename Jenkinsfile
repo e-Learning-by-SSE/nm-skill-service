@@ -100,7 +100,7 @@ pipeline {
         
         stage ('Triggering API Generation') {
            steps {
-               build job: 'Teaching_NanoModules_API_Generation'
+               build job: 'Teaching_NanoModules_API_Generation', wait: false, propagate: false
            }
         }
     }
