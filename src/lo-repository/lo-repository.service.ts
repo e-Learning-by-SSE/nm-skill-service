@@ -5,13 +5,13 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-    LearningObjectGroupDto,
-    LoGoalDto,
-    LoRepositoryCreationDto,
-    LoRepositoryDto,
-    LoRepositoryListDto,
-    LoRepositoryModifyDto,
-    ShallowLoRepositoryDto,
+  LearningObjectGroupDto,
+  LoGoalDto,
+  LoRepositoryCreationDto,
+  LoRepositoryDto,
+  LoRepositoryListDto,
+  LoRepositoryModifyDto,
+  ShallowLoRepositoryDto,
 } from './dto';
 import { LearningObjectDto } from './dto/export/learning-object.dto';
 import { LearningObjectCreationDto } from './dto/learning-object-creation.dto';
@@ -65,6 +65,10 @@ export class LoRepositoryService {
         loRepositoryId: repositoryId,
       },
       include: {
+        requiredCompetencies: true,
+        offeredCompetencies: true,
+        requiredUeberCompetencies: true,
+        offeredUeberCompetencies: true,
         parentGroups: true,
       },
     });
