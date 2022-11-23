@@ -28,6 +28,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   const port = app.get(ConfigService).get('APP_PORT') ?? 3000;
+  app.enableCors({ exposedHeaders: 'x-total-count' });
   console.log(`Starting application on ${port}...`);
   await app.listen(port);
 }
