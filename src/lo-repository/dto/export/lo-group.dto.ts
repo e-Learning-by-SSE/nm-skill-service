@@ -1,6 +1,6 @@
 import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
-import { GroupedLearningObjects } from '@prisma/client';
+import { GroupedLearningObjects, LearningObject } from '@prisma/client';
 
 import { LearningObjectDto } from './learning-object.dto';
 
@@ -26,16 +26,35 @@ export class LearningObjectGroupDto {
   @IsDefined()
   nestedGroups: LearningObjectGroupDto[];
 
-  constructor(id: string, repositoryId: string, name: string, description: string | null) {
+  constructor(
+    id: string,
+    repositoryId: string,
+    name: string,
+    description: string | null,
+    nestedLOs: LearningObject[] | null,
+    nestedGroups: GroupedLearningObjects[] | null,
+  ) {
     this.id = id;
     this.repositoryId = repositoryId;
     this.name = name;
     this.description = description ?? undefined;
-    this.nestedLearningObjects = [];
-    this.nestedGroups = [];
+    this.nestedLearningObjects = nestedLOs?.map((lo) => LearningObjectDto.createFromDao(lo)) ?? [];
+    this.nestedGroups = nestedGroups?.map((g) => LearningObjectGroupDto.createFromDao(g)) ?? [];
   }
 
-  static createFromDao(dao: GroupedLearningObjects) {
-    return new LearningObjectGroupDto(dao.id, dao.loRepositoryId, dao.name, dao.description);
+  static createFromDao(
+    dao: GroupedLearningObjects & {
+      nestedLOs?: LearningObject[];
+      nestedGroups?: GroupedLearningObjects[];
+    },
+  ) {
+    return new LearningObjectGroupDto(
+      dao.id,
+      dao.loRepositoryId,
+      dao.name,
+      dao.description,
+      dao.nestedLOs ?? null,
+      dao.nestedGroups ?? null,
+    );
   }
 }

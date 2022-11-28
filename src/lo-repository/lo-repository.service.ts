@@ -5,13 +5,14 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  LearningObjectGroupDto,
-  LoGoalDto,
-  LoRepositoryCreationDto,
-  LoRepositoryDto,
-  LoRepositoryListDto,
-  LoRepositoryModifyDto,
-  ShallowLoRepositoryDto,
+    LearningObjectGroupCreationDto,
+    LearningObjectGroupDto,
+    LoGoalDto,
+    LoRepositoryCreationDto,
+    LoRepositoryDto,
+    LoRepositoryListDto,
+    LoRepositoryModifyDto,
+    ShallowLoRepositoryDto,
 } from './dto';
 import { LearningObjectDto } from './dto/export/learning-object.dto';
 import { LearningObjectCreationDto } from './dto/learning-object-creation.dto';
@@ -117,13 +118,6 @@ export class LoRepositoryService {
         );
       }
     }
-
-    // Finally at all nested elements to their parent groups
-    loMap.forEach((parents, dto) => {
-      parents.forEach((id) => {
-        groupDtos.get(id)!.nestedLearningObjects.push(dto);
-      });
-    });
 
     groupParents.forEach((parents, dto) => {
       parents.forEach((id) => {
@@ -309,6 +303,47 @@ export class LoRepositoryService {
     });
 
     return LearningObjectDto.createFromDao(newLo);
+  }
+
+  async createLearningObjectGroup(userId: string, repositoryId: string, dto: LearningObjectGroupCreationDto) {
+    // Check if repository is owned by user
+    await this.loadRepositoryForModification(userId, repositoryId);
+
+    // Create DB data object
+    const data: Prisma.GroupedLearningObjectsCreateArgs = {
+      data: {
+        name: dto.name,
+        loRepositoryId: repositoryId,
+        description: dto.description ?? null,
+      },
+      include: {
+        nestedGroups: true,
+        nestedLOs: true,
+      },
+    };
+    if (dto.nestedGroups && dto.nestedGroups.length > 0) {
+      data.data.nestedGroups = {
+        connect: dto.nestedGroups.map((g) => ({ id: g })),
+      };
+    }
+    if (dto.nestedLearningObjects && dto.nestedLearningObjects.length > 0) {
+      data.data.nestedLOs = {
+        connect: dto.nestedLearningObjects.map((lo) => ({ id: lo })),
+      };
+    }
+
+    try {
+      const newGroup = await this.db.groupedLearningObjects.create(data);
+      return LearningObjectGroupDto.createFromDao(newGroup);
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // unique field already exists
+        if (error.code === 'P2002') {
+          throw new ForbiddenException(`LO-Repository has already a group called: ${dto.name}`);
+        }
+      }
+      throw error;
+    }
   }
 
   async modifyLearningObject(
