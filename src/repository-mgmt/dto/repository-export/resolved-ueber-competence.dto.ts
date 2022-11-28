@@ -1,11 +1,16 @@
-import { IsDefined, IsNotEmpty } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
-import { UeberCompetenceCreationDto } from '../ueber-competence-creation.dto';
 import { CompetenceDto } from './competence.dto';
 
-export class ResolvedUeberCompetenceDto extends UeberCompetenceCreationDto {
+export class ResolvedUeberCompetenceDto {
   @IsNotEmpty()
   id!: string;
+
+  @IsNotEmpty()
+  name!: string;
+
+  @IsOptional()
+  description?: string;
 
   @IsDefined()
   nestedCompetencies!: CompetenceDto[];

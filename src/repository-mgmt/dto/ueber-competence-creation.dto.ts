@@ -10,6 +10,18 @@ export class UeberCompetenceCreationDto {
   @IsOptional()
   description?: string;
 
+  @IsOptional()
+  /**
+   * Complete list of all directly nested Competencies. Overwrites old settings.
+   */
+  nestedCompetencies?: string[];
+
+  @IsOptional()
+  /**
+   * Complete list of all directly nested Ueber-Competencies. Overwrites old settings.
+   */
+  nestedUeberCompetencies?: string[];
+
   constructor(name: string, description?: string | null) {
     this.name = name;
     this.description = description ?? undefined;

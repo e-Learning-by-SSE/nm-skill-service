@@ -311,25 +311,33 @@ export class RepositoryMgmtService {
     // Checks that the user is the owner of the repository
     await this.getRepository(userId, repositoryId);
 
-    // Create and return competence
-    try {
-      const competence = await this.db.ueberCompetence.create({
-        data: {
-          repositoryId: repositoryId,
-          name: dto.name,
-          description: dto.description,
-        },
-      });
-
-      const result: UnResolvedUeberCompetenceDto = {
-        id: competence.id,
-        name: competence.name,
-        description: competence.description ?? undefined,
-        nestedCompetencies: [],
-        nestedUeberCompetencies: [],
-        parents: [],
+    // Create new data
+    const createData: Prisma.UeberCompetenceCreateArgs = {
+      data: {
+        repositoryId: repositoryId,
+        name: dto.name,
+        description: dto.description,
+      },
+      include: {
+        subCompetences: true,
+        subUeberCompetences: true,
+        parentUeberCompetences: true,
+      },
+    };
+    if (dto.nestedCompetencies) {
+      createData.data.subCompetences = {
+        connect: dto.nestedCompetencies.map((c) => ({ id: c })),
       };
-      return result;
+    }
+    if (dto.nestedUeberCompetencies) {
+      createData.data.subUeberCompetences = {
+        connect: dto.nestedUeberCompetencies.map((c) => ({ id: c })),
+      };
+    }
+
+    try {
+      const competence = await this.db.ueberCompetence.create(createData);
+      return UnResolvedUeberCompetenceDto.createFromDao(competence);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
