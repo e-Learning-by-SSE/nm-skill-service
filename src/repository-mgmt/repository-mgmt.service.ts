@@ -365,6 +365,12 @@ export class RepositoryMgmtService {
     return competence;
   }
 
+  public async getCompetence(repositoryId: string, competenceId: string) {
+    const dao = await this.loadCompetence(competenceId, repositoryId);
+
+    return CompetenceDto.createFromDao(dao);
+  }
+
   async loadUeberCompetence(ueberCompetenceId: string, repositoryId?: string, includeNested = false) {
     const ueberCompetence = await this.db.ueberCompetence.findUnique({
       where: {
@@ -387,6 +393,12 @@ export class RepositoryMgmtService {
     }
 
     return ueberCompetence;
+  }
+
+  public async getUberCompetence(repositoryId: string, uberCompetenceId: string) {
+    const dao = await this.loadUeberCompetence(uberCompetenceId, repositoryId, true);
+
+    return UnResolvedUeberCompetenceDto.createFromDao(dao);
   }
 
   async modifyUeberCompetence(userId: string, repositoryId: string, dto: UeberCompetenceModificationDto) {
