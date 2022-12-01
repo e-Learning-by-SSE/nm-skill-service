@@ -10,7 +10,7 @@ import { LoRepositoryService } from './lo-repository.service';
 export class LearningGoalService {
   constructor(private db: PrismaService, private loRepositoryService: LoRepositoryService) {}
 
-  private async getGoal(goalId: string) {
+  public async getGoal(goalId: string) {
     const goal = await this.db.learningGoal.findUnique({
       where: {
         id: goalId,
@@ -26,10 +26,6 @@ export class LearningGoalService {
     }
 
     return LoGoalDto.createFromDao(goal);
-  }
-
-  async showGoal(goalId: string) {
-    return this.getGoal(goalId);
   }
 
   async addGoal(userId: string, repositoryId: string, dto: LoGoalCreationDto) {

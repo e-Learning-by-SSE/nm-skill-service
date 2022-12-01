@@ -94,13 +94,12 @@ export class RepositoryMgmtController {
 
   /**
    * Returns the specified Competence.
-   * @param repositoryId The repository at which the competence shall be added to.
    * @param competenceId The ID of the Competence, that shall be returned
    * @returns The specified Competence.
    */
-  @Get(':repositoryId/competencies/:competenceId')
-  getCompetence(@Param('repositoryId') repositoryId: string, @Param('competenceId') competenceId: string) {
-    return this.repositoryService.getCompetence(repositoryId, competenceId);
+  @Get('competencies/:competenceId')
+  getCompetence(@Param('competenceId') competenceId: string) {
+    return this.repositoryService.getCompetence(competenceId);
   }
 
   @ApiBearerAuth()
@@ -116,16 +115,12 @@ export class RepositoryMgmtController {
 
   /**
    * Returns the specified Uber-Competence.
-   * @param repositoryId The repository at which the competence shall be added to.
-   * @param competenceId The ID of the Uber-Competence, that shall be returned
+   * @param uebercompetenceId The ID of the Uber-Competence, that shall be returned
    * @returns The specified Uber-Competence.
    */
-  @Get(':repositoryId/uber_competencies/:uebercompetenceId')
-  getUberCompetence(
-    @Param('repositoryId') repositoryId: string,
-    @Param('uebercompetenceId') uebercompetenceId: string,
-  ) {
-    return this.repositoryService.getUberCompetence(repositoryId, uebercompetenceId);
+  @Get('uber_competencies/:uebercompetenceId')
+  getUberCompetence(@Param('uebercompetenceId') uebercompetenceId: string) {
+    return this.repositoryService.getUberCompetence(uebercompetenceId);
   }
 
   @ApiBearerAuth()

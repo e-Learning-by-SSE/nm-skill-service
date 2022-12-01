@@ -346,6 +346,26 @@ export class LoRepositoryService {
     }
   }
 
+  async getLoGroup(groupId: string) {
+    const dao = await this.db.groupedLearningObjects.findUnique({
+      where: {
+        id: groupId,
+      },
+      include: {
+        nestedGroups: true,
+        nestedLOs: true,
+        parentGroups: true,
+        loRepository: true,
+      },
+    });
+
+    if (dao) {
+      return LearningObjectGroupDto.createFromDao(dao);
+    } else {
+      throw new NotFoundException(`Group with specified ID not found: ${groupId}`);
+    }
+  }
+
   async modifyLearningObject(
     userId: string,
     repositoryId: string,

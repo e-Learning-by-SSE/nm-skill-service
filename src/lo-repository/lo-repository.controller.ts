@@ -74,7 +74,7 @@ export class LoRepositoryController {
 
   @Get('goals/:goalId')
   async showGoal(@Param('goalId') goalId: string) {
-    return this.goalService.showGoal(goalId);
+    return this.goalService.getGoal(goalId);
   }
 
   @ApiBearerAuth()
@@ -97,5 +97,10 @@ export class LoRepositoryController {
     @Body() dto: LearningObjectGroupCreationDto,
   ) {
     return this.loService.createLearningObjectGroup(userId, repositoryId, dto);
+  }
+
+  @Get(':learning_object_groups/:groupId')
+  async getLoGroup(@Param('groupId') groupId: string) {
+    return this.loService.getLoGroup(groupId);
   }
 }

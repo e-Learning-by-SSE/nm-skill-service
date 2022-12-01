@@ -349,7 +349,7 @@ export class RepositoryMgmtService {
     }
   }
 
-  private async loadCompetence(competenceId: string, repositoryId?: string) {
+  private async loadCompetence(competenceId: string, repositoryId: string | null) {
     const competence = await this.db.competence.findUnique({ where: { id: competenceId } });
 
     if (!competence) {
@@ -365,13 +365,13 @@ export class RepositoryMgmtService {
     return competence;
   }
 
-  public async getCompetence(repositoryId: string, competenceId: string) {
-    const dao = await this.loadCompetence(competenceId, repositoryId);
+  public async getCompetence(competenceId: string) {
+    const dao = await this.loadCompetence(competenceId, null);
 
     return CompetenceDto.createFromDao(dao);
   }
 
-  async loadUeberCompetence(ueberCompetenceId: string, repositoryId?: string, includeNested = false) {
+  async loadUeberCompetence(ueberCompetenceId: string, repositoryId: string | null, includeNested = false) {
     const ueberCompetence = await this.db.ueberCompetence.findUnique({
       where: {
         id: ueberCompetenceId,
@@ -395,8 +395,8 @@ export class RepositoryMgmtService {
     return ueberCompetence;
   }
 
-  public async getUberCompetence(repositoryId: string, uberCompetenceId: string) {
-    const dao = await this.loadUeberCompetence(uberCompetenceId, repositoryId, true);
+  public async getUberCompetence(uberCompetenceId: string) {
+    const dao = await this.loadUeberCompetence(uberCompetenceId, null, true);
 
     return UnResolvedUeberCompetenceDto.createFromDao(dao);
   }
