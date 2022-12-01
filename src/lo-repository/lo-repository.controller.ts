@@ -99,7 +99,7 @@ export class LoRepositoryController {
     return this.loService.createLearningObjectGroup(userId, repositoryId, dto);
   }
 
-  @Get(':learning_object_groups/:groupId')
+  @Get('learning_object_groups/:groupId')
   async getLoGroup(@Param('groupId') groupId: string) {
     return this.loService.getLoGroup(groupId);
   }
