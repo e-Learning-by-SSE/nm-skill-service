@@ -97,7 +97,7 @@ export class RepositoryMgmtService {
     });
 
     if (!repository) {
-      throw new NotFoundException('Specified repository not found: ' + repositoryId);
+      throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
     }
 
     if (repository.userId != userId) {
@@ -368,6 +368,10 @@ export class RepositoryMgmtService {
   public async getCompetence(competenceId: string) {
     const dao = await this.loadCompetence(competenceId, null);
 
+    if (!dao) {
+      throw new NotFoundException(`Specified competence not found: ${competenceId}`);
+    }
+
     return CompetenceDto.createFromDao(dao);
   }
 
@@ -383,7 +387,7 @@ export class RepositoryMgmtService {
     });
 
     if (!ueberCompetence) {
-      throw new NotFoundException('Specified ueber-competence not found: ' + ueberCompetenceId);
+      throw new NotFoundException(`Specified ueber-competence not found: ${ueberCompetenceId}`);
     }
 
     if (repositoryId) {

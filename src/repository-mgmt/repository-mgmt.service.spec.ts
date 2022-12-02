@@ -1,8 +1,9 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
+import { RepositorySearchDto } from './dto';
 import { CompetenceCreationDto } from './dto/competence-creation.dto';
 import { RepositoryCreationDto } from './dto/repository-creation.dto';
 import { UeberCompetenceCreationDto } from './dto/ueber-competence-creation.dto';
@@ -31,9 +32,42 @@ describe('Repository-Mgmt-Service', () => {
     repositoryService = new RepositoryMgmtService(db);
   });
 
-  describe('List Repositories', () => {
+  describe('Find Repositories', () => {
     it('No userID -> empty list', async () => {
       await expect(repositoryService.listRepositories('')).resolves.toEqual({ repositories: [] });
+    });
+  });
+
+  describe('List Repositories', () => {
+    it('No userID -> Filter by Name', async () => {
+      const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+      const repo1 = await dbUtils.createRepository(user.id, 'Repository 1');
+      const repo2 = await dbUtils.createRepository(user.id, 'Repository 2');
+      const repo3 = await dbUtils.createRepository(user.id, 'Competence Graph');
+
+      // Search for repositories that contain 'Repository' in their name -> 2 of 3 should be found
+      const dto: RepositorySearchDto = {
+        name: 'Repository',
+      };
+      const result = await repositoryService.findRepositories(dto);
+      const foundNames = result.repositories.map((r) => r.name);
+      expect(foundNames).toEqual(expect.arrayContaining([repo1.name, repo2.name]));
+      expect(foundNames).not.toEqual(expect.arrayContaining([repo3.name]));
+    });
+
+    it('No userID -> Pagination', async () => {
+      const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+      await dbUtils.createRepository(user.id, 'Repository 1');
+      await dbUtils.createRepository(user.id, 'Repository 2');
+      await dbUtils.createRepository(user.id, 'Repository 3');
+
+      // Search for repositories that contain 'Repository' in their name -> 2 of 3 should be found
+      const dto: RepositorySearchDto = {
+        name: 'Repository',
+        pageSize: 2,
+      };
+      const result = await repositoryService.findRepositories(dto);
+      expect(result.repositories.length).toEqual(2);
     });
 
     it('User with no repository -> empty list', async () => {
@@ -65,6 +99,17 @@ describe('Repository-Mgmt-Service', () => {
   });
 
   describe('Get Repository', () => {
+    it('Specify not existing repository -> fail', async () => {
+      const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+      await dbUtils.createRepository(user.id, 'Repository');
+
+      // Retrieve repository from Db via service
+      const includeCompetencies = true;
+      const result = repositoryService.getRepository(user.id, 'a not existing ID', includeCompetencies);
+
+      await expect(result).rejects.toThrow(NotFoundException);
+    });
+
     it('Return repository with no competencies + show competencies', async () => {
       const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
       const repository = await dbUtils.createRepository(user.id, 'Repository');
@@ -326,6 +371,17 @@ describe('Repository-Mgmt-Service', () => {
         }),
       ]);
       expect(repoData.ueberCompetencies).toEqual(expected);
+    });
+  });
+
+  describe('getById', () => {
+    it('Search for not existing Competence -> fail', async () => {
+      const user = await dbUtils.createUser('1', 'An user', 'mail@example.com', 'pw');
+      const repository = await dbUtils.createRepository(user.id, 'Repository');
+      await dbUtils.createCompetence(repository.id, '1st Competence', 1);
+
+      const searchResult = repositoryService.getCompetence('not existing ID');
+      await expect(searchResult).rejects.toThrow(NotFoundException);
     });
   });
 });
