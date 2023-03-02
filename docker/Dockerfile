@@ -2,7 +2,7 @@
 FROM node:16-alpine
 
 # Required for Prisma Client to work in container
-RUN apk add --no-cache openssl
+RUN apk add --update --no-cache openssl1.1-compat
 
 # Required for entry-script
 RUN apk add --no-cache bash
