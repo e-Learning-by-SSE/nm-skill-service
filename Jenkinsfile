@@ -1,27 +1,18 @@
+@Library('web-service-helper-lib') _
+
 pipeline {
     agent any
 
     tools {nodejs "NodeJS 16.13"}
 
     environment {
-        DEMO_SERVER = 'staging.sse.uni-hildesheim.de'
-        DEMO_SERVER_PORT = '3100'
-        DEMO_SERVER_USER = "elscha"
-        API_FILE = 'api-json'
-        API_URL = "http://${env.DEMO_SERVER}:${env.DEMO_SERVER_PORT}/${env.API_FILE}"
+        API_URL = "https://staging.sse.uni-hildesheim.de:9010/api-json"
         
-        dockerImage = ''
+        DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository:latest'
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
     }
 
     stages {
-
-        stage('Git') {
-            steps {
-                cleanWs()
-                git branch: 'main', url: 'https://github.com/e-Learning-by-SSE/nm-competence-repository-service.git'
-            }
-        }
 
         stage('Install Dependencies') {
             steps {
@@ -65,17 +56,17 @@ pipeline {
             steps {
                 sh 'mv docker/Dockerfile Dockerfile'
                 script {
-                    // Based on:
-                    // - https://e.printstacktrace.blog/jenkins-pipeline-environment-variables-the-definitive-guide/
-                    // - https://stackoverflow.com/a/16817748
-                    // - https://stackoverflow.com/a/51991389
-                    env.API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
-                    echo "API: ${env.API_VERSION}"
-                    dockerImage = docker.build 'e-learning-by-sse/nm-competence-repository'
-                    docker.withRegistry('https://ghcr.io', 'github-ssejenkins') {
-                        dockerImage.push("${env.API_VERSION}")
-                        dockerImage.push('latest')
-                    }
+                    API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
+                    publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}"])
+                }
+            }
+        }
+        
+        stage('Swagger Clients') {
+            steps {
+                script {
+                    API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
+                    generateSwaggerClient("${API_URL}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_api', ['javascript', 'typescript-angular', 'typescript-axios'])
                 }
             }
         }
@@ -83,11 +74,7 @@ pipeline {
         // Based on: https://medium.com/@mosheezderman/c51581cc783c
         stage('Deploy') {
             steps {
-                sshagent(credentials: ['Stu-Mgmt_Demo-System']) {
-                    // [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
-                    // ssh-keyscan -t rsa,dsa example.com >> ~/.ssh/known_hosts
-                    sh "ssh -i ~/.ssh/id_rsa_student_mgmt_backend ${DEMO_SERVER_USER}@${env.DEMO_SERVER} ${REMOTE_UPDATE_SCRIPT}"
-                }
+                stagingDeploy("${REMOTE_UPDATE_SCRIPT}")
                 findText(textFinders: [textFinder(regexp: '(- error TS\\*)|(Cannot find module.*or its corresponding type declarations\\.)', alsoCheckConsoleOutput: true, buildResult: 'FAILURE')])
             }
         }
@@ -104,16 +91,5 @@ pipeline {
            }
         }
     }
-
-    post {
-        always {
-             // Send e-mails if build becomes unstable/fails or returns stable
-             // Based on: https://stackoverflow.com/a/39178479
-             load "$JENKINS_HOME/.envvars/emails.groovy"
-             step([$class: 'Mailer', recipients: "${env.elsharkawy}", notifyEveryUnstableBuild: true, sendToIndividuals: false])
-
-             // Report static analyses
-             recordIssues enabledForFailure: false, tool: checkStyle(pattern: 'output/eslint/eslint.xml')
-        }
-    }
 }
+
