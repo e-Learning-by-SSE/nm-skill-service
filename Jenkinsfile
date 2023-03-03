@@ -3,11 +3,13 @@
 pipeline {
     agent any
 
-    tools {nodejs "NodeJS 16.13"}
+    tools {
+        nodejs 'NodeJS 16.13'
+        maven 'Maven 3.8.6'
+    }
 
     environment {
         API_URL = "https://staging.sse.uni-hildesheim.de:9010/api-json"
-        
         DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository:latest'
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
     }
@@ -52,6 +54,12 @@ pipeline {
             }
         }
 
+        stage('Lint') {
+            steps {
+                sh 'npm run lint:ci'
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'mv docker/Dockerfile Dockerfile'
@@ -62,6 +70,7 @@ pipeline {
             }
         }
         
+        
         stage('Swagger Clients') {
             steps {
                 script {
@@ -71,24 +80,10 @@ pipeline {
             }
         }
 
-        // Based on: https://medium.com/@mosheezderman/c51581cc783c
         stage('Deploy') {
             steps {
                 stagingDeploy("${REMOTE_UPDATE_SCRIPT}")
-                findText(textFinders: [textFinder(regexp: '(- error TS\\*)|(Cannot find module.*or its corresponding type declarations\\.)', alsoCheckConsoleOutput: true, buildResult: 'FAILURE')])
             }
-        }
-
-        stage('Lint') {
-            steps {
-                sh 'npm run lint:ci'
-            }
-        }
-        
-        stage ('Triggering API Generation') {
-           steps {
-               build job: 'Teaching_NanoModules_API_Generation', wait: false, propagate: false
-           }
         }
     }
 }
