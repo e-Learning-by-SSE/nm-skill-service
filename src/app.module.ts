@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { LoRepositoryModule } from './lo-repository/lo-repository.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RepositoryMgmtModule } from './repository-mgmt/repository-mgmt.module';
+import  { SkillModule } from './skills/skill.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { RepositoryMgmtModule } from './repository-mgmt/repository-mgmt.module';
     PrismaModule,
     RepositoryMgmtModule,
     LoRepositoryModule,
+    SkillModule
   ],
 })
 export class AppModule {}
