@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-import { Repository } from '@prisma/client';
+import { SkillRepository } from '@prisma/client';
 
 
 import { SkillRepositorySelectionDto } from './skill-repository-selection.dto';
@@ -30,13 +30,13 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
     this.description = description ?? undefined;
   }
 
-  static createFromDao(repository: Repository): SkillRepositoryDto {
+  static createFromDao(repository: SkillRepository): SkillRepositoryDto {
     return new SkillRepositoryDto(
       repository.id,
       repository.userId,
       repository.name,
       repository.version,
-      repository.taxonomy,
+   
       repository.description,
     );
   }

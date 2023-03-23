@@ -7,7 +7,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { computePageQuery, computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-   SkillCreationDto, SkillDto, SkillRepositorySearchDto, SkillListDto, SkillRepositoryDto, SkillRepositoryListDto, SkillRepositorySelectionDto 
+   SkillCreationDto, SkillDto,SkillRepositoryCreationDto, SkillRepositorySearchDto, SkillListDto, SkillRepositoryDto, SkillRepositoryListDto, SkillRepositorySelectionDto , ResolvedSkillRepositoryDto
 } from './dto';
 
 
@@ -47,20 +47,20 @@ export class SkillMgmtService {
 
     return repoList;
   }
-/**
-  async createRepository(userId: string, dto: RepositoryCreationDto) {
+
+  async createRepository(userId: string, dto: SkillRepositoryCreationDto) {
     try {
       const repository = await this.db.repository.create({
         data: {
           userId: userId,
           name: dto.name,
-          version: dto.version,
+        
           description: dto.description,
-          taxonomy: dto.taxonomy,
+         
         },
       });
 
-      return RepositoryDto.createFromDao(repository);
+      return SkillRepositoryDto.createFromDao(repository);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -74,13 +74,13 @@ export class SkillMgmtService {
 
   public async getRepository(userId: string, repositoryId: string, includeCompetencies = false) {
     // Retrieve the repository, at which the competence shall be stored to
-    const repository = await this.db.repository.findUnique({
+    const repository = await this.db.skillRepository.findUnique({
       where: {
         id: repositoryId,
       },
       include: {
-        competencies: includeCompetencies,
-        uebercompetencies: includeCompetencies,
+        skills: includeCompetencies,
+        
       },
     });
 
@@ -94,62 +94,41 @@ export class SkillMgmtService {
 
     return repository;
   }
+  
 
   public async loadRepository(userId: string, repositoryId: string) {
     const repository = await this.getRepository(userId, repositoryId, true);
-    const result: UnresolvedRepositoryDto = {
-      ...RepositoryDto.createFromDao(repository),
-      competencies: repository.competencies.map((c) => c.id),
-      ueberCompetencies: repository.uebercompetencies.map((uc) => uc.id),
+    const result: SkillRepositoryDto = {...SkillRepositoryDto.createFromDao(repository)
     };
 
     return result;
   }
 
-  public async loadResolvedRepository(userId: string, repositoryId: string) {
+  public async loadResolvedSkillRepository(userId: string, repositoryId: string) {
     const repository = await this.getRepository(userId, repositoryId, true);
-    const result = ResolvedRepositoryDto.create(
+    const result = ResolvedSkillRepositoryDto.create(
       repository.id,
       repository.name,
       repository.version,
-      repository.taxonomy,
+      
       repository.description,
     );
 
     // Load all Competencies of Repository
-    const competenceMap = new Map<string, CompetenceDto>();
-    repository.competencies.forEach((c) => {
+    const skillMap = new Map<string, SkillDto>();
+    repository.skills.forEach((c) => {
       // Convert DAO -> DTO
-      const competence = CompetenceDto.createFromDao(c);
+      const skill = SkillDto.createFromDao(c);
 
-      competenceMap.set(c.id, competence);
-      result.competencies.push(competence);
+      skillMap.set(c.id, skill);
+      result.skills.push(skill);
     });
 
-    // Load all Ueber-Competencies of Repository
-    const ueberCompetenceMap = new Map<string, ResolvedUeberCompetenceDto>();
-    repository.uebercompetencies.forEach((uc) => {
-      // Convert DAO -> DTO
-      const tmp: any = (({ id, name }) => ({ id, name }))(uc);
-      tmp.description = uc.description ?? '';
-      tmp.nestedCompetencies = <CompetenceDto[]>[];
-      tmp.nestedUeberCompetencies = <ResolvedUeberCompetenceDto[]>[];
-      const ueberCompetence = tmp as ResolvedUeberCompetenceDto;
-
-      ueberCompetenceMap.set(uc.id, ueberCompetence);
-      result.ueberCompetencies.push(ueberCompetence);
-    });
-
-    // Runs all asynchronous functions in parallel and waits for the result: https://stackoverflow.com/a/37576787
-    await Promise.all(
-      result.ueberCompetencies.map(async (uc) => {
-        await this.resolveUberCompetence(uc, competenceMap, ueberCompetenceMap);
-      }),
-    );
-
+   
+   
     return result;
   }
-
+/**
   async resolveUberCompetencies(repositoryId: string, dto: UberCompetenceResolveRequestDto) {
     // Retrieve the repository, at which the competence shall be stored to
     const repository = await this.db.repository.findUnique({

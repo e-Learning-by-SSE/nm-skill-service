@@ -5,3 +5,5 @@ export * from './skill-repository-search.dto';
 export * from './skill-repository-list.dto'
 export * from './skill-repository-selection.dto';
 export * from './skill-repository.dto';
+export * from './skill-repository-creation.dto';
+export * from './resolved-skill-repository.dto';

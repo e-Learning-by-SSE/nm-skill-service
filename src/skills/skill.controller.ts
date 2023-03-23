@@ -4,7 +4,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import {
-  SkillCreationDto, SkillDto, SkillRepositorySearchDto, SkillListDto, SkillRepositoryDto, SkillRepositoryListDto, SkillRepositorySelectionDto 
+  SkillCreationDto, SkillDto, SkillRepositorySearchDto,SkillRepositoryCreationDto, SkillListDto, SkillRepositoryDto, SkillRepositoryListDto, SkillRepositorySelectionDto 
 } from './dto';
 
 import { SkillMgmtService } from './skill.service';
@@ -36,40 +36,40 @@ export class SkillMgmtController {
    * Competences and their relations are handled as IDs and need to be resolved on the client-side.
    * @param userId The user for which the repositories shall be listed.
    * @returns The repositories of the specified user.
-  
+   */
   @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Get(':repositoryId')
   async loadRepository(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string) {
     return this.repositoryService.loadRepository(userId, repositoryId);
   }
- */
+
   /**
    * Returns one resolved repository and its elements.
    * Competencies and their relations are resolved at the server.
    * @param userId The user for which the repositories shall be listed.
    * @returns The repositories of the specified user.
-  
+   */
   @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Get('resolve/:repositoryId')
   async loadResolvedRepository(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string) {
-    return this.repositoryService.loadResolvedRepository(userId, repositoryId);
+    return this.repositoryService.loadResolvedSkillRepository(userId, repositoryId);
   }
- */
+
   /**
    * Creates a new competence repository for the specified user.
    * @param userId The user for which the new repository shall be created.
    * @param dto specifies the attributes of the new repository
    * @returns The newly created repository or an error message.
-  
+   */
   @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Post('create')
-  createRepository(@GetUser('id') userId: string, @Body() dto: RepositoryCreationDto) {
+  createRepository(@GetUser('id') userId: string, @Body() dto: SkillRepositoryCreationDto) {
     return this.repositoryService.createRepository(userId, dto);
   }
- */
+
   /**
    * Creates a new competence at the specified repository and returns the created competence.
    * @param userId The owner of the repository

@@ -171,7 +171,6 @@ model SkillRepository {
   id          String   @id @default(cuid())
   name        String
   description String?
-  taxonomy    String?
   version     String   @default("")
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
