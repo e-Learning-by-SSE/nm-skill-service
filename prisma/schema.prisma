@@ -194,10 +194,15 @@ model Skill {
   parentSkillsRelation Skill[]         @relation("parentSkills")
   pathTeachingGoal     LearningPath[]  @relation("pathTeachingGoal")
   requirements         LearningPath[]  @relation("requirements")
+
   // Use in Learning Objects
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt                  DateTime      @default(now())
+  updatedAt                  DateTime      @updatedAt
+  learningUnit               LearningUnit? @relation("teachingGoals", fields: [learningUnitId], references: [id])
+  learningUnitId             Int?
+  requirementslearningUnit   LearningUnit? @relation("requirementslearningUnit", fields: [requirementslearningUnitId], references: [id])
+  requirementslearningUnitId Int?
 
   @@unique([repositoryId, name])
   @@map("skills")
@@ -213,7 +218,7 @@ model LearningPath {
   updatedAt        DateTime @updatedAt
   pathTeachingGoal Skill    @relation("pathTeachingGoal", fields: [skillIdTG], references: [id])
   skillIdTG        String   @default("")
-  Requirement      Skill    @relation("requirements", fields: [skillIdReq], references: [id])
+  requirement      Skill    @relation("requirements", fields: [skillIdReq], references: [id])
   skillIdReq       String   @default("")
 
   @@unique([id, name, version])
@@ -239,6 +244,8 @@ model Nugget {
   processingTime String         @default("")
   presenter      String         @default("")
   mediatype      String         @default("")
+  LearningUnit   LearningUnit?  @relation(fields: [learningUnitId], references: [id])
+  learningUnitId Int?
 }
 
 model LearningUnit {
@@ -249,13 +256,17 @@ model LearningUnit {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   processingTime     String   @default("")
-  Rating             String   @default("")
-  ContentCreator     String   @default("")
-  ContentProvider    String   @default("")
-  TargetAudience     String   @default("")
-  SemanticDensity    String   @default("")
-  SemanticGravity    String   @default("")
-  ContentTags        String[]
-  ContextTags        String[]
-  LinkToHelpMaterial String
+  rating             String   @default("")
+  contentCreator     String   @default("")
+  contentProvider    String   @default("")
+  targetAudience     String   @default("")
+  semanticDensity    String   @default("")
+  semanticGravity    String   @default("")
+  contentTags        String[]
+  contextTags        String[]
+  linkToHelpMaterial String
+
+  teachingGoals Skill[]  @relation("teachingGoals")
+  requirements  Skill[]  @relation("requirementslearningUnit")
+  nuggets       Nugget[]
 }

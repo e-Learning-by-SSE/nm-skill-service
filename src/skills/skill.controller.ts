@@ -33,7 +33,7 @@ export class SkillMgmtController {
 
   /**
    * Returns one repository and its unresolved elements.
-   * Competences and their relations are handled as IDs and need to be resolved on the client-side.
+   * Skills and their relations are handled as IDs and need to be resolved on the client-side.
    * @param userId The user for which the repositories shall be listed.
    * @returns The repositories of the specified user.
    */
@@ -46,7 +46,7 @@ export class SkillMgmtController {
 
   /**
    * Returns one resolved repository and its elements.
-   * Competencies and their relations are resolved at the server.
+   * Skills and their relations are resolved at the server.
    * @param userId The user for which the repositories shall be listed.
    * @returns The repositories of the specified user.
    */
@@ -58,7 +58,7 @@ export class SkillMgmtController {
   }
 
   /**
-   * Creates a new competence repository for the specified user.
+   * Creates a new skill repository for the specified user.
    * @param userId The user for which the new repository shall be created.
    * @param dto specifies the attributes of the new repository
    * @returns The newly created repository or an error message.
@@ -71,16 +71,16 @@ export class SkillMgmtController {
   }
 
   /**
-   * Creates a new competence at the specified repository and returns the created competence.
+   * Creates a new skill at the specified repository and returns the created skill.
    * @param userId The owner of the repository
-   * @param repositoryId The repository at which the competence shall be added to.
-   * @param dto The competence description
-   * @returns The created competence.
+   * @param repositoryId The repository at which the skill shall be added to.
+   * @param dto The skill description
+   * @returns The created skill.
    */
   @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Post(':repositoryId/skill/add_skill')
-  addCompetence(
+  addskill(
     @GetUser('id') userId: string,
     @Param('repositoryId') repositoryId: string,
     @Body() dto: SkillCreationDto,
@@ -89,9 +89,9 @@ export class SkillMgmtController {
   }
 
   /**
-   * Returns the specified Competence.
-   * @param competenceId The ID of the Competence, that shall be returned
-   * @returns The specified Competence.
+   * Returns the specified skill.
+   * @param skillId The ID of the skill, that shall be returned
+   * @returns The specified skill.
    */
   @Get('skill/:skillId')
   getSkill(@Param('skillId') skillId: string) {

@@ -14,7 +14,7 @@ import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.
 
 /**
  * Service that manages the creation/update/deletion of repositories.
- * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
+ * @author Wenzel
  */
 @Injectable()
 export class SkillMgmtService {
