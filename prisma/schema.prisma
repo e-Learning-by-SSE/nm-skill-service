@@ -184,16 +184,16 @@ model SkillRepository {
 
 model Skill {
   id          String  @id @default(cuid())
-  name       String
-  bloomLevel       Int
+  name        String
+  bloomLevel  Int
   description String?
 
-  repositoryId String
-  repository   SkillRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-
-  parentSkills         Skill[] @relation("parentSkills")
-  parentSkillsRelation Skill[] @relation("parentSkills")
-
+  repositoryId         String
+  repository           SkillRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  parentSkills         Skill[]         @relation("parentSkills")
+  parentSkillsRelation Skill[]         @relation("parentSkills")
+  pathTeachingGoal LearningPath[] @relation("pathTeachingGoal")
+  requirements LearningPath[] @relation("requirements")
   // Use in Learning Objects
 
   createdAt DateTime @default(now())
@@ -201,4 +201,20 @@ model Skill {
 
   @@unique([repositoryId, name])
   @@map("skills")
+}
+
+model LearningPath {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  version          String   @default("")
+  userId           String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  pathTeachingGoal   Skill @relation("pathTeachingGoal",fields: [skillIdTG], references: [id])
+  skillIdTG String @default("")
+  Requirement   Skill @relation("requirements",fields: [skillIdReq], references: [id])
+  skillIdReq String @default("")
+  @@unique([id, name, version])
+  @@map("LearningPaths")
 }
