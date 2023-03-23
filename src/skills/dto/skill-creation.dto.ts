@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
- * Creates a new Concept
+ * Creates a new Skill
  */
 export class SkillCreationDto {
   @IsNotEmpty()

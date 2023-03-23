@@ -36,7 +36,6 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
       repository.userId,
       repository.name,
       repository.version,
-   
       repository.description,
     );
   }
