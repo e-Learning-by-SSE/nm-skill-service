@@ -76,63 +76,26 @@ export class SkillMgmtController {
    * @param repositoryId The repository at which the competence shall be added to.
    * @param dto The competence description
    * @returns The created competence.
-   
+   */
   @ApiBearerAuth()
   @UseGuards(JwtGuard)
-  @Post(':repositoryId/competencies/add_competence')
+  @Post(':repositoryId/skill/add_skill')
   addCompetence(
     @GetUser('id') userId: string,
     @Param('repositoryId') repositoryId: string,
-    @Body() dto: CompetenceCreationDto,
+    @Body() dto: SkillCreationDto,
   ) {
-    return this.repositoryService.createCompetence(userId, repositoryId, dto);
+    return this.repositoryService.createSkill(userId, repositoryId, dto);
   }
-*/
+
   /**
    * Returns the specified Competence.
    * @param competenceId The ID of the Competence, that shall be returned
    * @returns The specified Competence.
-   
-  @Get('competencies/:competenceId')
-  getCompetence(@Param('competenceId') competenceId: string) {
-    return this.repositoryService.getCompetence(competenceId);
+   */
+  @Get('skill/:skillId')
+  getSkill(@Param('skillId') skillId: string) {
+    return this.repositoryService.getSkill(skillId);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @Post(':repositoryId/competencies/add_uebercompetence')
-  addUeberCompetence(
-    @GetUser('id') userId: string,
-    @Param('repositoryId') repositoryId: string,
-    @Body() dto: UeberCompetenceCreationDto,
-  ) {
-    return this.repositoryService.createUeberCompetence(userId, repositoryId, dto);
   }
-*/
-  /**
-   * Returns the specified Uber-Competence.
-   * @param uebercompetenceId The ID of the Uber-Competence, that shall be returned
-   * @returns The specified Uber-Competence.
- 
-  @Get('uber_competencies/:uebercompetenceId')
-  getUberCompetence(@Param('uebercompetenceId') uebercompetenceId: string) {
-    return this.repositoryService.getUberCompetence(uebercompetenceId);
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @Patch(':repositoryId/competencies/modify_uebercompetence')
-  modify(
-    @GetUser('id') userId: string,
-    @Param('repositoryId') repositoryId: string,
-    @Body() dto: UeberCompetenceModificationDto,
-  ) {
-    return this.repositoryService.modifyUeberCompetence(userId, repositoryId, dto);
-  }
-
-  @Post(':repositoryId/resolveUberCompetencies')
-  resolveToCompetencies(@Param('repositoryId') repositoryId: string, @Body() dto: UberCompetenceResolveRequestDto) {
-    return this.repositoryService.resolveUberCompetencies(repositoryId, dto);
-  }
-    */
-}

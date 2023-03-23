@@ -32,7 +32,7 @@ export class SkillMgmtService {
 
   /**
    * Returns a list of all repositories owned by the specified user.
-   * Won't include any information about nested competencies.
+   * Won't include any information about nested skills.
    * @param userId The owner of the repositories
    * @returns The list of his repositories
    */
@@ -73,8 +73,8 @@ export class SkillMgmtService {
     }
   }
 
-  public async getRepository(userId: string, repositoryId: string, includeSkills = false) {
-    // Retrieve the repository, at which the competence shall be stored to
+  public async getSkillRepository(userId: string, repositoryId: string, includeSkills = false) {
+    // Retrieve the repository, at which the skill shall be stored to
     const repository = await this.db.skillRepository.findUnique({
       where: {
         id: repositoryId,
@@ -98,7 +98,7 @@ export class SkillMgmtService {
   
 
   public async loadSkillRepository(userId: string, repositoryId: string) {
-    const repository = await this.getRepository(userId, repositoryId, true);
+    const repository = await this.getSkillRepository(userId, repositoryId, true);
     const result: UnresolvedSkillRepositoryDto = {...SkillRepositoryDto.createFromDao(repository), 
     skills:repository.skills.map((c)=>c.id)  
     };
@@ -107,7 +107,7 @@ export class SkillMgmtService {
   }
 
   public async loadResolvedSkillRepository(userId: string, repositoryId: string) {
-    const repository = await this.getRepository(userId, repositoryId, true);
+    const repository = await this.getSkillRepository(userId, repositoryId, true);
     const result = ResolvedSkillRepositoryDto.create(
       repository.id,
       repository.name,
@@ -116,7 +116,7 @@ export class SkillMgmtService {
       repository.description,
     );
 
-    // Load all Competencies of Repository
+    // Load all skills of repository
     const skillMap = new Map<string, SkillDto>();
     repository.skills.forEach((c) => {
       // Convert DAO -> DTO
@@ -130,302 +130,67 @@ export class SkillMgmtService {
    
     return result;
   }
-/**
-  async resolveUberCompetencies(repositoryId: string, dto: UberCompetenceResolveRequestDto) {
-    // Retrieve the repository, at which the competence shall be stored to
-    const repository = await this.db.repository.findUnique({
-      where: {
-        id: repositoryId,
-      },
-      include: {
-        competencies: true,
-        uebercompetencies: true,
-      },
-    });
 
-    if (!repository) {
-      throw new NotFoundException('Specified repository not found: ' + repositoryId);
-    }
 
-    // Load all Competencies of Repository
-    const competenceMap = new Map<string, CompetenceDto>();
-    repository.competencies.forEach((c) => {
-      // Convert DAO -> DTO
-      const competence = CompetenceDto.createFromDao(c);
-
-      competenceMap.set(c.id, competence);
-    });
-
-    // list of all (unique) resolved competencies
-    const resultSet = new Set<CompetenceDto>();
-    // First determine all UberCompetencies
-    const unresolvedUCs = new Set<string>();
-    const doneUCs = new Set<string>();
-    for (const id of dto.uberCompetencies) {
-      unresolvedUCs.add(id);
-    }
-    while (unresolvedUCs.size > 0) {
-      const tmp = new Set(unresolvedUCs);
-      unresolvedUCs.clear();
-
-      for (const id of tmp) {
-        doneUCs.add(id);
-        const uc = await this.db.ueberCompetence.findUnique({
-          where: {
-            id: id,
-          },
-          include: {
-            subCompetences: true,
-            subUeberCompetences: true,
-          },
-        });
-
-        if (uc) {
-          // Store Competence
-          uc.subCompetences.map((c) => c.id).map((i) => competenceMap.get(i));
-          for (const nested of uc.subCompetences) {
-            const competence = competenceMap.get(nested.id);
-            if (competence) {
-              resultSet.add(competence);
-            }
-          }
-
-          // Consider UberCompetences for further resolving
-          for (const nested of uc.subUeberCompetences) {
-            const id = nested.id;
-            if (!doneUCs.has(id) && !tmp.has(id)) {
-              unresolvedUCs.add(id);
-            }
-          }
-        }
-      }
-    }
-
-    const result = new CompetenceListDto();
-    result.competencies = Array.from(resultSet.values());
-    return result;
-  }
-
-  private async resolveUberCompetence(
-    uc: ResolvedUeberCompetenceDto,
-    competenceMap: Map<string, CompetenceDto>,
-    ueberCompetenceMap: Map<string, ResolvedUeberCompetenceDto>,
-  ) {
-    // Load relations from DB
-    const tmp = await this.db.ueberCompetence.findUnique({
-      where: {
-        id: uc.id,
-      },
-      include: {
-        subCompetences: true,
-        subUeberCompetences: true,
-        // Avoid infinite circles
-        parentUeberCompetences: false,
-      },
-    });
-
-    if (tmp) {
-      // Load all nested Competences
-      tmp.subCompetences.forEach((child) => {
-        const resolved = competenceMap.get(child.id);
-        if (resolved) {
-          uc.nestedCompetencies.push(resolved);
-        }
-      });
-
-      // Load all nested Ueber-Competences
-      for (const child of tmp.subUeberCompetences) {
-        const resolved = ueberCompetenceMap.get(child.id);
-        if (resolved) {
-          uc.nestedUeberCompetencies.push(resolved);
-        }
-      }
-    }
-  }
-/**
   /**
-   * Adds a new competence to a specified repository
-   * @param userId The ID of the user who wants to create a competence at one of his repositories
-   * @param dto Specifies the competence to be created and the repository at which it shall be created
-   * @returns The newly created competence
+   * Adds a new skill to a specified repository
+   * @param userId The ID of the user who wants to create a skill at one of his repositories
+   * @param dto Specifies the skill to be created and the repository at which it shall be created
+   * @returns The newly created skill
    */
-  /**
-  async createCompetence(userId: string, repositoryId: string, dto: CompetenceCreationDto) {
+  
+  async createSkill(userId: string, skillRepositoryId: string, dto: SkillCreationDto) {
     // Checks that the user is the owner of the repository / repository exists
-    await this.getRepository(userId, repositoryId);
+    await this.getSkillRepository(userId, skillRepositoryId);
 
-    // Create and return competence
+    // Create and return skill
     try {
-      const competence = await this.db.competence.create({
+      const skill = await this.db.skill.create({
         data: {
-          repositoryId: repositoryId,
-          skill: dto.skill,
-          level: dto.level,
+          repositoryId: skillRepositoryId,
+          name: dto.name,
+          bloomLevel: dto.bloomLevel,
           description: dto.description,
         },
       });
 
-      return competence as CompetenceDto;
+      return skill as SkillDto;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
         if (error.code === 'P2002') {
-          throw new ForbiddenException('Competence already exists in specified repository');
+          throw new ForbiddenException('Skill already exists in specified repository');
         }
       }
       throw error;
     }
   }
 
-  async createUeberCompetence(userId: string, repositoryId: string, dto: UeberCompetenceCreationDto) {
-    // Checks that the user is the owner of the repository
-    await this.getRepository(userId, repositoryId);
+  
 
-    // Create new data
-    const createData: Prisma.UeberCompetenceCreateArgs = {
-      data: {
-        repositoryId: repositoryId,
-        name: dto.name,
-        description: dto.description,
-      },
-      include: {
-        subCompetences: true,
-        subUeberCompetences: true,
-        parentUeberCompetences: true,
-      },
-    };
-    if (dto.nestedCompetencies) {
-      createData.data.subCompetences = {
-        connect: dto.nestedCompetencies.map((c) => ({ id: c })),
-      };
-    }
-    if (dto.nestedUeberCompetencies) {
-      createData.data.subUeberCompetences = {
-        connect: dto.nestedUeberCompetencies.map((c) => ({ id: c })),
-      };
+  private async loadSkill(skillId: string, skillRepositoryId: string | null) {
+    const skill = await this.db.skill.findUnique({ where: { id: skillId } });
+
+    if (!skill) {
+      throw new NotFoundException('Specified skill not found: ' + skillId);
     }
 
-    try {
-      const competence = await this.db.ueberCompetence.create(createData);
-      return UnResolvedUeberCompetenceDto.createFromDao(competence);
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        // unique field already exists
-        if (error.code === 'P2002') {
-          throw new ForbiddenException('Competence already exists in specified repository');
-        }
-      }
-      throw error;
-    }
-  }
-
-  private async loadCompetence(competenceId: string, repositoryId: string | null) {
-    const competence = await this.db.competence.findUnique({ where: { id: competenceId } });
-
-    if (!competence) {
-      throw new NotFoundException('Specified competence not found: ' + competenceId);
-    }
-
-    if (repositoryId) {
-      if (competence.repositoryId != repositoryId) {
-        throw new ForbiddenException('Competence belongs to another repository.');
+    if (skillRepositoryId) {
+      if (skill.repositoryId != skillRepositoryId) {
+        throw new ForbiddenException('Skill belongs to another repository.');
       }
     }
 
-    return competence;
+    return skill;
   }
 
-  public async getCompetence(competenceId: string) {
-    const dao = await this.loadCompetence(competenceId, null);
+  public async getSkill(skillId: string) {
+    const dao = await this.loadSkill(skillId, null);
 
     if (!dao) {
-      throw new NotFoundException(`Specified competence not found: ${competenceId}`);
+      throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
-    return CompetenceDto.createFromDao(dao);
+    return SkillDto.createFromDao(dao);
   }
-
-  async loadUeberCompetence(ueberCompetenceId: string, repositoryId: string | null, includeNested = false) {
-    const ueberCompetence = await this.db.ueberCompetence.findUnique({
-      where: {
-        id: ueberCompetenceId,
-      },
-      include: {
-        subCompetences: includeNested,
-        subUeberCompetences: includeNested,
-      },
-    });
-
-    if (!ueberCompetence) {
-      throw new NotFoundException(`Specified ueber-competence not found: ${ueberCompetenceId}`);
-    }
-
-    if (repositoryId) {
-      if (ueberCompetence.repositoryId != repositoryId) {
-        throw new ForbiddenException('Ueber-competence belongs to another repository.');
-      }
-    }
-
-    return ueberCompetence;
-  }
-
-  public async getUberCompetence(uberCompetenceId: string) {
-    const dao = await this.loadUeberCompetence(uberCompetenceId, null, true);
-
-    return UnResolvedUeberCompetenceDto.createFromDao(dao);
-  }
-
-  async modifyUeberCompetence(userId: string, repositoryId: string, dto: UeberCompetenceModificationDto) {
-    // Checks that the user is the owner of the repository
-    await this.getRepository(userId, repositoryId);
-
-    // Load ueber-competence to be changed and check that this belongs to specified repository
-    const ueberCompetence = await this.loadUeberCompetence(dto.ueberCompetenceId, repositoryId, true);
-
-    // Check that all competencies belong to this repository
-    if (dto.nestedCompetencies) {
-      await Promise.all(
-        dto.nestedCompetencies.map(async (c) => {
-          await this.loadCompetence(c, repositoryId);
-        }),
-      );
-    }
-
-    // Check that all competencies belong to this repository
-    if (dto.nestedUeberCompetencies) {
-      await Promise.all(
-        dto.nestedUeberCompetencies.map(async (uc) => {
-          await this.loadUeberCompetence(uc, repositoryId);
-        }),
-      );
-    }
-
-    // Determine data to change
-    const changeData: any = {};
-    // Determine relations to competencies to update
-    let changedRelations = computeRelationUpdate(ueberCompetence.subCompetences, dto.nestedCompetencies);
-    if (changedRelations) {
-      changeData['subCompetences'] = changedRelations;
-    }
-    changedRelations = computeRelationUpdate(ueberCompetence.subUeberCompetences, dto.nestedUeberCompetencies);
-    if (changedRelations) {
-      changeData['subUeberCompetences'] = changedRelations;
-    }
-
-    if (Object.keys(changeData).length > 0) {
-      // Apply update
-      const updatedUeberComp = await this.db.ueberCompetence.update({
-        where: { id: ueberCompetence.id },
-        data: changeData,
-        include: {
-          subCompetences: true,
-          subUeberCompetences: true,
-          parentUeberCompetences: true,
-        },
-      });
-
-      return UnResolvedUeberCompetenceDto.createFromDao(updatedUeberComp);
-    }
-  }
-*/
 }
