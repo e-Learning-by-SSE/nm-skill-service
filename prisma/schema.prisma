@@ -192,8 +192,8 @@ model Skill {
   repository           SkillRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   parentSkills         Skill[]         @relation("parentSkills")
   parentSkillsRelation Skill[]         @relation("parentSkills")
-  pathTeachingGoal LearningPath[] @relation("pathTeachingGoal")
-  requirements LearningPath[] @relation("requirements")
+  pathTeachingGoal     LearningPath[]  @relation("pathTeachingGoal")
+  requirements         LearningPath[]  @relation("requirements")
   // Use in Learning Objects
 
   createdAt DateTime @default(now())
@@ -211,10 +211,51 @@ model LearningPath {
   userId           String
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  pathTeachingGoal   Skill @relation("pathTeachingGoal",fields: [skillIdTG], references: [id])
-  skillIdTG String @default("")
-  Requirement   Skill @relation("requirements",fields: [skillIdReq], references: [id])
-  skillIdReq String @default("")
+  pathTeachingGoal Skill    @relation("pathTeachingGoal", fields: [skillIdTG], references: [id])
+  skillIdTG        String   @default("")
+  Requirement      Skill    @relation("requirements", fields: [skillIdReq], references: [id])
+  skillIdReq       String   @default("")
+
   @@unique([id, name, version])
   @@map("LearningPaths")
+}
+
+enum NuggetCategory {
+  ANALYZE
+  INTRODUCTION
+  CONTENT
+  EXAMPLE
+  EXERCISE
+  TEST
+}
+
+model Nugget {
+  id             Int            @id @default(autoincrement())
+  language       String
+  name           String?
+  istypeof       NuggetCategory @default(CONTENT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  processingTime String         @default("")
+  presenter      String         @default("")
+  mediatype      String         @default("")
+}
+
+model LearningUnit {
+  id                 Int      @id @default(autoincrement())
+  language           String
+  title              String
+  description        String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  processingTime     String   @default("")
+  Rating             String   @default("")
+  ContentCreator     String   @default("")
+  ContentProvider    String   @default("")
+  TargetAudience     String   @default("")
+  SemanticDensity    String   @default("")
+  SemanticGravity    String   @default("")
+  ContentTags        String[]
+  ContextTags        String[]
+  LinkToHelpMaterial String
 }
