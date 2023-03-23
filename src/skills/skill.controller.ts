@@ -41,7 +41,7 @@ export class SkillMgmtController {
   @UseGuards(JwtGuard)
   @Get(':repositoryId')
   async loadRepository(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string) {
-    return this.repositoryService.loadRepository(userId, repositoryId);
+    return this.repositoryService.loadSkillRepository(userId, repositoryId);
   }
 
   /**

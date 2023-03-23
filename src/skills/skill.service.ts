@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
    SkillCreationDto, SkillDto,SkillRepositoryCreationDto, SkillRepositorySearchDto, SkillListDto, SkillRepositoryDto, SkillRepositoryListDto, SkillRepositorySelectionDto , ResolvedSkillRepositoryDto
 } from './dto';
+import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.dto';
 
 
 /**
@@ -20,8 +21,8 @@ export class SkillMgmtService {
   constructor(private db: PrismaService) {}
 
   async findSkillRepositories(dto?: SkillRepositorySearchDto) {
-    const query: Prisma.RepositoryFindManyArgs = computePageQuery(dto);
-    const repositories = await this.db.repository.findMany(query);
+    const query: Prisma.SkillRepositoryFindManyArgs = computePageQuery(dto);
+    const repositories = await this.db.skillRepository.findMany(query);
 
     const repoList = new SkillRepositoryListDto();
     repoList.repositories = repositories.map((repository) => SkillRepositoryDto.createFromDao(repository));
@@ -36,7 +37,7 @@ export class SkillMgmtService {
    * @returns The list of his repositories
    */
   async listRepositories(userId: string) {
-    const repositories = await this.db.repository.findMany({
+    const repositories = await this.db.skillRepository.findMany({
       where: {
         userId: userId,
       },
@@ -50,7 +51,7 @@ export class SkillMgmtService {
 
   async createRepository(userId: string, dto: SkillRepositoryCreationDto) {
     try {
-      const repository = await this.db.repository.create({
+      const repository = await this.db.skillRepository.create({
         data: {
           userId: userId,
           name: dto.name,
@@ -72,14 +73,14 @@ export class SkillMgmtService {
     }
   }
 
-  public async getRepository(userId: string, repositoryId: string, includeCompetencies = false) {
+  public async getRepository(userId: string, repositoryId: string, includeSkills = false) {
     // Retrieve the repository, at which the competence shall be stored to
     const repository = await this.db.skillRepository.findUnique({
       where: {
         id: repositoryId,
       },
       include: {
-        skills: includeCompetencies,
+        skills: includeSkills,
         
       },
     });
@@ -96,9 +97,10 @@ export class SkillMgmtService {
   }
   
 
-  public async loadRepository(userId: string, repositoryId: string) {
+  public async loadSkillRepository(userId: string, repositoryId: string) {
     const repository = await this.getRepository(userId, repositoryId, true);
-    const result: SkillRepositoryDto = {...SkillRepositoryDto.createFromDao(repository)
+    const result: UnresolvedSkillRepositoryDto = {...SkillRepositoryDto.createFromDao(repository), 
+    skills:repository.skills.map((c)=>c.id)  
     };
 
     return result;
