@@ -7,7 +7,7 @@ import {
   SkillCreationDto, SkillDto, SkillRepositorySearchDto,SkillRepositoryCreationDto, SkillListDto, SkillRepositoryDto, SkillRepositoryListDto, SkillRepositorySelectionDto 
 } from './dto';
 
-import { SkillMgmtService } from './skill.service';
+import { SkillMgmtService } from './nugget.service';
 
 @ApiTags('Skill')
 @Controller('skill-repositories')

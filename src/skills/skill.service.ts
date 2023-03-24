@@ -193,4 +193,17 @@ export class SkillMgmtService {
 
     return SkillDto.createFromDao(dao);
   }
+
+  public async loadAllSkills() {
+    const skills = await this.db.skill.findMany();
+
+    if (!skills) {
+      throw new NotFoundException('Can not find any skills');
+    }
+
+    const skillList = new SkillListDto();
+    skillList.skills = skills.map((skill) => SkillDto.createFromDao(skill));
+
+    return skills;
+  }
 }
