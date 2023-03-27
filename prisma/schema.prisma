@@ -210,10 +210,10 @@ model Skill {
 
 model LearningPath {
   id               String   @id @default(cuid())
-  name             String
+  title            String
+  tagetAudience    String
   description      String?
   version          String   @default("")
-  userId           String
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   pathTeachingGoal Skill    @relation("pathTeachingGoal", fields: [skillIdTG], references: [id])
@@ -221,7 +221,7 @@ model LearningPath {
   requirement      Skill    @relation("requirements", fields: [skillIdReq], references: [id])
   skillIdReq       String   @default("")
 
-  @@unique([id, name, version])
+  @@unique([id, title, version])
   @@map("LearningPaths")
 }
 
