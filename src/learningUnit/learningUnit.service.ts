@@ -9,7 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LearningUnitCreationDto, LearningUnitDto, LearningUnitListDto } from './dto';
 
 /**
- * Service that manages the creation/update/deletion of repositories.
+ * Service that manages the creation/update/deletion of learning units.
  * @author Wenzel
  */
 @Injectable()
@@ -18,8 +18,7 @@ export class LearningUnitMgmtService {
 
   /**
    * Adds a new learningUnit
-   * @param userId The ID of the user who wants to create a learningUnit.
-   * @param dto Specifies the learningUnit to be created and the repository at which it shall be created
+   * @param dto Specifies the learningUnit to be created
    * @returns The newly created learningUnit
 
    */
@@ -48,7 +47,7 @@ export class LearningUnitMgmtService {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
         if (error.code === 'P2002') {
-          throw new ForbiddenException('LearningUnit already exists in specified repository');
+          throw new ForbiddenException('Learning Unit already exists');
         }
       }
       throw error;

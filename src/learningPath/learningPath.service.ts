@@ -13,7 +13,7 @@ import {
 
 
 /**
- * Service that manages the creation/update/deletion of repositories.
+ * Service that manages the creation/update/deletion 
  * @author Wenzel
  */
 @Injectable()
@@ -23,14 +23,13 @@ export class LearningPathMgmtService {
   
   /**
    * Adds a new learningPath
-   * @param userId The ID of the user who wants to create a learningPath at one of his repositories
-   * @param dto Specifies the learningPath to be created and the repository at which it shall be created
+   * @param userId The ID of the user who wants to create a learningPath 
+   * @param dto Specifies the learningPath to be created 
    * @returns The newly created learningPath
 
    */
   async createLearningPath(  dto: LearningPathCreationDto) {
-    // Checks that the user is the owner of the repository / repository exists
-  
+ 
     // Create and return learningPath
     try {
       const learningPath = await this.db.learningPath.create({
@@ -47,7 +46,7 @@ export class LearningPathMgmtService {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
         if (error.code === 'P2002') {
-          throw new ForbiddenException('LearningPath already exists in specified repository');
+          throw new ForbiddenException('LearningPath already exists');
         }
       }
       throw error;

@@ -13,7 +13,7 @@ import {
 
 
 /**
- * Service that manages the creation/update/deletion of repositories.
+ * Service that manages the creation/update/deletion Nuggets
  * @author Wenzel
  */
 @Injectable()
@@ -23,13 +23,11 @@ export class NuggetMgmtService {
   
   /**
    * Adds a new nugget
-   * @param userId The ID of the user who wants to create a nugget at one of his repositories
-   * @param dto Specifies the nugget to be created and the repository at which it shall be created
+   * @param dto Specifies the nugget to be created
    * @returns The newly created nugget
 
    */
   async createNugget(  dto: NuggetCreationDto) {
-    // Checks that the user is the owner of the repository / repository exists
   
     // Create and return nugget
     try {
@@ -49,7 +47,7 @@ export class NuggetMgmtService {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
         if (error.code === 'P2002') {
-          throw new ForbiddenException('Nugget already exists in specified repository');
+          throw new ForbiddenException('Nugget already exists');
         }
       }
       throw error;
