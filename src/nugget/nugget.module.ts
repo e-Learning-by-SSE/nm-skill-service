@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 
-import { SkillMgmtController } from './nugget.controller';
-import { SkillMgmtService } from './nugget.service';
+import { NuggetMgmtController } from './nugget.controller';
+import { NuggetMgmtService } from './nugget.service';
 
 @Module({
-  controllers: [SkillMgmtController],
-  providers: [SkillMgmtService],
+  controllers: [NuggetMgmtController],
+  providers: [NuggetMgmtService],
 })
-export class SkillModule {}
+export class NuggetModule {}

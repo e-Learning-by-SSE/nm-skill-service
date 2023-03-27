@@ -6,6 +6,7 @@ import { LoRepositoryModule } from './lo-repository/lo-repository.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RepositoryMgmtModule } from './repository-mgmt/repository-mgmt.module';
 import  { SkillModule } from './skills/skill.module';
+import  { NuggetModule } from './nugget/nugget.module';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import  { SkillModule } from './skills/skill.module';
     PrismaModule,
     RepositoryMgmtModule,
     LoRepositoryModule,
-    SkillModule
+    SkillModule, NuggetModule
   ],
 })
 export class AppModule {}

@@ -27,8 +27,8 @@ export class NuggetMgmtService {
    * @param dto Specifies the nugget to be created and the repository at which it shall be created
    * @returns The newly created nugget
 
-  
-  async createNugget(userId: string,  dto: NuggetCreationDto) {
+   */
+  async createNugget(  dto: NuggetCreationDto) {
     // Checks that the user is the owner of the repository / repository exists
   
     // Create and return nugget
@@ -38,7 +38,7 @@ export class NuggetMgmtService {
         
           language: dto.language,
           processingTime: dto.processingTime.toString(),
-          isTypeof: NuggetCategory.EXAMPLE,
+          istypeof: NuggetCategory.EXAMPLE,
           presenter: dto.presenter, 
           mediatype: dto.mediatype
         },
@@ -55,11 +55,11 @@ export class NuggetMgmtService {
       throw error;
     }
   }
-   */
+  
   
 
-  private async loadNugget(nuggetId: number, nuggetRepositoryId: string | null) {
-    const nugget = await this.db.nugget.findUnique({ where: { id: nuggetId } });
+  private async loadNugget(nuggetId: string) {
+    const nugget = await this.db.nugget.findUnique({ where: { id: Number(nuggetId) } });
 
     if (!nugget) {
       throw new NotFoundException('Specified nugget not found: ' + nuggetId);
@@ -70,8 +70,8 @@ export class NuggetMgmtService {
     return nugget;
   }
 
-  public async getNugget(nuggetId: number) {
-    const dao = await this.loadNugget(nuggetId, null);
+  public async getNugget(nuggetId: string) {
+    const dao = await this.loadNugget(nuggetId);
 
     if (!dao) {
       throw new NotFoundException(`Specified nugget not found: ${nuggetId}`);

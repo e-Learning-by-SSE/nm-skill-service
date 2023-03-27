@@ -1,8 +1,8 @@
 import { IsDefined } from 'class-validator';
 
-import { SkillDto } from './nugget.dto';
+import { NuggetDto } from './nugget.dto';
 
-export class SkillListDto {
+export class NuggetListDto {
   @IsDefined()
-  skills: SkillDto[];
+  nuggets: NuggetDto[];
 }
