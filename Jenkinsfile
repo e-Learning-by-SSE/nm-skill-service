@@ -76,12 +76,22 @@ pipeline {
                 script {
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
                     generateSwaggerClient("${API_URL}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_api', ['javascript', 'typescript-angular', 'typescript-axios'])
-					withCredentials([string(credentialsId: 'GitHub-NPM', variable: 'Auth')]) {
-						publishNpmPackage('target/generated-sources/openapi', "$Auth")
-					}
                 }
             }
         }
+		
+		stage('Publish Swagger Client') {
+            when {
+				expression { env.BRANCH_NAME ==~ /^(master|main).*/  }
+			}
+			steps {
+                script {
+					withCredentials([string(credentialsId: 'GitHub-NPM', variable: 'Auth')]) {
+						publishNpmPackage('target/generated-sources/openapi', "$Auth")
+					}
+				}
+			}
+		}
 
         stage('Deploy') {
             steps {
