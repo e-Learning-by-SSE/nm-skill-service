@@ -1,11 +1,9 @@
-import { Body, Controller, Get, Param, ParseBoolPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
-import {
-  SkillCreationDto, SkillDto, SkillRepositorySearchDto,SkillRepositoryCreationDto, SkillListDto, SkillRepositoryDto, SkillRepositoryListDto, SkillRepositorySelectionDto 
-} from './dto';
+import { SkillCreationDto, SkillRepositorySearchDto, SkillRepositoryCreationDto } from './dto';
 
 import { SkillMgmtService } from './skill.service';
 
@@ -42,7 +40,6 @@ export class SkillMgmtController {
   listSkills() {
     return this.skillService.loadAllSkills();
   }
-
 
   /**
    * Returns one repository and its unresolved elements.
@@ -93,11 +90,7 @@ export class SkillMgmtController {
   @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Post(':repositoryId/skill/add_skill')
-  addskill(
-    @GetUser('id') userId: string,
-    @Param('repositoryId') repositoryId: string,
-    @Body() dto: SkillCreationDto,
-  ) {
+  addSkill(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string, @Body() dto: SkillCreationDto) {
     return this.skillService.createSkill(userId, repositoryId, dto);
   }
 
@@ -110,5 +103,4 @@ export class SkillMgmtController {
   getSkill(@Param('skillId') skillId: string) {
     return this.skillService.getSkill(skillId);
   }
-
-  }
+}

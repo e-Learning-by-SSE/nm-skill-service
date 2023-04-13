@@ -1,26 +1,18 @@
-import { identity } from 'rxjs';
-
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
-import { computePageQuery, computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-   LearningPathCreationDto, LearningPathDto, LearningPathListDto
-} from './dto';
-
-
+import { LearningPathCreationDto, LearningPathDto, LearningPathListDto } from './dto';
 
 /**
- * Service that manages the creation/update/deletion 
+ * Service that manages the creation/update/deletion
  * @author Wenzel
  */
 @Injectable()
 export class LearningPathMgmtService {
   constructor(private db: PrismaService) {}
 
-  
   /**
    * Adds a new learningPath
    * @param userId The ID of the user who wants to create a learningPath 
@@ -28,16 +20,14 @@ export class LearningPathMgmtService {
    * @returns The newly created learningPath
 
    */
-  async createLearningPath(  dto: LearningPathCreationDto) {
- 
+  async createLearningPath(dto: LearningPathCreationDto) {
     // Create and return learningPath
     try {
       const learningPath = await this.db.learningPath.create({
         data: {
-        
-          title: dto.titel ,
-          tagetAudience: dto.tagetAudience,
-          description: dto.description
+          title: dto.title,
+          targetAudience: dto.targetAudience,
+          description: dto.description,
         },
       });
 
@@ -52,8 +42,6 @@ export class LearningPathMgmtService {
       throw error;
     }
   }
-  
-  
 
   private async loadLearningPath(learningPathId: string) {
     const learningPath = await this.db.learningPath.findUnique({ where: { id: learningPathId } });
@@ -61,8 +49,6 @@ export class LearningPathMgmtService {
     if (!learningPath) {
       throw new NotFoundException('Specified learningPath not found: ' + learningPathId);
     }
-
-
 
     return learningPath;
   }

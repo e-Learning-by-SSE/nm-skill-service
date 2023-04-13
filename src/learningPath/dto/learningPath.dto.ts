@@ -8,15 +8,12 @@ export class LearningPathDto extends LearningPathCreationDto {
   @IsNotEmpty()
   id!: number;
 
-  constructor(id: number,title: string, targetAudience: string, description?: string | null) {
-   
-    super(title, targetAudience, description??'');
+  constructor(id: number, title: string, targetAudience: string, description?: string | null) {
+    super(title, targetAudience, description ?? '');
     this.id = id;
   }
- 
-
 
   static createFromDao(lp: LearningPath): LearningPathDto {
-    return new LearningPathDto(Number(lp.id), lp.title  ,lp.tagetAudience, lp.description);
+    return new LearningPathDto(Number(lp.id), lp.title, lp.targetAudience, lp.description);
   }
 }

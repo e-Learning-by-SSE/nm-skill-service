@@ -1,28 +1,21 @@
-import { ApiProperty } from '@nestjs/swagger';
-
-import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
  * Creates a new LearningPath
  */
 export class LearningPathCreationDto {
+  @IsNotEmpty()
+  title!: string;
 
   @IsNotEmpty()
-  titel!: string;
-
-  @IsNotEmpty()
-  tagetAudience!: string;
-  
+  targetAudience!: string;
 
   @IsOptional()
   description?: string;
-  
- 
 
-  constructor(titel: string, tagetAudience: string, description: string) {
-    this.titel = titel;
-    this.tagetAudience = tagetAudience;
+  constructor(title: string, targetAudience: string, description: string) {
+    this.title = title;
+    this.targetAudience = targetAudience;
     this.description = description;
-    
   }
 }

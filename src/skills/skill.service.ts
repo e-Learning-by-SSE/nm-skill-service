@@ -1,16 +1,20 @@
-import { identity } from 'rxjs';
-
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
-import { computePageQuery, computeRelationUpdate } from '../db_utils';
+import { computePageQuery } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-   SkillCreationDto, SkillDto,SkillRepositoryCreationDto, SkillRepositorySearchDto, SkillListDto, SkillRepositoryDto, SkillRepositoryListDto, SkillRepositorySelectionDto , ResolvedSkillRepositoryDto
+  SkillCreationDto,
+  SkillDto,
+  SkillRepositoryCreationDto,
+  SkillRepositorySearchDto,
+  SkillListDto,
+  SkillRepositoryDto,
+  SkillRepositoryListDto,
+  ResolvedSkillRepositoryDto,
 } from './dto';
 import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.dto';
-
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -55,9 +59,8 @@ export class SkillMgmtService {
         data: {
           userId: userId,
           name: dto.name,
-        
+
           description: dto.description,
-         
         },
       });
 
@@ -81,7 +84,6 @@ export class SkillMgmtService {
       },
       include: {
         skills: includeSkills,
-        
       },
     });
 
@@ -95,12 +97,12 @@ export class SkillMgmtService {
 
     return repository;
   }
-  
 
   public async loadSkillRepository(userId: string, repositoryId: string) {
     const repository = await this.getSkillRepository(userId, repositoryId, true);
-    const result: UnresolvedSkillRepositoryDto = {...SkillRepositoryDto.createFromDao(repository), 
-    skills:repository.skills.map((c)=>c.id)  
+    const result: UnresolvedSkillRepositoryDto = {
+      ...SkillRepositoryDto.createFromDao(repository),
+      skills: repository.skills.map((c) => c.id),
     };
 
     return result;
@@ -112,7 +114,7 @@ export class SkillMgmtService {
       repository.id,
       repository.name,
       repository.version,
-      
+
       repository.description,
     );
 
@@ -126,11 +128,8 @@ export class SkillMgmtService {
       result.skills.push(skill);
     });
 
-   
-   
     return result;
   }
-
 
   /**
    * Adds a new skill to a specified repository
@@ -138,7 +137,7 @@ export class SkillMgmtService {
    * @param dto Specifies the skill to be created and the repository at which it shall be created
    * @returns The newly created skill
    */
-  
+
   async createSkill(userId: string, skillRepositoryId: string, dto: SkillCreationDto) {
     // Checks that the user is the owner of the repository / repository exists
     await this.getSkillRepository(userId, skillRepositoryId);
@@ -165,8 +164,6 @@ export class SkillMgmtService {
       throw error;
     }
   }
-
-  
 
   private async loadSkill(skillId: string, skillRepositoryId: string | null) {
     const skill = await this.db.skill.findUnique({ where: { id: skillId } });

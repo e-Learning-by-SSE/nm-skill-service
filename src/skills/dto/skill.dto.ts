@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-import { Competence, Skill } from '@prisma/client';
+import { Skill } from '@prisma/client';
 
 import { SkillCreationDto } from './skill-creation.dto';
 
@@ -14,6 +14,6 @@ export class SkillDto extends SkillCreationDto {
   }
 
   static createFromDao(skill: Skill): SkillDto {
-    return new SkillDto(skill.id, skill.name  , skill.bloomLevel, skill.description);
+    return new SkillDto(skill.id, skill.name, skill.bloomLevel, skill.description);
   }
 }

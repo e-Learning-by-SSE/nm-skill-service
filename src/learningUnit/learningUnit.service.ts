@@ -1,10 +1,7 @@
-import { identity } from 'rxjs';
-
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
-import { computePageQuery, computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { LearningUnitCreationDto, LearningUnitDto, LearningUnitListDto } from './dto';
 
@@ -38,7 +35,7 @@ export class LearningUnitMgmtService {
           semanticGravity: dto.semanticGravity,
           contentTags: dto.contentTags,
           contextTags: dto.contextTags,
-          linkToHelpMaterial: dto.linkToHelpMaterial??'',
+          linkToHelpMaterial: dto.linkToHelpMaterial ?? '',
         },
       });
 

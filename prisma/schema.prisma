@@ -211,7 +211,7 @@ model Skill {
 model LearningPath {
   id               String   @id @default(cuid())
   title            String
-  tagetAudience    String
+  targetAudience   String
   description      String?
   version          String   @default("")
   createdAt        DateTime @default(now())
@@ -238,7 +238,7 @@ model Nugget {
   id             Int            @id @default(autoincrement())
   language       String
   name           String?
-  istypeof       NuggetCategory @default(CONTENT)
+  isTypeOf       NuggetCategory @default(CONTENT)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   processingTime String         @default("")

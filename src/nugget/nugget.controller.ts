@@ -1,11 +1,8 @@
-import { Body, Controller, Get, Param, ParseBoolPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
-import {
-  NuggetCreationDto, NuggetDto, NuggetListDto 
-} from './dto';
+import { NuggetCreationDto } from './dto';
 
 import { NuggetMgmtService } from './nugget.service';
 
@@ -14,7 +11,6 @@ import { NuggetMgmtService } from './nugget.service';
 export class NuggetMgmtController {
   constructor(private nuggetService: NuggetMgmtService) {}
 
-  
   /**
    * Lists all nuggets.
    
@@ -27,8 +23,6 @@ export class NuggetMgmtController {
     return this.nuggetService.loadAllNuggets();
   }
 
-
- 
   /**
    * Creates a new nugget at the specified repository and returns the created nugget.
    * @param userId The owner of the repository
@@ -39,11 +33,7 @@ export class NuggetMgmtController {
   @ApiBearerAuth()
   @UseGuards(JwtGuard)
   @Post('add_nugget')
-  addnugget(
-   
-   
-    @Body() dto: NuggetCreationDto,
-  ) {
+  addNugget(@Body() dto: NuggetCreationDto) {
     return this.nuggetService.createNugget(dto);
   }
 
@@ -56,5 +46,4 @@ export class NuggetMgmtController {
   getNugget(@Param('nuggetId') nuggetId: string) {
     return this.nuggetService.getNugget(nuggetId);
   }
-
-  }
+}

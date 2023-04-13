@@ -1,18 +1,18 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { GroupedLearningObjects, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-    LearningObjectGroupCreationDto,
-    LearningObjectGroupDto,
-    LoGoalDto,
-    LoRepositoryCreationDto,
-    LoRepositoryDto,
-    LoRepositoryListDto,
-    LoRepositoryModifyDto,
-    ShallowLoRepositoryDto,
+  LearningObjectGroupCreationDto,
+  LearningObjectGroupDto,
+  LoGoalDto,
+  LoRepositoryCreationDto,
+  LoRepositoryDto,
+  LoRepositoryListDto,
+  LoRepositoryModifyDto,
+  ShallowLoRepositoryDto,
 } from './dto';
 import { LearningObjectDto } from './dto/export/learning-object.dto';
 import { LearningObjectCreationDto } from './dto/learning-object-creation.dto';

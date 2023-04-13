@@ -1,12 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
  * Creates a new learningUnit
  */
 export class LearningUnitCreationDto {
-
   @IsNotEmpty()
   language!: string;
 
@@ -15,47 +12,52 @@ export class LearningUnitCreationDto {
 
   @IsOptional()
   description?: string;
-  
+
   @IsOptional()
   processingTime?: string;
 
   @IsOptional()
   rating?: string;
-  
 
   @IsOptional()
   contentCreator?: string;
-  
 
   @IsOptional()
   contentProvider?: string;
-  
 
   @IsOptional()
   targetAudience?: string;
-  
 
   @IsOptional()
   semanticDensity?: string;
-  
 
   @IsOptional()
   semanticGravity?: string;
-  
-  
+
   @IsOptional()
-  contentTags?:string[];
-  
+  contentTags?: string[];
+
   @IsOptional()
   contextTags?: string[];
-  
-  
+
   @IsOptional()
   linkToHelpMaterial?: string;
 
-  constructor(language: string, title: string, description?: string | null, processingTime?: string | null, rating?: string | null, contentCreator?: string | null,
-     contentProvider?: string | null,targetAudience?: string | null, semanticDensity?: string | null, semanticGravity?: string | null, contentTags?: string[] | null, contextTags?: string[] | null,
-     linkToHelpMaterial?: string | null  ) {
+  constructor(
+    language: string,
+    title: string,
+    description?: string | null,
+    processingTime?: string | null,
+    rating?: string | null,
+    contentCreator?: string | null,
+    contentProvider?: string | null,
+    targetAudience?: string | null,
+    semanticDensity?: string | null,
+    semanticGravity?: string | null,
+    contentTags?: string[] | null,
+    contextTags?: string[] | null,
+    linkToHelpMaterial?: string | null,
+  ) {
     this.language = language;
     this.title = title;
     this.description = description ?? undefined;
