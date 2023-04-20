@@ -6,7 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { SkillModule } from './skills/skill.module';
 import { NuggetModule } from './nugget/nugget.module';
 import { LearningPathModule } from './learningPath/learningPath.module';
-import { LearningUnitModule } from './learningUnit/learningUnit.module';
+import { DynamicLearningUnitModule } from './learningUnit/dynamic.module';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { LearningUnitModule } from './learningUnit/learningUnit.module';
     SkillModule,
     NuggetModule,
     LearningPathModule,
-    LearningUnitModule,
+    DynamicLearningUnitModule.register(),
   ],
 })
 export class AppModule {}

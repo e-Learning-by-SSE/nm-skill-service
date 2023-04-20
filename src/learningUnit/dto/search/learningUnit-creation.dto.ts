@@ -1,18 +1,12 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsOptional } from 'class-validator';
+import { LearningUnitCreationDto } from 'src/learningUnit/dto/learning-unit-creation.dto';
 
 /**
  * Creates a new learningUnit
+ * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
+ * @author Wenzel
  */
-export class LearningUnitCreationDto {
-  @IsNotEmpty()
-  language!: string;
-
-  @IsNotEmpty()
-  title!: string;
-
-  @IsOptional()
-  description?: string;
-
+export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
   @IsOptional()
   processingTime?: string;
 
@@ -58,9 +52,7 @@ export class LearningUnitCreationDto {
     contextTags?: string[] | null,
     linkToHelpMaterial?: string | null,
   ) {
-    this.language = language;
-    this.title = title;
-    this.description = description ?? undefined;
+    super(title, language, description);
     this.processingTime = processingTime ?? undefined;
     this.rating = rating ?? undefined;
     this.contentCreator = contentCreator ?? undefined;

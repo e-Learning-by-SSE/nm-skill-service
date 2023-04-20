@@ -1,34 +1,25 @@
-import { Body, Controller, Get, Param, ParseBoolPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
-import { GetUser } from '../auth/decorator';
-import { JwtGuard } from '../auth/guard';
-import {
-  LearningUnitCreationDto, LearningUnitDto, LearningUnitListDto 
-} from './dto';
+import { SearchLearningUnitCreationDto, SearchLearningUnitDto } from './dto/search';
 
 import { LearningUnitMgmtService } from './learningUnit.service';
 
 @ApiTags('LearningUnit')
 @Controller('learningUnits')
-export class LearningUnitMgmtController {
+export class SearchLearningUnitController {
   constructor(private learningUnitService: LearningUnitMgmtService) {}
 
-  
   /**
    * Lists all learningUnits.
    
    * @returns List of all learningUnits.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Get('showAllLearningUnits')
   listLearningUnits() {
     return this.learningUnitService.loadAllLearningUnits();
   }
 
-
- 
   /**
    * Creates a new learningUnit at the specified repository and returns the created learningUnit.
    * @param userId The owner of the repository
@@ -36,15 +27,10 @@ export class LearningUnitMgmtController {
    * @param dto The learningUnit description
    * @returns The created learningUnit.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Post('add_learningUnit')
-  addlearningUnit(
-   
-   
-    @Body() dto: LearningUnitCreationDto,
-  ) {
-    return this.learningUnitService.createLearningUnit(dto);
+  addLearningUnitSearch(@Body() dto: SearchLearningUnitCreationDto) {
+    // Unsafe, does not support Refactoring / Type Checks -> Search for a solution based on TypeGuard
+    return this.learningUnitService.createLearningUnit(dto) as Promise<SearchLearningUnitDto>;
   }
 
   /**
@@ -56,5 +42,4 @@ export class LearningUnitMgmtController {
   getLearningUnit(@Param('learningUnitId') learningUnitId: string) {
     return this.learningUnitService.getLearningUnit(learningUnitId);
   }
-
-  }
+}

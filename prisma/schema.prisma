@@ -255,6 +255,16 @@ model LearningUnit {
   description        String
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  searchInfos        SearchLearningUnit?
+  selfLearnInfos     SelfLearningUnit?
+
+  teachingGoals      Skill[]  @relation("teachingGoals")
+  requirements       Skill[]  @relation("requirementslearningUnit")
+  nuggets            Nugget[]
+}
+
+model SearchLearningUnit {
+  id                 Int      @id @default(autoincrement())
   processingTime     String   @default("")
   rating             String   @default("")
   contentCreator     String   @default("")
@@ -265,8 +275,17 @@ model LearningUnit {
   contentTags        String[]
   contextTags        String[]
   linkToHelpMaterial String
+  basicUnit          LearningUnit @relation(fields: [unitId], references: [id])
+  unitId             Int
 
-  teachingGoals Skill[]  @relation("teachingGoals")
-  requirements  Skill[]  @relation("requirementslearningUnit")
-  nuggets       Nugget[]
+  @@unique([unitId])
+}
+
+model SelfLearningUnit {
+  id                 Int      @id @default(autoincrement())
+  order              Int?
+  basicUnit          LearningUnit @relation(fields: [unitId], references: [id])
+  unitId             Int
+
+  @@unique([unitId])
 }
