@@ -14,13 +14,6 @@ export function isSearchLUDaoType(learningUnit: LearningUnit): learningUnit is S
   return (learningUnit as SearchLUDaoType).searchInfos !== undefined;
 }
 
-export function isSearchLUDaoType2(learningUnit: LearningUnit): learningUnit is SearchLUDaoType {
-  return (learningUnit as SearchLUDaoType).searchInfos !== null;
-}
-
-// export const isSearch = (learningUnit: LearningUnit): learningUnit is SearchLUDaoType =>
-//   (learningUnit as SearchLUDaoType).searchInfos != null;
-
 export function isSelfLearnLUDaoType(learningUnit: LearningUnit): learningUnit is SelfLearnLUDaoType {
   return (learningUnit as SelfLearnLUDaoType).selfLearnInfos !== undefined;
 }

@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { LearningUnitMgmtService } from './learningUnit.service';
-import { SelfLearnLearningUnitCreationDto, SelfLearnLearningUnitDto } from './dto';
+import { SelfLearnLearningUnitCreationDto, SelfLearnLearningUnitDto, SelfLearnLearningUnitListDto } from './dto';
 
 @ApiTags('LearningUnit')
 @Controller('learningUnits')
@@ -16,7 +16,8 @@ export class SelfLearnLearningUnitController {
    */
   @Get('showAllLearningUnits')
   listLearningUnits() {
-    return this.learningUnitService.loadAllLearningUnits();
+    // Unsafe, does not support Refactoring / Type Checks -> Search for a solution based on TypeGuard
+    return this.learningUnitService.loadAllLearningUnits() as Promise<SelfLearnLearningUnitListDto>;
   }
 
   /**
@@ -39,6 +40,7 @@ export class SelfLearnLearningUnitController {
    */
   @Get(':learningUnitId')
   getLearningUnit(@Param('learningUnitId') learningUnitId: string) {
-    return this.learningUnitService.getLearningUnit(learningUnitId);
+    // Unsafe, does not support Refactoring / Type Checks -> Search for a solution based on TypeGuard
+    return this.learningUnitService.getLearningUnit(learningUnitId) as Promise<SelfLearnLearningUnitDto>;
   }
 }

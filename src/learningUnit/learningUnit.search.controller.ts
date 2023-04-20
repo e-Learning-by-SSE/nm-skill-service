@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { SearchLearningUnitCreationDto, SearchLearningUnitDto } from './dto/search';
+import { SearchLearningUnitCreationDto, SearchLearningUnitDto, SearchLearningUnitListDto } from './dto/search';
 
 import { LearningUnitMgmtService } from './learningUnit.service';
 
@@ -17,7 +17,8 @@ export class SearchLearningUnitController {
    */
   @Get('showAllLearningUnits')
   listLearningUnits() {
-    return this.learningUnitService.loadAllLearningUnits();
+    // Unsafe, does not support Refactoring / Type Checks -> Search for a solution based on TypeGuard
+    return this.learningUnitService.loadAllLearningUnits() as Promise<SearchLearningUnitListDto>;
   }
 
   /**
@@ -40,6 +41,7 @@ export class SearchLearningUnitController {
    */
   @Get(':learningUnitId')
   getLearningUnit(@Param('learningUnitId') learningUnitId: string) {
-    return this.learningUnitService.getLearningUnit(learningUnitId);
+    // Unsafe, does not support Refactoring / Type Checks -> Search for a solution based on TypeGuard
+    return this.learningUnitService.getLearningUnit(learningUnitId) as Promise<SearchLearningUnitDto>;
   }
 }

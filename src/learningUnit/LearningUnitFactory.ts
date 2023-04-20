@@ -2,17 +2,16 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import {
-  LearningUnitCreationDto,
   SearchLearningUnitCreationDto,
   SelfLearnLearningUnitDto,
   SearchLearningUnitDto,
   SelfLearnLearningUnitCreationDto,
-  LearningUnitListDto,
   SearchLearningUnitListDto,
+  SelfLearnLearningUnitListDto,
 } from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { LearningUnit, Prisma } from '@prisma/client';
-import { isSearchLUDaoType, isSearchLUDaoType2, isSelfLearnLUDaoType } from './types';
+import { isSearchLUDaoType, isSelfLearnLUDaoType } from './types';
 
 /**
  * This factory is responsible for database-based operations on Learning Units. It is used to:
@@ -53,7 +52,7 @@ export class LearningUnitFactory {
     if (isSearchLUDaoType(dao)) {
       return SearchLearningUnitDto.createFromDao(dao);
     } else if (isSelfLearnLUDaoType(dao)) {
-      // TODO: Implement
+      return SelfLearnLearningUnitDto.createFromDao(dao);
     } else {
       throw new Error(`No project-specific extra information provided as expected: ${learningUnitId}`);
     }
@@ -76,29 +75,12 @@ export class LearningUnitFactory {
       throw new NotFoundException(`Can not find any LearningUnits with parameters: ${args}`);
     }
 
-    const units: SearchLearningUnitDto[] = learningUnits; // Obvisouly wrong, but it works
+    const learningUnitList = new SearchLearningUnitListDto();
+    learningUnitList.learningUnits = learningUnits
+      .filter(isSearchLUDaoType)
+      .map((lu) => SearchLearningUnitDto.createFromDao(lu));
 
-    // const learningUnitList = new SearchLearningUnitListDto();
-    // learningUnitList.learningUnits = learningUnits
-    //   .filter(isSearchLUDaoType2)
-    //   .map((lu) => SearchLearningUnitDto.createFromDao(lu));
-
-    // const units: SearchLearningUnitDto[] = learningUnits
-    //   .filter(isSearchLUDaoType)
-    //   .map((lu) => SearchLearningUnitDto.createFromDao(lu));
-
-    // for (const lu of learningUnits) {
-    //   if (isSearchLUDaoType2(lu)) {
-    //     console.log(lu);
-    //     units.push(lu);
-    //   }
-    // }
-    // const withInfos = learningUnits.filter((lu) => lu.searchInfos !== undefined);
-    // learningUnitList.learningUnits = learningUnits
-    //   .filter((lu) => lu.searchInfos != null)
-    //   .map((lu) => SearchLearningUnitDto.createFromDao(lu));
-
-    // return learningUnitList;
+    return learningUnitList;
   }
 
   private async loadAllSelfLearnLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {
@@ -107,53 +89,30 @@ export class LearningUnitFactory {
       include: {
         selfLearnInfos: true,
       },
+      where: {
+        selfLearnInfos: {
+          isNot: null,
+        },
+      },
     });
 
     if (!learningUnits) {
       throw new NotFoundException(`Can not find any LearningUnits with parameters: ${args}`);
     }
 
-    const learningUnitList = new LearningUnitListDto<SearchLearningUnitDto>();
-    learningUnitList.learningUnits = learningUnits;
-
-    // learningUnitList.learningUnits = learningUnits
-    //   .filter(isSearchLUDaoType2)
-    //   .map((lu) => SearchLearningUnitDto.createFromDao(lu));
+    const learningUnitList = new SelfLearnLearningUnitListDto();
+    learningUnitList.learningUnits = learningUnits
+      .filter(isSelfLearnLUDaoType)
+      .map((lu) => SelfLearnLearningUnitDto.createFromDao(lu));
 
     return learningUnitList;
   }
 
   public async loadAllLearningUnits() {
-    const learningUnits = await this.db.learningUnit.findMany({
-      include: {
-        searchInfos: this.SEARCH,
-        selfLearnInfos: this.SELF_LEARN,
-      },
-    });
-
-    if (!learningUnits) {
-      throw new NotFoundException('Can not find any learningUnits');
-    }
-
-    // Use configurations settings to differentiate between different return types, to allow typescript to infer data types of the API endpoints
     if (this.SEARCH) {
-      const learningUnitList = new LearningUnitListDto<SearchLearningUnitDto>();
-      // const tmp = learningUnits.filter(isSearchLUDaoType2).map((lu) => SearchLearningUnitDto.createFromDao(lu));
-
-      // const list = learningUnits.map((l) => SearchLearningUnitDto.createFromDao(l));
-
-      // learningUnits
-      //   .filter((dao) => isSearchLUDaoType(dao) != null)
-      //   .map((dao) => SearchLearningUnitDto.createFromDao(dao));
-      // learningUnitList.learningUnits = learningUnits.map((lu) => {
-      //   if (isSearchLUDaoType(lu)) return SearchLearningUnitDto.createFromDao(lu);
-      //   else throw new Error(`${lu.id} is not a SearchLUDaoType`);
-      // });
-
-      return learningUnitList;
+      return this.loadAllSearchLearningUnits();
     } else if (this.SELF_LEARN) {
-      return new LearningUnitCreationDto('', '', '');
-      // TODO: Implement
+      return this.loadAllSelfLearnLearningUnits();
     } else {
       throw new Error('No extension enabled');
     }

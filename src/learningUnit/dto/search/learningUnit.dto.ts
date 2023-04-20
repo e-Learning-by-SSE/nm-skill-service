@@ -5,7 +5,7 @@ import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   @IsNotEmpty()
-  id!: number;
+  searchId: number;
 
   constructor(
     id: number,
@@ -38,7 +38,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       contextTags,
       linkToHelpMaterial,
     );
-    this.id = id;
+    this.searchId = id;
   }
 
   static createFromDao(unit: SearchLUDaoType): SearchLearningUnitDto {
