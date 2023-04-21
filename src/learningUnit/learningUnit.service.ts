@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { SearchLearningUnitCreationDto, SelfLearnLearningUnitCreationDto } from './dto';
+import { LearningUnitFactory } from './learningUnitFactory';
 
 /**
  * Service that manages the creation/update/deletion of learning units.
