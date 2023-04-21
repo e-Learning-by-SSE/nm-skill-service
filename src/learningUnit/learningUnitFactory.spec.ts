@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MODE } from '../env.validation';
 import { LearningUnitFactory } from './learningUnitFactory';
 import { TestConfig } from '../TestConfig';
+import { SearchLearningUnitCreationDto, SearchLearningUnitDto, SearchLearningUnitListDto } from './dto';
 
 describe('LearningUnit Factory', () => {
   // Test object
@@ -37,9 +38,37 @@ describe('LearningUnit Factory', () => {
       factory = new LearningUnitFactory(db, testConfig);
     });
 
-    describe('Find Learning Units', () => {
+    describe('loadAllLearningUnits', () => {
       it('Empty DB -> Empty Result List', async () => {
         await expect(factory.loadAllLearningUnits()).resolves.toEqual({ learningUnits: [] });
+      });
+
+      it('With Parameter on Empty DB -> Empty Result List', async () => {
+        await expect(factory.loadAllLearningUnits({ where: { title: 'Awesome Title' } })).resolves.toEqual({
+          learningUnits: [],
+        });
+      });
+
+      it('With Parameter -> Only exact match should return', async () => {
+        const creationDtoMatch = new SearchLearningUnitCreationDto('en', 'Awesome Title', 'Awesome Description');
+        const creationDtoNoMatch = new SearchLearningUnitCreationDto('en', 'Awesome Title2', 'Awesome Description');
+        await factory.createLearningUnit(creationDtoMatch);
+        await factory.createLearningUnit(creationDtoNoMatch);
+
+        // Should return only the first object
+        const result = await factory.loadAllLearningUnits({ where: { title: 'Awesome Title' } });
+
+        // Expected DTO class and values for one and only element
+        const expectedItem: Partial<SearchLearningUnitDto> = {
+          language: creationDtoMatch.language,
+          title: creationDtoMatch.title,
+          description: creationDtoMatch.description,
+        };
+        // Expected DTO class and values for the whole list
+        const expectedList: SearchLearningUnitListDto = {
+          learningUnits: [expect.objectContaining(expectedItem)],
+        };
+        expect(result).toMatchObject(expectedList);
       });
     });
   });
@@ -59,7 +88,7 @@ describe('LearningUnit Factory', () => {
       factory = new LearningUnitFactory(db, testConfig);
     });
 
-    describe('Find Learning Units', () => {
+    describe('loadAllLearningUnits', () => {
       it('Empty DB -> Empty Result List', async () => {
         await expect(factory.loadAllLearningUnits()).resolves.toEqual({ learningUnits: [] });
       });

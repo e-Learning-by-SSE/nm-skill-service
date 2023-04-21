@@ -26,6 +26,10 @@ export class DbTestUtils {
   }
 
   public async wipeDb() {
+    // Learning Units
+    await this.db.learningUnit.deleteMany();
+    await this.db.nugget.deleteMany();
+
     // Learning Objects
     await this.db.learningGoal.deleteMany();
     await this.db.groupedLearningObjects.deleteMany();

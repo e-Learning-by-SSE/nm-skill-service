@@ -42,6 +42,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   }
 
   static createFromDao(unit: SearchLUDaoType): SearchLearningUnitDto {
+    console.log(unit);
     return new SearchLearningUnitDto(
       unit.id,
       unit.title,

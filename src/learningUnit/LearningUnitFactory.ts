@@ -28,7 +28,6 @@ export class LearningUnitFactory {
 
   constructor(private db: PrismaService, private config: ConfigService) {
     const tmpValue = this.config.get('EXTENSION');
-    console.log('Extension:', tmpValue);
     if (tmpValue) {
       this.extension = tmpValue;
       switch (this.extension) {
@@ -122,6 +121,7 @@ export class LearningUnitFactory {
 
    */
   private async createSearchLearningUnit(dto: SearchLearningUnitCreationDto) {
+    console.log('createSearchLearningUnit', dto);
     // Create and return learningUnit
     try {
       const learningUnit = await this.db.learningUnit.create({
@@ -140,7 +140,7 @@ export class LearningUnitFactory {
               semanticGravity: dto.semanticGravity,
               contentTags: dto.contentTags,
               contextTags: dto.contextTags,
-              linkToHelpMaterial: dto.linkToHelpMaterial ?? '',
+              linkToHelpMaterial: dto.linkToHelpMaterial,
             },
           },
         },

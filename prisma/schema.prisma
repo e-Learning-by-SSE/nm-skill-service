@@ -274,8 +274,8 @@ model SearchLearningUnit {
   semanticGravity    String   @default("")
   contentTags        String[]
   contextTags        String[]
-  linkToHelpMaterial String
-  basicUnit          LearningUnit @relation(fields: [unitId], references: [id])
+  linkToHelpMaterial String?
+  basicUnit          LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId             Int
 
   @@unique([unitId])
@@ -284,7 +284,7 @@ model SearchLearningUnit {
 model SelfLearningUnit {
   id                 Int      @id @default(autoincrement())
   order              Int?
-  basicUnit          LearningUnit @relation(fields: [unitId], references: [id])
+  basicUnit          LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId             Int
 
   @@unique([unitId])
