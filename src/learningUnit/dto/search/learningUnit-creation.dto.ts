@@ -1,5 +1,5 @@
 import { IsOptional } from 'class-validator';
-import { LearningUnitCreationDto } from 'src/learningUnit/dto/learning-unit-creation.dto';
+import { LearningUnitCreationDto } from '../learning-unit-creation.dto';
 
 /**
  * Creates a new learningUnit

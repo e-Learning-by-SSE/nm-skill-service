@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-import { SearchLUDaoType } from 'src/learningUnit/types';
+import { SearchLUDaoType } from '../../types';
 import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {

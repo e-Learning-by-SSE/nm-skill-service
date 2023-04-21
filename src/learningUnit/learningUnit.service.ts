@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { SearchLearningUnitCreationDto, SelfLearnLearningUnitCreationDto } from './dto';
-import { LearningUnitFactory } from 'src/learningUnit/LearningUnitFactory';
 
 /**
  * Service that manages the creation/update/deletion of learning units.
@@ -28,6 +27,6 @@ export class LearningUnitMgmtService {
   }
 
   public async loadAllLearningUnits() {
-    return this.luService.loadManyLearningUnits();
+    return this.luService.loadAllLearningUnits();
   }
 }

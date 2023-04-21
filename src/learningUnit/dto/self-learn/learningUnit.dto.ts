@@ -1,7 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 
 import { SelfLearnLearningUnitCreationDto } from './learningUnit-creation.dto';
-import { SelfLearnLUDaoType } from 'src/learningUnit/types';
+import { SelfLearnLUDaoType } from '../../types';
 
 export class SelfLearnLearningUnitDto extends SelfLearnLearningUnitCreationDto {
   @IsNotEmpty()

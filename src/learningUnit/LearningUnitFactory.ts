@@ -12,7 +12,7 @@ import {
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { LearningUnit, Prisma } from '@prisma/client';
 import { isSearchLUDaoType, isSelfLearnLUDaoType } from './types';
-import { MODE } from 'src/env.validation';
+import { MODE } from '../env.validation';
 
 /**
  * This factory is responsible for database-based operations on Learning Units. It is used to:
@@ -28,6 +28,7 @@ export class LearningUnitFactory {
 
   constructor(private db: PrismaService, private config: ConfigService) {
     const tmpValue = this.config.get('EXTENSION');
+    console.log('Extension:', tmpValue);
     if (tmpValue) {
       this.extension = tmpValue;
       switch (this.extension) {
@@ -38,7 +39,7 @@ export class LearningUnitFactory {
           this.extensionTable = 'selfLearnInfos';
           break;
         default:
-          throw new Error(`Unknown extension mode: ${tmpValue}`);
+          throw new Error(`Unknown extension mode: ${this.extension}`);
       }
     } else {
       throw new Error('No Extension activated!');
@@ -79,9 +80,9 @@ export class LearningUnitFactory {
       include: {
         [this.extensionTable]: true,
       },
-      where: {
-        [this.extensionTable]: true,
-      },
+      // where: {
+      //   [this.extensionTable]: true,
+      // },
     });
 
     if (!learningUnits) {

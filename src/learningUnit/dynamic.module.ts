@@ -1,7 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
 
 import { LearningUnitMgmtService } from './learningUnit.service';
-import { LearningUnitFactory } from './LearningUnitFactory';
+import { LearningUnitFactory } from './learningUnitFactory';
 import { SelfLearnLearningUnitController } from './learningUnit.selflearn.controller';
 import { SearchLearningUnitController } from './learningUnit.search.controller';
 import { MODE } from 'src/env.validation';
