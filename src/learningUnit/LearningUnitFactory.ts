@@ -12,6 +12,7 @@ import {
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { LearningUnit, Prisma } from '@prisma/client';
 import { isSearchLUDaoType, isSelfLearnLUDaoType } from './types';
+import { MODE } from 'src/env.validation';
 
 /**
  * This factory is responsible for database-based operations on Learning Units. It is used to:
@@ -21,20 +22,34 @@ import { isSearchLUDaoType, isSelfLearnLUDaoType } from './types';
  */
 @Injectable()
 export class LearningUnitFactory {
-  readonly SEARCH: boolean;
-  readonly SELF_LEARN: boolean;
+  private readonly extension: MODE;
+  // keyof Prisma.LearningUnitInclude ensures that we can only select valid tables (for which an relation exists)
+  private readonly extensionTable: keyof Prisma.LearningUnitInclude;
 
   constructor(private db: PrismaService, private config: ConfigService) {
-    this.SEARCH = this.config.get('EXTENSION_SEARCH') === 'true';
-    this.SELF_LEARN = this.config.get('EXTENSION_SELF_LEARN') === 'true';
+    const tmpValue = this.config.get('EXTENSION');
+    if (tmpValue) {
+      this.extension = tmpValue;
+      switch (this.extension) {
+        case MODE.SEARCH:
+          this.extensionTable = 'searchInfos';
+          break;
+        case MODE.SELFLEARN:
+          this.extensionTable = 'selfLearnInfos';
+          break;
+        default:
+          throw new Error(`Unknown extension mode: ${tmpValue}`);
+      }
+    } else {
+      throw new Error('No Extension activated!');
+    }
   }
 
   public async loadLearningUnit(learningUnitId: string): Promise<LearningUnit> {
     const learningUnit = await this.db.learningUnit.findUnique({
       where: { id: Number(learningUnitId) },
       include: {
-        searchInfos: this.SEARCH,
-        selfLearnInfos: this.SELF_LEARN,
+        [this.extensionTable]: true,
       },
     });
 
@@ -58,16 +73,14 @@ export class LearningUnitFactory {
     }
   }
 
-  private async loadAllSearchLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {
+  private async loadManyLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {
     const learningUnits = await this.db.learningUnit.findMany({
       ...args,
       include: {
-        searchInfos: true,
+        [this.extensionTable]: true,
       },
       where: {
-        searchInfos: {
-          isNot: null,
-        },
+        [this.extensionTable]: true,
       },
     });
 
@@ -75,46 +88,29 @@ export class LearningUnitFactory {
       throw new NotFoundException(`Can not find any LearningUnits with parameters: ${args}`);
     }
 
-    const learningUnitList = new SearchLearningUnitListDto();
-    learningUnitList.learningUnits = learningUnits
-      .filter(isSearchLUDaoType)
-      .map((lu) => SearchLearningUnitDto.createFromDao(lu));
-
-    return learningUnitList;
+    return learningUnits;
   }
 
-  private async loadAllSelfLearnLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {
-    const learningUnits = await this.db.learningUnit.findMany({
-      ...args,
-      include: {
-        selfLearnInfos: true,
-      },
-      where: {
-        selfLearnInfos: {
-          isNot: null,
-        },
-      },
-    });
+  public async loadAllLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {
+    const learningUnits = await this.loadManyLearningUnits(args);
 
-    if (!learningUnits) {
-      throw new NotFoundException(`Can not find any LearningUnits with parameters: ${args}`);
-    }
+    switch (this.extension) {
+      case MODE.SEARCH:
+        const searchUnits = new SearchLearningUnitListDto();
+        searchUnits.learningUnits = learningUnits
+          .filter(isSearchLUDaoType)
+          .map((lu) => SearchLearningUnitDto.createFromDao(lu));
 
-    const learningUnitList = new SelfLearnLearningUnitListDto();
-    learningUnitList.learningUnits = learningUnits
-      .filter(isSelfLearnLUDaoType)
-      .map((lu) => SelfLearnLearningUnitDto.createFromDao(lu));
+        return searchUnits;
+      case MODE.SELFLEARN:
+        const selflearnUnits = new SelfLearnLearningUnitListDto();
+        selflearnUnits.learningUnits = learningUnits
+          .filter(isSelfLearnLUDaoType)
+          .map((lu) => SelfLearnLearningUnitDto.createFromDao(lu));
 
-    return learningUnitList;
-  }
-
-  public async loadAllLearningUnits() {
-    if (this.SEARCH) {
-      return this.loadAllSearchLearningUnits();
-    } else if (this.SELF_LEARN) {
-      return this.loadAllSelfLearnLearningUnits();
-    } else {
-      throw new Error('No extension enabled');
+        return selflearnUnits;
+      default:
+        throw new Error(`Unknown extension mode: ${this.extension}`);
     }
   }
 

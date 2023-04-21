@@ -28,6 +28,6 @@ export class LearningUnitMgmtService {
   }
 
   public async loadAllLearningUnits() {
-    return this.luService.loadAllLearningUnits();
+    return this.luService.loadManyLearningUnits();
   }
 }
