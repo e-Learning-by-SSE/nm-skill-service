@@ -85,7 +85,7 @@ pipeline {
             steps {
                 script {
                     // Wait for services to be up and running
-                    sleep(time: 30, unit: "SECONDS")
+                    sleep(time: 45, unit: "SECONDS")
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
                     generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
                     withCredentials([
