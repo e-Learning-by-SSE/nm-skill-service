@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { EnvironmentVariables } from './env.validation';
 
 /**
  * A ConfigServe that allows to override values for testing purposes.
@@ -13,7 +14,7 @@ export class TestConfig extends ConfigService {
     this.config = config;
   }
 
-  public set(key: string, value: any) {
+  public set(key: keyof EnvironmentVariables, value: any) {
     this.testConfig[key] = value;
   }
 

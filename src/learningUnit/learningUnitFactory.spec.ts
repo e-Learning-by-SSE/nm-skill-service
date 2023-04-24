@@ -2,9 +2,9 @@ import { ConfigService } from '@nestjs/config';
 
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
-import { MODE } from '../env.validation';
+import { MODE } from '../config/env.validation';
 import { LearningUnitFactory } from './learningUnitFactory';
-import { TestConfig } from '../TestConfig';
+import { TestConfig } from '../config/TestConfig';
 import { SearchLearningUnitCreationDto, SearchLearningUnitDto, SearchLearningUnitListDto } from './dto';
 
 describe('LearningUnit Factory', () => {

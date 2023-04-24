@@ -12,7 +12,7 @@ import {
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { LearningUnit, Prisma } from '@prisma/client';
 import { isSearchLUDaoType, isSelfLearnLUDaoType } from './types';
-import { MODE } from '../env.validation';
+import { MODE } from '../config/env.validation';
 
 /**
  * This factory is responsible for database-based operations on Learning Units. It is used to:

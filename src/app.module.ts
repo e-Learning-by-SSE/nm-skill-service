@@ -7,7 +7,7 @@ import { SkillModule } from './skills/skill.module';
 import { NuggetModule } from './nugget/nugget.module';
 import { LearningPathModule } from './learningPath/learningPath.module';
 import { DynamicLearningUnitModule } from './learningUnit/dynamic.module';
-import { validate } from './env.validation';
+import { validate } from './config/env.validation';
 
 @Module({
   imports: [

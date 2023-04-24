@@ -11,7 +11,7 @@ export enum MODE {
  * Based on: https://docs.nestjs.com/techniques/configuration#custom-validate-function
  * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
  */
-class EnvironmentVariables {
+export class EnvironmentVariables {
   @IsEnum(MODE)
   @IsNotEmpty()
   EXTENSION: MODE;

@@ -4,7 +4,7 @@ import { LearningUnitMgmtService } from './learningUnit.service';
 import { LearningUnitFactory } from './learningUnitFactory';
 import { SelfLearnLearningUnitController } from './learningUnit.selflearn.controller';
 import { SearchLearningUnitController } from './learningUnit.search.controller';
-import { MODE } from 'src/env.validation';
+import { MODE } from 'src/config/env.validation';
 
 @Module({})
 export class DynamicLearningUnitModule {

@@ -1,7 +1,9 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
- * Creates a new LearningUnit (Basic implementation for all extensions)
+ * Creates a new LearningUnit (Basic implementation for all extensions).
+ * A LearningUnit represents a Nano-Module in the context of Self-Learn.
+ *
  * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
  * @author Wenzel
  */

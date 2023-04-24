@@ -9,7 +9,8 @@ pipeline {
     }
 
     environment {
-        API_URL = "https://staging.sse.uni-hildesheim.de:9010/api-json"
+        API_URL_SELFLEARN = "https://staging.sse.uni-hildesheim.de:9010/api-json"
+        API_URL_SEARCH = "https://staging.sse.uni-hildesheim.de:9011/api-json"
         DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository:latest'
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
     }
@@ -65,7 +66,7 @@ pipeline {
                 sh 'mv docker/Dockerfile Dockerfile'
                 script {
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
-                    publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}"])
+                    publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}", "latest"])
                 }
             }
         }
@@ -75,7 +76,8 @@ pipeline {
             steps {
                 script {
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
-                    generateSwaggerClient("${API_URL}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_api', ['javascript', 'typescript-angular', 'typescript-axios'])
+                    generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
+                    generateSwaggerClient("${API_URL_SEARCH}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_search_api', ['javascript', 'typescript-angular', 'typescript-axios'])
                 }
             }
         }
