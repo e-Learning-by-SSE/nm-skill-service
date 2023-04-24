@@ -1,11 +1,8 @@
 @Library('web-service-helper-lib') _
 
 pipeline {
-    agent any
-
-    tools {
-        nodejs 'NodeJS 18.12'
-        maven 'Maven 3.8.6'
+    agent { 
+        label 'docker && maven' 
     }
 
     environment {
@@ -16,13 +13,30 @@ pipeline {
     }
 
     stages {
+        stage("NodeJS Builds") {
+            agent {
+                docker {
+                    image 'node:18-bullseye'
+                    label 'docker'
+                    reuseNode true
+                    args '--tmpfs /.cache -v $HOME/.npm:/.npm'
+                }
+            }
+            stages {
+                stage('Install Dependencies') {
+                    steps {
+                        sh 'npm install'
+                    }
+                }
 
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
+                stage('Lint') {
+                    steps {
+                        sh 'npm run lint:ci'
+                    }
+                }            
             }
         }
-
+        
         stage('Test') {
             environment {
                 POSTGRES_DB = 'competence-repository-db'
@@ -52,12 +66,6 @@ pipeline {
                 always {
                     junit 'output/**/junit*.xml'
                }
-            }
-        }
-
-        stage('Lint') {
-            steps {
-                sh 'npm run lint:ci'
             }
         }
 
