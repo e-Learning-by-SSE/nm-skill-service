@@ -79,19 +79,29 @@ pipeline {
         }
         
         stage('Publish Swagger Client') {
-            when {
-                expression { env.BRANCH_NAME == "main"  }
-            }
+            // when {
+            //     expression { env.BRANCH_NAME == "main"  }
+            // }
             steps {
                 script {
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
                     generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
-                    withCredentials([string(credentialsId: 'GitHub-NPM', variable: 'Auth')]) {
-                        publishNpmPackage('target/generated-sources/openapi', "$Auth")
+                    withCredentials([
+                        string(credentialsId: 'GitHub-NPM', variable: 'Auth')
+                        string(credentialsId: 'Github_Packages_Read', variable: 'ReadOnly')
+                    ]) {
+                    if (!checkNpmPackageExist("@e-learning-by-sse/net.ssehub.e_learning.competence_repository_selflearn_api", "${API_VERSION}", "$ReadOnly")) {
+                            publishNpmPackage('target/generated-sources/openapi', "$Auth")
+                        }
                     }
                     generateSwaggerClient("${API_URL_SEARCH}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_search_api', ['javascript', 'typescript-angular', 'typescript-axios'])
-                    withCredentials([string(credentialsId: 'GitHub-NPM', variable: 'Auth')]) {
-                        publishNpmPackage('target/generated-sources/openapi', "$Auth")
+                    withCredentials([
+                        string(credentialsId: 'GitHub-NPM', variable: 'Auth')
+                        string(credentialsId: 'Github_Packages_Read', variable: 'ReadOnly')
+                    ]) {
+                        if (!checkNpmPackageExist("@e-learning-by-sse/net.ssehub.e_learning.competence_repository_selflearn_api", "${API_VERSION}", "$ReadOnly")) {
+                            publishNpmPackage('target/generated-sources/openapi', "$Auth")
+                        }
                     }
                 }
             }
