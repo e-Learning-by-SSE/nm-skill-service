@@ -61,18 +61,18 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                sh 'mv docker/Dockerfile Dockerfile'
-                script {
-                    API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
-                    dockerImage = docker.build "${DOCKER_TARGET}"
-                    publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}", "latest"])
-                }
-            }
-        }
+        // stage('Build') {
+        //     steps {
+        //         sh 'mv docker/Dockerfile Dockerfile'
+        //         script {
+        //             API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
+        //             dockerImage = docker.build "${DOCKER_TARGET}"
+        //             publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}", "latest"])
+        //         }
+        //     }
+        // }
         
-	stage('Deploy') {
+        stage('Deploy') {
             steps {
                 stagingDeploy("${REMOTE_UPDATE_SCRIPT}")
             }
@@ -84,6 +84,8 @@ pipeline {
             // }
             steps {
                 script {
+                    // Wait for services to be up and running
+                    sleep(30, SECONDS)
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
                     generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
                     withCredentials([
