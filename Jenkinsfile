@@ -79,7 +79,7 @@ pipeline {
         
         stage('Publish Swagger Client') {
 	    when {
-		    expression { env.BRANCH_NAME ==~ /^(master|main)/  }
+		    expression { env.BRANCH_NAME == "main"  }
 	    }
             steps {
                 script {
