@@ -92,7 +92,7 @@ pipeline {
                         string(credentialsId: 'GitHub-NPM', variable: 'Auth'),
                         string(credentialsId: 'Github_Packages_Read', variable: 'ReadOnly')
                     ]) {
-                    if (!checkNpmPackageExist("@e-learning-by-sse/net.ssehub.e_learning.competence_repository_selflearn_api", "${API_VERSION}", "$ReadOnly")) {
+                    if (!checkNpmPackageExist("@e-learning-by-sse", "net.ssehub.e_learning.competence_repository_selflearn_api", "${API_VERSION}", "$ReadOnly")) {
                             publishNpmPackage('target/generated-sources/openapi', "$Auth")
                         }
                     }
@@ -101,7 +101,7 @@ pipeline {
                         string(credentialsId: 'GitHub-NPM', variable: 'Auth'),
                         string(credentialsId: 'Github_Packages_Read', variable: 'ReadOnly')
                     ]) {
-                        if (!checkNpmPackageExist("@e-learning-by-sse/net.ssehub.e_learning.competence_repository_selflearn_api", "${API_VERSION}", "$ReadOnly")) {
+                        if (!checkNpmPackageExist("@e-learning-by-sse", "net.ssehub.e_learning.competence_repository_selflearn_api", "${API_VERSION}", "$ReadOnly")) {
                             publishNpmPackage('target/generated-sources/openapi', "$Auth")
                         }
                     }
