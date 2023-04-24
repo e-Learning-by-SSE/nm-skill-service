@@ -17,6 +17,9 @@ RUN npm install
 # Bundle app source
 COPY --chown=node:node . ./
 
+# Delete test files before compilation
+RUN rm -rf test/
+
 # Generate Prisma client
 RUN npx prisma generate
 # Allow runnig prisma commands, based on: https://stackoverflow.com/a/72602624
@@ -27,7 +30,6 @@ RUN npm run build
 
 # Delete source files after deletion
 RUN rm -rf src/
-
 
 
 

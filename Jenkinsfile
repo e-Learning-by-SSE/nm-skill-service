@@ -11,7 +11,7 @@ pipeline {
     environment {
         API_URL_SELFLEARN = "https://staging.sse.uni-hildesheim.de:9010/api-json"
         API_URL_SEARCH = "https://staging.sse.uni-hildesheim.de:9011/api-json"
-        DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository:latest'
+        DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
     }
 
@@ -66,6 +66,7 @@ pipeline {
                 sh 'mv docker/Dockerfile Dockerfile'
                 script {
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
+                    dockerImage = docker.build "${DOCKER_TARGET}"
                     publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}", "latest"])
                 }
             }
@@ -78,20 +79,20 @@ pipeline {
         }
         
         stage('Publish Swagger Client') {
-	    when {
-		    expression { env.BRANCH_NAME == "main"  }
-	    }
+            when {
+                expression { env.BRANCH_NAME == "main"  }
+            }
             steps {
                 script {
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
                     generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
-		    withCredentials([string(credentialsId: 'GitHub-NPM', variable: 'Auth')]) {
-		        publishNpmPackage('target/generated-sources/openapi', "$Auth")
-		    }
+                    withCredentials([string(credentialsId: 'GitHub-NPM', variable: 'Auth')]) {
+                        publishNpmPackage('target/generated-sources/openapi', "$Auth")
+                    }
                     generateSwaggerClient("${API_URL_SEARCH}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_search_api', ['javascript', 'typescript-angular', 'typescript-axios'])
-		    withCredentials([string(credentialsId: 'GitHub-NPM', variable: 'Auth')]) {
-		        publishNpmPackage('target/generated-sources/openapi', "$Auth")
-		    }
+                    withCredentials([string(credentialsId: 'GitHub-NPM', variable: 'Auth')]) {
+                        publishNpmPackage('target/generated-sources/openapi', "$Auth")
+                    }
                 }
             }
         }
