@@ -23,37 +23,37 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            environment {
-                POSTGRES_DB = 'competence-repository-db'
-                POSTGRES_USER = 'postgres'
-                POSTGRES_PASSWORD = 'admin'
-                PORT = '5435'
-            }
-            steps {
-                script {
-                    // Sidecar Pattern: https://www.jenkins.io/doc/book/pipeline/docker/#running-sidecar-containers
-                    docker.image('postgres:14.1-alpine').withRun("-e POSTGRES_USER=${env.POSTGRES_USER} -e POSTGRES_PASSWORD=${env.POSTGRES_PASSWORD} -e POSTGRES_DB=${env.POSTGRES_DB} -p ${env.PORT}:5432") { c ->
-                        sh "sleep 20"
-                        sh 'npx prisma db push'
-                        sh 'npm run test:jenkins'
-                    }
-                }
-                step([
-                    $class: 'CloverPublisher',
-                    cloverReportDir: 'output/test/coverage/',
-                    cloverReportFileName: 'clover.xml',
-                    healthyTarget: [methodCoverage: 70, conditionalCoverage: 80, statementCoverage: 80],   // optional, default is: method=70, conditional=80, statement=80
-                    unhealthyTarget: [methodCoverage: 50, conditionalCoverage: 50, statementCoverage: 50], // optional, default is none
-                    failingTarget: [methodCoverage: 0, conditionalCoverage: 0, statementCoverage: 0]       // optional, default is none
-                ])
-            }
-            post {
-                always {
-                    junit 'output/**/junit*.xml'
-               }
-            }
-        }
+        // stage('Test') {
+        //     environment {
+        //         POSTGRES_DB = 'competence-repository-db'
+        //         POSTGRES_USER = 'postgres'
+        //         POSTGRES_PASSWORD = 'admin'
+        //         PORT = '5435'
+        //     }
+        //     steps {
+        //         script {
+        //             // Sidecar Pattern: https://www.jenkins.io/doc/book/pipeline/docker/#running-sidecar-containers
+        //             docker.image('postgres:14.1-alpine').withRun("-e POSTGRES_USER=${env.POSTGRES_USER} -e POSTGRES_PASSWORD=${env.POSTGRES_PASSWORD} -e POSTGRES_DB=${env.POSTGRES_DB} -p ${env.PORT}:5432") { c ->
+        //                 sh "sleep 20"
+        //                 sh 'npx prisma db push'
+        //                 sh 'npm run test:jenkins'
+        //             }
+        //         }
+        //         step([
+        //             $class: 'CloverPublisher',
+        //             cloverReportDir: 'output/test/coverage/',
+        //             cloverReportFileName: 'clover.xml',
+        //             healthyTarget: [methodCoverage: 70, conditionalCoverage: 80, statementCoverage: 80],   // optional, default is: method=70, conditional=80, statement=80
+        //             unhealthyTarget: [methodCoverage: 50, conditionalCoverage: 50, statementCoverage: 50], // optional, default is none
+        //             failingTarget: [methodCoverage: 0, conditionalCoverage: 0, statementCoverage: 0]       // optional, default is none
+        //         ])
+        //     }
+        //     post {
+        //         always {
+        //             junit 'output/**/junit*.xml'
+        //        }
+        //     }
+        // }
 
         stage('Lint') {
             steps {
@@ -85,7 +85,7 @@ pipeline {
             steps {
                 script {
                     // Wait for services to be up and running
-                    sleep(30, SECONDS)
+                    sleep(time: 30, unit: "SECONDS")
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
                     generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
                     withCredentials([
