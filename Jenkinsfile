@@ -87,7 +87,7 @@ pipeline {
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
                     generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
                     withCredentials([
-                        string(credentialsId: 'GitHub-NPM', variable: 'Auth')
+                        string(credentialsId: 'GitHub-NPM', variable: 'Auth'),
                         string(credentialsId: 'Github_Packages_Read', variable: 'ReadOnly')
                     ]) {
                     if (!checkNpmPackageExist("@e-learning-by-sse/net.ssehub.e_learning.competence_repository_selflearn_api", "${API_VERSION}", "$ReadOnly")) {
@@ -96,7 +96,7 @@ pipeline {
                     }
                     generateSwaggerClient("${API_URL_SEARCH}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_search_api', ['javascript', 'typescript-angular', 'typescript-axios'])
                     withCredentials([
-                        string(credentialsId: 'GitHub-NPM', variable: 'Auth')
+                        string(credentialsId: 'GitHub-NPM', variable: 'Auth'),
                         string(credentialsId: 'Github_Packages_Read', variable: 'ReadOnly')
                     ]) {
                         if (!checkNpmPackageExist("@e-learning-by-sse/net.ssehub.e_learning.competence_repository_selflearn_api", "${API_VERSION}", "$ReadOnly")) {
