@@ -4,7 +4,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS 16.13'
+        nodejs 'NodeJS 18.12'
         maven 'Maven 3.8.6'
     }
 

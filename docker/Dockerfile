@@ -1,13 +1,9 @@
 # Base image
-FROM node:16-alpine
+FROM node:18-alpine as build
 
-# Required for Prisma Client to work in container
+# Required:
+# * openssl1.1-compat: Prisma Client to work in container
 RUN apk add --update --no-cache openssl1.1-compat
-
-# Required for entry-script
-RUN apk add --no-cache bash
-# pg_isready to test if DB is up, bevor application starts
-RUN apk add --no-cache postgresql-libs postgresql-client
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -28,6 +24,22 @@ RUN chown node:node -R node_modules/.prisma
 
 # Creates a "dist" folder with the production build
 RUN npm run build
+
+# Delete source files after deletion
+RUN rm -rf src/
+
+
+
+
+# Multistage build: Keep only result instead of all intermediate layers
+FROM node:18-alpine
+COPY --from=build /usr/src/app /usr/src/app
+
+# Required:
+# * openssl1.1-compat: Prisma Client to work in container
+# * bash: entry-script
+# * pg_isready: To test if DB is up, bevor application starts
+RUN apk add --update --no-cache openssl1.1-compat bash postgresql-libs postgresql-client
 
 # Prepare startup script
 COPY docker/entry.sh /entry.sh
