@@ -1,14 +1,14 @@
-import { Body, Controller, Get, Param, ParseBoolPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import {
-    CompetenceCreationDto,
-    RepositoryCreationDto,
-    RepositorySearchDto,
-    UberCompetenceResolveRequestDto,
-    UeberCompetenceCreationDto,
+  CompetenceCreationDto,
+  RepositoryCreationDto,
+  RepositorySearchDto,
+  UberCompetenceResolveRequestDto,
+  UeberCompetenceCreationDto,
 } from './dto';
 import { UeberCompetenceModificationDto } from './dto/ueber-competence-modification.dto';
 import { RepositoryMgmtService } from './repository-mgmt.service';

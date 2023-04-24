@@ -11,41 +11,42 @@ datasource db {
 }
 
 model User {
-  id           String @id @default(cuid())
-  name         String?
-  email        String @unique
-  pw           String
-  createdAt    DateTime @default(now())
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  pw        String
+  createdAt DateTime @default(now())
 
   // Relations to user created items
-  repositories Repository[]
+  repositories    Repository[]
   lo_repositories LoRepository[]
+  skill_repo      SkillRepository[]
 
   @@map("users")
 }
 
 model Repository {
-  id                String @id @default(cuid())
+  id                String            @id @default(cuid())
   name              String
   description       String?
   taxonomy          String?
-  version           String @default("")
+  version           String            @default("")
   userId            String
-  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
   competencies      Competence[]
   uebercompetencies UeberCompetence[]
 
-  @@map("repositories")
   @@unique([userId, name, version])
+  @@map("repositories")
 }
 
 model Competence {
-  id           String @id @default(cuid())
-  skill        String
-  level        Int
-  description  String?
+  id          String  @id @default(cuid())
+  skill       String
+  level       Int
+  description String?
 
   repositoryId String
   repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
@@ -55,113 +56,236 @@ model Competence {
   parentUeberCompetences UeberCompetence[]
 
   // Use in Learning Objects
-  requiredFor  LearningObject[] @relation("requiredCompetencies")
-  offeredFor   LearningObject[] @relation("offeredCompetencies")
+  requiredFor LearningObject[] @relation("requiredCompetencies")
+  offeredFor  LearningObject[] @relation("offeredCompetencies")
 
   // Use in Learning Goals
-  goalOf       LearningGoal[] @relation("lowlevelGoals")
+  goalOf LearningGoal[] @relation("lowlevelGoals")
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("competencies")
   @@unique([repositoryId, skill])
+  @@map("competencies")
 }
 
 model UeberCompetence {
-  id           String @id @default(cuid())
-  name         String
-  description  String?
+  id          String  @id @default(cuid())
+  name        String
+  description String?
 
   repositoryId String
   repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
 
   // Implicit Many-to-Many relation:
   // https://www.prisma.io/docs/concepts/components/prisma-schema/relations/many-to-many-relations#implicit-many-to-many-relations
-  subCompetences Competence[]
-  subUeberCompetences UeberCompetence[] @relation("nesting")
+  subCompetences         Competence[]
+  subUeberCompetences    UeberCompetence[] @relation("nesting")
   parentUeberCompetences UeberCompetence[] @relation("nesting")
 
   // Use in Learning Objects
   requiredFor LearningObject[] @relation("requiredUeberCompetencies")
-  offeredFor LearningObject[] @relation("offeredUeberCompetencies")
+  offeredFor  LearningObject[] @relation("offeredUeberCompetencies")
 
   // Use in Learning Goals
-  goalOf       LearningGoal[] @relation("highlevelGoals")
+  goalOf LearningGoal[] @relation("highlevelGoals")
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("ueber_competencies")
   @@unique([repositoryId, name])
+  @@map("ueber_competencies")
 }
 
 model LoRepository {
-  id                  String @id @default(cuid())
-  name                String
-  description         String?
-  userId              String
-  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt           DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
 
-  learningObjects     LearningObject[]
-  learningComposites  GroupedLearningObjects[]
-  learningGoals       LearningGoal[]
+  learningObjects    LearningObject[]
+  learningComposites GroupedLearningObjects[]
+  learningGoals      LearningGoal[]
 
-  @@map("lo-repositories")
   @@unique([userId, name])
+  @@map("lo-repositories")
 }
 
 // Atomic learning object (has no childs)
 model LearningObject {
-  id                           String @id @default(cuid())
-  name                         String
-  description                  String?
-  loRepositoryId               String
-  loRepository                 LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  loRepositoryId String
+  loRepository   LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
 
   // Requires/Offers on Competencies
-  requiredCompetencies         Competence[] @relation("requiredCompetencies")
-  offeredCompetencies          Competence[] @relation("offeredCompetencies")
+  requiredCompetencies Competence[] @relation("requiredCompetencies")
+  offeredCompetencies  Competence[] @relation("offeredCompetencies")
 
   // Requires/Offers on Ueber-Competencies
-  requiredUeberCompetencies    UeberCompetence[] @relation("requiredUeberCompetencies")
-  offeredUeberCompetencies     UeberCompetence[] @relation("offeredUeberCompetencies")
+  requiredUeberCompetencies UeberCompetence[] @relation("requiredUeberCompetencies")
+  offeredUeberCompetencies  UeberCompetence[] @relation("offeredUeberCompetencies")
 
-  parentGroups                 GroupedLearningObjects[]
+  parentGroups GroupedLearningObjects[]
 
-  @@map("learning_objects")
   @@unique([loRepositoryId, name])
+  @@map("learning_objects")
 }
 
 // Grouped Learning Objects (have childs)
 model GroupedLearningObjects {
-  id                      String @id @default(cuid())
-  name                    String
-  description             String?
-  loRepositoryId          String
-  loRepository            LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  loRepositoryId String
+  loRepository   LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
 
   // Learning Objects
-  nestedLOs               LearningObject[]
-  nestedGroups            GroupedLearningObjects[] @relation("nesting_of_grouped_los")
-  parentGroups            GroupedLearningObjects[] @relation("nesting_of_grouped_los")
+  nestedLOs    LearningObject[]
+  nestedGroups GroupedLearningObjects[] @relation("nesting_of_grouped_los")
+  parentGroups GroupedLearningObjects[] @relation("nesting_of_grouped_los")
 
-  @@map("grouped_learning_objects")
   @@unique([loRepositoryId, name])
+  @@map("grouped_learning_objects")
 }
 
 model LearningGoal {
-  id                           String @id @default(cuid())
-  name                         String
-  description                  String?
-  loRepositoryId               String
-  loRepository                 LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  loRepositoryId String
+  loRepository   LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
 
   // Definition of Goals by (Ueber-) Competencies
-  lowLevelGoals                Competence[] @relation("lowlevelGoals")
-  highLevelGoals               UeberCompetence[] @relation("highlevelGoals")
+  lowLevelGoals  Competence[]      @relation("lowlevelGoals")
+  highLevelGoals UeberCompetence[] @relation("highlevelGoals")
 
-  @@map("learning_goals")
   @@unique([loRepositoryId, name])
+  @@map("learning_goals")
+}
+
+model SkillRepository {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  version     String   @default("")
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  skills      Skill[]
+
+  @@unique([userId, name, version])
+  @@map("skill-repositories")
+}
+
+model Skill {
+  id          String  @id @default(cuid())
+  name        String
+  bloomLevel  Int
+  description String?
+
+  repositoryId         String
+  repository           SkillRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  parentSkills         Skill[]         @relation("parentSkills")
+  parentSkillsRelation Skill[]         @relation("parentSkills")
+  pathTeachingGoal     LearningPath[]  @relation("pathTeachingGoal")
+  requirements         LearningPath[]  @relation("requirements")
+
+  // Use in Learning Objects
+
+  createdAt                  DateTime      @default(now())
+  updatedAt                  DateTime      @updatedAt
+  learningUnit               LearningUnit? @relation("teachingGoals", fields: [learningUnitId], references: [id])
+  learningUnitId             Int?
+  requirementslearningUnit   LearningUnit? @relation("requirementslearningUnit", fields: [requirementslearningUnitId], references: [id])
+  requirementslearningUnitId Int?
+
+  @@unique([repositoryId, name])
+  @@map("skills")
+}
+
+model LearningPath {
+  id               String   @id @default(cuid())
+  title            String
+  targetAudience   String
+  description      String?
+  version          String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  pathTeachingGoal Skill    @relation("pathTeachingGoal", fields: [skillIdTG], references: [id])
+  skillIdTG        String   @default("")
+  requirement      Skill    @relation("requirements", fields: [skillIdReq], references: [id])
+  skillIdReq       String   @default("")
+
+  @@unique([id, title, version])
+  @@map("LearningPaths")
+}
+
+enum NuggetCategory {
+  ANALYZE
+  INTRODUCTION
+  CONTENT
+  EXAMPLE
+  EXERCISE
+  TEST
+}
+
+model Nugget {
+  id             Int            @id @default(autoincrement())
+  language       String
+  name           String?
+  isTypeOf       NuggetCategory @default(CONTENT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  processingTime String         @default("")
+  presenter      String         @default("")
+  mediatype      String         @default("")
+  LearningUnit   LearningUnit?  @relation(fields: [learningUnitId], references: [id])
+  learningUnitId Int?
+}
+
+model LearningUnit {
+  id                 Int      @id @default(autoincrement())
+  language           String
+  title              String
+  description        String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  searchInfos        SearchLearningUnit?
+  selfLearnInfos     SelfLearningUnit?
+
+  teachingGoals      Skill[]  @relation("teachingGoals")
+  requirements       Skill[]  @relation("requirementslearningUnit")
+  nuggets            Nugget[]
+}
+
+model SearchLearningUnit {
+  id                 Int      @id @default(autoincrement())
+  processingTime     String   @default("")
+  rating             String   @default("")
+  contentCreator     String   @default("")
+  contentProvider    String   @default("")
+  targetAudience     String   @default("")
+  semanticDensity    String   @default("")
+  semanticGravity    String   @default("")
+  contentTags        String[]
+  contextTags        String[]
+  linkToHelpMaterial String?
+  basicUnit          LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  unitId             Int
+
+  @@unique([unitId])
+}
+
+model SelfLearningUnit {
+  id                 Int      @id @default(autoincrement())
+  order              Int?
+  basicUnit          LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  unitId             Int
+
+  @@unique([unitId])
 }

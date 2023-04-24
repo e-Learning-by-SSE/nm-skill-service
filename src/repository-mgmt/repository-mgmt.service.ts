@@ -1,5 +1,3 @@
-import { identity } from 'rxjs';
-
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
@@ -7,18 +5,18 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { computePageQuery, computeRelationUpdate } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-    CompetenceCreationDto,
-    CompetenceDto,
-    RepositoryCreationDto,
-    RepositoryDto,
-    RepositoryListDto,
-    ResolvedRepositoryDto,
-    ResolvedUeberCompetenceDto,
-    UberCompetenceResolveRequestDto,
-    UeberCompetenceCreationDto,
-    UeberCompetenceModificationDto,
-    UnresolvedRepositoryDto,
-    UnResolvedUeberCompetenceDto,
+  CompetenceCreationDto,
+  CompetenceDto,
+  RepositoryCreationDto,
+  RepositoryDto,
+  RepositoryListDto,
+  ResolvedRepositoryDto,
+  ResolvedUeberCompetenceDto,
+  UberCompetenceResolveRequestDto,
+  UeberCompetenceCreationDto,
+  UeberCompetenceModificationDto,
+  UnresolvedRepositoryDto,
+  UnResolvedUeberCompetenceDto,
 } from './dto';
 import { CompetenceListDto } from './dto/repository-export/competence-list.dto';
 import { RepositorySearchDto } from './dto/repository-search.dto';

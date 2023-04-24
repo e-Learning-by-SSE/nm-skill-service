@@ -2,17 +2,24 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module';
-import { LoRepositoryModule } from './lo-repository/lo-repository.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { RepositoryMgmtModule } from './repository-mgmt/repository-mgmt.module';
+import { SkillModule } from './skills/skill.module';
+import { NuggetModule } from './nugget/nugget.module';
+import { LearningPathModule } from './learningPath/learningPath.module';
+import { DynamicLearningUnitModule } from './learningUnit/dynamic.module';
+import { validate } from './config/env.validation';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validate, validationOptions: { allowUnknown: false } }),
     AuthModule,
     PrismaModule,
-    RepositoryMgmtModule,
-    LoRepositoryModule,
+    //RepositoryMgmtModule,
+    //LoRepositoryModule,
+    SkillModule,
+    NuggetModule,
+    LearningPathModule,
+    DynamicLearningUnitModule.register(),
   ],
 })
 export class AppModule {}
