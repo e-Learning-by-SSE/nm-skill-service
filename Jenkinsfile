@@ -42,15 +42,22 @@ pipeline {
                 POSTGRES_DB = 'competence-repository-db'
                 POSTGRES_USER = 'postgres'
                 POSTGRES_PASSWORD = 'admin'
-                PORT = '5435'
+                
+                JWT_SECRET = 'SEARCH_SECRET'
+                EXTENSION = 'SEARCH'
+                DB_URL = "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
             }
             steps {
                 script {
-                    // Sidecar Pattern: https://www.jenkins.io/doc/book/pipeline/docker/#running-sidecar-containers
-                    docker.image('postgres:14.1-alpine').withRun("-e POSTGRES_USER=${env.POSTGRES_USER} -e POSTGRES_PASSWORD=${env.POSTGRES_PASSWORD} -e POSTGRES_DB=${env.POSTGRES_DB} -p ${env.PORT}:5432") { c ->
-                        sh "sleep 20"
-                        sh 'npx prisma db push'
-                        sh 'npm run test:jenkins'
+                    docker.image('postgres:14.3-alpine').withRun("-e POSTGRES_USER=${env.POSTGRES_USER} -e POSTGRES_PASSWORD=${env.POSTGRES_PASSWORD} -e POSTGRES_DB=${env.POSTGRES_DB}") { c ->
+                        docker.image('postgres:14.3-alpine').inside("--link ${c.id}:db") {
+                            sh "sleep 20"
+                        }
+                        docker.image('node:18-bullseye').inside("--link ${c.id}:db") {
+                            sh 'rm .env' // only use jenkins env
+                            sh 'npx prisma db push'
+                            sh 'npm run test:jenkins'
+                        }
                     }
                 }
                 step([
