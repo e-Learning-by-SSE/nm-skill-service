@@ -17,7 +17,6 @@ pipeline {
             agent {
                 docker {
                     image 'node:18-bullseye'
-                    label 'docker'
                     reuseNode true
                     args '--tmpfs /.cache -v $HOME/.npm:/.npm'
                 }
@@ -102,6 +101,13 @@ pipeline {
         stage('Publish Swagger Client') {
             when {
                 branch 'main'
+            }
+            agent {
+                docker {
+                    image 'node:18-bullseye'
+                    reuseNode true
+                    args '--tmpfs /.cache -v $HOME/.npm:/.npm'
+                }
             }
             steps {
                 script {
