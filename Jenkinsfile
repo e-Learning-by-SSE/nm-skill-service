@@ -109,8 +109,8 @@ pipeline {
                     sleep(time: 45, unit: "SECONDS")
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
                     withCredentials([
-                        string(credentialsId: "publishToken", variable: 'Auth'),
-                        string(credentialsId: "readOnlyToken", variable: 'ReadOnly')
+                        string(credentialsId: "GitHub-NPM", variable: 'Auth'),
+                        string(credentialsId: "Github_Packages_Read", variable: 'ReadOnly')
                     ]) {
                         generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
                         publishNpmIfNotExist("@e-learning-by-sse", "competence_repository_selflearn_api", "${API_VERSION}", 'target/generated-sources/openapi', "${ReadOnly}", "${Auth}")
