@@ -1,8 +1,12 @@
 @Library('web-service-helper-lib') _
 
 pipeline {
-    agent { 
-        label 'docker && maven' 
+    
+    agent any
+   
+    tools {
+        nodejs 'NodeJS 18.12'
+        maven 'Maven 3.8.6'
     }
 
     environment {
@@ -101,13 +105,6 @@ pipeline {
         stage('Publish Swagger Client') {
             when {
                 branch 'main'
-            }
-            agent {
-                docker {
-                    image 'node:18-bullseye'
-                    reuseNode true
-                    args '--tmpfs /.cache -v $HOME/.npm:/.npm'
-                }
             }
             steps {
                 script {
