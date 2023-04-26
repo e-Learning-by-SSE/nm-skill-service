@@ -88,6 +88,12 @@ pipeline {
         }
         
         stage('Deploy') {
+            when {
+                anyOf {
+                    branch 'dev'
+                    branch 'main'
+                }
+            }
             steps {
                 stagingDeploy("${REMOTE_UPDATE_SCRIPT}")
             }
@@ -102,10 +108,15 @@ pipeline {
                     // Wait for services to be up and running
                     sleep(time: 45, unit: "SECONDS")
                     API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
-                    generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
-                    publishNpmIfNotExist("@e-learning-by-sse", "competence_repository_selflearn_api", "${API_VERSION}", 'target/generated-sources/openapi', 'Github_Packages_Read', 'GitHub-NPM')
-                    generateSwaggerClient("${API_URL_SEARCH}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_search_api', ['javascript', 'typescript-angular', 'typescript-axios'])
-                    publishNpmIfNotExist("@e-learning-by-sse", "competence_repository_search_api", "${API_VERSION}", 'target/generated-sources/openapi', 'Github_Packages_Read', 'GitHub-NPM')
+                    withCredentials([
+                        string(credentialsId: "$publishToken", variable: 'Auth'),
+                        string(credentialsId: "$readOnlyToken", variable: 'ReadOnly')
+                    ]) {
+                        generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['javascript', 'typescript-angular', 'typescript-axios'])
+                        publishNpmIfNotExist("@e-learning-by-sse", "competence_repository_selflearn_api", "${API_VERSION}", 'target/generated-sources/openapi', "${ReadOnly}", "${Auth}")
+                        generateSwaggerClient("${API_URL_SEARCH}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_search_api', ['javascript', 'typescript-angular', 'typescript-axios'])
+                        publishNpmIfNotExist("@e-learning-by-sse", "competence_repository_search_api", "${API_VERSION}", 'target/generated-sources/openapi', "${ReadOnly}", "${Auth}")
+                    }
                 }
             }
         }
