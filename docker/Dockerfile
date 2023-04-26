@@ -29,7 +29,7 @@ RUN chown node:node -R node_modules/.prisma
 RUN npm run build
 
 # Delete source files after deletion
-RUN rm -rf src/
+RUN rm -rf src/ Jenkinsfile README.md docker/ docker-compose.yml tsconfig.build.json tsconfig.json .dockerignore
 
 
 

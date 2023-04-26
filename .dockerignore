@@ -1,7 +1,16 @@
+# Do not exclude .env file (should be used for default values
+!.env
+
 # compiled output
 /dist
 /node_modules
 /target
+
+# Config / tooling
+.git/
+.eslintrc.js
+.gitignore
+.prettierrc
 
 # Logs
 logs
@@ -29,10 +38,6 @@ lerna-debug.log*
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
 /src/output
 /output
