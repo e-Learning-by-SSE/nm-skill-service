@@ -20,7 +20,7 @@ model User {
   // Relations to user created items
   repositories    Repository[]
   lo_repositories LoRepository[]
-  skill_repo      SkillRepository[]
+  skill_repo      SkillMap[]
 
   @@map("users")
 }
@@ -167,7 +167,7 @@ model LearningGoal {
   @@map("learning_goals")
 }
 
-model SkillRepository {
+model SkillMap {
   id          String   @id @default(cuid())
   name        String
   description String?
@@ -190,7 +190,7 @@ model Skill {
   description String?
 
   repositoryId         String
-  repository           SkillRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repository           SkillMap @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   parentSkills         Skill[]         @relation("parentSkills")
   nestedSkills         Skill[]         @relation("parentSkills")
   pathTeachingGoals    PathGoal[]      @relation("pathTeachingGoal")

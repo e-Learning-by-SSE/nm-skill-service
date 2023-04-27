@@ -1,7 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 import { PathGoalCreationDto } from './pathGoal-creation.dto';
 import { PathGoal, Skill } from '@prisma/client';
-import { SkillDto } from 'src/skills/dto';
+import { SkillDto } from '../../skills/dto';
 
 /**
  * Represents a LearningPath Goal for a specific audience.

@@ -1,5 +1,5 @@
 import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
-import { SkillDto } from 'src/skills/dto';
+import { SkillDto } from '../../skills/dto';
 
 /**
  * Creates a new LearningPath Goal for a specific audience.

@@ -1,10 +1,10 @@
 import { IsDefined, IsNotEmpty } from 'class-validator';
 
-import { LearningPath, PathGoal, Prisma } from '@prisma/client';
+import { LearningPath, PathGoal } from '@prisma/client';
 
 import { LearningPathCreationDto } from './learningPath-creation.dto';
 import { OmitType } from '@nestjs/swagger';
-import { PathGoalDto } from './pathGoal.dto';
+import { PathGoalDto } from '.';
 
 export class LearningPathDto extends OmitType(LearningPathCreationDto, ['goals']) {
   @IsNotEmpty()
