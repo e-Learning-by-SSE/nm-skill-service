@@ -37,13 +37,13 @@ export class SkillMgmtService {
   /**
    * Returns a list of all repositories owned by the specified user.
    * Won't include any information about nested skills.
-   * @param userId The owner of the repositories
+   * @param ownerId The owner of the repositories
    * @returns The list of his repositories
    */
-  async listRepositories(userId: string) {
+  async listRepositories(ownerId: string) {
     const repositories = await this.db.skillRepository.findMany({
       where: {
-        userId: userId,
+        ownerId: ownerId,
       },
     });
 
@@ -53,11 +53,11 @@ export class SkillMgmtService {
     return repoList;
   }
 
-  async createRepository(userId: string, dto: SkillRepositoryCreationDto) {
+  async createRepository(ownerId: string, dto: SkillRepositoryCreationDto) {
     try {
       const repository = await this.db.skillRepository.create({
         data: {
-          userId: userId,
+          ownerId: ownerId,
           name: dto.name,
 
           description: dto.description,
@@ -76,7 +76,7 @@ export class SkillMgmtService {
     }
   }
 
-  public async getSkillRepository(userId: string, repositoryId: string, includeSkills = false) {
+  public async getSkillRepository(ownerId: string, repositoryId: string, includeSkills = false) {
     // Retrieve the repository, at which the skill shall be stored to
     const repository = await this.db.skillRepository.findUnique({
       where: {
@@ -91,7 +91,7 @@ export class SkillMgmtService {
       throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
     }
 
-    if (repository.userId != userId) {
+    if (repository.ownerId != ownerId) {
       throw new ForbiddenException('Repository owned by another user');
     }
 
@@ -148,12 +148,12 @@ export class SkillMgmtService {
         data: {
           repositoryId: skillRepositoryId,
           name: dto.name,
-          bloomLevel: dto.bloomLevel,
+          level: dto.bloomLevel,
           description: dto.description,
         },
       });
 
-      return skill as SkillDto;
+      return SkillDto.createFromDao(skill);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists

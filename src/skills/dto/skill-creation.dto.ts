@@ -5,15 +5,15 @@ import { IsNotEmpty, IsOptional } from 'class-validator';
  */
 export class SkillCreationDto {
   @IsNotEmpty()
-  name!: string;
+  name: string;
 
   @IsNotEmpty()
-  bloomLevel!: number;
+  bloomLevel: number;
 
   @IsOptional()
   description?: string;
 
-  constructor(name: string, bloomLevel: number, description?: string | null) {
+  constructor(name: string, bloomLevel: number, description: string | null) {
     this.name = name;
     this.bloomLevel = bloomLevel;
     this.description = description ?? undefined;

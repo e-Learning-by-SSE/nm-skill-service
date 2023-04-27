@@ -1,19 +1,29 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsDefined, IsNotEmpty } from 'class-validator';
 
-import { LearningPath } from '@prisma/client';
+import { LearningPath, PathGoal, Prisma } from '@prisma/client';
 
 import { LearningPathCreationDto } from './learningPath-creation.dto';
+import { OmitType } from '@nestjs/swagger';
+import { PathGoalDto } from './pathGoal.dto';
 
-export class LearningPathDto extends LearningPathCreationDto {
+export class LearningPathDto extends OmitType(LearningPathCreationDto, ['goals']) {
   @IsNotEmpty()
-  id!: number;
+  id: string;
 
-  constructor(id: number, title: string, targetAudience: string, description?: string | null) {
-    super(title, targetAudience, description ?? '');
+  @IsDefined()
+  goals: PathGoalDto[];
+
+  constructor(id: string, title: string, description: string | null, goals: PathGoalDto[]) {
+    super();
     this.id = id;
+    this.title = title;
+    this.description = description ?? undefined;
+    this.goals = goals;
   }
 
-  static createFromDao(lp: LearningPath): LearningPathDto {
-    return new LearningPathDto(Number(lp.id), lp.title, lp.targetAudience, lp.description);
+  static createFromDao(lp: LearningPath & { goals: PathGoal[] | null }): LearningPathDto {
+    const goals: PathGoalDto[] = lp.goals?.map((goal) => PathGoalDto.createFromDao(goal)) ?? [];
+
+    return new LearningPathDto(lp.id, lp.title, lp.description, goals);
   }
 }
