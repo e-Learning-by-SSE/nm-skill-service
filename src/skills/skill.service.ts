@@ -25,8 +25,8 @@ export class SkillMgmtService {
   constructor(private db: PrismaService) {}
 
   async findSkillRepositories(dto?: SkillRepositorySearchDto) {
-    const query: Prisma.SkillRepositoryFindManyArgs = computePageQuery(dto);
-    const repositories = await this.db.skillRepository.findMany(query);
+    const query: Prisma.SkillMapFindManyArgs = computePageQuery(dto);
+    const repositories = await this.db.skillMap.findMany(query);
 
     const repoList = new SkillRepositoryListDto();
     repoList.repositories = repositories.map((repository) => SkillRepositoryDto.createFromDao(repository));
@@ -41,7 +41,7 @@ export class SkillMgmtService {
    * @returns The list of his repositories
    */
   async listRepositories(ownerId: string) {
-    const repositories = await this.db.skillRepository.findMany({
+    const repositories = await this.db.skillMap.findMany({
       where: {
         ownerId: ownerId,
       },
@@ -55,7 +55,7 @@ export class SkillMgmtService {
 
   async createRepository(ownerId: string, dto: SkillRepositoryCreationDto) {
     try {
-      const repository = await this.db.skillRepository.create({
+      const repository = await this.db.skillMap.create({
         data: {
           ownerId: ownerId,
           name: dto.name,
@@ -78,7 +78,7 @@ export class SkillMgmtService {
 
   public async getSkillRepository(ownerId: string, repositoryId: string, includeSkills = false) {
     // Retrieve the repository, at which the skill shall be stored to
-    const repository = await this.db.skillRepository.findUnique({
+    const repository = await this.db.skillMap.findUnique({
       where: {
         id: repositoryId,
       },

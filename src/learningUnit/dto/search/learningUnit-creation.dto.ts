@@ -75,11 +75,8 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
     params: Pick<SearchLearningUnitCreationDto, 'title'> & Partial<SearchLearningUnitCreationDto>,
   ): SearchLearningUnitCreationDto {
     return new SearchLearningUnitCreationDto(
-      // Mandatory
-      params.title,
-
-      // Optional
       params.language ?? 'en',
+      params.title, // Mandatory
       params.description ?? null,
       params.processingTime ?? null,
       params.rating ?? null,
