@@ -9,6 +9,10 @@ pipeline {
         maven 'Maven 3.8.6'
     }
 
+    options {
+        ansiColor('xterm')
+    }
+
     environment {
         API_URL_SELFLEARN = "https://staging.sse.uni-hildesheim.de:9010/api-json"
         API_URL_SEARCH = "https://staging.sse.uni-hildesheim.de:9011/api-json"
