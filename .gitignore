@@ -36,3 +36,4 @@ lerna-debug.log*
 /src/output
 /output
 NUL
+/src/version.ts

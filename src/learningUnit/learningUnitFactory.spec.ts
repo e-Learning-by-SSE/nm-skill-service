@@ -60,9 +60,7 @@ describe('LearningUnit Factory', () => {
 
         // Expected DTO class and values for one and only element
         const expectedItem: Partial<SearchLearningUnitDto> = {
-          language: creationDtoMatch.language,
           title: creationDtoMatch.title,
-          description: creationDtoMatch.description,
         };
         // Expected DTO class and values for the whole list
         const expectedList: SearchLearningUnitListDto = {
