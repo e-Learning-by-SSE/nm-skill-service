@@ -9,6 +9,10 @@ pipeline {
         maven 'Maven 3.8.6'
     }
 
+    options {
+        ansiColor('xterm')
+    }
+
     environment {
         API_URL_SELFLEARN = "https://staging.sse.uni-hildesheim.de:9010/api-json"
         API_URL_SEARCH = "https://staging.sse.uni-hildesheim.de:9011/api-json"
@@ -59,6 +63,7 @@ pipeline {
                         docker.image('node:18-bullseye').inside("--link ${c.id}:db") {
                             sh 'rm .env' // only use jenkins env
                             sh 'npx prisma db push'
+                            sh 'npm run versioning'
                             sh 'npm run test:jenkins'
                         }
                     }
