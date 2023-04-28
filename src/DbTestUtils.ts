@@ -26,6 +26,9 @@ export class DbTestUtils {
   }
 
   public async wipeDb() {
+    // Learning Paths
+    await this.db.learningPath.deleteMany();
+
     // Learning Units
     await this.db.learningUnit.deleteMany();
     await this.db.nugget.deleteMany();

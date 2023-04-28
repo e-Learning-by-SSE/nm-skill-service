@@ -4,6 +4,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { LearningPathCreationDto, LearningPathDto, LearningPathListDto } from './dto';
+import { Prisma } from '@prisma/client';
 
 /**
  * Service that manages the creation/update/deletion
@@ -71,8 +72,11 @@ export class LearningPathMgmtService {
     return LearningPathDto.createFromDao(dao);
   }
 
-  public async loadAllLearningPaths() {
-    const learningPaths = await this.db.learningPath.findMany({ include: { goals: true } });
+  public async loadAllLearningPaths(args?: Prisma.LearningPathFindManyArgs) {
+    const learningPaths = await this.db.learningPath.findMany({
+      ...args,
+      include: { goals: true },
+    });
 
     if (!learningPaths) {
       throw new NotFoundException('Can not find any learningPaths');
