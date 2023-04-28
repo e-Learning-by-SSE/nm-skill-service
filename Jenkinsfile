@@ -61,7 +61,7 @@ pipeline {
                             sh "sleep 20"
                         }
                         docker.image('node:18-bullseye').inside("--link ${c.id}:db") {
-                            sh 'rm .env' // only use jenkins env
+                            //sh 'mv .env env-settings_backup' // only use jenkins env
                             sh 'npx prisma db push'
                             sh 'npm run test:jenkins'
                         }
