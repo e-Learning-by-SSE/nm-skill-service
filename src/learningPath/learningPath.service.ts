@@ -81,6 +81,6 @@ export class LearningPathMgmtService {
     const learningPathList = new LearningPathListDto();
     learningPathList.learningPaths = learningPaths.map((learningPath) => LearningPathDto.createFromDao(learningPath));
 
-    return learningPaths;
+    return learningPathList;
   }
 }
