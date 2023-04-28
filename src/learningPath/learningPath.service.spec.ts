@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
 import { LearningPathMgmtService } from './learningPath.service';
+import { NotFoundException } from '@nestjs/common';
 
 describe('LearningPath Service', () => {
   // Test object
@@ -64,6 +65,13 @@ describe('LearningPath Service', () => {
       ).resolves.toMatchObject({
         learningPaths: [expect.objectContaining({ title: creationResult1.title })],
       });
+    });
+  });
+
+  describe('getLearningPath', () => {
+    it('Empty DB -> Error', async () => {
+      learningPathService = new LearningPathMgmtService(db);
+      await expect(learningPathService.getLearningPath('anyID')).rejects.toThrow(NotFoundException);
     });
   });
 });
