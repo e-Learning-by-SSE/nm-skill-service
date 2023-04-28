@@ -165,22 +165,6 @@ export class SkillMgmtService {
     }
   }
 
-  private async loadSkill(skillId: string, skillRepositoryId: string | null) {
-    const skill = await this.db.skill.findUnique({ where: { id: skillId } });
-
-    if (!skill) {
-      throw new NotFoundException('Specified skill not found: ' + skillId);
-    }
-
-    if (skillRepositoryId) {
-      if (skill.repositoryId != skillRepositoryId) {
-        throw new ForbiddenException('Skill belongs to another repository.');
-      }
-    }
-
-    return skill;
-  }
-
   public async getSkill(skillId: string) {
     const resolved = new Map<string, SkillDto>();
 
@@ -216,7 +200,7 @@ export class SkillMgmtService {
    * @param resolved A map of already resolved skills, to prevent duplicate resolving
    * @returns The resolved skill
    */
-  private async getNestedSkill(skillId: string, resolved = new Map<string, SkillDto>()) {
+  private async getNestedSkill(skillId: string, resolved: Map<string, SkillDto>) {
     const resolvedSkill = resolved.get(skillId);
     let result: SkillDto;
 
@@ -232,6 +216,7 @@ export class SkillMgmtService {
         },
       });
 
+      // Unsure if we need this: Due to foreign key constraints, this should not be possible
       if (!dao) {
         throw new NotFoundException(`Specified skill not found: ${skillId}`);
       }
