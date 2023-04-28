@@ -12,14 +12,7 @@ pipeline {
     options {
         ansiColor('xterm')
     }
-
-    environment {
-        API_URL_SELFLEARN = "https://staging.sse.uni-hildesheim.de:9010/api-json"
-        API_URL_SEARCH = "https://staging.sse.uni-hildesheim.de:9011/api-json"
-        DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
-        REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
-    }
-
+    
     stages {
         stage("NodeJS Builds") {
             agent {
@@ -113,17 +106,33 @@ pipeline {
             when {
                 branch 'main'
             }
+            environment {
+                API_URL_SELFLEARN = "https://staging.sse.uni-hildesheim.de:9010/api-json"
+                API_URL_SEARCH = "https://staging.sse.uni-hildesheim.de:9011/api-json"
+                DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
+                REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
+            }
             steps {
                 script {
                     // Wait for services to be up and running
                     sleep(time: 45, unit: "SECONDS")
-                    API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
-					generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_selflearn_api', ['typescript-axios']) {
-						publishNpmIfNotExist("@e-learning-by-sse", "competence_repository_selflearn_api", "${API_VERSION}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
-					}
-					generateSwaggerClient("${API_URL_SEARCH}", "${API_VERSION}", 'net.ssehub.e_learning', 'competence_repository_search_api', ['typescript-axios']) {
-						publishNpmIfNotExist("@e-learning-by-sse", "competence_repository_search_api", "${API_VERSION}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
-					}
+                    withCredentials([
+                        string(credentialsId: "GitHub-NPM", variable: 'Auth'),
+                        string(credentialsId: "Github_Packages_Read", variable: 'ReadOnly')
+                    ]) {
+                        def selflearn_pkg = "competence_repository_selflearn_api"
+                        def search_pkg = "competence_repository_search_api"
+                        def groupname = "@net.ssehub.e_learning"
+                        def API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
+                        
+                        generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", "${groupname}", "${selflearn_pkg}, ['javascript', 'typescript-angular', 'typescript-axios']) {
+                            publishNpmIfNotExist("${groupname}", "${selflearn_pkg}", "${API_VERSION}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
+                        }
+                        
+                        generateSwaggerClient("${API_URL_SEARCH}", "${API_VERSION}", "${groupname}", "${search_pkg}", ['javascript', 'typescript-angular', 'typescript-axios']) {
+                            publishNpmIfNotExist("${groupname}", "${search_pkg}", "${API_VERSION}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
+                        }
+                    }
                 }
             }
         }
