@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Skill } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { computePageQuery } from '../db_utils';
@@ -76,9 +76,15 @@ export class SkillMgmtService {
     }
   }
 
-  public async getSkillRepository(ownerId: string, repositoryId: string, includeSkills = false) {
+  public async getSkillRepository(
+    ownerId: string,
+    repositoryId: string,
+    includeSkills = false,
+    args?: Prisma.SkillMapFindUniqueArgs,
+  ) {
     // Retrieve the repository, at which the skill shall be stored to
     const repository = await this.db.skillMap.findUnique({
+      ...args,
       where: {
         id: repositoryId,
       },
@@ -109,7 +115,7 @@ export class SkillMgmtService {
   }
 
   public async loadResolvedSkillRepository(userId: string, repositoryId: string) {
-    const repository = await this.getSkillRepository(userId, repositoryId, true);
+    const repository = await this.getSkillRepository(userId, repositoryId, false);
     const result = ResolvedSkillRepositoryDto.create(
       repository.id,
       repository.name,
@@ -118,15 +124,23 @@ export class SkillMgmtService {
       repository.description,
     );
 
-    // Load all skills of repository
-    const skillMap = new Map<string, SkillDto>();
-    repository.skills.forEach((c) => {
-      // Convert DAO -> DTO
-      const skill = SkillDto.createFromDao(c);
-
-      skillMap.set(c.id, skill);
-      result.skills.push(skill);
+    const topLevelSkills = await this.db.skill.findMany({
+      where: {
+        repositoryId: repositoryId,
+        id: {
+          in: repository.skills.map((c) => c.id),
+        },
+      },
+      include: {
+        nestedSkills: true,
+      },
     });
+
+    // Load all top-level skills
+    const resolved = new Map<string, SkillDto>();
+    for (const skill of topLevelSkills) {
+      result.skills.push(await this.loadSkill(skill, resolved));
+    }
 
     return result;
   }
@@ -165,9 +179,25 @@ export class SkillMgmtService {
     }
   }
 
-  public async getSkill(skillId: string) {
-    const resolved = new Map<string, SkillDto>();
+  private async loadSkill(
+    skill: Skill & {
+      nestedSkills: Skill[];
+    },
+    resolved = new Map<string, SkillDto>(),
+  ) {
+    const result = SkillDto.createFromDao(skill);
+    resolved.set(skill.id, result);
 
+    // Add nested skills
+    for (const child of skill.nestedSkills) {
+      // Promise.all would be much faster, but this would not guarantee reuse of already resolved objects
+      result.nestedSkills.push(await this.getNestedSkill(child.id, resolved));
+    }
+
+    return result;
+  }
+
+  public async getSkill(skillId: string) {
     const dao = await this.db.skill.findUnique({
       where: {
         id: skillId,
@@ -181,15 +211,7 @@ export class SkillMgmtService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
-    const result = SkillDto.createFromDao(dao);
-    resolved.set(dao.id, result);
-    // Add nested skills
-    for (const child of dao.nestedSkills) {
-      // Promise.all would be much faster, but this would not guarantee reuse of already resolved objects
-      result.nestedSkills.push(await this.getNestedSkill(child.id, resolved));
-    }
-
-    return result;
+    return this.loadSkill(dao);
   }
 
   /**
