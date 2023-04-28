@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { computeRelationUpdate } from './db_utils';
 import { PrismaService } from './prisma/prisma.service';
+import { SkillMap } from '@prisma/client';
 
 /**
  * Not a test suite, but functionality that supports writing test cases.
@@ -65,6 +66,30 @@ export class DbTestUtils {
     });
 
     return user;
+  }
+
+  async createSkill(skillMap: SkillMap, name: string, parentSkills?: string[], description?: string, level?: number) {
+    return this.db.skill.create({
+      data: {
+        repositoryId: skillMap.id,
+        name: name,
+        level: level ?? 1,
+        description: description,
+        parentSkills: {
+          connect: parentSkills?.map((id) => ({ id: id })),
+        },
+      },
+    });
+  }
+
+  async createSkillMap(ownerId: string, name: string, description?: string) {
+    return this.db.skillMap.create({
+      data: {
+        ownerId: ownerId,
+        name: name,
+        description: description,
+      },
+    });
   }
 
   /**

@@ -1,21 +1,21 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
- * Creates a new Skill
+ * Creates a new Skill.
  */
 export class SkillCreationDto {
   @IsNotEmpty()
   name: string;
 
   @IsNotEmpty()
-  bloomLevel: number;
+  level: number;
 
   @IsOptional()
   description?: string;
 
-  constructor(name: string, bloomLevel: number, description: string | null) {
-    this.name = name;
-    this.bloomLevel = bloomLevel;
-    this.description = description ?? undefined;
-  }
+  @IsDefined()
+  parentSkills: SkillCreationDto[];
+
+  @IsDefined()
+  nestedSkills: SkillCreationDto[];
 }

@@ -148,7 +148,7 @@ export class SkillMgmtService {
         data: {
           repositoryId: skillRepositoryId,
           name: dto.name,
-          level: dto.bloomLevel,
+          level: dto.level,
           description: dto.description,
         },
       });
@@ -182,13 +182,72 @@ export class SkillMgmtService {
   }
 
   public async getSkill(skillId: string) {
-    const dao = await this.loadSkill(skillId, null);
+    const resolved = new Map<string, SkillDto>();
+
+    const dao = await this.db.skill.findUnique({
+      where: {
+        id: skillId,
+      },
+      include: {
+        nestedSkills: true,
+      },
+    });
 
     if (!dao) {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
-    return SkillDto.createFromDao(dao);
+    const result = SkillDto.createFromDao(dao);
+    resolved.set(dao.id, result);
+    // Add nested skills
+    for (const child of dao.nestedSkills) {
+      // Promise.all would be much faster, but this would not guarantee reuse of already resolved objects
+      result.nestedSkills.push(await this.getNestedSkill(child.id, resolved));
+    }
+
+    return result;
+  }
+
+  /**
+   * Recursive function to resolve nested sills.
+   *
+   * **Warning:** This won't prevent for endless loops if skill tree is not acyclic!
+   * @param skillId The ID of the skill to be resolved
+   * @param resolved A map of already resolved skills, to prevent duplicate resolving
+   * @returns The resolved skill
+   */
+  private async getNestedSkill(skillId: string, resolved = new Map<string, SkillDto>()) {
+    const resolvedSkill = resolved.get(skillId);
+    let result: SkillDto;
+
+    if (resolvedSkill) {
+      result = resolvedSkill;
+    } else {
+      const dao = await this.db.skill.findUnique({
+        where: {
+          id: skillId,
+        },
+        include: {
+          nestedSkills: true,
+        },
+      });
+
+      if (!dao) {
+        throw new NotFoundException(`Specified skill not found: ${skillId}`);
+      }
+
+      const dto = SkillDto.createFromDao(dao);
+      resolved.set(dao.id, dto);
+      // Add nested skills
+      for (const child of dao.nestedSkills) {
+        // Promise.all would be much faster, but this would not guarantee reuse of already resolved objects
+        dto.nestedSkills.push(await this.getNestedSkill(child.id, resolved));
+      }
+
+      result = dto;
+    }
+
+    return result;
   }
 
   public async loadAllSkills() {
