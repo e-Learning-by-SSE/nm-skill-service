@@ -3,7 +3,7 @@ import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
 import { LearningPathMgmtService } from './learningPath.service';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { LearningPathCreationDto, LearningPathDto } from './dto';
+import { LearningPathCreationDto, LearningPathDto, PathGoalCreationDto, PathGoalDto } from './dto';
 
 describe('LearningPath Service', () => {
   // Auxillary objects
@@ -112,8 +112,13 @@ describe('LearningPath Service', () => {
       });
 
       // Post-Condition: Element was created and DTO is returned
+      const expected: Partial<LearningPathDto> = {
+        id: expect.anything(),
+        title: creationDto.title,
+        goals: [],
+      };
       await expect(learningPathService.createLearningPath(creationDto)).resolves.toMatchObject(
-        expect.objectContaining(creationDto),
+        expect.objectContaining(expected),
       );
     });
 
@@ -134,5 +139,34 @@ describe('LearningPath Service', () => {
       // Post-Condition: No element created -> Error thrown
       await expect(learningPathService.createLearningPath(creationDto)).rejects.toThrow(ForbiddenException);
     });
+  });
+
+  it('Create Path including a Goal-Spec -> LearningPath created', async () => {
+    // Data to be created
+    const goal1 = new PathGoalCreationDto('Test Goal', null, 'Test Description', [], []);
+
+    const creationDto: LearningPathCreationDto = {
+      title: 'Test',
+      goals: [goal1],
+    };
+
+    // Pre-Condition: Expected element does not exist
+    await expect(
+      learningPathService.loadAllLearningPaths({ where: { title: creationDto.title } }),
+    ).resolves.toMatchObject({
+      learningPaths: [],
+    });
+
+    // Post-Condition: Element was created and DTO is returned
+    const expectedGoal: Partial<PathGoalDto> = {
+      title: goal1.title,
+      description: goal1.description,
+    };
+    const expected: Partial<LearningPathDto> = {
+      id: expect.anything(),
+      title: creationDto.title,
+      goals: [expect.objectContaining(expectedGoal)],
+    };
+    await expect(learningPathService.createLearningPath(creationDto)).resolves.toMatchObject(expected);
   });
 });

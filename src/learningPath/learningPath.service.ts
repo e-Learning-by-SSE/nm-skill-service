@@ -36,7 +36,7 @@ export class LearningPathMgmtService {
               requirements: {
                 connect: goal.requirements.map((requirement) => ({ id: requirement.id })),
               },
-              pathGoals: {
+              pathTeachingGoals: {
                 connect: goal.pathGoals.map((goal) => ({ id: goal.id })),
               },
             })),
