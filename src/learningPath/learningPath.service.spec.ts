@@ -2,22 +2,17 @@ import { ConfigService } from '@nestjs/config';
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
 import { LearningPathMgmtService } from './learningPath.service';
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { LearningPathCreationDto, LearningPathDto } from './dto';
 
 describe('LearningPath Service', () => {
-  // Test object
-  let learningPathService: LearningPathMgmtService;
-
-  let db: PrismaService;
+  // Auxillary objects
+  const config = new ConfigService();
+  const db = new PrismaService(config);
   const dbUtils = DbTestUtils.getInstance();
 
-  // Auxillary
-  let config: ConfigService;
-
-  beforeAll(async () => {
-    config = new ConfigService();
-    db = new PrismaService(config);
-  });
+  // Test object
+  const learningPathService = new LearningPathMgmtService(db);
 
   beforeEach(async () => {
     // Wipe DB before test
@@ -26,7 +21,6 @@ describe('LearningPath Service', () => {
 
   describe('loadAllLearningPaths', () => {
     it('Empty DB -> Empty Result List', async () => {
-      learningPathService = new LearningPathMgmtService(db);
       await expect(learningPathService.loadAllLearningPaths()).resolves.toEqual({ learningPaths: [] });
     });
 
@@ -39,7 +33,6 @@ describe('LearningPath Service', () => {
       });
 
       // Test: Exactly one element with specified title found
-      learningPathService = new LearningPathMgmtService(db);
       await expect(learningPathService.loadAllLearningPaths()).resolves.toMatchObject({
         learningPaths: [expect.objectContaining({ title: creationResult.title })],
       });
@@ -59,7 +52,6 @@ describe('LearningPath Service', () => {
       });
 
       // Test: Only first element found
-      learningPathService = new LearningPathMgmtService(db);
       await expect(
         learningPathService.loadAllLearningPaths({ where: { title: creationResult1.title } }),
       ).resolves.toMatchObject({
@@ -70,8 +62,77 @@ describe('LearningPath Service', () => {
 
   describe('getLearningPath', () => {
     it('Empty DB -> Error', async () => {
-      learningPathService = new LearningPathMgmtService(db);
       await expect(learningPathService.getLearningPath('anyID')).rejects.toThrow(NotFoundException);
+    });
+
+    it('ID of existing element -> Specified element retrieved', async () => {
+      // Precondition: 1 element exist (do not rely on Service for its creation)
+      const creationResult = await db.learningPath.create({
+        data: {
+          title: 'Test',
+        },
+      });
+
+      const expectedResult: Partial<LearningPathDto> = {
+        id: creationResult.id,
+        title: creationResult.title,
+      };
+      await expect(learningPathService.getLearningPath(creationResult.id)).resolves.toMatchObject(
+        expect.objectContaining(expectedResult),
+      );
+    });
+
+    it('Wrong ID -> Error', async () => {
+      // Precondition: 1 element exist (do not rely on Service for its creation)
+      const creationResult = await db.learningPath.create({
+        data: {
+          title: 'Test',
+        },
+      });
+
+      await expect(learningPathService.getLearningPath(creationResult.id + '_wrongID')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('createLearningPath', () => {
+    it('Create empty Path on empty DB-> LearningPath created', async () => {
+      // Data to be created
+      const creationDto: LearningPathCreationDto = {
+        title: 'Test',
+        goals: [],
+      };
+
+      // Pre-Condition: Expected element does not exist
+      await expect(
+        learningPathService.loadAllLearningPaths({ where: { title: creationDto.title } }),
+      ).resolves.toMatchObject({
+        learningPaths: [],
+      });
+
+      // Post-Condition: Element was created and DTO is returned
+      await expect(learningPathService.createLearningPath(creationDto)).resolves.toMatchObject(
+        expect.objectContaining(creationDto),
+      );
+    });
+
+    it('Duplicate Title -> Error', async () => {
+      // Data to be created
+      const creationDto: LearningPathCreationDto = {
+        title: 'Test',
+        goals: [],
+      };
+
+      // Pre-Condition: Element with specified title already exists
+      await db.learningPath.create({
+        data: {
+          title: creationDto.title,
+        },
+      });
+
+      // Post-Condition: No element created -> Error thrown
+      await expect(learningPathService.createLearningPath(creationDto)).rejects.toThrow(ForbiddenException);
     });
   });
 });
