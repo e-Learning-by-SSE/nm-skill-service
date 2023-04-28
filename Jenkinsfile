@@ -89,7 +89,7 @@ pipeline {
                 sh 'mv docker/Dockerfile Dockerfile'
                 script {
                     //API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=\"version\": \")(.*)(?=\",$)" package.json').trim()
-                    API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const LIB_VERSION = \')[^\';]+" src/version.ts').trim()
+                    API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const LIB_VERSION = \")[^\";]+" src/version.ts').trim()
                     dockerImage = docker.build "${DOCKER_TARGET}"
                     publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}", "latest"])
                 }
