@@ -44,24 +44,17 @@ pipeline {
                 POSTGRES_USER = 'postgres'
                 POSTGRES_PASSWORD = 'admin'
                 
+                DB_URL = "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
                 JWT_SECRET = 'SEARCH_SECRET'
                 EXTENSION = 'SEARCH'
-                DB_URL = "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
             }
             steps {
-                script {
-                    docker.image('postgres:14.3-alpine').withRun("-e POSTGRES_USER=${env.POSTGRES_USER} -e POSTGRES_PASSWORD=${env.POSTGRES_PASSWORD} -e POSTGRES_DB=${env.POSTGRES_DB}") { c ->
-                        docker.image('postgres:14.3-alpine').inside("--link ${c.id}:db") {
-                            sh "sleep 20"
-                        }
-                        docker.image('node:18-bullseye').inside("--link ${c.id}:db") {
-                            sh 'mv .env env-settings.backup' // only use jenkins .env
-                            sh 'npx prisma db push'
-                            sh 'npm run versioning'
-                            sh 'npm run test:jenkins'
-                            sh 'mv env-settings.backup .env' // Restore .env
-                        }
-                    }
+                withPostgres([ dbUser: env.POSTGRES_USER,  dbPassword: env.POSTGRES_PASSWORD,  dbName: env.POSTGRES_DB ]).insideSidecar('node:18-bullseye') {
+                    sh 'mv .env env-settings.backup' // only use jenkins .env
+                    sh 'npx prisma db push'
+                    sh 'npm run versioning'
+                    sh 'npm run test:jenkins'
+                    sh 'mv env-settings.backup .env' // Restore .env
                 }
                 step([
                     $class: 'CloverPublisher',
