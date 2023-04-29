@@ -2,11 +2,20 @@
 
 pipeline {
     
-    agent any
-   
-    tools {
-        nodejs 'NodeJS 18.12'
-        maven 'Maven 3.8.6'
+    agent {
+        docker {
+            image 'node:18-bullseye'
+            reuseNode true
+            label 'docker'
+            args '--tmpfs /.cache -u root -v /var/run/docker.sock:/var/run/docker.sock '
+        }
+    }
+
+    environment {
+        API_URL_SELFLEARN = "https://staging.sse.uni-hildesheim.de:9010/api-json"
+        API_URL_SEARCH = "https://staging.sse.uni-hildesheim.de:9011/api-json"
+        DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
+        REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
     }
 
     options {
@@ -14,29 +23,21 @@ pipeline {
     }
     
     stages {
-        stage("NodeJS Builds") {
-            agent {
-                docker {
-                    image 'node:18-bullseye'
-                    reuseNode true
-                    args '--tmpfs /.cache -v $HOME/.npm:/.npm'
-                }
-            }
-            stages {
-                stage('Install Dependencies') {
-                    steps {
-                        sh 'npm install'
-                    }
-                }
 
-                stage('Lint') {
-                    steps {
-                        sh 'npm run lint:ci'
-                    }
-                }            
+        stage("Prepare Build env") {
+            steps {
+                sh 'npm install'
+                sh 'apt update'
+                sh 'apt install -y docker.io'
             }
-        }
+        }        
         
+        stage('Lint') {
+            steps {
+                sh 'npm run lint:ci'
+            }
+        }   
+
         stage('Test') {
             environment {
                 POSTGRES_DB = 'competence-repository-db'
@@ -79,6 +80,7 @@ pipeline {
         }
 
         stage('Build') {
+
             steps {
                 sh 'mv docker/Dockerfile Dockerfile'
                 script {
@@ -105,12 +107,6 @@ pipeline {
         stage('Publish Swagger Client') {
             when {
                 branch 'main'
-            }
-            environment {
-                API_URL_SELFLEARN = "https://staging.sse.uni-hildesheim.de:9010/api-json"
-                API_URL_SEARCH = "https://staging.sse.uni-hildesheim.de:9011/api-json"
-                DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
-                REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
             }
             steps {
                 script {
