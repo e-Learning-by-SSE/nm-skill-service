@@ -137,7 +137,7 @@ pipeline {
 
                                 dockerTargetImage.withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
                                     generateSwaggerClient("${env.APP_URL}", "${version}", 'net.ssehub.e_learning', "${pkg}", ['javascript', 'typescript-angular', 'typescript-axios']) {
-                                        docker.image('node').inside('-u root') {
+                                        docker.image('node').inside {
                                             publishNpmIfNotExist('@e-learning-by-sse', "${pkg}", "${version}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
                                         }
                                     }
