@@ -9,6 +9,7 @@ pipeline {
     environment {
         DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
+        NPMRC = 'e-learning-by-sse'
 
         POSTGRES_DB = 'competence-repository-db'
         POSTGRES_USER = 'postgres'
@@ -120,7 +121,6 @@ pipeline {
                     }
                     environment {
                         APP_URL = "http://localhost:3000/api-json"
-                        GROUPNAME = "@net.ssehub.e_learning"
                         clientEnvs = '''[
                             {"extension": "SELFLEARN", "pkg": "competence_repository_selflearn_api"},
                             {"extension": "SEARCH", "pkg": "competence_repository_search_api"}
@@ -137,8 +137,11 @@ pipeline {
 
                                 dockerTargetImage.withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
                                     generateSwaggerClient("${env.APP_URL}", "${version}", 'net.ssehub.e_learning', "${pkg}", ['javascript', 'typescript-angular', 'typescript-axios']) {
-                                        docker.image('node').inside {
-                                            publishNpmIfNotExist('@e-learning-by-sse', "${pkg}", "${version}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
+                                        docker.image('node').inside('-v $HOME/.npm:/.npm') {
+                                            dir('target/generated-sources/openapi') {
+                                                sh 'npm install'
+                                                publishNpm("${NPMRC}")
+                                            }
                                         }
                                     }
                                 }
