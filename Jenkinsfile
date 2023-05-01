@@ -2,7 +2,9 @@
 def dockerTargetImage
 
 pipeline {
-    agent none
+    agent {
+        label 'docker && maven'
+    }
 
     environment {
         DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
@@ -88,7 +90,12 @@ pipeline {
                         }
                     }
                 }
-                
+            }
+        }
+        
+        stage('Starting Post Build Actions') {
+            parallel {
+
                 stage('Deploy') {
                     when {
                         anyOf {
@@ -100,46 +107,46 @@ pipeline {
                         stagingDeploy("${REMOTE_UPDATE_SCRIPT}")
                     }
                 }
-            }
-        }
-        
-        stage('Publish Swagger Clients') {
-            when {
-                branch 'citest'
-            }
-            agent {
-                label 'docker && maven'
-            }
-            options {
-                timeout(time: 120, unit: 'SECONDS')
-            }
-            environment {
-                APP_URL = "http://localhost:3000/api-json"
-                GROUPNAME = "@net.ssehub.e_learning"
-                clientEnvs = '''[
-                    {"extension": "SELFLEARN", "pkg": "competence_repository_selflearn_api"},
-                    {"extension": "SEARCH", "pkg": "competence_repository_search_api"}
-                ]'''
-            }
-            steps {
-                script {
-                    def envs = readJSON text: env.clientEnvs
-                    for (envspecific in envs) {
-                        def extension = envspecific.extension
-                        def pkg = envspecific.pkg
-                        //def version = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
-                        def version = 'citesting'
 
-                        dockerTargetImage.withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
-                            generateSwaggerClient("${env.APP_URL}", "${version}", 'net.ssehub.e_learning', "${pkg}", ['javascript', 'typescript-angular', 'typescript-axios']) {
-                                docker.image('node').inside('-u root') {
-                                    publishNpmIfNotExist("${env.GROUPNAME}", '@e-learning-by-sse', "${version}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
+                stage('Publish Swagger Clients') {
+                    when {
+                        branch 'citest'
+                    }
+                    agent {
+                        label 'docker && maven'
+                    }
+                    options {
+                        timeout(time: 120, unit: 'SECONDS')
+                    }
+                    environment {
+                        APP_URL = "http://localhost:3000/api-json"
+                        GROUPNAME = "@net.ssehub.e_learning"
+                        clientEnvs = '''[
+                            {"extension": "SELFLEARN", "pkg": "competence_repository_selflearn_api"},
+                            {"extension": "SEARCH", "pkg": "competence_repository_search_api"}
+                        ]'''
+                    }
+                    steps {
+                        script {
+                            def envs = readJSON text: env.clientEnvs
+                            for (envspecific in envs) {
+                                def extension = envspecific.extension
+                                def pkg = envspecific.pkg
+                                //def version = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
+                                def version = 'citesting'
+
+                                dockerTargetImage.withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
+                                    generateSwaggerClient("${env.APP_URL}", "${version}", 'net.ssehub.e_learning', "${pkg}", ['javascript', 'typescript-angular', 'typescript-axios']) {
+                                        docker.image('node').inside('-u root') {
+                                            publishNpmIfNotExist('@e-learning-by-sse', "${pkg}", "${version}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
+            }         
         }
     }
 }
