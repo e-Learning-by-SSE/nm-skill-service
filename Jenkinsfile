@@ -1,12 +1,22 @@
 @Library('web-service-helper-lib') _
+def dockerTargetImage
 
 pipeline {
-    
-    agent any
-   
-    tools {
-        nodejs 'NodeJS 18.12'
-        maven 'Maven 3.8.6'
+    agent {
+        label 'docker && maven'
+    }
+
+    environment {
+        DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
+        REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
+        NPMRC = 'e-learning-by-sse'
+
+        POSTGRES_DB = 'competence-repository-db'
+        POSTGRES_USER = 'postgres'
+        POSTGRES_PASSWORD = 'admin'
+        
+        JWT_SECRET = 'SEARCH_SECRET'
+        EXTENSION = 'SEARCH'
     }
 
     options {
@@ -14,127 +24,132 @@ pipeline {
     }
     
     stages {
-        stage("NodeJS Builds") {
+        stage ("Starting NodeJS Build") {
             agent {
                 docker {
                     image 'node:18-bullseye'
                     reuseNode true
-                    args '--tmpfs /.cache -v $HOME/.npm:/.npm'
+                    label 'docker'
+                    args '--tmpfs /.cache -u root -v /var/run/docker.sock:/var/run/docker.sock '
                 }
             }
-            stages {
-                stage('Install Dependencies') {
+            stages { 
+                stage("Prepare Build env") {
                     steps {
                         sh 'npm install'
+                        sh 'apt update'
+                        sh 'apt install -y docker.io'
                     }
-                }
-
+                }        
+                
                 stage('Lint') {
                     steps {
                         sh 'npm run lint:ci'
                     }
-                }            
-            }
-        }
-        
-        stage('Test') {
-            environment {
-                POSTGRES_DB = 'competence-repository-db'
-                POSTGRES_USER = 'postgres'
-                POSTGRES_PASSWORD = 'admin'
-                
-                JWT_SECRET = 'SEARCH_SECRET'
-                EXTENSION = 'SEARCH'
-                DB_URL = "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
-            }
-            steps {
-                script {
-                    docker.image('postgres:14.3-alpine').withRun("-e POSTGRES_USER=${env.POSTGRES_USER} -e POSTGRES_PASSWORD=${env.POSTGRES_PASSWORD} -e POSTGRES_DB=${env.POSTGRES_DB}") { c ->
-                        docker.image('postgres:14.3-alpine').inside("--link ${c.id}:db") {
-                            sh "sleep 20"
-                        }
-                        docker.image('node:18-bullseye').inside("--link ${c.id}:db") {
-                            sh 'mv .env env-settings.backup' // only use jenkins .env
-                            sh 'npx prisma db push'
-                            sh 'npm run versioning'
-                            sh 'npm run test:jenkins'
-                            sh 'mv env-settings.backup .env' // Restore .env
-                        }
-                    }
-                }
-                step([
-                    $class: 'CloverPublisher',
-                    cloverReportDir: 'output/test/coverage/',
-                    cloverReportFileName: 'clover.xml',
-                    healthyTarget: [methodCoverage: 70, conditionalCoverage: 80, statementCoverage: 80],   // optional, default is: method=70, conditional=80, statement=80
-                    unhealthyTarget: [methodCoverage: 50, conditionalCoverage: 50, statementCoverage: 50], // optional, default is none
-                    failingTarget: [methodCoverage: 0, conditionalCoverage: 0, statementCoverage: 0]       // optional, default is none
-                ])
-            }
-            post {
-                always {
-                    junit 'output/**/junit*.xml'
-               }
-            }
-        }
+                }   
 
-        stage('Build') {
-            steps {
-                sh 'mv docker/Dockerfile Dockerfile'
-                script {
-                    API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=\\\"version\\\": \\\")(.*)(?=\\\",$)" package.json').trim()
-                    //API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const LIB_VERSION = \")[^\";]+" src/version.ts').trim()
-                    dockerImage = docker.build "${DOCKER_TARGET}"
-                    publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}", "latest"])
-                }
-            }
-        }
-        
-        stage('Deploy') {
-            when {
-                anyOf {
-                    branch 'dev'
-                    branch 'main'
-                }
-            }
-            steps {
-                stagingDeploy("${REMOTE_UPDATE_SCRIPT}")
-            }
-        }
-        
-        stage('Publish Swagger Client') {
-            when {
-                branch 'main'
-            }
-            environment {
-                API_URL_SELFLEARN = "https://staging.sse.uni-hildesheim.de:9010/api-json"
-                API_URL_SEARCH = "https://staging.sse.uni-hildesheim.de:9011/api-json"
-                DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
-                REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
-            }
-            steps {
-                script {
-                    // Wait for services to be up and running
-                    sleep(time: 45, unit: "SECONDS")
-                    withCredentials([
-                        string(credentialsId: "GitHub-NPM", variable: 'Auth'),
-                        string(credentialsId: "Github_Packages_Read", variable: 'ReadOnly')
-                    ]) {
-                        def selflearn_pkg = "competence_repository_selflearn_api"
-                        def search_pkg = "competence_repository_search_api"
-                        def groupname = "@net.ssehub.e_learning"
-                        def API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
-                        
-                        generateSwaggerClient("${API_URL_SELFLEARN}", "${API_VERSION}", "${groupname}", "${selflearn_pkg}, ['javascript', 'typescript-angular', 'typescript-axios']) {
-                            publishNpmIfNotExist("${groupname}", "${selflearn_pkg}", "${API_VERSION}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
+                stage('Test') {
+                    environment {
+                        DB_URL = "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
+                    }
+                    steps {
+                        script {
+                            withPostgres([ dbUser: env.POSTGRES_USER,  dbPassword: env.POSTGRES_PASSWORD,  dbName: env.POSTGRES_DB ]).insideSidecar('node:18-bullseye') {
+                                sh 'mv .env env-settings.backup' // only use jenkins .env
+                                sh 'npx prisma db push'
+                                sh 'npm run versioning'
+                                sh 'npm run test:jenkins'
+                                sh 'mv env-settings.backup .env' // Restore .env
+                            }
                         }
-                        
-                        generateSwaggerClient("${API_URL_SEARCH}", "${API_VERSION}", "${groupname}", "${search_pkg}", ['javascript', 'typescript-angular', 'typescript-axios']) {
-                            publishNpmIfNotExist("${groupname}", "${search_pkg}", "${API_VERSION}", 'target/generated-sources/openapi', "Github_Packages_Read", "GitHub-NPM")
+                    }
+                    post {
+                        success {
+                            step([
+                                $class: 'CloverPublisher',
+                                cloverReportDir: 'output/test/coverage/',
+                                cloverReportFileName: 'clover.xml',
+                                healthyTarget: [methodCoverage: 70, conditionalCoverage: 80, statementCoverage: 80],   // optional, default is: method=70, conditional=80, statement=80
+                                unhealthyTarget: [methodCoverage: 50, conditionalCoverage: 50, statementCoverage: 50], // optional, default is none
+                                failingTarget: [methodCoverage: 0, conditionalCoverage: 0, statementCoverage: 0]       // optional, default is none
+                            ])
+                        }
+                        always {
+                            junit 'output/**/junit*.xml'
+                    }
+                    }
+                }
+
+                stage('Build') {
+
+                    steps {
+                        sh 'mv docker/Dockerfile Dockerfile'
+                        script {
+                            API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=\\\"version\\\": \\\")(.*)(?=\\\",$)" package.json').trim()
+                            dockerTargetImage = docker.build "${DOCKER_TARGET}"
+                            publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}", "latest"])
                         }
                     }
                 }
             }
+        }
+        
+        stage('Starting Post Build Actions') {
+            parallel {
+
+                stage('Deploy') {
+                    when {
+                        anyOf {
+                            branch 'dev'
+                            branch 'main'
+                        }
+                    }
+                    steps {
+                        stagingDeploy("${REMOTE_UPDATE_SCRIPT}")
+                    }
+                }
+
+                stage('Publish Swagger Clients') {
+                    when {
+                        branch 'citest'
+                    }
+                    agent {
+                        label 'docker && maven'
+                    }
+                    options {
+                        timeout(time: 120, unit: 'SECONDS')
+                    }
+                    environment {
+                        APP_URL = "http://localhost:3000/api-json"
+                        clientEnvs = '''[
+                            {"extension": "SELFLEARN", "pkg": "competence_repository_selflearn_api"},
+                            {"extension": "SEARCH", "pkg": "competence_repository_search_api"}
+                        ]'''
+                    }
+                    steps {
+                        script {
+                            def envs = readJSON text: env.clientEnvs
+                            for (envspecific in envs) {
+                                def extension = envspecific.extension
+                                def pkg = envspecific.pkg
+                                //def version = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
+                                def version = 'citesting'
+
+                                dockerTargetImage.withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
+                                    generateSwaggerClient("${env.APP_URL}", "${version}", 'net.ssehub.e_learning', "${pkg}", ['javascript', 'typescript-angular', 'typescript-axios']) {
+                                        docker.image('node').inside('-v $HOME/.npm:/.npm') {
+                                            dir('target/generated-sources/openapi') {
+                                                sh 'npm install'
+                                                publishNpm("${NPMRC}")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }         
         }
     }
 }
