@@ -111,7 +111,7 @@ pipeline {
 
                 stage('Publish Swagger Clients') {
                     when {
-                        branch 'citest'
+                        branch 'main'
                     }
                     agent {
                         label 'docker && maven'
