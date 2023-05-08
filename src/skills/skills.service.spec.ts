@@ -2,8 +2,14 @@ import { DbTestUtils } from '../DbTestUtils';
 import { SkillMgmtService } from './skill.service';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { ResolvedSkillRepositoryDto, SkillDto, SkillRepositoryDto, SkillRepositoryListDto } from './dto';
-import { NotFoundException } from '@nestjs/common';
+import {
+  ResolvedSkillRepositoryDto,
+  SkillCreationDto,
+  SkillDto,
+  SkillRepositoryDto,
+  SkillRepositoryListDto,
+} from './dto';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { SkillMap, User } from '@prisma/client';
 
 describe('LearningPath Service', () => {
@@ -233,6 +239,67 @@ describe('LearningPath Service', () => {
         skills: [expect.objectContaining(expectedSkill1), expect.objectContaining(expectedSkill4)],
       };
       await expect(result).resolves.toMatchObject(expectedSkillMap);
+    });
+  });
+
+  describe('createSkill', () => {
+    let defaultUser: User;
+    let defaultSkillMap: SkillMap;
+
+    beforeEach(async () => {
+      defaultUser = await dbUtils.createUser('1', 'A name', 'mail@example.com', 'pw');
+      defaultSkillMap = await dbUtils.createSkillMap(defaultUser.id, 'Test', 'A Description');
+    });
+
+    it('Create on Empty DB -> New DTO', async () => {
+      // Precondition: No Skill-Maps defined
+      await expect(db.skill.aggregate({ _count: true })).resolves.toEqual({ _count: 0 });
+
+      // Test: Create skill
+      const creationDto: SkillCreationDto = {
+        name: 'Skill 1',
+        level: 1,
+        description: 'A Description',
+        parentSkills: [],
+        nestedSkills: [],
+      };
+
+      // Expected result: DTO representation of skill, without parent and nested skills
+      const expectedSkill: Partial<SkillDto> = {
+        name: creationDto.name,
+        level: creationDto.level,
+        description: creationDto.description,
+        nestedSkills: [],
+      };
+      await expect(skillService.createSkill(defaultUser.id, defaultSkillMap.id, creationDto)).resolves.toMatchObject(
+        expectedSkill,
+      );
+    });
+
+    it('Existing Name -> ForbiddenException', async () => {
+      // Precondition: One Skill defined
+      const firstSkill = await db.skill.create({
+        data: {
+          name: 'Skill 1',
+          level: 1,
+          repositoryId: defaultSkillMap.id,
+        },
+      });
+      await expect(db.skill.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
+
+      // Test: Create skill
+      const creationDto: SkillCreationDto = {
+        name: firstSkill.name,
+        level: 1,
+        description: 'A Description',
+        parentSkills: [],
+        nestedSkills: [],
+      };
+
+      // Expected result: Exception because of naming conflict
+      await expect(skillService.createSkill(defaultUser.id, defaultSkillMap.id, creationDto)).rejects.toThrowError(
+        ForbiddenException,
+      );
     });
   });
 });
