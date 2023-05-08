@@ -173,66 +173,66 @@ describe('LearningPath Service', () => {
     });
   });
 
-  // describe('loadResolvedSkillRepository', () => {
-  //   let defaultUser: User;
-  //   let defaultSkillMap: SkillMap;
+  describe('loadResolvedSkillRepository', () => {
+    let defaultUser: User;
+    let defaultSkillMap: SkillMap;
 
-  //   beforeEach(async () => {
-  //     defaultUser = await dbUtils.createUser('1', 'A name', 'mail@example.com', 'pw');
-  //     defaultSkillMap = await dbUtils.createSkillMap('1', 'Test', defaultUser.id);
-  //   });
+    beforeEach(async () => {
+      defaultUser = await dbUtils.createUser('1', 'A name', 'mail@example.com', 'pw');
+      defaultSkillMap = await dbUtils.createSkillMap(defaultUser.id, 'Test', 'A Description');
+    });
 
-  // it('2 Top-Level Skills + Multiple Nested', async () => {
-  //   // Precondition: One skill exists
-  //   const skill1 = await dbUtils.createSkill(defaultSkillMap, 'Skill 1');
-  //   const skill2 = await dbUtils.createSkill(defaultSkillMap, 'Skill 2', [skill1.id]);
-  //   const skill3 = await dbUtils.createSkill(
-  //     defaultSkillMap,
-  //     'Skill 3',
-  //     [skill1.id, skill2.id],
-  //     'This skill is nested below Skill 1 AND Skill 2',
-  //   );
-  //   const skill4 = await dbUtils.createSkill(defaultSkillMap, 'Skill 4');
-  //   await expect(db.skill.aggregate({ _count: true })).resolves.toEqual({ _count: 4 });
+    it('2 Top-Level Skills + Multiple Nested', async () => {
+      // Precondition: One skill exists
+      const skill1 = await dbUtils.createSkill(defaultSkillMap, 'Skill 1');
+      const skill2 = await dbUtils.createSkill(defaultSkillMap, 'Skill 2', [skill1.id]);
+      const skill3 = await dbUtils.createSkill(
+        defaultSkillMap,
+        'Skill 3',
+        [skill1.id, skill2.id],
+        'This skill is nested below Skill 1 AND Skill 2',
+      );
+      const skill4 = await dbUtils.createSkill(defaultSkillMap, 'Skill 4');
+      await expect(db.skill.aggregate({ _count: true })).resolves.toEqual({ _count: 4 });
 
-  //   // Test: Load skill
-  //   // Expected result: DTO representation of skill, without parent and nested skills
-  //   const expectedSkill3: Partial<SkillDto> = {
-  //     id: skill3.id,
-  //     name: skill3.name,
-  //     level: skill3.level,
-  //     description: skill3.description ?? undefined,
-  //     nestedSkills: [],
-  //   };
-  //   const expectedSkill2: Partial<SkillDto> = {
-  //     id: skill2.id,
-  //     name: skill2.name,
-  //     level: skill2.level,
-  //     description: skill2.description ?? undefined,
-  //     nestedSkills: [expect.objectContaining(expectedSkill3)],
-  //   };
-  //   const expectedSkill1: Partial<SkillDto> = {
-  //     id: skill1.id,
-  //     name: skill1.name,
-  //     level: skill1.level,
-  //     description: skill1.description ?? undefined,
-  //     nestedSkills: [expect.objectContaining(expectedSkill2), expect.objectContaining(expectedSkill3)],
-  //   };
-  //   const expectedSkill4: Partial<SkillDto> = {
-  //     id: skill4.id,
-  //     name: skill4.name,
-  //     level: skill4.level,
-  //     description: skill1.description ?? undefined,
-  //     nestedSkills: [],
-  //   };
-  //   const expectedSkillMap: Partial<ResolvedSkillRepositoryDto> = {
-  //     id: defaultSkillMap.id,
-  //     name: defaultSkillMap.name,
-  //     skills: [expect.objectContaining(expectedSkill1), expect.objectContaining(expectedSkill4)],
-  //   };
-  //   await expect(skillService.loadResolvedSkillRepository(defaultUser.id, defaultSkillMap.id)).resolves.toMatchObject(
-  //     expectedSkillMap,
-  //   );
-  // });
-  // });
+      // Test: Load skill
+      const result = skillService.loadResolvedSkillRepository(defaultUser.id, defaultSkillMap.id);
+
+      // Expected result: DTO representation of skill, without parent and nested skills
+      const expectedSkill3: Partial<SkillDto> = {
+        id: skill3.id,
+        name: skill3.name,
+        level: skill3.level,
+        description: skill3.description ?? undefined,
+        nestedSkills: [],
+      };
+      const expectedSkill2: Partial<SkillDto> = {
+        id: skill2.id,
+        name: skill2.name,
+        level: skill2.level,
+        description: skill2.description ?? undefined,
+        nestedSkills: [expect.objectContaining(expectedSkill3)],
+      };
+      const expectedSkill1: Partial<SkillDto> = {
+        id: skill1.id,
+        name: skill1.name,
+        level: skill1.level,
+        description: skill1.description ?? undefined,
+        nestedSkills: [expect.objectContaining(expectedSkill2), expect.objectContaining(expectedSkill3)],
+      };
+      const expectedSkill4: Partial<SkillDto> = {
+        id: skill4.id,
+        name: skill4.name,
+        level: skill4.level,
+        description: skill1.description ?? undefined,
+        nestedSkills: [],
+      };
+      const expectedSkillMap: Partial<ResolvedSkillRepositoryDto> = {
+        id: defaultSkillMap.id,
+        name: defaultSkillMap.name,
+        skills: [expect.objectContaining(expectedSkill1), expect.objectContaining(expectedSkill4)],
+      };
+      await expect(result).resolves.toMatchObject(expectedSkillMap);
+    });
+  });
 });
