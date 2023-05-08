@@ -136,7 +136,7 @@ pipeline {
                                 def version = 'citesting'
 
                                 dockerTargetImage.withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
-                                    generateSwaggerClient("${env.APP_URL}", "${version}", 'net.ssehub.e_learning', "${pkg}", ['python', 'typescript-axios']) {
+                                    generateSwaggerClient("${env.APP_URL}", "${version}", 'net.ssehub.e_learning', "${pkg}", ['python-flask', 'typescript-axios']) {
                                         docker.image('node').inside('-v $HOME/.npm:/.npm') {
                                             dir('target/generated-sources/openapi') {
                                                 sh 'npm install'
