@@ -290,8 +290,8 @@ describe('LearningPath Service', () => {
       // Test: Create skill
       const creationDto: SkillCreationDto = {
         name: firstSkill.name,
-        level: 1,
-        description: 'A Description',
+        level: 2,
+        description: 'Another Description',
         parentSkills: [],
         nestedSkills: [],
       };
