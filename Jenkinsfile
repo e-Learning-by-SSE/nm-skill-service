@@ -149,7 +149,9 @@ pipeline {
                         }
                     }
 					post {
-						archiveArtifacts artifacts: '*.zip', onlyIfSuccessful: true
+						success {
+							archiveArtifacts artifacts: '*.zip', onlyIfSuccessful: true
+						}
 					}
                 }
             }         
