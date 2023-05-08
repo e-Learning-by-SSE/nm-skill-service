@@ -6,6 +6,7 @@ import {
   ResolvedSkillRepositoryDto,
   SkillCreationDto,
   SkillDto,
+  SkillRepositoryCreationDto,
   SkillRepositoryDto,
   SkillRepositoryListDto,
 } from './dto';
@@ -21,9 +22,15 @@ describe('LearningPath Service', () => {
   // Test object
   const skillService = new SkillMgmtService(db);
 
+  // Default user -> Used in most of the tests
+  let defaultUser: User;
+
   beforeEach(async () => {
     // Wipe DB before test
     await dbUtils.wipeDb();
+
+    // Create first user
+    defaultUser = await dbUtils.createUser('1', 'A name', 'mail@example.com', 'pw');
   });
 
   describe('listRepositories', () => {
@@ -37,11 +44,10 @@ describe('LearningPath Service', () => {
 
     it('Query for not existing ID -> Empty ResultList', async () => {
       // Precondition: Some Skill-Maps defined
-      const user = await dbUtils.createUser('1', 'A name', 'mail@example.com', 'pw');
       await db.skillMap.create({
         data: {
           name: 'Test',
-          owner: { connect: { id: user.id } },
+          owner: { connect: { id: defaultUser.id } },
         },
       });
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
@@ -52,12 +58,11 @@ describe('LearningPath Service', () => {
 
     it('Query for existing ID -> ResultList with exact match', async () => {
       // Precondition: Some Skill-Maps defined
-      const user1 = await dbUtils.createUser('1', 'First name', 'mail1@example.com', 'pw');
       const user2 = await dbUtils.createUser('2', 'Second name', 'mail2@example.com', 'pw');
       const firstCreationResult = await db.skillMap.create({
         data: {
           name: 'Test',
-          owner: { connect: { id: user1.id } },
+          owner: { connect: { id: defaultUser.id } },
         },
       });
       await db.skillMap.create({
@@ -72,21 +77,37 @@ describe('LearningPath Service', () => {
       const expectedResult: Partial<SkillRepositoryDto> = {
         id: firstCreationResult.id,
         name: firstCreationResult.name,
-        ownerId: user1.id,
+        ownerId: defaultUser.id,
       };
       const expectedList: SkillRepositoryListDto = {
         repositories: [expect.objectContaining(expectedResult)],
       };
-      await expect(skillService.listRepositories(user1.id)).resolves.toMatchObject(expectedList);
+      await expect(skillService.listRepositories(defaultUser.id)).resolves.toMatchObject(expectedList);
+    });
+  });
+
+  describe('createRepository', () => {
+    it('Create First Repository -> Success', () => {
+      // Precondition: No Skill-Maps defined
+      expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 0 });
+
+      // Test: Create first repository
+      const creationDto: SkillRepositoryCreationDto = {
+        name: 'Test',
+      };
+      const expectation: Partial<SkillRepositoryDto> = {
+        name: creationDto.name,
+        ownerId: defaultUser.id,
+        description: creationDto.description ?? undefined,
+      };
+      expect(skillService.createRepository(defaultUser.id, creationDto)).resolves.toMatchObject(expectation);
     });
   });
 
   describe('getSkill', () => {
-    let defaultUser: User;
     let defaultSkillMap: SkillMap;
 
     beforeEach(async () => {
-      defaultUser = await dbUtils.createUser('1', 'A name', 'mail@example.com', 'pw');
       defaultSkillMap = await dbUtils.createSkillMap('1', 'Test', defaultUser.id);
     });
 
@@ -180,11 +201,9 @@ describe('LearningPath Service', () => {
   });
 
   describe('loadResolvedSkillRepository', () => {
-    let defaultUser: User;
     let defaultSkillMap: SkillMap;
 
     beforeEach(async () => {
-      defaultUser = await dbUtils.createUser('1', 'A name', 'mail@example.com', 'pw');
       defaultSkillMap = await dbUtils.createSkillMap(defaultUser.id, 'Test', 'A Description');
     });
 
@@ -243,11 +262,9 @@ describe('LearningPath Service', () => {
   });
 
   describe('createSkill', () => {
-    let defaultUser: User;
     let defaultSkillMap: SkillMap;
 
     beforeEach(async () => {
-      defaultUser = await dbUtils.createUser('1', 'A name', 'mail@example.com', 'pw');
       defaultSkillMap = await dbUtils.createSkillMap(defaultUser.id, 'Test', 'A Description');
     });
 
