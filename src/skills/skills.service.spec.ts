@@ -87,7 +87,7 @@ describe('LearningPath Service', () => {
   });
 
   describe('createRepository', () => {
-    it('Create First Repository -> Success', () => {
+    it('Create First Repository -> Success', async () => {
       // Precondition: No Skill-Maps defined
       expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 0 });
 
@@ -100,7 +100,24 @@ describe('LearningPath Service', () => {
         ownerId: defaultUser.id,
         description: creationDto.description ?? undefined,
       };
-      expect(skillService.createRepository(defaultUser.id, creationDto)).resolves.toMatchObject(expectation);
+      await expect(skillService.createRepository(defaultUser.id, creationDto)).resolves.toMatchObject(expectation);
+    });
+
+    it('Create Second Repository with Naming Conflict -> FrobiddenException', async () => {
+      // Precondition: One Skill-Maps defined
+      const firstMap = await db.skillMap.create({
+        data: {
+          name: 'Test',
+          owner: { connect: { id: defaultUser.id } },
+        },
+      });
+      expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
+
+      // Test: Create first repository
+      const creationDto: SkillRepositoryCreationDto = {
+        name: firstMap.name,
+      };
+      expect(skillService.createRepository(defaultUser.id, creationDto)).rejects.toThrow(ForbiddenException);
     });
   });
 
