@@ -20,7 +20,7 @@ model User {
   // Relations to user created items
   repositories    Repository[]
   lo_repositories LoRepository[]
-  skill_repo      SkillRepository[]
+  skill_repo      SkillMap[]
 
   @@map("users")
 }
@@ -167,36 +167,36 @@ model LearningGoal {
   @@map("learning_goals")
 }
 
-model SkillRepository {
+model SkillMap {
   id          String   @id @default(cuid())
   name        String
   description String?
+  taxonomy    String   @default("Bloom")
   version     String   @default("")
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   skills      Skill[]
 
-  @@unique([userId, name, version])
-  @@map("skill-repositories")
+  @@unique([ownerId, name, version])
+  @@map("skill-maps")
 }
 
 model Skill {
   id          String  @id @default(cuid())
   name        String
-  bloomLevel  Int
+  level       Int
   description String?
 
   repositoryId         String
-  repository           SkillRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repository           SkillMap @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   parentSkills         Skill[]         @relation("parentSkills")
-  parentSkillsRelation Skill[]         @relation("parentSkills")
-  pathTeachingGoal     LearningPath[]  @relation("pathTeachingGoal")
-  requirements         LearningPath[]  @relation("requirements")
+  nestedSkills         Skill[]         @relation("parentSkills")
+  pathTeachingGoals    PathGoal[]      @relation("pathTeachingGoal")
+  requirements         PathGoal[]      @relation("requirements")
 
   // Use in Learning Objects
-
   createdAt                  DateTime      @default(now())
   updatedAt                  DateTime      @updatedAt
   learningUnit               LearningUnit? @relation("teachingGoals", fields: [learningUnitId], references: [id])
@@ -208,21 +208,31 @@ model Skill {
   @@map("skills")
 }
 
-model LearningPath {
-  id               String   @id @default(cuid())
-  title            String
-  targetAudience   String
-  description      String?
-  version          String   @default("")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  pathTeachingGoal Skill    @relation("pathTeachingGoal", fields: [skillIdTG], references: [id])
-  skillIdTG        String   @default("")
-  requirement      Skill    @relation("requirements", fields: [skillIdReq], references: [id])
-  skillIdReq       String   @default("")
+model PathGoal {
+  id                String         @id @default(cuid())
+  title             String
+  targetAudience    String?
+  description       String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  pathTeachingGoals Skill[]        @relation("pathTeachingGoal")
+  requirements      Skill[]        @relation("requirements")
+  paths             LearningPath[] @relation("pathGoals")
 
-  @@unique([id, title, version])
-  @@map("LearningPaths")
+  @@map("path_goals")
+}
+
+model LearningPath {
+  id               String      @id @default(cuid())
+  title            String
+  description      String?
+  version          String      @default("")
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  goals            PathGoal[]  @relation("pathGoals")
+
+  @@unique([title, version])
+  @@map("paths")
 }
 
 enum NuggetCategory {

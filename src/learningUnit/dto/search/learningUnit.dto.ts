@@ -11,17 +11,17 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     id: number,
     title: string,
     language: string,
-    description?: string,
-    processingTime?: string | null,
-    rating?: string | null,
-    contentCreator?: string | null,
-    contentProvider?: string | null,
-    targetAudience?: string | null,
-    semanticDensity?: string | null,
-    semanticGravity?: string | null,
-    contentTags?: string[] | null,
-    contextTags?: string[] | null,
-    linkToHelpMaterial?: string | null,
+    description: string,
+    processingTime: string | null,
+    rating: string | null,
+    contentCreator: string | null,
+    contentProvider: string | null,
+    targetAudience: string | null,
+    semanticDensity: string | null,
+    semanticGravity: string | null,
+    contentTags: string[] | null,
+    contextTags: string[] | null,
+    linkToHelpMaterial: string | null,
   ) {
     super(
       language,
@@ -42,7 +42,6 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   }
 
   static createFromDao(unit: SearchLUDaoType): SearchLearningUnitDto {
-    console.log(unit);
     return new SearchLearningUnitDto(
       unit.id,
       unit.title,

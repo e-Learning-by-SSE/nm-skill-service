@@ -17,6 +17,7 @@ lerna-debug.log*
 # Tests
 /coverage
 /.nyc_output
+/src/output
 
 # IDEs and editors
 /.idea
@@ -36,3 +37,4 @@ lerna-debug.log*
 /src/output
 /output
 NUL
+/src/version.ts

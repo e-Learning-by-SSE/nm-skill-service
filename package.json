@@ -1,13 +1,14 @@
 {
   "name": "competency-repository",
-  "version": "0.0.1",
+  "version": "0.4.2",
   "description": "",
   "author": "",
   "private": true,
   "license": "Apache-2.0",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build",
+    "versioning": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
+    "build": "npm run versioning && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -86,7 +87,6 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
-    "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }
 }

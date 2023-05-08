@@ -121,7 +121,6 @@ export class LearningUnitFactory {
 
    */
   private async createSearchLearningUnit(dto: SearchLearningUnitCreationDto) {
-    console.log('createSearchLearningUnit', dto);
     // Create and return learningUnit
     try {
       const learningUnit = await this.db.learningUnit.create({

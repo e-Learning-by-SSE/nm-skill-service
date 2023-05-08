@@ -50,8 +50,8 @@ describe('LearningUnit Factory', () => {
       });
 
       it('With Parameter -> Only exact match should return', async () => {
-        const creationDtoMatch = new SearchLearningUnitCreationDto('en', 'Awesome Title', 'Awesome Description');
-        const creationDtoNoMatch = new SearchLearningUnitCreationDto('en', 'Awesome Title2', 'Awesome Description');
+        const creationDtoMatch = SearchLearningUnitCreationDto.createForTesting({ title: 'Awesome Title' });
+        const creationDtoNoMatch = SearchLearningUnitCreationDto.createForTesting({ title: 'Awesome Title 2' });
         await factory.createLearningUnit(creationDtoMatch);
         await factory.createLearningUnit(creationDtoNoMatch);
 
@@ -60,9 +60,7 @@ describe('LearningUnit Factory', () => {
 
         // Expected DTO class and values for one and only element
         const expectedItem: Partial<SearchLearningUnitDto> = {
-          language: creationDtoMatch.language,
           title: creationDtoMatch.title,
-          description: creationDtoMatch.description,
         };
         // Expected DTO class and values for the whole list
         const expectedList: SearchLearningUnitListDto = {

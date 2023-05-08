@@ -4,6 +4,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { LearningPathCreationDto, LearningPathDto, LearningPathListDto } from './dto';
+import { Prisma } from '@prisma/client';
 
 /**
  * Service that manages the creation/update/deletion
@@ -26,12 +27,27 @@ export class LearningPathMgmtService {
       const learningPath = await this.db.learningPath.create({
         data: {
           title: dto.title,
-          targetAudience: dto.targetAudience,
           description: dto.description,
+          goals: {
+            create: dto.goals.map((goal) => ({
+              title: goal.title,
+              description: goal.description,
+              targetAudience: goal.targetAudience,
+              requirements: {
+                connect: goal.requirements.map((requirement) => ({ id: requirement.id })),
+              },
+              pathTeachingGoals: {
+                connect: goal.pathGoals.map((goal) => ({ id: goal.id })),
+              },
+            })),
+          },
+        },
+        include: {
+          goals: true,
         },
       });
 
-      return learningPath as unknown as LearningPathDto;
+      return LearningPathDto.createFromDao(learningPath);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -43,18 +59,11 @@ export class LearningPathMgmtService {
     }
   }
 
-  private async loadLearningPath(learningPathId: string) {
-    const learningPath = await this.db.learningPath.findUnique({ where: { id: learningPathId } });
-
-    if (!learningPath) {
-      throw new NotFoundException('Specified learningPath not found: ' + learningPathId);
-    }
-
-    return learningPath;
-  }
-
   public async getLearningPath(learningPathId: string) {
-    const dao = await this.loadLearningPath(learningPathId);
+    const dao = await this.db.learningPath.findUnique({
+      where: { id: learningPathId },
+      include: { goals: true },
+    });
 
     if (!dao) {
       throw new NotFoundException(`Specified learningPath not found: ${learningPathId}`);
@@ -63,8 +72,11 @@ export class LearningPathMgmtService {
     return LearningPathDto.createFromDao(dao);
   }
 
-  public async loadAllLearningPaths() {
-    const learningPaths = await this.db.learningPath.findMany();
+  public async loadAllLearningPaths(args?: Prisma.LearningPathFindManyArgs) {
+    const learningPaths = await this.db.learningPath.findMany({
+      ...args,
+      include: { goals: true },
+    });
 
     if (!learningPaths) {
       throw new NotFoundException('Can not find any learningPaths');
@@ -73,6 +85,6 @@ export class LearningPathMgmtService {
     const learningPathList = new LearningPathListDto();
     learningPathList.learningPaths = learningPaths.map((learningPath) => LearningPathDto.createFromDao(learningPath));
 
-    return learningPaths;
+    return learningPathList;
   }
 }
