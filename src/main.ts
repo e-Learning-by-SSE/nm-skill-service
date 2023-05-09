@@ -23,9 +23,9 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Competence Repository')
+    .setTitle('Skill Repository')
     .addBearerAuth()
-    .setDescription('The API description of the Competence Repository.')
+    .setDescription('The API description of the Skill Repository.')
     .setVersion(LIB_VERSION)
     .build();
   const document = SwaggerModule.createDocument(app, config);

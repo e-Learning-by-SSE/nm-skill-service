@@ -124,11 +124,12 @@ export class SkillMgmtService {
       repository.description,
     );
 
+    // Search for skills of that repository that do not have a parent -> top-level skills
     const topLevelSkills = await this.db.skill.findMany({
       where: {
         repositoryId: repositoryId,
-        id: {
-          in: repository.skills.map((c) => c.id),
+        parentSkills: {
+          none: {},
         },
       },
       include: {
