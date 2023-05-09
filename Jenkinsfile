@@ -128,7 +128,8 @@ pipeline {
                     }
                     steps {
                         script {
-                            def envs = readJSON text: env.clientEnvs
+                            sh 'rm -f competence_repository*.zip'
+							def envs = readJSON text: env.clientEnvs
                             for (envspecific in envs) {
                                 def extension = envspecific.extension
                                 def pkg = envspecific.pkg
