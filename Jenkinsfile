@@ -1,5 +1,4 @@
 @Library('web-service-helper-lib') _
-def dockerTargetImage
 
 pipeline {
     agent {
@@ -7,24 +6,26 @@ pipeline {
     }
 
     environment {
-        DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository'
+        DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository:latest'
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
         NPMRC = 'e-learning-by-sse'
 
         POSTGRES_DB = 'competence-repository-db'
         POSTGRES_USER = 'postgres'
         POSTGRES_PASSWORD = 'admin'
-        
+
         JWT_SECRET = 'SEARCH_SECRET'
         EXTENSION = 'SEARCH'
+
+        API_VERSION = packageJson.getVersion()
     }
 
     options {
         ansiColor('xterm')
     }
-    
+
     stages {
-        stage ("Starting NodeJS Build") {
+        stage("Starting NodeJS Build") {
             agent {
                 docker {
                     image 'node:18-bullseye'
@@ -33,20 +34,20 @@ pipeline {
                     args '--tmpfs /.cache -u root -v /var/run/docker.sock:/var/run/docker.sock '
                 }
             }
-            stages { 
+            stages {
                 stage("Prepare Build env") {
                     steps {
                         sh 'npm install'
                         sh 'apt update'
                         sh 'apt install -y docker.io'
                     }
-                }        
-                
+                }
+
                 stage('Lint') {
                     steps {
                         sh 'npm run lint:ci'
                     }
-                }   
+                }
 
                 stage('Test') {
                     environment {
@@ -76,24 +77,26 @@ pipeline {
                         }
                         always {
                             junit 'output/**/junit*.xml'
-                    }
+                        }
                     }
                 }
 
                 stage('Build') {
-
                     steps {
-                        sh 'mv docker/Dockerfile Dockerfile'
-                        script {
-                            API_VERSION = sh(returnStdout: true, script: 'grep -Po "(?<=\\\"version\\\": \\\")(.*)(?=\\\",$)" package.json').trim()
-                            dockerTargetImage = docker.build "${DOCKER_TARGET}"
-                            publishDockerImages("${env.DOCKER_TARGET}", ["${API_VERSION}", "latest"])
+                        ssedocker {
+                            create {
+                                context './docker'
+                                target "${env.DOCKER_TARGET}"
+                            }
+                            publish {
+                                tag "${env.API_VERSION}"
+                            }
                         }
                     }
                 }
             }
         }
-        
+
         stage('Starting Post Build Actions') {
             parallel {
 
@@ -105,16 +108,16 @@ pipeline {
                         }
                     }
                     steps {
-                        stagingDeploy("${REMOTE_UPDATE_SCRIPT}")
+                        stagingDeploy env.REMOTE_UPDATE_SCRIPT
                     }
                 }
 
                 stage('Publish Swagger Clients') {
                     when {
-                        branch 'main'
-                    }
-                    agent {
-                        label 'docker && maven'
+                        allOf {
+                            branch 'main'
+                            expression { packageJson.isNewVersion() }
+                        }
                     }
                     options {
                         timeout(time: 120, unit: 'SECONDS')
@@ -133,12 +136,11 @@ pipeline {
                             for (envspecific in envs) {
                                 def extension = envspecific.extension
                                 def pkg = envspecific.pkg
-                                //def version = sh(returnStdout: true, script: 'grep -Po "(?<=export const VERSION = \')[^\';]+" src/version.ts').trim()
-                                def version = 'citesting'
 
-                                dockerTargetImage.withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
-								    generateSwaggerClient("${env.APP_URL}", "${version}", 'net.ssehub.e_learning', "${pkg}", ['python', 'python-nextgen'])
-                                    generateSwaggerClient("${env.APP_URL}", "${version}", 'net.ssehub.e_learning', "${pkg}", ['typescript-axios']) {
+                                docker.image(env.DOCKER_TARGET).withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
+                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['python', 'python-nextgen'])
+
+                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['typescript-axios python ']) {
                                         docker.image('node').inside('-v $HOME/.npm:/.npm') {
                                             dir('target/generated-sources/openapi') {
                                                 sh 'npm install'
@@ -150,14 +152,8 @@ pipeline {
                             }
                         }
                     }
-					post {
-						success {
-							archiveArtifacts artifacts: '*.zip', onlyIfSuccessful: true
-						}
-					}
                 }
-            }         
+            }
         }
     }
 }
-
