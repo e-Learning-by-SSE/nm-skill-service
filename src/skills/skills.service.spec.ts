@@ -13,7 +13,7 @@ import {
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { SkillMap } from '@prisma/client';
 
-describe('LearningPath Service', () => {
+describe('Skill Service', () => {
   // Auxillary objects
   const config = new ConfigService();
   const db = new PrismaService(config);
@@ -104,7 +104,7 @@ describe('LearningPath Service', () => {
     });
 
     it('Create Second Repository with Naming Conflict -> ForbiddenException', async () => {
-      // Precondition: One Skill-Maps defined
+      // Precondition: One Skill-Map defined
       const firstMap = await db.skillMap.create({
         data: {
           name: 'Test',
@@ -116,7 +116,8 @@ describe('LearningPath Service', () => {
       // Test: Create first repository
       const creationDto: SkillRepositoryCreationDto = {
         name: firstMap.name,
-        owner: 'User-1',
+        owner: firstMap.owner,
+        version: firstMap.version,
       };
       await expect(skillService.createRepository(creationDto)).rejects.toThrow(ForbiddenException);
     });

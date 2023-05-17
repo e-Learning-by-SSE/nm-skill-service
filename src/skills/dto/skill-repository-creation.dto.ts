@@ -12,4 +12,7 @@ export class SkillRepositoryCreationDto {
 
   @IsOptional()
   description?: string;
+
+  @IsOptional()
+  version?: string;
 }
