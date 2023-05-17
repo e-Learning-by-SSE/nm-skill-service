@@ -118,7 +118,7 @@ describe('LearningPath Service', () => {
         name: firstMap.name,
         owner: 'User-1',
       };
-      expect(skillService.createRepository(creationDto)).rejects.toThrow(ForbiddenException);
+      await expect(skillService.createRepository(creationDto)).rejects.toThrow(ForbiddenException);
     });
   });
 

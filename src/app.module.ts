@@ -13,7 +13,7 @@ import { validate } from './config/env.validation';
     ConfigModule.forRoot({ isGlobal: true, validate, validationOptions: { allowUnknown: false } }),
     PrismaModule,
     SkillModule,
-    DynamicNuggetModuleModule,
+    DynamicNuggetModuleModule.register(),
     LearningPathModule,
     DynamicLearningUnitModule.register(),
   ],
