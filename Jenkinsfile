@@ -86,7 +86,6 @@ pipeline {
 
                 stage('Build') {
                     steps {
-                        sh 'cp docker/Dockerfile ./' // copies files into image, relative from its position
                         ssedocker {
                             create {
                                 target "${env.DOCKER_TARGET}"
