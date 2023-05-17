@@ -5,6 +5,9 @@ import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
  */
 export class SkillCreationDto {
   @IsNotEmpty()
+  owner!: string;
+
+  @IsNotEmpty()
   name: string;
 
   @IsNotEmpty()

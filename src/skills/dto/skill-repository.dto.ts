@@ -32,7 +32,7 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
   static createFromDao(repository: SkillMap): SkillRepositoryDto {
     return new SkillRepositoryDto(
       repository.id,
-      repository.ownerId,
+      repository.owner,
       repository.name,
       repository.version,
       repository.taxonomy,

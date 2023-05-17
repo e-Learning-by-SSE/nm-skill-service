@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
-import { JwtGuard } from '../auth/guard';
 import { NuggetCreationDto } from './dto';
 
 import { NuggetMgmtService } from './nugget.service';
@@ -16,8 +15,6 @@ export class NuggetMgmtController {
    
    * @returns List of all nuggets.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Get('showAllNuggets')
   listNuggets() {
     return this.nuggetService.loadAllNuggets();
@@ -30,8 +27,6 @@ export class NuggetMgmtController {
    * @param dto The nugget description
    * @returns The created nugget.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Post('add_nugget')
   addNugget(@Body() dto: NuggetCreationDto) {
     return this.nuggetService.createNugget(dto);

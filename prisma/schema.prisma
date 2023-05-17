@@ -10,176 +10,18 @@ datasource db {
   url      = env("DB_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  pw        String
-  createdAt DateTime @default(now())
-
-  // Relations to user created items
-  repositories    Repository[]
-  lo_repositories LoRepository[]
-  skill_repo      SkillMap[]
-
-  @@map("users")
-}
-
-model Repository {
-  id                String            @id @default(cuid())
-  name              String
-  description       String?
-  taxonomy          String?
-  version           String            @default("")
-  userId            String
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  competencies      Competence[]
-  uebercompetencies UeberCompetence[]
-
-  @@unique([userId, name, version])
-  @@map("repositories")
-}
-
-model Competence {
-  id          String  @id @default(cuid())
-  skill       String
-  level       Int
-  description String?
-
-  repositoryId String
-  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-
-  // Implicit Many-to-Many relation:
-  // https://www.prisma.io/docs/concepts/components/prisma-schema/relations/many-to-many-relations#implicit-many-to-many-relations
-  parentUeberCompetences UeberCompetence[]
-
-  // Use in Learning Objects
-  requiredFor LearningObject[] @relation("requiredCompetencies")
-  offeredFor  LearningObject[] @relation("offeredCompetencies")
-
-  // Use in Learning Goals
-  goalOf LearningGoal[] @relation("lowlevelGoals")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([repositoryId, skill])
-  @@map("competencies")
-}
-
-model UeberCompetence {
-  id          String  @id @default(cuid())
-  name        String
-  description String?
-
-  repositoryId String
-  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-
-  // Implicit Many-to-Many relation:
-  // https://www.prisma.io/docs/concepts/components/prisma-schema/relations/many-to-many-relations#implicit-many-to-many-relations
-  subCompetences         Competence[]
-  subUeberCompetences    UeberCompetence[] @relation("nesting")
-  parentUeberCompetences UeberCompetence[] @relation("nesting")
-
-  // Use in Learning Objects
-  requiredFor LearningObject[] @relation("requiredUeberCompetencies")
-  offeredFor  LearningObject[] @relation("offeredUeberCompetencies")
-
-  // Use in Learning Goals
-  goalOf LearningGoal[] @relation("highlevelGoals")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([repositoryId, name])
-  @@map("ueber_competencies")
-}
-
-model LoRepository {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-
-  learningObjects    LearningObject[]
-  learningComposites GroupedLearningObjects[]
-  learningGoals      LearningGoal[]
-
-  @@unique([userId, name])
-  @@map("lo-repositories")
-}
-
-// Atomic learning object (has no childs)
-model LearningObject {
-  id             String       @id @default(cuid())
-  name           String
-  description    String?
-  loRepositoryId String
-  loRepository   LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
-
-  // Requires/Offers on Competencies
-  requiredCompetencies Competence[] @relation("requiredCompetencies")
-  offeredCompetencies  Competence[] @relation("offeredCompetencies")
-
-  // Requires/Offers on Ueber-Competencies
-  requiredUeberCompetencies UeberCompetence[] @relation("requiredUeberCompetencies")
-  offeredUeberCompetencies  UeberCompetence[] @relation("offeredUeberCompetencies")
-
-  parentGroups GroupedLearningObjects[]
-
-  @@unique([loRepositoryId, name])
-  @@map("learning_objects")
-}
-
-// Grouped Learning Objects (have childs)
-model GroupedLearningObjects {
-  id             String       @id @default(cuid())
-  name           String
-  description    String?
-  loRepositoryId String
-  loRepository   LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
-
-  // Learning Objects
-  nestedLOs    LearningObject[]
-  nestedGroups GroupedLearningObjects[] @relation("nesting_of_grouped_los")
-  parentGroups GroupedLearningObjects[] @relation("nesting_of_grouped_los")
-
-  @@unique([loRepositoryId, name])
-  @@map("grouped_learning_objects")
-}
-
-model LearningGoal {
-  id             String       @id @default(cuid())
-  name           String
-  description    String?
-  loRepositoryId String
-  loRepository   LoRepository @relation(fields: [loRepositoryId], references: [id], onDelete: Cascade)
-
-  // Definition of Goals by (Ueber-) Competencies
-  lowLevelGoals  Competence[]      @relation("lowlevelGoals")
-  highLevelGoals UeberCompetence[] @relation("highlevelGoals")
-
-  @@unique([loRepositoryId, name])
-  @@map("learning_goals")
-}
-
 model SkillMap {
   id          String   @id @default(cuid())
   name        String
   description String?
   taxonomy    String   @default("Bloom")
   version     String   @default("")
-  ownerId     String
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   skills      Skill[]
 
-  @@unique([ownerId, name, version])
+  @@unique([owner, name, version])
   @@map("skill-maps")
 }
 

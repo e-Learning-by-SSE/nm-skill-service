@@ -24,8 +24,35 @@ import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.
 export class SkillMgmtService {
   constructor(private db: PrismaService) {}
 
-  async findSkillRepositories(dto?: SkillRepositorySearchDto) {
-    const query: Prisma.SkillMapFindManyArgs = computePageQuery(dto);
+  public async findSkillRepositories(
+    page: number | null,
+    pageSize: number | null,
+    owner: string | null,
+    name: string | null,
+    version: string | null,
+  ) {
+    const query: Prisma.SkillMapFindManyArgs = {};
+
+    // By default all parameters of WHERE are combined with AND:
+    // https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#and
+    if (owner || name || version) {
+      query.where = {
+        owner: owner ?? undefined,
+        name: name ?? undefined,
+        version: version ?? undefined,
+      };
+    } else {
+      // Ensure pagination if no filters are defined
+      if (page == null || pageSize == null) {
+        page = page ?? 0;
+        pageSize = pageSize ?? 10;
+      }
+    }
+    if (page && page >= 0 && pageSize && pageSize > 0) {
+      query.skip = page * pageSize;
+      query.take = pageSize;
+    }
+
     const repositories = await this.db.skillMap.findMany(query);
 
     const repoList = new SkillRepositoryListDto();
@@ -40,24 +67,15 @@ export class SkillMgmtService {
    * @param ownerId The owner of the repositories
    * @returns The list of his repositories
    */
-  async listRepositories(ownerId: string) {
-    const repositories = await this.db.skillMap.findMany({
-      where: {
-        ownerId: ownerId,
-      },
-    });
-
-    const repoList = new SkillRepositoryListDto();
-    repoList.repositories = repositories.map((repository) => SkillRepositoryDto.createFromDao(repository));
-
-    return repoList;
+  async listSkillMaps(ownerId: string) {
+    return this.findSkillRepositories(null, null, ownerId, null, null);
   }
 
-  async createRepository(ownerId: string, dto: SkillRepositoryCreationDto) {
+  async createRepository(dto: SkillRepositoryCreationDto) {
     try {
       const repository = await this.db.skillMap.create({
         data: {
-          ownerId: ownerId,
+          owner: dto.owner,
           name: dto.name,
 
           description: dto.description,
@@ -77,7 +95,7 @@ export class SkillMgmtService {
   }
 
   public async getSkillRepository(
-    ownerId: string,
+    owner: string | null,
     repositoryId: string,
     includeSkills = false,
     args?: Prisma.SkillMapFindUniqueArgs,
@@ -97,15 +115,15 @@ export class SkillMgmtService {
       throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
     }
 
-    if (repository.ownerId != ownerId) {
-      throw new ForbiddenException('Repository owned by another user');
+    if (owner && repository.owner !== owner) {
+      throw new ForbiddenException(`Specified repository "${repositoryId}" is not owned by user: ${owner}`);
     }
 
     return repository;
   }
 
-  public async loadSkillRepository(userId: string, repositoryId: string) {
-    const repository = await this.getSkillRepository(userId, repositoryId, true);
+  public async loadSkillRepository(repositoryId: string) {
+    const repository = await this.getSkillRepository(null, repositoryId, true);
     const result: UnresolvedSkillRepositoryDto = {
       ...SkillRepositoryDto.createFromDao(repository),
       skills: repository.skills.map((c) => c.id),
@@ -114,8 +132,8 @@ export class SkillMgmtService {
     return result;
   }
 
-  public async loadResolvedSkillRepository(userId: string, repositoryId: string) {
-    const repository = await this.getSkillRepository(userId, repositoryId, false);
+  public async loadResolvedSkillRepository(repositoryId: string) {
+    const repository = await this.getSkillRepository(null, repositoryId, false);
     const result = ResolvedSkillRepositoryDto.create(
       repository.id,
       repository.name,
@@ -148,14 +166,12 @@ export class SkillMgmtService {
 
   /**
    * Adds a new skill to a specified repository
-   * @param userId The ID of the user who wants to create a skill at one of his repositories
    * @param dto Specifies the skill to be created and the repository at which it shall be created
    * @returns The newly created skill
    */
-
-  async createSkill(userId: string, skillRepositoryId: string, dto: SkillCreationDto) {
+  async createSkill(skillRepositoryId: string, dto: SkillCreationDto) {
     // Checks that the user is the owner of the repository / repository exists
-    await this.getSkillRepository(userId, skillRepositoryId);
+    await this.getSkillRepository(dto.owner, skillRepositoryId);
 
     // Create and return skill
     try {

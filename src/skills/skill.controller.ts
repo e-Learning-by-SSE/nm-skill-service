@@ -1,8 +1,6 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
-import { GetUser } from '../auth/decorator';
-import { JwtGuard } from '../auth/guard';
 import { SkillCreationDto, SkillRepositorySearchDto, SkillRepositoryCreationDto } from './dto';
 
 import { SkillMgmtService } from './skill.service';
@@ -14,19 +12,24 @@ export class SkillMgmtController {
 
   @Post()
   searchForRepositories(@Body() dto?: SkillRepositorySearchDto) {
-    return this.skillService.findSkillRepositories(dto);
+    return this.skillService.findSkillRepositories(
+      dto?.page ?? null,
+      dto?.pageSize ?? null,
+      dto?.owner ?? null,
+      dto?.name ?? null,
+      dto?.version ?? null,
+    );
   }
 
   /**
    * Lists all repositories of the specified user, without showing its content.
-   * @param userId The user for which the repositories shall be listed.
+   * @param owner The user for which the repositories shall be listed.
    * @returns The repositories of the specified user.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
-  @Get('showOwn')
-  listRepositories(@GetUser('id') userId: string) {
-    return this.skillService.listRepositories(userId);
+  @Get(':owner')
+  listRepositories(@Param('owner') owner: string) {
+    // SE: I do not expect so many repositories per user that we need pagination here
+    return this.skillService.findSkillRepositories(null, null, owner, null, null);
   }
 
   /**
@@ -34,8 +37,6 @@ export class SkillMgmtController {
    
    * @returns List of all skills.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Get('showAllSkills')
   listSkills() {
     return this.skillService.loadAllSkills();
@@ -44,54 +45,42 @@ export class SkillMgmtController {
   /**
    * Returns one repository and its unresolved elements.
    * Skills and their relations are handled as IDs and need to be resolved on the client-side.
-   * @param userId The user for which the repositories shall be listed.
    * @returns The repositories of the specified user.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Get(':repositoryId')
-  async loadRepository(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string) {
-    return this.skillService.loadSkillRepository(userId, repositoryId);
+  async loadRepository(@Param('repositoryId') repositoryId: string) {
+    return this.skillService.loadSkillRepository(repositoryId);
   }
 
   /**
    * Returns one resolved repository and its elements.
    * Skills and their relations are resolved at the server.
-   * @param userId The user for which the repositories shall be listed.
    * @returns The repositories of the specified user.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Get('resolve/:repositoryId')
-  async loadResolvedRepository(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string) {
-    return this.skillService.loadResolvedSkillRepository(userId, repositoryId);
+  async loadResolvedRepository(@Param('repositoryId') repositoryId: string) {
+    return this.skillService.loadResolvedSkillRepository(repositoryId);
   }
 
   /**
    * Creates a new skill repository for the specified user.
-   * @param userId The user for which the new repository shall be created.
    * @param dto specifies the attributes of the new repository
    * @returns The newly created repository or an error message.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Post('skill/create')
-  createRepository(@GetUser('id') userId: string, @Body() dto: SkillRepositoryCreationDto) {
-    return this.skillService.createRepository(userId, dto);
+  createRepository(@Body() dto: SkillRepositoryCreationDto) {
+    return this.skillService.createRepository(dto);
   }
 
   /**
    * Creates a new skill at the specified repository and returns the created skill.
-   * @param userId The owner of the repository
    * @param repositoryId The repository at which the skill shall be added to.
    * @param dto The skill description
    * @returns The created skill.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Post(':repositoryId/skill/add_skill')
-  addSkill(@GetUser('id') userId: string, @Param('repositoryId') repositoryId: string, @Body() dto: SkillCreationDto) {
-    return this.skillService.createSkill(userId, repositoryId, dto);
+  addSkill(@Param('repositoryId') repositoryId: string, @Body() dto: SkillCreationDto) {
+    return this.skillService.createSkill(repositoryId, dto);
   }
 
   /**
