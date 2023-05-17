@@ -143,9 +143,9 @@ pipeline {
                                     // Wait for container to be ready   
                                     sleep(time:45, unit:"SECONDS")
 				    
-                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['python', 'python-nextgen'])
+                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['python'])
 
-                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['typescript-axios python ']) {
+                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['typescript-axios']) {
                                         docker.image('node').inside('-v $HOME/.npm:/.npm') {
                                             dir('target/generated-sources/openapi') {
                                                 sh 'npm install'
