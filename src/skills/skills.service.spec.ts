@@ -11,9 +11,9 @@ import {
   SkillRepositoryListDto,
 } from './dto';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { SkillMap, User } from '@prisma/client';
+import { SkillMap } from '@prisma/client';
 
-describe('LearningPath Service', () => {
+describe('Skill Service', () => {
   // Auxillary objects
   const config = new ConfigService();
   const db = new PrismaService(config);
@@ -22,24 +22,20 @@ describe('LearningPath Service', () => {
   // Test object
   const skillService = new SkillMgmtService(db);
 
-  // Default user -> Used in most of the tests
-  let defaultUser: User;
-
   beforeEach(async () => {
     // Wipe DB before test
     await dbUtils.wipeDb();
-
-    // Create first user
-    defaultUser = await dbUtils.createUser('1', 'A name', 'mail@example.com', 'pw');
   });
 
-  describe('listRepositories', () => {
+  describe('findSkillRepositories', () => {
     it('Empty DB -> Empty ResultList', async () => {
       // Precondition: No Skill-Maps defined
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 0 });
 
       // Test: Empty result list
-      await expect(skillService.listRepositories('anyID')).resolves.toEqual({ repositories: [] });
+      await expect(skillService.findSkillRepositories(null, null, null, null, null)).resolves.toEqual({
+        repositories: [],
+      });
     });
 
     it('Query for not existing ID -> Empty ResultList', async () => {
@@ -47,28 +43,29 @@ describe('LearningPath Service', () => {
       await db.skillMap.create({
         data: {
           name: 'Test',
-          owner: { connect: { id: defaultUser.id } },
+          owner: 'User-1',
         },
       });
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
 
       // Test: Empty result list
-      await expect(skillService.listRepositories('anyID')).resolves.toEqual({ repositories: [] });
+      await expect(skillService.findSkillRepositories(null, null, 'User-2', null, null)).resolves.toEqual({
+        repositories: [],
+      });
     });
 
     it('Query for existing ID -> ResultList with exact match', async () => {
       // Precondition: Some Skill-Maps defined
-      const user2 = await dbUtils.createUser('2', 'Second name', 'mail2@example.com', 'pw');
       const firstCreationResult = await db.skillMap.create({
         data: {
           name: 'Test',
-          owner: { connect: { id: defaultUser.id } },
+          owner: 'User-1',
         },
       });
       await db.skillMap.create({
         data: {
           name: 'Test2',
-          owner: { connect: { id: user2.id } },
+          owner: 'User-2',
         },
       });
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 2 });
@@ -77,12 +74,14 @@ describe('LearningPath Service', () => {
       const expectedResult: Partial<SkillRepositoryDto> = {
         id: firstCreationResult.id,
         name: firstCreationResult.name,
-        ownerId: defaultUser.id,
+        ownerId: firstCreationResult.owner,
       };
       const expectedList: SkillRepositoryListDto = {
         repositories: [expect.objectContaining(expectedResult)],
       };
-      await expect(skillService.listRepositories(defaultUser.id)).resolves.toMatchObject(expectedList);
+      await expect(skillService.findSkillRepositories(null, null, 'User-1', null, null)).resolves.toMatchObject(
+        expectedList,
+      );
     });
   });
 
@@ -94,21 +93,22 @@ describe('LearningPath Service', () => {
       // Test: Create first repository
       const creationDto: SkillRepositoryCreationDto = {
         name: 'Test',
+        owner: 'User-1',
       };
       const expectation: Partial<SkillRepositoryDto> = {
         name: creationDto.name,
-        ownerId: defaultUser.id,
+        ownerId: creationDto.owner,
         description: creationDto.description ?? undefined,
       };
-      await expect(skillService.createRepository(defaultUser.id, creationDto)).resolves.toMatchObject(expectation);
+      await expect(skillService.createRepository(creationDto)).resolves.toMatchObject(expectation);
     });
 
-    it('Create Second Repository with Naming Conflict -> FrobiddenException', async () => {
-      // Precondition: One Skill-Maps defined
+    it('Create Second Repository with Naming Conflict -> ForbiddenException', async () => {
+      // Precondition: One Skill-Map defined
       const firstMap = await db.skillMap.create({
         data: {
           name: 'Test',
-          owner: { connect: { id: defaultUser.id } },
+          owner: 'User-1',
         },
       });
       expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
@@ -116,8 +116,10 @@ describe('LearningPath Service', () => {
       // Test: Create first repository
       const creationDto: SkillRepositoryCreationDto = {
         name: firstMap.name,
+        owner: firstMap.owner,
+        version: firstMap.version,
       };
-      expect(skillService.createRepository(defaultUser.id, creationDto)).rejects.toThrow(ForbiddenException);
+      await expect(skillService.createRepository(creationDto)).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -125,7 +127,7 @@ describe('LearningPath Service', () => {
     let defaultSkillMap: SkillMap;
 
     beforeEach(async () => {
-      defaultSkillMap = await dbUtils.createSkillMap('1', 'Test', defaultUser.id);
+      defaultSkillMap = await dbUtils.createSkillMap('1', 'Test');
     });
 
     it('Non existing ID -> NotFoundException', async () => {
@@ -221,7 +223,7 @@ describe('LearningPath Service', () => {
     let defaultSkillMap: SkillMap;
 
     beforeEach(async () => {
-      defaultSkillMap = await dbUtils.createSkillMap(defaultUser.id, 'Test', 'A Description');
+      defaultSkillMap = await dbUtils.createSkillMap('User-1', 'Test', 'A Description');
     });
 
     it('2 Top-Level Skills + Multiple Nested', async () => {
@@ -238,7 +240,7 @@ describe('LearningPath Service', () => {
       await expect(db.skill.aggregate({ _count: true })).resolves.toEqual({ _count: 4 });
 
       // Test: Load skill
-      const result = skillService.loadResolvedSkillRepository(defaultUser.id, defaultSkillMap.id);
+      const result = skillService.loadResolvedSkillRepository(defaultSkillMap.id);
 
       // Expected result: DTO representation of skill, without parent and nested skills
       const expectedSkill3: Partial<SkillDto> = {
@@ -282,7 +284,7 @@ describe('LearningPath Service', () => {
     let defaultSkillMap: SkillMap;
 
     beforeEach(async () => {
-      defaultSkillMap = await dbUtils.createSkillMap(defaultUser.id, 'Test', 'A Description');
+      defaultSkillMap = await dbUtils.createSkillMap('User-1', 'Test', 'A Description');
     });
 
     it('Create on Empty DB -> New DTO', async () => {
@@ -291,6 +293,7 @@ describe('LearningPath Service', () => {
 
       // Test: Create skill
       const creationDto: SkillCreationDto = {
+        owner: defaultSkillMap.owner,
         name: 'Skill 1',
         level: 1,
         description: 'A Description',
@@ -305,9 +308,7 @@ describe('LearningPath Service', () => {
         description: creationDto.description,
         nestedSkills: [],
       };
-      await expect(skillService.createSkill(defaultUser.id, defaultSkillMap.id, creationDto)).resolves.toMatchObject(
-        expectedSkill,
-      );
+      await expect(skillService.createSkill(defaultSkillMap.id, creationDto)).resolves.toMatchObject(expectedSkill);
     });
 
     it('Existing Name -> ForbiddenException', async () => {
@@ -323,6 +324,7 @@ describe('LearningPath Service', () => {
 
       // Test: Create skill
       const creationDto: SkillCreationDto = {
+        owner: defaultSkillMap.owner,
         name: firstSkill.name,
         level: 2,
         description: 'Another Description',
@@ -331,9 +333,7 @@ describe('LearningPath Service', () => {
       };
 
       // Expected result: Exception because of naming conflict
-      await expect(skillService.createSkill(defaultUser.id, defaultSkillMap.id, creationDto)).rejects.toThrowError(
-        ForbiddenException,
-      );
+      await expect(skillService.createSkill(defaultSkillMap.id, creationDto)).rejects.toThrowError(ForbiddenException);
     });
   });
 });

@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
-import { JwtGuard } from '../auth/guard';
 import { LearningPathCreationDto } from './dto';
 
 import { LearningPathMgmtService } from './learningPath.service';
@@ -16,8 +15,6 @@ export class LearningPathMgmtController {
    
    * @returns List of all learning paths.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Get('showAllLearningPaths')
   listLearningPaths() {
     return this.learningpathService.loadAllLearningPaths();
@@ -30,8 +27,6 @@ export class LearningPathMgmtController {
    * @param dto The learningpath description
    * @returns The created learningpath.
    */
-  @ApiBearerAuth()
-  @UseGuards(JwtGuard)
   @Post('add_learningpath')
   addLearningpath(@Body() dto: LearningPathCreationDto) {
     return this.learningpathService.createLearningPath(dto);

@@ -37,6 +37,8 @@ pipeline {
             stages {
                 stage("Prepare Build env") {
                     steps {
+                        sh 'rm -rf output/'
+                        sh 'rm -rf src/output/'
                         sh 'npm install'
                         sh 'apt update'
                         sh 'apt install -y docker.io'
@@ -61,6 +63,7 @@ pipeline {
                                 sh 'npm run versioning'
                                 sh 'npm run test:jenkins'
                                 sh 'mv env-settings.backup .env' // Restore .env
+                                sh 'touch testfile.txt'
                             }
                         }
                     }
@@ -68,7 +71,7 @@ pipeline {
                         success {
                             step([
                                 $class: 'CloverPublisher',
-                                cloverReportDir: 'output/test/coverage/',
+                                cloverReportDir: 'src/output/test/coverage/',
                                 cloverReportFileName: 'clover.xml',
                                 healthyTarget: [methodCoverage: 70, conditionalCoverage: 80, statementCoverage: 80],   // optional, default is: method=70, conditional=80, statement=80
                                 unhealthyTarget: [methodCoverage: 50, conditionalCoverage: 50, statementCoverage: 50], // optional, default is none
@@ -76,7 +79,7 @@ pipeline {
                             ])
                         }
                         always {
-                            junit 'output/**/junit*.xml'
+                            junit 'output/test/junit*.xml'
                         }
                     }
                 }

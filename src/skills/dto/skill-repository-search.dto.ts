@@ -13,4 +13,10 @@ export class SkillRepositorySearchDto {
 
   @IsOptional()
   name?: string;
+
+  @IsOptional()
+  version?: string;
+
+  @IsOptional()
+  owner?: string;
 }
