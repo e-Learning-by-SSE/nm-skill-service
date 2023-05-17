@@ -450,31 +450,28 @@ async function createSkillGroups() {
 }
 
 async function createLearningObjects() {
-  await Promise.all(
-    learningObjectives.map(async (lo) => {
-      const requirements = lo.requirements.map((i) => ({ id: i }));
-      const teachingGoals = lo.teachingGoals.map((i) => ({ id: i }));
-
-      await prisma.learningUnit.create({
-        data: {
-          id: lo.id,
-          title: lo.name,
-          language: 'de',
-          description: lo.description,
-          requirements: {
-            connect: requirements,
-          },
-          teachingGoals: {
-            connect: teachingGoals,
-          },
+  // Avoid Deadlocks -> Run all in sequence
+  for (const unit of learningObjectives) {
+    await prisma.learningUnit.create({
+      data: {
+        id: unit.id,
+        title: unit.name,
+        language: 'de',
+        description: unit.description,
+        requirements: {
+          connect: unit.requirements.map((i) => ({ id: i })),
         },
-      });
-    }),
-  );
+        teachingGoals: {
+          connect: unit.teachingGoals.map((i) => ({ id: i })),
+        },
+      },
+    });
+  }
 }
 
 async function createGoals() {
-  await Promise.all(
+  // Avoid Deadlocks -> Run all in sequence
+  for (const goal of learningGoals) {
     learningGoals.map(async (goal) => {
       await prisma.pathGoal.create({
         data: {
@@ -486,6 +483,6 @@ async function createGoals() {
           },
         },
       });
-    }),
-  );
+    });
+  }
 }
