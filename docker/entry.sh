@@ -14,8 +14,10 @@ fi
 # based on: https://stackoverflow.com/a/50638207
 if [ ! -e /home/node/db_initialized ]; then
     cd /usr/src/app/
-    # Clear database and apply sample data on first boot
-    npx prisma migrate reset --force --skip-generate
+   
+    # Create database and apply sample data on first boot
+    npx prisma db push --accept-data-loss
+    npx prisma db seed
 
     touch /home/node/db_initialized
     
