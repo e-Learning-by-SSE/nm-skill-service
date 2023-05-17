@@ -85,7 +85,6 @@ pipeline {
                     steps {
                         ssedocker {
                             create {
-                                context './docker'
                                 target "${env.DOCKER_TARGET}"
                             }
                             publish {
