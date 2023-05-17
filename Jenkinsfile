@@ -140,9 +140,12 @@ pipeline {
                                 def pkg = envspecific.pkg
 
                                 docker.image(env.DOCKER_TARGET).withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
-                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['python', 'python-nextgen'])
+                                    // Wait for container to be ready   
+                                    sleep(time:45, unit:"SECONDS")
+				    
+                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['python'])
 
-                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['typescript-axios python ']) {
+                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['typescript-axios']) {
                                         docker.image('node').inside('-v $HOME/.npm:/.npm') {
                                             dir('target/generated-sources/openapi') {
                                                 sh 'npm install'
