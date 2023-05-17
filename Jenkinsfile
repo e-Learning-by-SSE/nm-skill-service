@@ -63,6 +63,7 @@ pipeline {
                                 sh 'npm run versioning'
                                 sh 'npm run test:jenkins'
                                 sh 'mv env-settings.backup .env' // Restore .env
+                                sh 'touch testfile.txt'
                             }
                         }
                     }
