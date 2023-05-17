@@ -117,7 +117,7 @@ pipeline {
                 stage('Publish Swagger Clients') {
                     when {
                         allOf {
-                            branch 'main'
+                            branch 'dev'
                             expression { packageJson.isNewVersion() }
                         }
                     }
@@ -140,8 +140,8 @@ pipeline {
                                 def pkg = envspecific.pkg
 
                                 docker.image(env.DOCKER_TARGET).withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
-                                    // Wait for container to be ready   
-                                    sleep(time:45, unit:"SECONDS")
+                                    // Wait for the application to be ready (after container was started)  
+                                    sleep(time:20, unit:"SECONDS")
 				    
                                     generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['python'])
 
@@ -149,7 +149,7 @@ pipeline {
                                         docker.image('node').inside('-v $HOME/.npm:/.npm') {
                                             dir('target/generated-sources/openapi') {
                                                 sh 'npm install'
-                                                publishNpm("${NPMRC}")
+                                                npmPublish("${NPMRC}")
                                             }
                                         }
                                     }
