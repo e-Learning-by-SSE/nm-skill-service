@@ -37,6 +37,8 @@ pipeline {
             stages {
                 stage("Prepare Build env") {
                     steps {
+                        sh 'rm -rf output/'
+                        sh 'rm -rf src/output/'
                         sh 'npm install'
                         sh 'apt update'
                         sh 'apt install -y docker.io'
