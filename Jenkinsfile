@@ -122,7 +122,7 @@ pipeline {
                         }
                     }
                     options {
-                        timeout(time: 120, unit: 'SECONDS')
+                        timeout(time: 200, unit: 'SECONDS')
                     }
                     environment {
                         APP_URL = "http://localhost:3000/api-json"
