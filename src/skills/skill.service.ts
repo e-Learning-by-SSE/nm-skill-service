@@ -272,16 +272,56 @@ export class SkillMgmtService {
     return result;
   }
 
-  public async loadAllSkills() {
-    const skills = await this.db.skill.findMany();
+  public async searchSkills(
+    page: number | null,
+    pageSize: number | null,
+    name: string | Prisma.StringFilter | null,
+    level: number | null,
+    repositoryId: string | null,
+  ) {
+    const query: Prisma.SkillFindManyArgs = {};
+
+    // By default all parameters of WHERE are combined with AND:
+    // https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#and
+    if (name || repositoryId) {
+      query.where = {
+        name: name ?? undefined,
+        repositoryId: repositoryId ?? undefined,
+      };
+      // Consider level only if at least also a name was specified
+      if (name) {
+        query.where.level = level ?? undefined;
+      }
+    } else {
+      // Ensure pagination if no filters are defined
+      if (page == null || pageSize == null) {
+        page = page ?? 0;
+        pageSize = pageSize ?? 10;
+      }
+    }
+    if (page && page >= 0 && pageSize && pageSize > 0) {
+      query.skip = page * pageSize;
+      query.take = pageSize;
+    }
+    const skills = await this.db.skill.findMany({
+      ...query,
+      include: {
+        nestedSkills: true,
+      },
+    });
 
     if (!skills) {
       throw new NotFoundException('Can not find any skills');
     }
 
+    // Resolve nested skills if there are any
     const skillList = new SkillListDto();
-    skillList.skills = skills.map((skill) => SkillDto.createFromDao(skill));
+    const resolved = new Map<string, SkillDto>();
+    for (const skill of skills) {
+      // Promise.all would be much faster, but this would not guarantee reuse of already resolved objects
+      skillList.skills.push(await this.loadSkill(skill, resolved));
+    }
 
-    return skills;
+    return skillList;
   }
 }
