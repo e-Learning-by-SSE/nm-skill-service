@@ -117,7 +117,7 @@ pipeline {
                 stage('Publish Swagger Clients') {
                     when {
                         allOf {
-                            branch 'dev'
+                            branch 'main'
                             expression { packageJson.isNewVersion() }
                         }
                     }
