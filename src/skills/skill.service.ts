@@ -2,13 +2,11 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { Prisma, Skill } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
-import { computePageQuery } from '../db_utils';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   SkillCreationDto,
   SkillDto,
   SkillRepositoryCreationDto,
-  SkillRepositorySearchDto,
   SkillListDto,
   SkillRepositoryDto,
   SkillRepositoryListDto,
@@ -28,7 +26,7 @@ export class SkillMgmtService {
     page: number | null,
     pageSize: number | null,
     owner: string | null,
-    name: string | null,
+    name: string | Prisma.StringFilter | null,
     version: string | null,
   ) {
     const query: Prisma.SkillMapFindManyArgs = {};

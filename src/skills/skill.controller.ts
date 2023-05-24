@@ -4,6 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { SkillCreationDto, SkillRepositorySearchDto, SkillRepositoryCreationDto } from './dto';
 
 import { SkillMgmtService } from './skill.service';
+import { Prisma } from '@prisma/client';
 
 @ApiTags('Skill')
 @Controller('skill-repositories')
@@ -12,11 +13,14 @@ export class SkillMgmtController {
 
   @Post()
   searchForRepositories(@Body() dto?: SkillRepositorySearchDto) {
+    // Return also repositories that contain the specified name
+    const mapName: Prisma.StringFilter | null = dto?.name ? { contains: dto.name, mode: 'insensitive' } : null;
+
     return this.skillService.findSkillRepositories(
       dto?.page ?? null,
       dto?.pageSize ?? null,
       dto?.owner ?? null,
-      dto?.name ?? null,
+      mapName,
       dto?.version ?? null,
     );
   }
