@@ -242,21 +242,6 @@ const skillGroups = [
   },
 ];
 
-const loRepositories = [
-  {
-    id: '1',
-    name: 'Java Course',
-    description: 'Java Self-Learning Course',
-    userId: '1',
-  },
-  {
-    id: '2',
-    name: 'SE I',
-    description: 'Foundations on Software Engineering',
-    userId: '1',
-  },
-];
-
 const learningObjectives = [
   // Java Chapter 1
   {
@@ -472,17 +457,15 @@ async function createLearningObjects() {
 async function createGoals() {
   // Avoid Deadlocks -> Run all in sequence
   for (const goal of learningGoals) {
-    learningGoals.map(async (goal) => {
-      await prisma.pathGoal.create({
-        data: {
-          id: goal.id,
-          title: goal.name,
-          description: goal.description,
-          pathTeachingGoals: {
-            connect: goal.goals.map((i) => ({ id: i })),
-          },
+    await prisma.pathGoal.create({
+      data: {
+        id: goal.id,
+        title: goal.name,
+        description: goal.description,
+        pathTeachingGoals: {
+          connect: goal.goals.map((i) => ({ id: i })),
         },
-      });
+      },
     });
   }
 }
