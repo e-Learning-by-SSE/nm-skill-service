@@ -1081,6 +1081,513 @@ const learningObjectives = [
     requirements: ['2004'],
     teachingGoals: ['2010'],
   },
+  // Chapter 2
+  {
+    id: 2006,
+    name: 'Datenbewegung in der digitalisierten Produktion',
+    description: 'Die Lernenden können die Datenbewegung in der digitalisierten Produktion erklären.',
+    requirements: ['2009'],
+    teachingGoals: ['2011'],
+  },
+  {
+    id: 2007,
+    name: 'Betriebsdaten in der Produktion',
+    description: 'Die Lernenden können verschiedene Datenarten in der Produktion benennen und unterscheiden.',
+    requirements: ['2011'],
+    teachingGoals: ['2012'],
+  },
+  {
+    id: 2008,
+    name: 'Grundlagen der Kommunikationstechnik',
+    description:
+      'Die Lernenden können die Grundlagen der Kommunikationstechnik benennen sowie die Begriffe Kommunikationstechnik, Kommunikationsnetz und Endsystem erklären.',
+    requirements: ['2012'],
+    teachingGoals: ['2013', '2014', '2015'],
+  },
+  {
+    id: 2009,
+    name: 'Analoge Übertragungswege in der Produktion',
+    description:
+      'Die Lernenden können analoge Übertragungswege, deren Vor- und Nachteile sowie verschiedene Anwendungsbeispiele von analogen Übertragungswegen erklären.',
+    requirements: ['2013'],
+    teachingGoals: ['2016', '2017', '2018'],
+  },
+  {
+    id: 2010,
+    name: 'Digitale Übertragungswege in der Produktion',
+    description:
+      'Die Lernenden können digitale Übertragungswege, deren Vor- und Nachteile sowie verschiedene Anwendungsbeispiele von digitalen Übertragungswegen erklären.',
+    requirements: ['2013'],
+    teachingGoals: ['2019', '2020', '2021'],
+  },
+  {
+    id: 2011,
+    name: 'Subsysteme, Schnittstellen und Protokolle',
+    description:
+      'Die Lernenden können die Begriffe Subsystem, Schnittstelle und Protokoll erklären und in den Bereich der Kommunikationstechnik einordnen.',
+    requirements: ['2013'],
+    teachingGoals: ['2022', '2023', '2024'],
+  },
+  {
+    id: 2012,
+    name: 'Grundlagen der Informationstechnik',
+    description:
+      'Die Lernenden können die Begriffe Informationstechnik, Big Data sowie Predictive Maintenance erklären und in den Bereich der Kommunikations- und Informationstechnik einordnen.',
+    requirements: ['2013'],
+    teachingGoals: ['2025', '2026', '2027'],
+  },
+  {
+    id: 2013,
+    name: 'Datenverarbeitung in der digitalen Produktion',
+    description:
+      'Die Lernenden können die Datenverarbeitung der digitalen Produktion und den Zusammenhang zu Algorithmen erklären.',
+    requirements: ['2011'],
+    teachingGoals: ['2028', '2029', '2030'],
+  },
+  {
+    id: 2014,
+    name: 'IT-Sicherheit und Blockchain',
+    description:
+      'Die Lernenden können den Begriff Blockchain erklären und in den Bereich der Informationstechnik einordnen.',
+    requirements: ['2025'],
+    teachingGoals: ['2031'],
+  },
+  {
+    id: 2015,
+    name: 'Neue Geschäftsmodelle der Digitalisierung',
+    description: 'Die Lernenden können Gründe und Beispiele für neue digitale Geschäftsmodelle benennen.',
+    requirements: ['2004'],
+    teachingGoals: ['2032', '2033'],
+  },
+  {
+    id: 2016,
+    name: 'Technologien der neuen Geschäftsmodelle',
+    description: 'Die Lernenden können die Begriffe Internet der Dinge und Cloud Computing erklären.',
+    requirements: [],
+    teachingGoals: ['2034', '2035'],
+  },
+  {
+    id: 2017,
+    name: 'Daten als Unternehmenswert',
+    description:
+      'Die Lernenden können die Begriffe Datenschutz, Datensicherheit, Datenhoheit und Daten Compliance erklären.',
+    requirements: ['2007'],
+    teachingGoals: ['2036', '2037', '2038', '2039'],
+  },
+  // Chapter 3
+  {
+    id: 2018,
+    name: 'Veränderungen in der Arbeitswelt: Arbeit 4.0',
+    description:
+      'Die Lernenden können den Begriff Arbeit 4.0 erklären und zentrale Entwicklungen der Arbeitswelt benennen.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2019,
+    name: 'Einführung in die Lean Production',
+    description:
+      'Die Lernenden können die Begriffe Lean Production und Lean Management erklären sowie die Prinzipien der Lean Production in der Fertigung benennen.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2020,
+    name: 'Einführung in Assistenzsysteme',
+    description: 'Die Lernenden können Assistenzsysteme sowie deren verschiedener Arten und Anwendung erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2021,
+    name: 'Anwendung von Assistenzsystemen',
+    description:
+      'Die Lernenden können verschiedene Assistenzsysteme in der Prodution sowie deren Zusammenhang zwischen virtueller Realität und Ergonomie erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2022,
+    name: 'Digitale Methoden, Modelle und Werkzeuge in der Fertigung',
+    description:
+      'Die Lernenden können erklären, was unter einer Digitalen Fabrik zu verstehen ist sowie Anwendungsbeispiele, verschiedene Methoden, Modelle und Werkzeuge und Unternehmensziele in Bezug auf die Digitale Fabrik benennen.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2023,
+    name: 'Automatisierungskomponenten',
+    description:
+      'Die Lernenden können die Grundlagen der Automatisierungskomponenten und Mechatronik sowie die Begriffe Intelligente Systeme, Cyber-physisches System und Cyber-physisches Produktionssystem erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2024,
+    name: 'Einführung in die Sensorik',
+    description:
+      'Die Lernenden können den Begriff der Sensorik und weitere Grundlagen erklären sowie verschiedene Arten von Sensoren benennen.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2025,
+    name: 'Sensorik: Anwendungsbeispiele',
+    description:
+      'Die Lernenden können Anwendungsbeispiele zum sensorischen Werkstückspannsystem und Predictive Maintenance beschreiben.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2026,
+    name: 'Klassische Steuerungssysteme',
+    description:
+      'Die Lernenden können Feldgeräte, speicherprogrammierbare Steuerungseinheiten und Industrie-Personal-Computer erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2027,
+    name: "Neue 'digitale' Steuerungssysteme",
+    description:
+      'Die Lernenden können smarte Feldgeräte erklären sowie die Wichtigkeit von digitalen Abbildern, der Selbststeuerung und automatisierten Routenplanungen benennen.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2028,
+    name: 'Einführung in die Fertigung 4.0',
+    description: 'Die Lernenden können additive Fertigungsverfahren und deren Anwendung in der Produktion erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2029,
+    name: "Neue 'digitale' Steuerungssysteme",
+    description:
+      'Die Lernenden können smarte Feldgeräte erklären sowie die Wichtigkeit von digitalen Abbildern, der Selbststeuerung und automatisierten Routenplanungen benennen.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2030,
+    name: 'Definition und Entwicklung von Big Data',
+    description: 'Die Lernenden können den Begriff Big Data, dessen Entwicklung sowie das 4-V-Modell erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2031,
+    name: 'Datenmanagement von Big Data',
+    description:
+      'Die Lernenden können die Aufgabenfelder des Datenmanagements sowie verschiedene Methoden zur Datenanalyse erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2032,
+    name: 'Big Data: Informationen und Wissen',
+    description:
+      'Die Lernenden können Data Mining und Wissen sowie deren Entstehung, verschiedene Wissensarten und Wissensträger erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2033,
+    name: 'Wissen entdecken mit Big Data und Data Mining',
+    description:
+      'Die Lernenden können die einzelnen Schritte des Wissensentdeckungsprozesses sowie die grundlegenden Aufgaben, Verfahren und Versuchsdurchführungen des Data Mining erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2034,
+    name: 'Anwendung und Risiken von Big Data',
+    description:
+      'Die Lernenden können beschreiben, wie eine beispielhafte Datenanalyse vorgenommen wird und welche Risiken von Big Data für produzierende Unternehmen bestehen.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2035,
+    name: 'Einführung in das Produktionsmanagement',
+    description:
+      'Die Lernenden können eine Einführung in das Produktionsmanagement geben, die Begriffe Produktionsplanung und Produktionssteuerung erklären sowie ein beispielhaftes Lieferkettenmodell beschreiben.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2036,
+    name: 'Produktionsmanagement: Einordnung der Systeme',
+    description:
+      'Die Lernenden können die Softwaresysteme ERP, MES und BDE in die Thematik des Produktionsmanagements einordnen und erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2037,
+    name: 'Softwaresysteme: ERP, MES und BDE',
+    description:
+      'Die Lernenden können die Zusammenhänge zwischen den Softwaresystemen ERP, MES und BDE benennen sowie die Aufgabenbereiche und Funktionen erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2038,
+    name: 'Softwaresysteme: Herausforderungen bei der Einführung',
+    description:
+      'Die Lernenden können die Gründe für die Einführung von Softwaresystemen, die Abweichungen des Ist-Zustands vom Soll-Zustand in der Produktion, wie die Datenversorgung von MES geschieht und wie mithilfe von MES Schwachstellen ausgeglichen werden, benennen.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2039,
+    name: 'PPS: Blick in die Forschung',
+    description:
+      'Die Lernenden können die Themen Industrie 4.0, Digitalisierung und Vernetzung anhand eines Beispiels beschreiben.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2040,
+    name: 'Lean Management',
+    description:
+      'Die Lernenden können das Lean Management sowie dessen Prinzipien und Ziele erklären sowie Formen der Verschwendung benennen.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2041,
+    name: 'Lean Management: 5S-Methode',
+    description: 'Die Lernenden können die 5S-Methode sowie deren Methodenschritte erläutern.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2042,
+    name: 'Lean Management: Kanban',
+    description: 'Die Lernenden können die Kanban-Methode sowie deren Durchführung und Voraussetzungen erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2043,
+    name: 'Lean Management: Wertstrommethode',
+    description:
+      'Die Lernenden können die Wertstrommethode, deren Erfolgsfaktoren, Durchführung und Vorteile sowie die Darstellung des Wertstroms erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2044,
+    name: 'Lean Management: PDCA-Zyklus',
+    description: 'Die Lernenden können den PDCA-Zyklus, dessen Phasen sowie Vor- und Nachteile erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2045,
+    name: 'Lean Management: Poka Yoke',
+    description: 'Die Lernenden können die Poka Yoke Technik sowie deren Durchführung und Anwendungsformen erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2046,
+    name: 'Lean Management: Just-in-Time',
+    description:
+      'Die Lernenden können das Just-in-Time-Konzept sowie dessen Voraussetzungen, Anwendungsformen und Vor- und Nachteile erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2047,
+    name: 'Lean Management: FIFO-Prinzip',
+    description:
+      'Die Lernenden können das FIFO-Prinzip, dessen Anwendungsformen, verschiedene Arten von FIFO-Regalen sowie Vor- und Nachteile erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2048,
+    name: 'Lean Management: Spaghetti-Diagramm',
+    description:
+      'Die Lernenden können das Spaghetti-Diagramm, deren Ziele, Anwendungsformen sowie die Durchführung der Methode erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2049,
+    name: 'Physik des Lasers',
+    description:
+      'Die Lernenden können die wichtigsten physikalischen Grundlagen der Lasertechnik sowie Eigenschaften eines Lasers beschreiben.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2050,
+    name: 'Laser in der Fertigung',
+    description:
+      'Die Lernenden können einen Überblick über die verschiedenen Fertigungsprozesse mit Lasern geben sowie Parameter der Lasertechnik und ein Beispiel für die Informationsbereitstellung beschreiben.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2051,
+    name: 'Additive Fertigung: Einführung',
+    description:
+      'Die Lernenden können die additive Fertigung und deren Geschichte, Vorteile sowie Einsatzbereiche erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2052,
+    name: 'Additive Fertigung: Prozesskette',
+    description:
+      'Die Lernenden können die Prozesskette inklusive Nachbehandlung der additiven Fertigung erklären und zwei Beispiele von additiv gefertigten Bauteilen beschreiben.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2053,
+    name: 'Assistenzsysteme: Der Mensch',
+    description:
+      'Die Lernenden können verschiedene Belastungsarten sowie Formen und Ziele von Assistenzsystemen erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2054,
+    name: 'Assistenzsysteme: Die Technik',
+    description:
+      'Die Lernenden können erklären, welche Automatisierungslösungen und Assistenten physische Belastungen reduzieren können und erhalten einen Einblick in die Künstliche Intelligenz und Forschung.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2055,
+    name: 'Assistenzsysteme: Technische Komponenten',
+    description:
+      'Die Lernenden können verschiedene Beispiele für Komponenten von Assistenzsystemen aus den Bereichen Steuerung, Sensorik und Aktorik erläutern.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2056,
+    name: 'Grundlagen der Sensorik',
+    description:
+      'Die Lernenden können erklären, was unter Sensorik bzw. einem Sensor zu verstehen ist und wie die Entwicklung von Sensoren verläuft.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2057,
+    name: 'Grundlagen der Messtechnik',
+    description:
+      'Die Lernenden können den Begriff der Messtechnik, einige Größen des SI-Einheitensystems sowie die Signale und Funktionsweise von Analog-Digital-Wandlern erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2058,
+    name: 'Funktionsprinzip von Messeinrichtungen',
+    description:
+      'Die Lernenden können das Funktionsprinzip von Messeinrichtungen, die Begriffe Kalibrieren, Justieren und Eichen sowie die daraus resultierenden Arten von Messabweichungen erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2059,
+    name: 'Arten von Sensoren',
+    description:
+      'Die Lernenden können aktive und passive Sensoren unterscheiden sowie verschiedene Messprinzipien von Sensoren und den Begriff Aktorik in Verbindung mit fahrerlosen Transportsystemen erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2060,
+    name: 'Sensoren zur Kraftmessung',
+    description:
+      'Die Lernenden können Sensoren zur Kraftmessung und den Aufbau eines Dehnungsmessstreifens erklären sowie Beispiele aus der Forschung, wie sensorische Wertstückspannsysteme und fühlende Maschinen, beschreiben.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2061,
+    name: 'Sensoren zur Temperaturmessung',
+    description:
+      'Die Lernenden können Sensoren zur Temperaturmessung und den Unterschied zwischen Kaltleitern und Heißleitern erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2062,
+    name: 'Sensoren zur Schwingungsmessung',
+    description: 'Die Lernenden können die Funktion und den Aufbau von Sensoren zur Schwingungsmessung erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2063,
+    name: 'Sensoren zur Längenvermessung',
+    description:
+      'Die Lernenden können die Funktion und den Aufbau von Sensoren zur Längenvermessung sowie den Aufbau einer Einweglichtschranke erklären und ein Beispiel für den Einsatz der Einweglichtschranke in einem KI-Demonstrator beschreiben.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2064,
+    name: 'Darstellung des innerbetrieblichen Materialflusses',
+    description:
+      'Die Lernenden können den innerbetrieblichen Materialfluss erklären und verschiedene Darstellungsformen des Materialflusses beschreiben.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2065,
+    name: 'Fertigungsprinzipien des innerbetrieblichen Materialflusses',
+    description:
+      'Die Lernenden können unterschiedliche Fertigungsprinzipien, Simulationsmodelle sowie die Planung und Steuerung des innerbetrieblichen Materialflusses erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2066,
+    name: 'Funktionen von Materialflusssimulationen',
+    description:
+      'Die Lernenden können den Begriff der Materialflusssimulation, deren Phasen sowie die Handhabung der Verifizierung und Validierung eines Simulationsmodells erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2067,
+    name: 'Anwendung von Materialflusssimulationen',
+    description: 'Die Lernenden können verschiedene Einsatzbereiche von Materialflusssimulationen erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2068,
+    name: 'Komponenten und Funktionsweise von RFID',
+    description: 'Die Lernenden können den Begriff RFID sowie die Komponenten und Funktionsweise von RFID erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2069,
+    name: 'Einsatzmöglichkeiten von RFID',
+    description: 'Die Lernenden können verschiedene Einsatzbereiche von RFID erklären.',
+    requirements: [],
+    teachingGoals: [],
+  },
+  {
+    id: 2070,
+    name: 'Chancen und Risiken von RFID',
+    description:
+      'Die Lernenden können erklären, welche Chancen und Risiken bei der Verwendung von RFID bestehen und einen Ausblick über das Thema geben.',
+    requirements: [],
+    teachingGoals: [],
+  },
 ];
 
 const learningGoals = [
