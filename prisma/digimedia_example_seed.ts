@@ -1357,76 +1357,77 @@ const learningObjectives = [
     name: 'Lean Management',
     description:
       'Die Lernenden können das Lean Management sowie dessen Prinzipien und Ziele erklären sowie Formen der Verschwendung benennen.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2043'],
+    teachingGoals: ['2106', '2107', '2108', '2109'],
   },
   {
     id: 2041,
     name: 'Lean Management: 5S-Methode',
     description: 'Die Lernenden können die 5S-Methode sowie deren Methodenschritte erläutern.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2108'],
+    teachingGoals: ['2110', '2111'],
   },
   {
     id: 2042,
     name: 'Lean Management: Kanban',
     description: 'Die Lernenden können die Kanban-Methode sowie deren Durchführung und Voraussetzungen erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2108'],
+    teachingGoals: ['2112', '2113', '2114'],
   },
   {
     id: 2043,
     name: 'Lean Management: Wertstrommethode',
     description:
       'Die Lernenden können die Wertstrommethode, deren Erfolgsfaktoren, Durchführung und Vorteile sowie die Darstellung des Wertstroms erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2108'],
+    teachingGoals: ['2115', '2116', '2117', '2118', '2119'],
   },
   {
     id: 2044,
     name: 'Lean Management: PDCA-Zyklus',
     description: 'Die Lernenden können den PDCA-Zyklus, dessen Phasen sowie Vor- und Nachteile erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2108'],
+    teachingGoals: ['2120', '2121', '2122'],
   },
   {
     id: 2045,
     name: 'Lean Management: Poka Yoke',
     description: 'Die Lernenden können die Poka Yoke Technik sowie deren Durchführung und Anwendungsformen erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2108'],
+    teachingGoals: ['2123', '2124', '2125'],
   },
   {
     id: 2046,
     name: 'Lean Management: Just-in-Time',
     description:
       'Die Lernenden können das Just-in-Time-Konzept sowie dessen Voraussetzungen, Anwendungsformen und Vor- und Nachteile erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2108'],
+    teachingGoals: ['2126', '2127', '2128', '2129'],
   },
   {
     id: 2047,
     name: 'Lean Management: FIFO-Prinzip',
     description:
       'Die Lernenden können das FIFO-Prinzip, dessen Anwendungsformen, verschiedene Arten von FIFO-Regalen sowie Vor- und Nachteile erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2108'],
+    teachingGoals: ['2130', '2131', '2132', '2133'],
   },
   {
     id: 2048,
     name: 'Lean Management: Spaghetti-Diagramm',
     description:
       'Die Lernenden können das Spaghetti-Diagramm, deren Ziele, Anwendungsformen sowie die Durchführung der Methode erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2108'],
+    teachingGoals: ['2134', '2135', '2136', '2137'],
   },
+  // Chapter 8
   {
     id: 2049,
     name: 'Physik des Lasers',
     description:
       'Die Lernenden können die wichtigsten physikalischen Grundlagen der Lasertechnik sowie Eigenschaften eines Lasers beschreiben.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2138', '2139'],
   },
   {
     id: 2050,
@@ -1434,7 +1435,7 @@ const learningObjectives = [
     description:
       'Die Lernenden können einen Überblick über die verschiedenen Fertigungsprozesse mit Lasern geben sowie Parameter der Lasertechnik und ein Beispiel für die Informationsbereitstellung beschreiben.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2140', '2141', '2142'],
   },
   {
     id: 2051,
@@ -1442,7 +1443,7 @@ const learningObjectives = [
     description:
       'Die Lernenden können die additive Fertigung und deren Geschichte, Vorteile sowie Einsatzbereiche erklären.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2143', '2144', '2145', '2146'],
   },
   {
     id: 2052,
@@ -1450,39 +1451,41 @@ const learningObjectives = [
     description:
       'Die Lernenden können die Prozesskette inklusive Nachbehandlung der additiven Fertigung erklären und zwei Beispiele von additiv gefertigten Bauteilen beschreiben.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2147', '2148', '2149', '2150'],
   },
+  //Chapter 9
   {
     id: 2053,
     name: 'Assistenzsysteme: Der Mensch',
     description:
       'Die Lernenden können verschiedene Belastungsarten sowie Formen und Ziele von Assistenzsystemen erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2146'],
+    teachingGoals: ['2151', '2152', '2153'],
   },
   {
     id: 2054,
     name: 'Assistenzsysteme: Die Technik',
     description:
       'Die Lernenden können erklären, welche Automatisierungslösungen und Assistenten physische Belastungen reduzieren können und erhalten einen Einblick in die Künstliche Intelligenz und Forschung.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2151'],
+    teachingGoals: ['2154', '2155', '2156', '2157'],
   },
   {
     id: 2055,
     name: 'Assistenzsysteme: Technische Komponenten',
     description:
       'Die Lernenden können verschiedene Beispiele für Komponenten von Assistenzsystemen aus den Bereichen Steuerung, Sensorik und Aktorik erläutern.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2154'],
+    teachingGoals: ['2158', '2159', '2160'],
   },
+  // Chapter 10
   {
     id: 2056,
     name: 'Grundlagen der Sensorik',
     description:
       'Die Lernenden können erklären, was unter Sensorik bzw. einem Sensor zu verstehen ist und wie die Entwicklung von Sensoren verläuft.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2161', '2162'],
   },
   {
     id: 2057,
@@ -1490,107 +1493,109 @@ const learningObjectives = [
     description:
       'Die Lernenden können den Begriff der Messtechnik, einige Größen des SI-Einheitensystems sowie die Signale und Funktionsweise von Analog-Digital-Wandlern erklären.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2163', '2164', '2165', '2166'],
   },
   {
     id: 2058,
     name: 'Funktionsprinzip von Messeinrichtungen',
     description:
       'Die Lernenden können das Funktionsprinzip von Messeinrichtungen, die Begriffe Kalibrieren, Justieren und Eichen sowie die daraus resultierenden Arten von Messabweichungen erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2161'],
+    teachingGoals: ['2167', '2168', '2169'],
   },
   {
     id: 2059,
     name: 'Arten von Sensoren',
     description:
       'Die Lernenden können aktive und passive Sensoren unterscheiden sowie verschiedene Messprinzipien von Sensoren und den Begriff Aktorik in Verbindung mit fahrerlosen Transportsystemen erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2161', '2167'],
+    teachingGoals: ['2170', '2171', '2172'],
   },
   {
     id: 2060,
     name: 'Sensoren zur Kraftmessung',
     description:
       'Die Lernenden können Sensoren zur Kraftmessung und den Aufbau eines Dehnungsmessstreifens erklären sowie Beispiele aus der Forschung, wie sensorische Wertstückspannsysteme und fühlende Maschinen, beschreiben.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2161'],
+    teachingGoals: ['2173', '2174', '2175', '2176'],
   },
   {
     id: 2061,
     name: 'Sensoren zur Temperaturmessung',
     description:
       'Die Lernenden können Sensoren zur Temperaturmessung und den Unterschied zwischen Kaltleitern und Heißleitern erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2161'],
+    teachingGoals: ['2177', '2178', '2179', '2180'],
   },
   {
     id: 2062,
     name: 'Sensoren zur Schwingungsmessung',
     description: 'Die Lernenden können die Funktion und den Aufbau von Sensoren zur Schwingungsmessung erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2161'],
+    teachingGoals: ['2181', '2182'],
   },
   {
     id: 2063,
     name: 'Sensoren zur Längenvermessung',
     description:
       'Die Lernenden können die Funktion und den Aufbau von Sensoren zur Längenvermessung sowie den Aufbau einer Einweglichtschranke erklären und ein Beispiel für den Einsatz der Einweglichtschranke in einem KI-Demonstrator beschreiben.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2161'],
+    teachingGoals: ['2183', '2184', '2185'],
   },
+  // Chapter 11
   {
     id: 2064,
     name: 'Darstellung des innerbetrieblichen Materialflusses',
     description:
       'Die Lernenden können den innerbetrieblichen Materialfluss erklären und verschiedene Darstellungsformen des Materialflusses beschreiben.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2186', '2187'],
   },
   {
     id: 2065,
     name: 'Fertigungsprinzipien des innerbetrieblichen Materialflusses',
     description:
       'Die Lernenden können unterschiedliche Fertigungsprinzipien, Simulationsmodelle sowie die Planung und Steuerung des innerbetrieblichen Materialflusses erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2186'],
+    teachingGoals: ['2188', '2189', '2190'],
   },
   {
     id: 2066,
     name: 'Funktionen von Materialflusssimulationen',
     description:
       'Die Lernenden können den Begriff der Materialflusssimulation, deren Phasen sowie die Handhabung der Verifizierung und Validierung eines Simulationsmodells erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2190'],
+    teachingGoals: ['2191', '2192', '2193'],
   },
   {
     id: 2067,
     name: 'Anwendung von Materialflusssimulationen',
     description: 'Die Lernenden können verschiedene Einsatzbereiche von Materialflusssimulationen erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2193'],
+    teachingGoals: ['2194'],
   },
+  // Chapter 12
   {
     id: 2068,
     name: 'Komponenten und Funktionsweise von RFID',
     description: 'Die Lernenden können den Begriff RFID sowie die Komponenten und Funktionsweise von RFID erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2012'],
+    teachingGoals: ['2195', '2196', '2197'],
   },
   {
     id: 2069,
     name: 'Einsatzmöglichkeiten von RFID',
     description: 'Die Lernenden können verschiedene Einsatzbereiche von RFID erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2197'],
+    teachingGoals: ['2198', '2199'],
   },
   {
     id: 2070,
     name: 'Chancen und Risiken von RFID',
     description:
       'Die Lernenden können erklären, welche Chancen und Risiken bei der Verwendung von RFID bestehen und einen Ausblick über das Thema geben.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2198'],
+    teachingGoals: ['2200', '2201', '2202'],
   },
 ];
 
