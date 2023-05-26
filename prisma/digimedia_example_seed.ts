@@ -2,6 +2,12 @@ import { Prisma, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+/*
+ * Use only IDs in range of 2xxx to avoid conflicts with other seeds. Further proposals:
+ * - Use IDs in range of 20xx - 22xx for skills
+ * - Use IDs in range of 25xx+ for skill groups
+ */
+
 const repository = {
   id: '2',
   user: '1',
@@ -66,7 +72,7 @@ const skills = [
 
 const skillGroups = [
   {
-    id: '2101',
+    id: '2501',
     level: 1,
     name: 'Grundlagen Industrie 4.0',
     description: undefined,
@@ -84,6 +90,38 @@ const learningObjectives = [
     requirements: [],
     teachingGoals: ['2001', '2002'],
   },
+  {
+    id: 2002,
+    name: 'Digitale Transformation',
+    description:
+      'Die Lernenden können die Einführung in die digitale Transformation darstellen sowie die wesentlichen Gründe für die zunehmende Digitalisierung in der Produktion erklären.',
+    requirements: ['2002'],
+    teachingGoals: ['2003', '2004', '2005'],
+  },
+  {
+    id: 2003,
+    name: 'Daten- und Informationsflüsse in der Smart Factory',
+    description:
+      'Die Lernenden können die Begriffe Smart Factory, Daten und Informationen erklären sowie Daten- und Informationsflüsse in Unternehmen darstellen.',
+    requirements: ['2005'],
+    teachingGoals: ['2006', '2007', '2008'],
+  },
+  {
+    id: 2004,
+    name: 'Technologien der Industrie 4.0',
+    description:
+      'Die Lernenden können grundlegende Technologien und Methoden der Digitalisierung in der Produktion benennen.',
+    requirements: ['2008'],
+    teachingGoals: ['2009'],
+  },
+  {
+    id: 2005,
+    name: 'Lerneinheit 1.5',
+    description:
+      'Die Lernenden können Möglichkeiten zur Umsetzung von Digitalisierungsmaßnahmen sowie Handlungsoptionen zu Herausforderungen benennen.',
+    requirements: ['2004'],
+    teachingGoals: ['2010'],
+  },
 ];
 
 const learningGoals = [
@@ -92,7 +130,7 @@ const learningGoals = [
     repositoryId: '1',
     name: 'Industrie im Wandel der Zeit',
     description: undefined,
-    goals: ['2101'],
+    goals: ['2501'],
   },
 ];
 
