@@ -1180,47 +1180,48 @@ const learningObjectives = [
     name: 'Veränderungen in der Arbeitswelt: Arbeit 4.0',
     description:
       'Die Lernenden können den Begriff Arbeit 4.0 erklären und zentrale Entwicklungen der Arbeitswelt benennen.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2004'],
+    teachingGoals: ['2040', '2041'],
   },
   {
     id: 2019,
     name: 'Einführung in die Lean Production',
     description:
       'Die Lernenden können die Begriffe Lean Production und Lean Management erklären sowie die Prinzipien der Lean Production in der Fertigung benennen.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2041'],
+    teachingGoals: ['2042', '2043', '2044', '2045'],
   },
   {
     id: 2020,
     name: 'Einführung in Assistenzsysteme',
     description: 'Die Lernenden können Assistenzsysteme sowie deren verschiedener Arten und Anwendung erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2009'],
+    teachingGoals: ['2046', '2047', '2048'],
   },
   {
     id: 2021,
     name: 'Anwendung von Assistenzsystemen',
     description:
       'Die Lernenden können verschiedene Assistenzsysteme in der Prodution sowie deren Zusammenhang zwischen virtueller Realität und Ergonomie erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2047', '2049', '2041'],
+    teachingGoals: ['2049', '2050', '2051'],
   },
+  //Chapter 4
   {
     id: 2022,
     name: 'Digitale Methoden, Modelle und Werkzeuge in der Fertigung',
     description:
       'Die Lernenden können erklären, was unter einer Digitalen Fabrik zu verstehen ist sowie Anwendungsbeispiele, verschiedene Methoden, Modelle und Werkzeuge und Unternehmensziele in Bezug auf die Digitale Fabrik benennen.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2052', '2053', '2054', '2055'],
   },
   {
     id: 2023,
     name: 'Automatisierungskomponenten',
     description:
       'Die Lernenden können die Grundlagen der Automatisierungskomponenten und Mechatronik sowie die Begriffe Intelligente Systeme, Cyber-physisches System und Cyber-physisches Produktionssystem erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2025', '2052'],
+    teachingGoals: ['2056', '2057', '2058', '2059', '2060'],
   },
   {
     id: 2024,
@@ -1228,77 +1229,78 @@ const learningObjectives = [
     description:
       'Die Lernenden können den Begriff der Sensorik und weitere Grundlagen erklären sowie verschiedene Arten von Sensoren benennen.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2061'],
   },
   {
     id: 2025,
     name: 'Sensorik: Anwendungsbeispiele',
     description:
       'Die Lernenden können Anwendungsbeispiele zum sensorischen Werkstückspannsystem und Predictive Maintenance beschreiben.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2027', '2063'],
+    teachingGoals: ['2064', '2065'],
   },
   {
     id: 2026,
     name: 'Klassische Steuerungssysteme',
     description:
       'Die Lernenden können Feldgeräte, speicherprogrammierbare Steuerungseinheiten und Industrie-Personal-Computer erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2056'],
+    teachingGoals: ['2066', '2067', '2068'],
   },
   {
     id: 2027,
     name: "Neue 'digitale' Steuerungssysteme",
     description:
       'Die Lernenden können smarte Feldgeräte erklären sowie die Wichtigkeit von digitalen Abbildern, der Selbststeuerung und automatisierten Routenplanungen benennen.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2066'],
+    teachingGoals: ['2069', '2070', '2071', '2072'],
   },
   {
     id: 2028,
     name: 'Einführung in die Fertigung 4.0',
     description: 'Die Lernenden können additive Fertigungsverfahren und deren Anwendung in der Produktion erklären.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2073', '2074'],
   },
   {
     id: 2029,
-    name: "Neue 'digitale' Steuerungssysteme",
+    name: "'Neue' Methoden der Produktionstechnik",
     description:
-      'Die Lernenden können smarte Feldgeräte erklären sowie die Wichtigkeit von digitalen Abbildern, der Selbststeuerung und automatisierten Routenplanungen benennen.',
+      'Die Lernenden können die Begriffe Maschine Learning und Künstliche Intelligenz erklären sowie Einsatzgebiete des Maschine Learnings benennen.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2075', '2076', '2077'],
   },
+  // Chapter 5
   {
     id: 2030,
     name: 'Definition und Entwicklung von Big Data',
     description: 'Die Lernenden können den Begriff Big Data, dessen Entwicklung sowie das 4-V-Modell erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2025', '2026'],
+    teachingGoals: ['2078', '2079', '2080'],
   },
   {
     id: 2031,
     name: 'Datenmanagement von Big Data',
     description:
       'Die Lernenden können die Aufgabenfelder des Datenmanagements sowie verschiedene Methoden zur Datenanalyse erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2080'],
+    teachingGoals: ['2081', '2082'],
   },
   {
     id: 2032,
     name: 'Big Data: Informationen und Wissen',
     description:
       'Die Lernenden können Data Mining und Wissen sowie deren Entstehung, verschiedene Wissensarten und Wissensträger erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2026'],
+    teachingGoals: ['2083', '2084', '2085', '2086', '2087'],
   },
   {
     id: 2033,
     name: 'Wissen entdecken mit Big Data und Data Mining',
     description:
       'Die Lernenden können die einzelnen Schritte des Wissensentdeckungsprozesses sowie die grundlegenden Aufgaben, Verfahren und Versuchsdurchführungen des Data Mining erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2086'],
+    teachingGoals: ['2088', '2089'],
   },
   {
     id: 2034,
@@ -1306,48 +1308,50 @@ const learningObjectives = [
     description:
       'Die Lernenden können beschreiben, wie eine beispielhafte Datenanalyse vorgenommen wird und welche Risiken von Big Data für produzierende Unternehmen bestehen.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2090', '2091'],
   },
+  // Chapter 6
   {
     id: 2035,
     name: 'Einführung in das Produktionsmanagement',
     description:
       'Die Lernenden können eine Einführung in das Produktionsmanagement geben, die Begriffe Produktionsplanung und Produktionssteuerung erklären sowie ein beispielhaftes Lieferkettenmodell beschreiben.',
     requirements: [],
-    teachingGoals: [],
+    teachingGoals: ['2092', '2093', '2094'],
   },
   {
     id: 2036,
     name: 'Produktionsmanagement: Einordnung der Systeme',
     description:
       'Die Lernenden können die Softwaresysteme ERP, MES und BDE in die Thematik des Produktionsmanagements einordnen und erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2093'],
+    teachingGoals: ['2095', '2096', '2097'],
   },
   {
     id: 2037,
     name: 'Softwaresysteme: ERP, MES und BDE',
     description:
       'Die Lernenden können die Zusammenhänge zwischen den Softwaresystemen ERP, MES und BDE benennen sowie die Aufgabenbereiche und Funktionen erklären.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2095', '2096', '2097'],
+    teachingGoals: ['2098', '2099', '2100'],
   },
   {
     id: 2038,
     name: 'Softwaresysteme: Herausforderungen bei der Einführung',
     description:
       'Die Lernenden können die Gründe für die Einführung von Softwaresystemen, die Abweichungen des Ist-Zustands vom Soll-Zustand in der Produktion, wie die Datenversorgung von MES geschieht und wie mithilfe von MES Schwachstellen ausgeglichen werden, benennen.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2093', '2099'],
+    teachingGoals: ['2101', '2102', '2103', '2104'],
   },
   {
     id: 2039,
     name: 'PPS: Blick in die Forschung',
     description:
       'Die Lernenden können die Themen Industrie 4.0, Digitalisierung und Vernetzung anhand eines Beispiels beschreiben.',
-    requirements: [],
-    teachingGoals: [],
+    requirements: ['2093'],
+    teachingGoals: ['2105'],
   },
+  // Chapter 7
   {
     id: 2040,
     name: 'Lean Management',
