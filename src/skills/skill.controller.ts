@@ -37,6 +37,16 @@ export class SkillMgmtController {
   }
 
   /**
+   * Returns one repository and its unresolved elements.
+   * Skills and their relations are handled as IDs and need to be resolved on the client-side.
+   * @returns The repositories of the specified user.
+   */
+  @Get(':repositoryId')
+  async loadRepository(@Param('repositoryId') repositoryId: string) {
+    return this.skillService.loadSkillRepository(repositoryId);
+  }
+
+  /**
    * Lists all skills.
    
    * @returns List of all skills.
@@ -56,16 +66,6 @@ export class SkillMgmtController {
   }
 
   /**
-   * Returns one repository and its unresolved elements.
-   * Skills and their relations are handled as IDs and need to be resolved on the client-side.
-   * @returns The repositories of the specified user.
-   */
-  @Get(':repositoryId')
-  async loadRepository(@Param('repositoryId') repositoryId: string) {
-    return this.skillService.loadSkillRepository(repositoryId);
-  }
-
-  /**
    * Returns one resolved repository and its elements.
    * Skills and their relations are resolved at the server.
    * @returns The repositories of the specified user.
@@ -73,6 +73,25 @@ export class SkillMgmtController {
   @Get('resolve/:repositoryId')
   async loadResolvedRepository(@Param('repositoryId') repositoryId: string) {
     return this.skillService.loadResolvedSkillRepository(repositoryId);
+  }
+
+  /**
+   * Lists all skills.
+   
+   * @returns List of all skills.
+   */
+  @Post('resolve/findSkills')
+  findSkillsResolved(@Body() dto: SkillSearchDto) {
+    // Return also repositories that contain the specified name
+    const skillName: Prisma.StringFilter | null = dto?.name ? { contains: dto.name, mode: 'insensitive' } : null;
+
+    return this.skillService.searchSkillsResolved(
+      dto.page ?? null,
+      dto.pageSize ?? null,
+      skillName,
+      dto?.level ?? null,
+      dto?.skillMap ?? null,
+    );
   }
 
   /**
@@ -104,5 +123,15 @@ export class SkillMgmtController {
   @Get('skill/:skillId')
   getSkill(@Param('skillId') skillId: string) {
     return this.skillService.getSkill(skillId);
+  }
+
+  /**
+   * Returns the specified skill.
+   * @param skillId The ID of the skill, that shall be returned
+   * @returns The specified skill.
+   */
+  @Get('resolve/skill/:skillId')
+  getResolvedSkill(@Param('skillId') skillId: string) {
+    return this.skillService.getResolvedSkill(skillId);
   }
 }

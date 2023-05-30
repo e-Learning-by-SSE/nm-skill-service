@@ -1,7 +1,6 @@
 import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
-
-import { SkillDto } from './skill.dto';
+import { ResolvedSkillDto } from './skill.resolved.dto';
 
 import { SkillRepositorySelectionDto } from './skill-repository-selection.dto';
 
@@ -15,8 +14,7 @@ export class ResolvedSkillRepositoryDto extends SkillRepositorySelectionDto {
   description?: string;
 
   @IsDefined()
-  skills!: SkillDto[];
- 
+  skills!: ResolvedSkillDto[];
 
   static create(
     id: string,
@@ -31,8 +29,7 @@ export class ResolvedSkillRepositoryDto extends SkillRepositorySelectionDto {
       version: version,
       taxonomy: taxonomy ?? undefined,
       description: description ?? undefined,
-      skills: <SkillDto[]>[],
-      
+      skills: <ResolvedSkillDto[]>[],
     };
   }
 }

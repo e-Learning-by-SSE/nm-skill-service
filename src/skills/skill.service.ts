@@ -5,12 +5,14 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   SkillCreationDto,
-  SkillDto,
+  ResolvedSkillDto,
   SkillRepositoryCreationDto,
   SkillListDto,
   SkillRepositoryDto,
   SkillRepositoryListDto,
   ResolvedSkillRepositoryDto,
+  SkillDto,
+  ResolvedSkillListDto,
 } from './dto';
 import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.dto';
 
@@ -154,7 +156,7 @@ export class SkillMgmtService {
     });
 
     // Load all top-level skills
-    const resolved = new Map<string, SkillDto>();
+    const resolved = new Map<string, ResolvedSkillDto>();
     for (const skill of topLevelSkills) {
       result.skills.push(await this.loadSkill(skill, resolved));
     }
@@ -182,7 +184,7 @@ export class SkillMgmtService {
         },
       });
 
-      return SkillDto.createFromDao(skill);
+      return ResolvedSkillDto.createFromDao(skill);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -198,9 +200,9 @@ export class SkillMgmtService {
     skill: Skill & {
       nestedSkills: Skill[];
     },
-    resolved = new Map<string, SkillDto>(),
+    resolved = new Map<string, ResolvedSkillDto>(),
   ) {
-    const result = SkillDto.createFromDao(skill);
+    const result = ResolvedSkillDto.createFromDao(skill);
     resolved.set(skill.id, result);
 
     // Add nested skills
@@ -226,6 +228,26 @@ export class SkillMgmtService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
+    const skill = SkillDto.createFromDao(dao);
+    skill.nestedSkills = dao.nestedSkills.map((c) => c.id);
+
+    return skill;
+  }
+
+  public async getResolvedSkill(skillId: string) {
+    const dao = await this.db.skill.findUnique({
+      where: {
+        id: skillId,
+      },
+      include: {
+        nestedSkills: true,
+      },
+    });
+
+    if (!dao) {
+      throw new NotFoundException(`Specified skill not found: ${skillId}`);
+    }
+
     return this.loadSkill(dao);
   }
 
@@ -237,9 +259,9 @@ export class SkillMgmtService {
    * @param resolved A map of already resolved skills, to prevent duplicate resolving
    * @returns The resolved skill
    */
-  private async getNestedSkill(skillId: string, resolved: Map<string, SkillDto>) {
+  private async getNestedSkill(skillId: string, resolved: Map<string, ResolvedSkillDto>) {
     const resolvedSkill = resolved.get(skillId);
-    let result: SkillDto;
+    let result: ResolvedSkillDto;
 
     if (resolvedSkill) {
       result = resolvedSkill;
@@ -258,7 +280,7 @@ export class SkillMgmtService {
         throw new NotFoundException(`Specified skill not found: ${skillId}`);
       }
 
-      const dto = SkillDto.createFromDao(dao);
+      const dto = ResolvedSkillDto.createFromDao(dao);
       resolved.set(dao.id, dto);
       // Add nested skills
       for (const child of dao.nestedSkills) {
@@ -316,7 +338,62 @@ export class SkillMgmtService {
 
     // Resolve nested skills if there are any
     const skillList = new SkillListDto();
-    const resolved = new Map<string, SkillDto>();
+    for (const skill of skills) {
+      const child = SkillDto.createFromDao(skill);
+      // Add nested skills
+      child.nestedSkills = skill.nestedSkills.map((c) => c.id);
+
+      skillList.skills.push(child);
+    }
+
+    return skillList;
+  }
+
+  public async searchSkillsResolved(
+    page: number | null,
+    pageSize: number | null,
+    name: string | Prisma.StringFilter | null,
+    level: number | null,
+    repositoryId: string | null,
+  ) {
+    const query: Prisma.SkillFindManyArgs = {};
+
+    // By default all parameters of WHERE are combined with AND:
+    // https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#and
+    if (name || repositoryId) {
+      query.where = {
+        name: name ?? undefined,
+        repositoryId: repositoryId ?? undefined,
+      };
+      // Consider level only if at least also a name was specified
+      if (name) {
+        query.where.level = level ?? undefined;
+      }
+    } else {
+      // Ensure pagination if no filters are defined
+      if (page == null || pageSize == null) {
+        page = page ?? 0;
+        pageSize = pageSize ?? 10;
+      }
+    }
+    if (page && page >= 0 && pageSize && pageSize > 0) {
+      query.skip = page * pageSize;
+      query.take = pageSize;
+    }
+    const skills = await this.db.skill.findMany({
+      ...query,
+      include: {
+        nestedSkills: true,
+      },
+    });
+
+    if (!skills) {
+      throw new NotFoundException('Can not find any skills');
+    }
+
+    // Resolve nested skills if there are any
+    const skillList = new ResolvedSkillListDto();
+    const resolved = new Map<string, ResolvedSkillDto>();
     for (const skill of skills) {
       // Promise.all would be much faster, but this would not guarantee reuse of already resolved objects
       skillList.skills.push(await this.loadSkill(skill, resolved));
