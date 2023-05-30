@@ -5,12 +5,12 @@ import { Skill } from '@prisma/client';
 import { SkillCreationDto } from './skill-creation.dto';
 import { OmitType } from '@nestjs/swagger';
 
-export class SkillDto extends OmitType(SkillCreationDto, ['owner', 'parentSkills', 'nestedSkills']) {
+export class ResolvedSkillDto extends OmitType(SkillCreationDto, ['owner', 'parentSkills', 'nestedSkills']) {
   @IsNotEmpty()
   id: string;
 
   @IsDefined()
-  nestedSkills: string[];
+  nestedSkills: ResolvedSkillDto[];
 
   constructor(id: string, name: string, level: number, description: string | null) {
     super();
@@ -26,7 +26,7 @@ export class SkillDto extends OmitType(SkillCreationDto, ['owner', 'parentSkills
    * @param skill The DB result which shall be converted to a DTO
    * @returns The corresponding DTO, but without parents/children
    */
-  static createFromDao(skill: Skill): SkillDto {
-    return new SkillDto(skill.id, skill.name, skill.level, skill.description);
+  static createFromDao(skill: Skill): ResolvedSkillDto {
+    return new ResolvedSkillDto(skill.id, skill.name, skill.level, skill.description);
   }
 }

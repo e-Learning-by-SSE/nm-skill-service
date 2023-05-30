@@ -1,5 +1,5 @@
 import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
-import { SkillDto } from '../../skills/dto';
+import { ResolvedSkillDto } from '../../skills/dto';
 
 /**
  * Creates a new LearningPath Goal for a specific audience.
@@ -15,17 +15,17 @@ export class PathGoalCreationDto {
   description?: string;
 
   @IsDefined()
-  requirements: SkillDto[];
+  requirements: ResolvedSkillDto[];
 
   @IsDefined()
-  pathGoals: SkillDto[];
+  pathGoals: ResolvedSkillDto[];
 
   constructor(
     title: string,
     targetAudience: string | null,
     description: string | null,
-    requirements: SkillDto[],
-    pathGoals: SkillDto[],
+    requirements: ResolvedSkillDto[],
+    pathGoals: ResolvedSkillDto[],
   ) {
     this.title = title;
     this.targetAudience = targetAudience ?? undefined;

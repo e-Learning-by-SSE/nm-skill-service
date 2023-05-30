@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   ResolvedSkillRepositoryDto,
   SkillCreationDto,
-  SkillDto,
+  ResolvedSkillDto,
   SkillRepositoryCreationDto,
   SkillRepositoryDto,
   SkillRepositoryListDto,
@@ -135,7 +135,7 @@ describe('Skill Service', () => {
       await expect(db.skill.aggregate({ _count: true })).resolves.toEqual({ _count: 0 });
 
       // Test: NotFoundException
-      await expect(skillService.getSkill('anyID')).rejects.toThrowError(NotFoundException);
+      await expect(skillService.getResolvedSkill('anyID')).rejects.toThrowError(NotFoundException);
     });
 
     it('Existing ID -> DTO representation', async () => {
@@ -145,14 +145,14 @@ describe('Skill Service', () => {
 
       // Test: Load skill
       // Expected result: DTO representation of skill, without parent and nested skills
-      const expectedResult: Partial<SkillDto> = {
+      const expectedResult: Partial<ResolvedSkillDto> = {
         id: skill.id,
         name: skill.name,
         level: skill.level,
         description: skill.description ?? undefined,
         nestedSkills: [],
       };
-      await expect(skillService.getSkill(skill.id)).resolves.toMatchObject(expectedResult);
+      await expect(skillService.getResolvedSkill(skill.id)).resolves.toMatchObject(expectedResult);
     });
 
     it('One nested Skill', async () => {
@@ -163,21 +163,21 @@ describe('Skill Service', () => {
 
       // Test: Load skill
       // Expected result: DTO representation of skill, without parent and nested skills
-      const expectedChild: Partial<SkillDto> = {
+      const expectedChild: Partial<ResolvedSkillDto> = {
         id: skill2.id,
         name: skill2.name,
         level: skill2.level,
         description: skill2.description ?? undefined,
         nestedSkills: [],
       };
-      const expectedParent: Partial<SkillDto> = {
+      const expectedParent: Partial<ResolvedSkillDto> = {
         id: skill1.id,
         name: skill1.name,
         level: skill1.level,
         description: skill1.description ?? undefined,
         nestedSkills: [expect.objectContaining(expectedChild)],
       };
-      await expect(skillService.getSkill(skill1.id)).resolves.toMatchObject(expectedParent);
+      await expect(skillService.getResolvedSkill(skill1.id)).resolves.toMatchObject(expectedParent);
     });
 
     it('Skill multiple times nested', async () => {
@@ -194,28 +194,28 @@ describe('Skill Service', () => {
 
       // Test: Load skill
       // Expected result: DTO representation of skill, without parent and nested skills
-      const expectedSkill3: Partial<SkillDto> = {
+      const expectedSkill3: Partial<ResolvedSkillDto> = {
         id: skill3.id,
         name: skill3.name,
         level: skill3.level,
         description: skill3.description ?? undefined,
         nestedSkills: [],
       };
-      const expectedChild: Partial<SkillDto> = {
+      const expectedChild: Partial<ResolvedSkillDto> = {
         id: skill2.id,
         name: skill2.name,
         level: skill2.level,
         description: skill2.description ?? undefined,
         nestedSkills: [expect.objectContaining(expectedSkill3)],
       };
-      const expectedParent: Partial<SkillDto> = {
+      const expectedParent: Partial<ResolvedSkillDto> = {
         id: skill1.id,
         name: skill1.name,
         level: skill1.level,
         description: skill1.description ?? undefined,
         nestedSkills: [expect.objectContaining(expectedChild), expect.objectContaining(expectedSkill3)],
       };
-      await expect(skillService.getSkill(skill1.id)).resolves.toMatchObject(expectedParent);
+      await expect(skillService.getResolvedSkill(skill1.id)).resolves.toMatchObject(expectedParent);
     });
   });
 
@@ -243,28 +243,28 @@ describe('Skill Service', () => {
       const result = skillService.loadResolvedSkillRepository(defaultSkillMap.id);
 
       // Expected result: DTO representation of skill, without parent and nested skills
-      const expectedSkill3: Partial<SkillDto> = {
+      const expectedSkill3: Partial<ResolvedSkillDto> = {
         id: skill3.id,
         name: skill3.name,
         level: skill3.level,
         description: skill3.description ?? undefined,
         nestedSkills: [],
       };
-      const expectedSkill2: Partial<SkillDto> = {
+      const expectedSkill2: Partial<ResolvedSkillDto> = {
         id: skill2.id,
         name: skill2.name,
         level: skill2.level,
         description: skill2.description ?? undefined,
         nestedSkills: [expect.objectContaining(expectedSkill3)],
       };
-      const expectedSkill1: Partial<SkillDto> = {
+      const expectedSkill1: Partial<ResolvedSkillDto> = {
         id: skill1.id,
         name: skill1.name,
         level: skill1.level,
         description: skill1.description ?? undefined,
         nestedSkills: [expect.objectContaining(expectedSkill2), expect.objectContaining(expectedSkill3)],
       };
-      const expectedSkill4: Partial<SkillDto> = {
+      const expectedSkill4: Partial<ResolvedSkillDto> = {
         id: skill4.id,
         name: skill4.name,
         level: skill4.level,
@@ -302,7 +302,7 @@ describe('Skill Service', () => {
       };
 
       // Expected result: DTO representation of skill, without parent and nested skills
-      const expectedSkill: Partial<SkillDto> = {
+      const expectedSkill: Partial<ResolvedSkillDto> = {
         name: creationDto.name,
         level: creationDto.level,
         description: creationDto.description,
