@@ -1,12 +1,17 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsDefined, IsNotEmpty } from 'class-validator';
 
 import { SearchLUDaoType } from '../../types';
 import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';
-import { LearningUnit } from '@prisma/client';
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   @IsNotEmpty()
   searchId: number;
+
+  @IsDefined()
+  teachingGoals: string[] = [];
+
+  @IsDefined()
+  requiredSkills: string[] = [];
 
   constructor(
     id: number,

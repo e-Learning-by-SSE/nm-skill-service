@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsDefined, IsNotEmpty } from 'class-validator';
 
 import { SelfLearnLearningUnitCreationDto } from './learningUnit-creation.dto';
 import { SelfLearnLUDaoType } from '../../types';
@@ -6,6 +6,12 @@ import { SelfLearnLUDaoType } from '../../types';
 export class SelfLearnLearningUnitDto extends SelfLearnLearningUnitCreationDto {
   @IsNotEmpty()
   selfLearnId: number;
+
+  @IsDefined()
+  teachingGoals: string[] = [];
+
+  @IsDefined()
+  requiredSkills: string[] = [];
 
   constructor(id: number, language: string, title: string, description?: string | null, order?: number | null) {
     super(language, title, description, order);

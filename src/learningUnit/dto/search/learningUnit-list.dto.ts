@@ -4,5 +4,5 @@ import { SearchLearningUnitDto } from './learningUnit.dto';
 
 export class SearchLearningUnitListDto {
   @IsDefined()
-  learningUnits: SearchLearningUnitDto[];
+  learningUnits: SearchLearningUnitDto[] = [];
 }

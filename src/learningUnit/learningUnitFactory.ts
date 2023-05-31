@@ -11,7 +11,7 @@ import {
 } from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { LearningUnit, Prisma } from '@prisma/client';
-import { isSearchLUDaoType, isSelfLearnLUDaoType } from './types';
+import { isLearningUnitType, isSearchLUDaoType, isSelfLearnLUDaoType } from './types';
 import { MODE } from '../config/env.validation';
 
 /**
@@ -77,6 +77,8 @@ export class LearningUnitFactory {
     const learningUnits = await this.db.learningUnit.findMany({
       ...args,
       include: {
+        teachingGoals: true,
+        requirements: true,
         [this.extensionTable]: true,
       },
       // where: {
@@ -97,16 +99,30 @@ export class LearningUnitFactory {
     switch (this.extension) {
       case MODE.SEARCH:
         const searchUnits = new SearchLearningUnitListDto();
-        searchUnits.learningUnits = learningUnits
-          .filter(isSearchLUDaoType)
-          .map((lu) => SearchLearningUnitDto.createFromDao(lu));
+        for (const lu of learningUnits) {
+          if (isLearningUnitType(lu) && isSearchLUDaoType(lu)) {
+            const searchUnit = SearchLearningUnitDto.createFromDao(lu);
+            searchUnit.requiredSkills = lu.requirements.map((skill) => skill.id);
+            searchUnit.teachingGoals = lu.teachingGoals.map((skill) => skill.id);
+            searchUnits.learningUnits.push(searchUnit);
+          } else {
+            throw new Error(`SearchInfos not found: ${lu.id}`);
+          }
+        }
 
         return searchUnits;
       case MODE.SELFLEARN:
         const selflearnUnits = new SelfLearnLearningUnitListDto();
-        selflearnUnits.learningUnits = learningUnits
-          .filter(isSelfLearnLUDaoType)
-          .map((lu) => SelfLearnLearningUnitDto.createFromDao(lu));
+        for (const lu of learningUnits) {
+          if (isLearningUnitType(lu) && isSelfLearnLUDaoType(lu)) {
+            const selfLearnUnit = SelfLearnLearningUnitDto.createFromDao(lu);
+            selfLearnUnit.requiredSkills = lu.requirements.map((skill) => skill.id);
+            selfLearnUnit.teachingGoals = lu.teachingGoals.map((skill) => skill.id);
+            selflearnUnits.learningUnits.push(selfLearnUnit);
+          } else {
+            throw new Error(`SelfLearningInfos not found: ${lu.id}`);
+          }
+        }
 
         return selflearnUnits;
       default:
