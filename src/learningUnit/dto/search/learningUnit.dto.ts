@@ -2,6 +2,7 @@ import { IsNotEmpty } from 'class-validator';
 
 import { SearchLUDaoType } from '../../types';
 import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';
+import { LearningUnit } from '@prisma/client';
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   @IsNotEmpty()
@@ -47,7 +48,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       unit.title,
       unit.language,
       unit.description,
-      unit.searchInfos.processingTime,
+      unit.searchInfos?.processingTime,
       unit.searchInfos.rating,
       unit.searchInfos.contentCreator,
       unit.searchInfos.contentProvider,
