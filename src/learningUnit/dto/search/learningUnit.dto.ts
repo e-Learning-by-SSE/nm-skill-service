@@ -1,4 +1,4 @@
-import { IsDefined, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 
 import { SearchLUDaoType } from '../../types';
 import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';

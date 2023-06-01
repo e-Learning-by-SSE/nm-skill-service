@@ -1,4 +1,4 @@
-import { IsDefined, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 
 import { SelfLearnLearningUnitCreationDto } from './learningUnit-creation.dto';
 import { SelfLearnLUDaoType } from '../../types';

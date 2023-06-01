@@ -5,7 +5,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MODE } from '../config/env.validation';
 import { LearningUnitFactory } from './learningUnitFactory';
 import { TestConfig } from '../config/TestConfig';
-import { SearchLearningUnitCreationDto, SearchLearningUnitDto, SearchLearningUnitListDto } from './dto';
+import {
+  SearchLearningUnitCreationDto,
+  SearchLearningUnitDto,
+  SearchLearningUnitListDto,
+  SelfLearnLearningUnitCreationDto,
+  SelfLearnLearningUnitDto,
+  SelfLearnLearningUnitListDto,
+} from './dto';
 
 describe('LearningUnit Factory', () => {
   // Test object
@@ -61,6 +68,8 @@ describe('LearningUnit Factory', () => {
         // Expected DTO class and values for one and only element
         const expectedItem: Partial<SearchLearningUnitDto> = {
           title: creationDtoMatch.title,
+          requiredSkills: [],
+          teachingGoals: [],
         };
         // Expected DTO class and values for the whole list
         const expectedList: SearchLearningUnitListDto = {
@@ -89,6 +98,34 @@ describe('LearningUnit Factory', () => {
     describe('loadAllLearningUnits', () => {
       it('Empty DB -> Empty Result List', async () => {
         await expect(factory.loadAllLearningUnits()).resolves.toEqual({ learningUnits: [] });
+      });
+
+      it('With Parameter on Empty DB -> Empty Result List', async () => {
+        await expect(factory.loadAllLearningUnits({ where: { title: 'Awesome Title' } })).resolves.toEqual({
+          learningUnits: [],
+        });
+      });
+
+      it('With Parameter -> Only exact match should return', async () => {
+        const creationDtoMatch = SelfLearnLearningUnitCreationDto.createForTesting({ title: 'Awesome Title' });
+        const creationDtoNoMatch = SelfLearnLearningUnitCreationDto.createForTesting({ title: 'Awesome Title 2' });
+        await factory.createLearningUnit(creationDtoMatch);
+        await factory.createLearningUnit(creationDtoNoMatch);
+
+        // Should return only the first object
+        const result = await factory.loadAllLearningUnits({ where: { title: 'Awesome Title' } });
+
+        // Expected DTO class and values for one and only element
+        const expectedItem: Partial<SelfLearnLearningUnitDto> = {
+          title: creationDtoMatch.title,
+          requiredSkills: [],
+          teachingGoals: [],
+        };
+        // Expected DTO class and values for the whole list
+        const expectedList: SelfLearnLearningUnitListDto = {
+          learningUnits: [expect.objectContaining(expectedItem)],
+        };
+        expect(result).toMatchObject(expectedList);
       });
     });
   });
