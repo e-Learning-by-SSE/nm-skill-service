@@ -115,9 +115,9 @@ export class LearningUnitFactory {
   private createLearningUnitDto(dao: LearningUnit) {
     // Using Type Guard to identify the correct type: https://www.typescriptlang.org/docs/handbook/advanced-types.html
     if (isSearchLUDaoType(dao)) {
-      return SearchLearningUnitDto.createFromDao(dao);
+      return this.createSearchLearningUnitDto(dao);
     } else if (isSelfLearnLUDaoType(dao)) {
-      return SelfLearnLearningUnitDto.createFromDao(dao);
+      return this.createSelfLearnUnitDto(dao);
     } else {
       throw new Error(`No project-specific extra information provided as expected: ${dao.id}`);
     }
