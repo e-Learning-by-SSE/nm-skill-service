@@ -7,12 +7,6 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   @IsNotEmpty()
   searchId: number;
 
-  @IsDefined()
-  teachingGoals: string[] = [];
-
-  @IsDefined()
-  requiredSkills: string[] = [];
-
   constructor(
     id: number,
     title: string,

@@ -10,8 +10,8 @@ import {
   SelfLearnLearningUnitListDto,
 } from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
-import { LearningUnit, Prisma } from '@prisma/client';
-import { isLearningUnitType, isSearchLUDaoType, isSelfLearnLUDaoType } from './types';
+import { LearningUnit, Prisma, Skill } from '@prisma/client';
+import { SearchLUDaoType, SelfLearnLUDaoType, isSearchLUDaoType, isSelfLearnLUDaoType } from './types';
 import { MODE } from '../config/env.validation';
 
 /**
@@ -63,14 +63,7 @@ export class LearningUnitFactory {
   public async getLearningUnit(learningUnitId: string) {
     const dao = await this.loadLearningUnit(learningUnitId);
 
-    // Using Type Guard to identify the correct type: https://www.typescriptlang.org/docs/handbook/advanced-types.html
-    if (isSearchLUDaoType(dao)) {
-      return SearchLearningUnitDto.createFromDao(dao);
-    } else if (isSelfLearnLUDaoType(dao)) {
-      return SelfLearnLearningUnitDto.createFromDao(dao);
-    } else {
-      throw new Error(`No project-specific extra information provided as expected: ${learningUnitId}`);
-    }
+    return this.createLearningUnitDto(dao);
   }
 
   private async loadManyLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {
@@ -93,36 +86,55 @@ export class LearningUnitFactory {
     return learningUnits;
   }
 
+  private createSearchLearningUnitDto(
+    learningUnit: SearchLUDaoType & {
+      teachingGoals?: Skill[];
+      requirements?: Skill[];
+    },
+  ) {
+    const searchUnit = SearchLearningUnitDto.createFromDao(learningUnit);
+    searchUnit.requiredSkills = learningUnit.requirements?.map((skill) => skill.id) ?? [];
+    searchUnit.teachingGoals = learningUnit.teachingGoals?.map((skill) => skill.id) ?? [];
+
+    return searchUnit;
+  }
+
+  private createSelfLearnUnitDto(
+    learningUnit: SelfLearnLUDaoType & {
+      teachingGoals?: Skill[];
+      requirements?: Skill[];
+    },
+  ) {
+    const selfLearnUnit = SelfLearnLearningUnitDto.createFromDao(learningUnit);
+    selfLearnUnit.requiredSkills = learningUnit.requirements?.map((skill) => skill.id) ?? [];
+    selfLearnUnit.teachingGoals = learningUnit.teachingGoals?.map((skill) => skill.id) ?? [];
+
+    return selfLearnUnit;
+  }
+
+  private createLearningUnitDto(dao: LearningUnit) {
+    // Using Type Guard to identify the correct type: https://www.typescriptlang.org/docs/handbook/advanced-types.html
+    if (isSearchLUDaoType(dao)) {
+      return SearchLearningUnitDto.createFromDao(dao);
+    } else if (isSelfLearnLUDaoType(dao)) {
+      return SelfLearnLearningUnitDto.createFromDao(dao);
+    } else {
+      throw new Error(`No project-specific extra information provided as expected: ${dao.id}`);
+    }
+  }
+
   public async loadAllLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {
     const learningUnits = await this.loadManyLearningUnits(args);
 
     switch (this.extension) {
       case MODE.SEARCH:
         const searchUnits = new SearchLearningUnitListDto();
-        for (const lu of learningUnits) {
-          if (isLearningUnitType(lu) && isSearchLUDaoType(lu)) {
-            const searchUnit = SearchLearningUnitDto.createFromDao(lu);
-            searchUnit.requiredSkills = lu.requirements.map((skill) => skill.id);
-            searchUnit.teachingGoals = lu.teachingGoals.map((skill) => skill.id);
-            searchUnits.learningUnits.push(searchUnit);
-          } else {
-            throw new Error(`SearchInfos not found: ${lu.id}`);
-          }
-        }
+        searchUnits.learningUnits = learningUnits.filter(isSearchLUDaoType).map(this.createSearchLearningUnitDto);
 
         return searchUnits;
       case MODE.SELFLEARN:
         const selflearnUnits = new SelfLearnLearningUnitListDto();
-        for (const lu of learningUnits) {
-          if (isLearningUnitType(lu) && isSelfLearnLUDaoType(lu)) {
-            const selfLearnUnit = SelfLearnLearningUnitDto.createFromDao(lu);
-            selfLearnUnit.requiredSkills = lu.requirements.map((skill) => skill.id);
-            selfLearnUnit.teachingGoals = lu.teachingGoals.map((skill) => skill.id);
-            selflearnUnits.learningUnits.push(selfLearnUnit);
-          } else {
-            throw new Error(`SelfLearningInfos not found: ${lu.id}`);
-          }
-        }
+        selflearnUnits.learningUnits = learningUnits.filter(isSelfLearnLUDaoType).map(this.createSelfLearnUnitDto);
 
         return selflearnUnits;
       default:
@@ -158,14 +170,22 @@ export class LearningUnitFactory {
               linkToHelpMaterial: dto.linkToHelpMaterial,
             },
           },
+          requirements: {
+            connect: dto.requiredSkills?.map((skillId) => ({ id: skillId })) ?? [],
+          },
+          teachingGoals: {
+            connect: dto.teachingGoals?.map((skillId) => ({ id: skillId })) ?? [],
+          },
         },
         include: {
           searchInfos: true,
+          requirements: true,
+          teachingGoals: true,
         },
       });
 
       if (isSearchLUDaoType(learningUnit)) {
-        return SearchLearningUnitDto.createFromDao(learningUnit);
+        return this.createSearchLearningUnitDto(learningUnit);
       } else {
         throw new Error(`SearchInfos not found: ${learningUnit.id}`);
       }
@@ -200,14 +220,22 @@ export class LearningUnitFactory {
               order: dto.order,
             },
           },
+          requirements: {
+            connect: dto.requiredSkills?.map((skillId) => ({ id: skillId })) ?? [],
+          },
+          teachingGoals: {
+            connect: dto.teachingGoals?.map((skillId) => ({ id: skillId })) ?? [],
+          },
         },
         include: {
           selfLearnInfos: true,
+          requirements: true,
+          teachingGoals: true,
         },
       });
 
       if (isSelfLearnLUDaoType(learningUnit)) {
-        return SelfLearnLearningUnitDto.createFromDao(learningUnit);
+        return this.createSelfLearnUnitDto(learningUnit);
       } else {
         throw new Error(`Self-Learn Infos not found: ${learningUnit.id}`);
       }

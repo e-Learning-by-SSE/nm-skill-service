@@ -7,12 +7,6 @@ export class SelfLearnLearningUnitDto extends SelfLearnLearningUnitCreationDto {
   @IsNotEmpty()
   selfLearnId: number;
 
-  @IsDefined()
-  teachingGoals: string[] = [];
-
-  @IsDefined()
-  requiredSkills: string[] = [];
-
   constructor(id: number, language: string, title: string, description?: string | null, order?: number | null) {
     super(language, title, description, order);
     this.selfLearnId = id;
