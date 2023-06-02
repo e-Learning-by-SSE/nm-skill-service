@@ -13,6 +13,7 @@ import {
   SelfLearnLearningUnitDto,
   SelfLearnLearningUnitListDto,
 } from './dto';
+import { Skill, SkillMap } from '@prisma/client';
 
 describe('LearningUnit Factory', () => {
   // Test object
@@ -23,6 +24,11 @@ describe('LearningUnit Factory', () => {
 
   // Auxillary
   let config: ConfigService;
+
+  // Test data
+  let skillMap: SkillMap;
+  let reqSkill: Skill;
+  let goalSkill: Skill;
 
   beforeAll(async () => {
     config = new ConfigService();
@@ -43,6 +49,11 @@ describe('LearningUnit Factory', () => {
       await dbUtils.wipeDb();
 
       factory = new LearningUnitFactory(db, testConfig);
+
+      // Create Skills that may be used during tests
+      skillMap = await dbUtils.createSkillMap('owner', 'Default Skill Map for Testing');
+      reqSkill = await dbUtils.createSkill(skillMap, 'Required Skill', [], 'Description', 1);
+      goalSkill = await dbUtils.createSkill(skillMap, 'Taught Skill', [], 'Description', 1);
     });
 
     describe('loadAllLearningUnits', () => {
@@ -78,6 +89,78 @@ describe('LearningUnit Factory', () => {
         expect(result).toMatchObject(expectedList);
       });
     });
+
+    describe('createLearningUnit', () => {
+      it('Empty DB, no Skills -> Create Learning Unit', async () => {
+        const creationDto = SearchLearningUnitCreationDto.createForTesting({ title: 'Awesome Title' });
+        const result = await factory.createLearningUnit(creationDto);
+
+        // Expected DTO class and values
+        const expected: Partial<SearchLearningUnitDto> = {
+          title: creationDto.title,
+          requiredSkills: [],
+          teachingGoals: [],
+        };
+        expect(result).toMatchObject(expected);
+        // Test that it is actually a SearchLearningUnitDto, by testing for the existence of search-specific mandatory properties
+        expect(result).toHaveProperty('searchId');
+      });
+
+      it('Empty DB, Required Skill -> Create Learning Unit', async () => {
+        const creationDto = SearchLearningUnitCreationDto.createForTesting({
+          title: 'Awesome Title',
+          requiredSkills: [reqSkill.id],
+        });
+        const result = await factory.createLearningUnit(creationDto);
+
+        // Expected DTO class and values
+        const expected: Partial<SearchLearningUnitDto> = {
+          title: creationDto.title,
+          requiredSkills: creationDto.requiredSkills,
+          teachingGoals: [],
+        };
+        expect(result).toMatchObject(expected);
+        // Test that it is actually a SearchLearningUnitDto, by testing for the existence of search-specific mandatory properties
+        expect(result).toHaveProperty('searchId');
+      });
+
+      it('Empty DB, Taught Skill -> Create Learning Unit', async () => {
+        const creationDto = SearchLearningUnitCreationDto.createForTesting({
+          title: 'Awesome Title',
+          requiredSkills: [reqSkill.id],
+          teachingGoals: [goalSkill.id],
+        });
+        const result = await factory.createLearningUnit(creationDto);
+
+        // Expected DTO class and values
+        const expected: Partial<SearchLearningUnitDto> = {
+          title: creationDto.title,
+          requiredSkills: creationDto.requiredSkills,
+          teachingGoals: creationDto.teachingGoals,
+        };
+        expect(result).toMatchObject(expected);
+        // Test that it is actually a SearchLearningUnitDto, by testing for the existence of search-specific mandatory properties
+        expect(result).toHaveProperty('searchId');
+      });
+
+      it('Empty DB, Required/Taught Skills -> Create Learning Unit', async () => {
+        const creationDto = SearchLearningUnitCreationDto.createForTesting({
+          title: 'Awesome Title',
+          teachingGoals: [goalSkill.id],
+        });
+        const result = await factory.createLearningUnit(creationDto);
+
+        // Expected DTO class and values
+        const expected: Partial<SearchLearningUnitDto> = {
+          title: creationDto.title,
+          requiredSkills: [],
+          teachingGoals: creationDto.teachingGoals,
+        };
+        expect(result).toMatchObject(expected);
+        // Test that it is actually a SearchLearningUnitDto, by testing for the existence of search-specific mandatory properties
+        expect(result).toHaveProperty('searchId');
+      });
+    });
   });
 
   describe('Self-Learn', () => {
@@ -93,6 +176,11 @@ describe('LearningUnit Factory', () => {
       await dbUtils.wipeDb();
 
       factory = new LearningUnitFactory(db, testConfig);
+
+      // Create Skills that may be used during tests
+      skillMap = await dbUtils.createSkillMap('owner', 'Default Skill Map for Testing');
+      reqSkill = await dbUtils.createSkill(skillMap, 'Required Skill', [], 'Description', 1);
+      goalSkill = await dbUtils.createSkill(skillMap, 'Taught Skill', [], 'Description', 1);
     });
 
     describe('loadAllLearningUnits', () => {
@@ -126,6 +214,78 @@ describe('LearningUnit Factory', () => {
           learningUnits: [expect.objectContaining(expectedItem)],
         };
         expect(result).toMatchObject(expectedList);
+      });
+    });
+
+    describe('createLearningUnit', () => {
+      it('Empty DB, no Skills -> Create Learning Unit', async () => {
+        const creationDto = SelfLearnLearningUnitCreationDto.createForTesting({ title: 'Awesome Title' });
+        const result = await factory.createLearningUnit(creationDto);
+
+        // Expected DTO class and values
+        const expected: Partial<SelfLearnLearningUnitDto> = {
+          title: creationDto.title,
+          requiredSkills: [],
+          teachingGoals: [],
+        };
+        expect(result).toMatchObject(expected);
+        // Test that it is actually a SelfLearnLearningUnitDto, by testing for the existence of selflearn-specific mandatory properties
+        expect(result).toHaveProperty('selfLearnId');
+      });
+
+      it('Empty DB, Required Skill -> Create Learning Unit', async () => {
+        const creationDto = SelfLearnLearningUnitCreationDto.createForTesting({
+          title: 'Awesome Title',
+          requiredSkills: [reqSkill.id],
+        });
+        const result = await factory.createLearningUnit(creationDto);
+
+        // Expected DTO class and values
+        const expected: Partial<SelfLearnLearningUnitDto> = {
+          title: creationDto.title,
+          requiredSkills: creationDto.requiredSkills,
+          teachingGoals: [],
+        };
+        expect(result).toMatchObject(expected);
+        // Test that it is actually a SelfLearnLearningUnitDto, by testing for the existence of selflearn-specific mandatory properties
+        expect(result).toHaveProperty('selfLearnId');
+      });
+
+      it('Empty DB, Taught Skill -> Create Learning Unit', async () => {
+        const creationDto = SelfLearnLearningUnitCreationDto.createForTesting({
+          title: 'Awesome Title',
+          requiredSkills: [reqSkill.id],
+          teachingGoals: [goalSkill.id],
+        });
+        const result = await factory.createLearningUnit(creationDto);
+
+        // Expected DTO class and values
+        const expected: Partial<SelfLearnLearningUnitDto> = {
+          title: creationDto.title,
+          requiredSkills: creationDto.requiredSkills,
+          teachingGoals: creationDto.teachingGoals,
+        };
+        expect(result).toMatchObject(expected);
+        // Test that it is actually a SelfLearnLearningUnitDto, by testing for the existence of selflearn-specific mandatory properties
+        expect(result).toHaveProperty('selfLearnId');
+      });
+
+      it('Empty DB, Required/Taught Skills -> Create Learning Unit', async () => {
+        const creationDto = SelfLearnLearningUnitCreationDto.createForTesting({
+          title: 'Awesome Title',
+          teachingGoals: [goalSkill.id],
+        });
+        const result = await factory.createLearningUnit(creationDto);
+
+        // Expected DTO class and values
+        const expected: Partial<SelfLearnLearningUnitDto> = {
+          title: creationDto.title,
+          requiredSkills: [],
+          teachingGoals: creationDto.teachingGoals,
+        };
+        expect(result).toMatchObject(expected);
+        // Test that it is actually a SelfLearnLearningUnitDto, by testing for the existence of selflearn-specific mandatory properties
+        expect(result).toHaveProperty('selfLearnId');
       });
     });
   });
