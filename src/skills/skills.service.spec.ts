@@ -38,7 +38,7 @@ describe('Skill Service', () => {
       });
     });
 
-    it('Query for not existing ID -> Empty ResultList', async () => {
+    it('Query for not existing Owner-ID -> Empty ResultList', async () => {
       // Precondition: Some Skill-Maps defined
       await db.skillMap.create({
         data: {
@@ -54,7 +54,7 @@ describe('Skill Service', () => {
       });
     });
 
-    it('Query for existing ID -> ResultList with exact match', async () => {
+    it('Query for existing Owner-ID -> ResultList with exact match', async () => {
       // Precondition: Some Skill-Maps defined
       const firstCreationResult = await db.skillMap.create({
         data: {
@@ -82,6 +82,49 @@ describe('Skill Service', () => {
       await expect(skillService.findSkillRepositories(null, null, 'User-1', null, null)).resolves.toMatchObject(
         expectedList,
       );
+    });
+
+    it('Query for repository name by StringFilter (Containment) -> ResultList with matches', async () => {
+      // Precondition: Some Skill-Maps defined
+      const firstCreationResult = await db.skillMap.create({
+        data: {
+          name: 'Test',
+          owner: 'User-1',
+        },
+      });
+      const secondCreationResult = await db.skillMap.create({
+        data: {
+          name: 'Test 2',
+          owner: 'User-2',
+        },
+      });
+      // Should not be found
+      await db.skillMap.create({
+        data: {
+          name: 'A completely different name',
+          owner: 'User-1',
+        },
+      });
+      await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 3 });
+
+      // Test: ResultList should contain DTO representation all elements that contain the name "Test"
+      const expectedList: SkillRepositoryListDto = {
+        repositories: [
+          expect.objectContaining({
+            id: firstCreationResult.id,
+            name: firstCreationResult.name,
+            ownerId: firstCreationResult.owner,
+          }),
+          expect.objectContaining({
+            id: secondCreationResult.id,
+            name: secondCreationResult.name,
+            ownerId: secondCreationResult.owner,
+          }),
+        ],
+      };
+      await expect(
+        skillService.findSkillRepositories(null, null, null, { contains: 'Test', mode: 'insensitive' }, null),
+      ).resolves.toMatchObject(expectedList);
     });
 
     it('Test Pagination (Page)', async () => {
