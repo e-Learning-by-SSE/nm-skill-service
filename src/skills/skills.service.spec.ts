@@ -85,6 +85,26 @@ describe('Skill Service', () => {
     });
   });
 
+  describe('loadSkillRepository', () => {
+    it('Existing RepositoryId -> Success', async () => {
+      // Precondition: Some Skill-Maps defined
+      const skillMapDao = await db.skillMap.create({
+        data: {
+          name: 'Test',
+          owner: 'User-1',
+        },
+      });
+
+      // Test: Load Skill-Map by ID
+      const expectedResult: Partial<SkillRepositoryDto> = {
+        id: skillMapDao.id,
+        name: skillMapDao.name,
+        ownerId: skillMapDao.owner,
+      };
+      await expect(skillService.loadSkillRepository(skillMapDao.id)).resolves.toMatchObject(expectedResult);
+    });
+  });
+
   describe('createRepository', () => {
     it('Create First Repository -> Success', async () => {
       // Precondition: No Skill-Maps defined
