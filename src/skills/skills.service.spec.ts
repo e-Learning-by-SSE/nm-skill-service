@@ -83,6 +83,58 @@ describe('Skill Service', () => {
         expectedList,
       );
     });
+
+    it('Test Pagination (Page)', async () => {
+      // Precondition: Some Skill-Maps defined
+      const skillMap1 = await db.skillMap.create({
+        data: {
+          name: 'First Map',
+          owner: 'User-1',
+        },
+      });
+      const skillMap2 = await db.skillMap.create({
+        data: {
+          name: 'Second Map',
+          owner: 'User-1',
+        },
+      });
+      const skillMap3 = await db.skillMap.create({
+        data: {
+          name: 'Third Map',
+          owner: 'User-1',
+        },
+      });
+      await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 3 });
+
+      // Test: Retrieve all 3 pages (with pagesize 1)
+      await expect(skillService.findSkillRepositories(0, 1, null, null, null)).resolves.toMatchObject({
+        repositories: [
+          expect.objectContaining({
+            name: skillMap1.name,
+            id: skillMap1.id,
+            ownerId: skillMap1.owner,
+          }),
+        ],
+      });
+      await expect(skillService.findSkillRepositories(1, 1, null, null, null)).resolves.toMatchObject({
+        repositories: [
+          expect.objectContaining({
+            name: skillMap2.name,
+            id: skillMap2.id,
+            ownerId: skillMap2.owner,
+          }),
+        ],
+      });
+      await expect(skillService.findSkillRepositories(2, 1, null, null, null)).resolves.toMatchObject({
+        repositories: [
+          expect.objectContaining({
+            name: skillMap3.name,
+            id: skillMap3.id,
+            ownerId: skillMap3.owner,
+          }),
+        ],
+      });
+    });
   });
 
   describe('loadSkillRepository', () => {
