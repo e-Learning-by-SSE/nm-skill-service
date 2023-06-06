@@ -11,7 +11,8 @@ import {
   SkillRepositoryListDto,
 } from './dto';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { SkillMap } from '@prisma/client';
+import { Skill, SkillMap } from '@prisma/client';
+import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.dto';
 
 describe('Skill Service', () => {
   // Auxillary objects
@@ -314,42 +315,12 @@ describe('Skill Service', () => {
   });
 
   describe('loadSkillRepository', () => {
-    it('Existing RepositoryId -> Success', async () => {
-      // Precondition: Some Skill-Maps defined
-      const skillMapDao = await db.skillMap.create({
-        data: {
-          name: 'Test',
-          owner: 'User-1',
-        },
-      });
-
-      // Test: Load Skill-Map by ID
-      const expectedResult: Partial<SkillRepositoryDto> = {
-        id: skillMapDao.id,
-        name: skillMapDao.name,
-        ownerId: skillMapDao.owner,
-      };
-      await expect(skillService.loadSkillRepository(skillMapDao.id)).resolves.toMatchObject(expectedResult);
-    });
-
-    it('Not existing RepositoryId -> NotFoundException', async () => {
-      // Precondition: Some Skill-Maps defined
-      await db.skillMap.create({
-        data: {
-          name: 'Test',
-          owner: 'User-1',
-        },
-      });
-
-      // Test: Load Skill-Map by not existing ID
-      await expect(skillService.loadSkillRepository('Not-existing-ID')).rejects.toThrowError(NotFoundException);
-    });
-  });
-
-  describe('getSkillRepository', () => {
     let skillMap1: SkillMap;
     let skillMap2: SkillMap;
     let skillMap3: SkillMap;
+    let skill1: Skill;
+    let skill2: Skill;
+    let nestedSkill1: Skill;
 
     beforeEach(async () => {
       // Wipe DB before test
@@ -362,6 +333,66 @@ describe('Skill Service', () => {
         },
       });
       skillMap2 = await db.skillMap.create({
+        data: {
+          name: 'Second Map',
+          owner: 'User-1',
+        },
+      });
+      skillMap3 = await db.skillMap.create({
+        data: {
+          name: 'Third Map',
+          owner: 'User-1',
+        },
+      });
+      skill1 = await dbUtils.createSkill(skillMap2, 'Skill 1');
+      skill2 = await dbUtils.createSkill(skillMap2, 'Skill 2');
+      await dbUtils.createSkill(skillMap3, 'Skill 3');
+      nestedSkill1 = await dbUtils.createSkill(skillMap2, 'Nested Skill 1', [skill2.id]);
+    });
+
+    it('Existing RepositoryId -> Success', async () => {
+      // Test: Load Skill-Map by ID
+      const expectedResult: Partial<SkillRepositoryDto> = {
+        id: skillMap1.id,
+        name: skillMap1.name,
+        ownerId: skillMap1.owner,
+      };
+      await expect(skillService.loadSkillRepository(skillMap1.id)).resolves.toMatchObject(expectedResult);
+    });
+
+    it('Not existing RepositoryId -> NotFoundException', async () => {
+      // Test: Load Skill-Map by not existing ID
+      await expect(skillService.loadSkillRepository('Not-existing-ID')).rejects.toThrowError(NotFoundException);
+    });
+
+    it('Existing Repository with skills -> Skills are resolved', async () => {
+      // Expected result: skillMap2 with all (toplevel/nested) skills
+      const expectedResult: Partial<UnresolvedSkillRepositoryDto> = {
+        id: skillMap2.id,
+        name: skillMap2.name,
+        ownerId: skillMap2.owner,
+        skills: [skill1.id, skill2.id, nestedSkill1.id], // Skill3 belongs to different repository
+      };
+
+      // Test: Load Skill-Map by ID
+      await expect(skillService.loadSkillRepository(skillMap2.id)).resolves.toMatchObject(expectedResult);
+    });
+  });
+
+  describe('getSkillRepository', () => {
+    let skillMap3: SkillMap;
+
+    beforeEach(async () => {
+      // Wipe DB before test
+      await dbUtils.wipeDb();
+
+      await db.skillMap.create({
+        data: {
+          name: 'First Map',
+          owner: 'User-1',
+        },
+      });
+      await db.skillMap.create({
         data: {
           name: 'Second Map',
           owner: 'User-1',
