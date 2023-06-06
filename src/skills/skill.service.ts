@@ -94,6 +94,16 @@ export class SkillMgmtService {
     }
   }
 
+  /**
+   * Loads a repository by ID with the specified parameters.
+   * Allows most options, other functions are based on this one
+   * @param owner Should only be specified if the repository is opened for writing.
+   *              Specifying an owner will ensure that the repository is owned by the specified user and throw an error otherwise.
+   * @param repositoryId The ID of the repository to be loaded
+   * @param includeSkills Specifies if all skills of the repository shall be included in the result
+   * @param args Additional arguments to be passed to the Prisma query
+   * @returns The loaded repository or throws an error if the repository does not exist or the user is not the owner
+   */
   public async getSkillRepository(
     owner: string | null,
     repositoryId: string,

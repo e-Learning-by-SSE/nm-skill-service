@@ -331,6 +331,57 @@ describe('Skill Service', () => {
       };
       await expect(skillService.loadSkillRepository(skillMapDao.id)).resolves.toMatchObject(expectedResult);
     });
+
+    it('Not existing RepositoryId -> NotFoundException', async () => {
+      // Precondition: Some Skill-Maps defined
+      await db.skillMap.create({
+        data: {
+          name: 'Test',
+          owner: 'User-1',
+        },
+      });
+
+      // Test: Load Skill-Map by not existing ID
+      await expect(skillService.loadSkillRepository('Not-existing-ID')).rejects.toThrowError(NotFoundException);
+    });
+  });
+
+  describe('getSkillRepository', () => {
+    let skillMap1: SkillMap;
+    let skillMap2: SkillMap;
+    let skillMap3: SkillMap;
+
+    beforeEach(async () => {
+      // Wipe DB before test
+      await dbUtils.wipeDb();
+
+      skillMap1 = await db.skillMap.create({
+        data: {
+          name: 'First Map',
+          owner: 'User-1',
+        },
+      });
+      skillMap2 = await db.skillMap.create({
+        data: {
+          name: 'Second Map',
+          owner: 'User-1',
+        },
+      });
+      skillMap3 = await db.skillMap.create({
+        data: {
+          name: 'Third Map',
+          owner: 'User-2',
+        },
+      });
+    });
+
+    it('Repository of another owner loaded for writing -> ForbiddenException', async () => {
+      // Precondition: Some Skill-Maps defined
+      await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 3 });
+
+      // Test: Load Skill-Map by ID and specify owner (for writing)
+      await expect(skillService.getSkillRepository('User-1', skillMap3.id)).rejects.toThrowError(ForbiddenException);
+    });
   });
 
   describe('createRepository', () => {
