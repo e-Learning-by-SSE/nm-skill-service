@@ -114,12 +114,12 @@ describe('Skill Service', () => {
           expect.objectContaining({
             id: firstCreationResult.id,
             name: firstCreationResult.name,
-            ownerId: firstCreationResult.owner,
+            owner: firstCreationResult.owner,
           }),
           expect.objectContaining({
             id: secondCreationResult.id,
             name: secondCreationResult.name,
-            ownerId: secondCreationResult.owner,
+            owner: secondCreationResult.owner,
           }),
         ],
       };
@@ -156,7 +156,7 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap1.name,
             id: skillMap1.id,
-            ownerId: skillMap1.owner,
+            owner: skillMap1.owner,
           }),
         ],
       });
@@ -165,7 +165,7 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap2.name,
             id: skillMap2.id,
-            ownerId: skillMap2.owner,
+            owner: skillMap2.owner,
           }),
         ],
       });
@@ -174,7 +174,7 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap3.name,
             id: skillMap3.id,
-            ownerId: skillMap3.owner,
+            owner: skillMap3.owner,
           }),
         ],
       });
@@ -207,12 +207,12 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap1.name,
             id: skillMap1.id,
-            ownerId: skillMap1.owner,
+            owner: skillMap1.owner,
           }),
           expect.objectContaining({
             name: skillMap2.name,
             id: skillMap2.id,
-            ownerId: skillMap2.owner,
+            owner: skillMap2.owner,
           }),
         ],
       });
@@ -221,7 +221,7 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap3.name,
             id: skillMap3.id,
-            ownerId: skillMap3.owner,
+            owner: skillMap3.owner,
           }),
         ],
       });
@@ -277,12 +277,12 @@ describe('Skill Service', () => {
         expect.objectContaining({
           id: skillMap1.id,
           name: skillMap1.name,
-          ownerId: skillMap1.owner,
+          owner: skillMap1.owner,
         }),
         expect.objectContaining({
           id: skillMap2.id,
           name: skillMap2.name,
-          ownerId: skillMap2.owner,
+          owner: skillMap2.owner,
         }),
       ];
       const expectedResult: SkillRepositoryListDto = {
@@ -302,7 +302,7 @@ describe('Skill Service', () => {
         expect.objectContaining({
           id: skillMap3.id,
           name: skillMap3.name,
-          ownerId: skillMap3.owner,
+          owner: skillMap3.owner,
         }),
       ];
       const expectedResult: SkillRepositoryListDto = {

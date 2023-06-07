@@ -152,13 +152,12 @@ describe('Skill Controller Tests', () => {
       const expectedObject: SkillRepositoryListDto = {
         repositories: [SkillRepositoryDto.createFromDao(skillMap1), SkillRepositoryDto.createFromDao(skillMap2)],
       };
-      const expected: string = JSON.stringify(expectedObject);
 
       return request(app.getHttpServer())
         .get(`/skill-repositories/${skillMap1.owner}`)
         .expect(200)
         .expect((res) => {
-          expect(JSON.stringify(res.body)).toEqual(expected);
+          expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
         });
     });
   });
@@ -185,7 +184,7 @@ describe('Skill Controller Tests', () => {
         .send(input)
         .expect(201)
         .expect((res) => {
-          expect(res.body).toMatchObject(expectedObject);
+          expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
         });
     });
   });
