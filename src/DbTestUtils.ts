@@ -82,4 +82,8 @@ export class DbTestUtils {
     const expectedJson = this.objToJson(expected);
     expect(actualJson).toEqual(expectedJson);
   }
+
+  assertObjects(actual: object, expected: object) {
+    expect(actual).toMatchObject(expected);
+  }
 }

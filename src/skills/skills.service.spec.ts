@@ -75,7 +75,7 @@ describe('Skill Service', () => {
       const expectedResult: Partial<SkillRepositoryDto> = {
         id: firstCreationResult.id,
         name: firstCreationResult.name,
-        ownerId: firstCreationResult.owner,
+        owner: firstCreationResult.owner,
       };
       const expectedList: SkillRepositoryListDto = {
         repositories: [expect.objectContaining(expectedResult)],
@@ -355,7 +355,7 @@ describe('Skill Service', () => {
       const expectedResult: Partial<SkillRepositoryDto> = {
         id: skillMap1.id,
         name: skillMap1.name,
-        ownerId: skillMap1.owner,
+        owner: skillMap1.owner,
       };
       await expect(skillService.loadSkillRepository(skillMap1.id)).resolves.toMatchObject(expectedResult);
     });
@@ -370,7 +370,7 @@ describe('Skill Service', () => {
       const expectedResult: Partial<UnresolvedSkillRepositoryDto> = {
         id: skillMap2.id,
         name: skillMap2.name,
-        ownerId: skillMap2.owner,
+        owner: skillMap2.owner,
         skills: [skill1.id, skill2.id, nestedSkill1.id], // Skill3 belongs to different repository
       };
 
@@ -427,7 +427,7 @@ describe('Skill Service', () => {
       };
       const expectation: Partial<SkillRepositoryDto> = {
         name: creationDto.name,
-        ownerId: creationDto.owner,
+        owner: creationDto.owner,
         description: creationDto.description ?? undefined,
       };
       await expect(skillService.createRepository(creationDto)).resolves.toMatchObject(expectation);

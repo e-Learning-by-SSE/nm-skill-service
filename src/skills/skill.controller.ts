@@ -99,7 +99,7 @@ export class SkillMgmtController {
    * @param dto specifies the attributes of the new repository
    * @returns The newly created repository or an error message.
    */
-  @Post('skill/create')
+  @Post('/create')
   createRepository(@Body() dto: SkillRepositoryCreationDto) {
     return this.skillService.createRepository(dto);
   }

@@ -8,9 +8,12 @@ import { ConfigModule } from '@nestjs/config';
 import { validate } from 'class-validator';
 import {
   ResolvedSkillDto,
+  ResolvedSkillListDto,
   ResolvedSkillRepositoryDto,
+  SkillCreationDto,
   SkillDto,
   SkillListDto,
+  SkillRepositoryCreationDto,
   SkillRepositoryDto,
   SkillRepositoryListDto,
   SkillRepositorySearchDto,
@@ -128,7 +131,7 @@ describe('Skill Controller Tests', () => {
     });
   });
 
-  describe('/skill-repositories', () => {
+  describe('/skill-repositories/:owner', () => {
     it('Skill Maps of not existing user -> Empty list', () => {
       // Expected result
       const expectedObject: SkillRepositoryListDto = {
@@ -156,6 +159,33 @@ describe('Skill Controller Tests', () => {
         .expect(200)
         .expect((res) => {
           expect(JSON.stringify(res.body)).toEqual(expected);
+        });
+    });
+  });
+
+  describe('/create', () => {
+    it('Create Skill without conflict', () => {
+      // Create DTO
+      const input: SkillRepositoryCreationDto = {
+        name: 'New Skill Map',
+        description: 'This is a new skill map',
+        owner: skillMap1.owner,
+        version: '2.0.1',
+      };
+
+      // Expected result
+      const expectedObject: SkillRepositoryDto = {
+        ...input,
+        id: expect.any(String),
+      };
+
+      // Test: Create Skill
+      return request(app.getHttpServer())
+        .post(`/skill-repositories/create`)
+        .send(input)
+        .expect(201)
+        .expect((res) => {
+          expect(res.body).toMatchObject(expectedObject);
         });
     });
   });
@@ -243,22 +273,56 @@ describe('Skill Controller Tests', () => {
     });
   });
 
-  describe('/resolve/:repositoryId', () => {
-    it('Resolve Skill Map with Skills & Nested Skill', () => {
-      // Expected result
-      const expectedObject = ResolvedSkillRepositoryDto.createFromDao(skillMapWithSkills);
-      expectedObject.skills = [
-        { ...ResolvedSkillDto.createFromDao(skill2), nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)] },
-        ResolvedSkillDto.createFromDao(skill3),
-      ];
+  describe('/resolve', () => {
+    describe(':repositoryId', () => {
+      it('Resolve Skill Map with Skills & Nested Skill', () => {
+        // Expected result
+        const expectedObject = ResolvedSkillRepositoryDto.createFromDao(skillMapWithSkills);
+        expectedObject.skills = [
+          { ...ResolvedSkillDto.createFromDao(skill2), nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)] },
+          ResolvedSkillDto.createFromDao(skill3),
+        ];
 
-      // Test: Resolve Skill Map
-      return request(app.getHttpServer())
-        .get(`/skill-repositories/resolve/${skillMapWithSkills.id}`)
-        .expect(200)
-        .expect((res) => {
-          dbUtils.assert(res.body, expectedObject);
-        });
+        // Test: Resolve Skill Map
+        return request(app.getHttpServer())
+          .get(`/skill-repositories/resolve/${skillMapWithSkills.id}`)
+          .expect(200)
+          .expect((res) => {
+            dbUtils.assert(res.body, expectedObject);
+          });
+      });
+    });
+
+    describe('/findSkills', () => {
+      it('Search for Skills by Name', () => {
+        // Search DTO
+        const input: SkillSearchDto = {
+          name: 'Skill',
+        };
+
+        // Expected result: All skills with name '*Skill*'
+        const resultList: ResolvedSkillListDto = {
+          skills: [
+            {
+              ...ResolvedSkillDto.createFromDao(skill2),
+              nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)],
+            },
+            ResolvedSkillDto.createFromDao(skill3),
+            ResolvedSkillDto.createFromDao(nestedSkill1),
+          ],
+        };
+
+        // Test: Search for Skills
+        return request(app.getHttpServer())
+          .post('/skill-repositories/findSkills')
+          .send(input)
+          .expect(201)
+          .expect((res) => {
+            dbUtils.assert(res.body, resultList);
+          });
+      });
     });
   });
+
+  // describe('/skill', () => {});
 });
