@@ -60,12 +60,19 @@ export class DbTestUtils {
     });
   }
 
+  private objToJson(obj: any) {
+    // Try to improve readability
+    return JSON.stringify(obj).replaceAll('{"', '{').replaceAll('":', ':').replaceAll(',"', ',').replaceAll('"', "'");
+  }
+
   /**
    * Auxillary function that compares an actual returned DTO object with an expected DTO object based on their JSON representations.
    * @param actual The received/returned DTO response object.
    * @param expected The expected DTO response object.
    */
   assert(actual: any, expected: any) {
-    expect(JSON.stringify(expected)).toEqual(JSON.stringify(actual));
+    const actualJson = this.objToJson(actual);
+    const expectedJson = this.objToJson(expected);
+    expect(actualJson).toEqual(expectedJson);
   }
 }
