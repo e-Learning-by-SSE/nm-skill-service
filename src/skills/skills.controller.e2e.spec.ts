@@ -239,7 +239,7 @@ describe('Skill Controller Tests', () => {
         .send(input)
         .expect(201)
         .expect((res) => {
-          dbUtils.assert(res.body, emptyList);
+          expect(res.body).toMatchObject(expect.objectContaining(emptyList));
         });
     });
 
@@ -267,7 +267,7 @@ describe('Skill Controller Tests', () => {
         .send(input)
         .expect(201)
         .expect((res) => {
-          dbUtils.assert(res.body, resultList);
+          expect(res.body).toMatchObject(expect.objectContaining(resultList));
         });
     });
   });
@@ -313,40 +313,40 @@ describe('Skill Controller Tests', () => {
 
         // Test: Search for Skills
         return request(app.getHttpServer())
-          .post('/skill-repositories/findSkills')
+          .post('/skill-repositories/resolve/findSkills')
           .send(input)
           .expect(201)
           .expect((res) => {
-            dbUtils.assert(res.body, resultList);
+            expect(res.body).toMatchObject(expect.objectContaining(resultList));
           });
       });
-    });
 
-    it('Search for Skills (Pagination)', () => {
-      // Search DTO (omits the first 2 skills and shows the next 2)
-      const input: SkillSearchDto = {
-        page: 1,
-        pageSize: 2,
-      };
+      it('Search for Skills (Pagination)', () => {
+        // Search DTO (omits the first 2 skills and shows the next 2)
+        const input: SkillSearchDto = {
+          page: 1,
+          pageSize: 2,
+        };
 
-      // Expected result: All skills with name '*Skill*'
-      const resultList: ResolvedSkillListDto = {
-        skills: [
-          {
-            ...ResolvedSkillDto.createFromDao(skill3),
-          },
-          ResolvedSkillDto.createFromDao(nestedSkill1),
-        ],
-      };
+        // Expected result: All skills with name '*Skill*'
+        const resultList: ResolvedSkillListDto = {
+          skills: [
+            {
+              ...ResolvedSkillDto.createFromDao(skill3),
+            },
+            ResolvedSkillDto.createFromDao(nestedSkill1),
+          ],
+        };
 
-      // Test: Search for Skills
-      return request(app.getHttpServer())
-        .post('/skill-repositories/findSkills')
-        .send(input)
-        .expect(201)
-        .expect((res) => {
-          dbUtils.assert(res.body, resultList);
-        });
+        // Test: Search for Skills
+        return request(app.getHttpServer())
+          .post('/skill-repositories/resolve/findSkills')
+          .send(input)
+          .expect(201)
+          .expect((res) => {
+            expect(res.body).toMatchObject(expect.objectContaining(resultList));
+          });
+      });
     });
   });
 
