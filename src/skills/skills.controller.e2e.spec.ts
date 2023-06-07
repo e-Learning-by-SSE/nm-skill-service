@@ -1,6 +1,6 @@
 import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
-import { INestApplication, Res } from '@nestjs/common';
+import { ForbiddenException, INestApplication, Res } from '@nestjs/common';
 import { SkillModule } from './skill.module';
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -379,6 +379,29 @@ describe('Skill Controller Tests', () => {
         .expect(201)
         .expect((res) => {
           expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
+        });
+    });
+
+    it('Create new Skill (with conflict) -> ForbiddenException', () => {
+      // Create DTO
+      const input: SkillCreationDto = {
+        name: skill2.name,
+        description: 'This is a new skill',
+        level: skill2.level,
+        parentSkills: [],
+        nestedSkills: [],
+        owner: skillMapWithSkills.owner,
+      };
+
+      // Test: Create Skill
+      return request(app.getHttpServer())
+        .post(`/skill-repositories/${skillMapWithSkills.id}/skill/add_skill`)
+        .send(input)
+        .expect(403)
+        .expect((res) => {
+          expect(res.body).toMatchObject(
+            expect.objectContaining({ error: 'Forbidden', message: 'Skill already exists in specified repository' }),
+          );
         });
     });
   });
