@@ -321,7 +321,65 @@ describe('Skill Controller Tests', () => {
           });
       });
     });
+
+    it('Search for Skills (Pagination)', () => {
+      // Search DTO (omits the first 2 skills and shows the next 2)
+      const input: SkillSearchDto = {
+        page: 1,
+        pageSize: 2,
+      };
+
+      // Expected result: All skills with name '*Skill*'
+      const resultList: ResolvedSkillListDto = {
+        skills: [
+          {
+            ...ResolvedSkillDto.createFromDao(skill3),
+          },
+          ResolvedSkillDto.createFromDao(nestedSkill1),
+        ],
+      };
+
+      // Test: Search for Skills
+      return request(app.getHttpServer())
+        .post('/skill-repositories/findSkills')
+        .send(input)
+        .expect(201)
+        .expect((res) => {
+          dbUtils.assert(res.body, resultList);
+        });
+    });
   });
 
-  // describe('/skill', () => {});
+  describe(':repositoryId/skill/add_skill', () => {
+    it('Create new Skill (without conflict) -> success', () => {
+      // Create DTO
+      const input: SkillCreationDto = {
+        name: 'New Skill',
+        description: 'This is a new skill',
+        level: 1,
+        parentSkills: [],
+        nestedSkills: [],
+        owner: skillMap1.owner,
+      };
+
+      // Expected result
+      // Omit extra attributes
+      const { parentSkills, owner, ...relevantProperties } = input;
+      // Expected data
+      const expectedObject: SkillDto = {
+        ...relevantProperties,
+        id: expect.any(String),
+        nestedSkills: [],
+      };
+
+      // Test: Create Skill
+      return request(app.getHttpServer())
+        .post(`/skill-repositories/${skillMap1.id}/skill/add_skill`)
+        .send(input)
+        .expect(201)
+        .expect((res) => {
+          expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
+        });
+    });
+  });
 });
