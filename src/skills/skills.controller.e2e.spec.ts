@@ -348,6 +348,34 @@ describe('Skill Controller Tests', () => {
           });
       });
     });
+
+    describe('skill/:skillId', () => {
+      it('Not existing ID -> NotFoundException', () => {
+        return request(app.getHttpServer())
+          .get(`/skill-repositories/resolve/skill/not-existing-id`)
+          .expect(404)
+          .expect((res) => {
+            expect(res.body).toMatchObject(
+              expect.objectContaining({ error: 'Not Found', message: 'Specified skill not found: not-existing-id' }),
+            );
+          });
+      });
+
+      it('Existing ID -> Skill', () => {
+        // Expected result
+        const expectedObject: ResolvedSkillDto = {
+          ...ResolvedSkillDto.createFromDao(skill2),
+          nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)],
+        };
+
+        return request(app.getHttpServer())
+          .get(`/skill-repositories/resolve/skill/${skill2.id}`)
+          .expect(200)
+          .expect((res) => {
+            dbUtils.assert(res.body, expectedObject);
+          });
+      });
+    });
   });
 
   describe(':repositoryId/skill/add_skill', () => {
