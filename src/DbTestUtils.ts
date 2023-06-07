@@ -61,8 +61,15 @@ export class DbTestUtils {
   }
 
   private objToJson(obj: any) {
-    // Try to improve readability
-    return JSON.stringify(obj).replaceAll('{"', '{').replaceAll('":', ':').replaceAll(',"', ',').replaceAll('"', "'");
+    // Order properties to make comparison more reliable
+    return (
+      JSON.stringify(obj, Object.keys(obj).sort())
+        // Try to improve readability
+        .replaceAll('{"', '{')
+        .replaceAll('":', ':')
+        .replaceAll(',"', ',')
+        .replaceAll('"', "'")
+    );
   }
 
   /**

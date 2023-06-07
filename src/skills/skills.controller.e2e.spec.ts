@@ -1,12 +1,14 @@
 import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, Res } from '@nestjs/common';
 import { SkillModule } from './skill.module';
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { validate } from 'class-validator';
 import {
+  ResolvedSkillDto,
+  ResolvedSkillRepositoryDto,
   SkillDto,
   SkillListDto,
   SkillRepositoryDto,
@@ -237,6 +239,25 @@ describe('Skill Controller Tests', () => {
         .expect(201)
         .expect((res) => {
           dbUtils.assert(res.body, resultList);
+        });
+    });
+  });
+
+  describe('/resolve/:repositoryId', () => {
+    it('Resolve Skill Map with Skills & Nested Skill', () => {
+      // Expected result
+      const expectedObject = ResolvedSkillRepositoryDto.createFromDao(skillMapWithSkills);
+      expectedObject.skills = [
+        { ...ResolvedSkillDto.createFromDao(skill2), nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)] },
+        ResolvedSkillDto.createFromDao(skill3),
+      ];
+
+      // Test: Resolve Skill Map
+      return request(app.getHttpServer())
+        .get(`/skill-repositories/resolve/${skillMapWithSkills.id}`)
+        .expect(200)
+        .expect((res) => {
+          dbUtils.assert(res.body, expectedObject);
         });
     });
   });

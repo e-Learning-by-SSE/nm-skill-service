@@ -144,13 +144,7 @@ export class SkillMgmtService {
 
   public async loadResolvedSkillRepository(repositoryId: string) {
     const repository = await this.getSkillRepository(null, repositoryId, false);
-    const result = ResolvedSkillRepositoryDto.create(
-      repository.id,
-      repository.name,
-      repository.version,
-
-      repository.description,
-    );
+    const result = ResolvedSkillRepositoryDto.createFromDao(repository);
 
     // Search for skills of that repository that do not have a parent -> top-level skills
     const topLevelSkills = await this.db.skill.findMany({
