@@ -6,16 +6,17 @@ import { DbTestUtils } from '../DbTestUtils';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { validate } from 'class-validator';
-import { SkillRepositoryDto, SkillRepositoryListDto } from './dto';
+import { SkillRepositoryDto, SkillRepositoryListDto, SkillRepositorySearchDto, SkillSearchDto } from './dto';
 import { SkillMap } from '@prisma/client';
 
-describe('Skill Controler Tests', () => {
+describe('Skill Controller Tests', () => {
   let app: INestApplication;
   const dbUtils = DbTestUtils.getInstance();
 
   // Test data
   let skillMap1: SkillMap;
   let skillMap2: SkillMap;
+  let skillMap3: SkillMap;
 
   /**
    * Initializes (relevant parts of) the application before each test.
@@ -40,7 +41,72 @@ describe('Skill Controler Tests', () => {
     // Create test data
     skillMap1 = await dbUtils.createSkillMap('User-1', 'Awesome Test Map');
     skillMap2 = await dbUtils.createSkillMap('User-1', 'Test Map 2');
-    await dbUtils.createSkillMap('User-2', 'Map of another user');
+    skillMap3 = await dbUtils.createSkillMap('User-2', 'Another awesome map by a different user');
+  });
+
+  describe('/skill-repositories', () => {
+    it('Search for Skill Maps of not existing user -> Empty list', () => {
+      // Search DTO
+      const input: SkillRepositorySearchDto = {
+        owner: 'not-existing-owner-id',
+      };
+
+      // Expected result
+      const emptyList: SkillRepositoryListDto = {
+        repositories: [],
+      };
+
+      // Test: Search for Skill Maps of not existing user
+      return request(app.getHttpServer())
+        .post('/skill-repositories')
+        .send(input)
+        .expect(201)
+        .expect((res) => {
+          dbUtils.assert(res.body, emptyList);
+        });
+    });
+
+    it('All repositories of one user', () => {
+      // Search DTO
+      const input: SkillRepositorySearchDto = {
+        owner: skillMap1.owner,
+      };
+
+      // Expected result
+      const emptyList: SkillRepositoryListDto = {
+        repositories: [SkillRepositoryDto.createFromDao(skillMap1), SkillRepositoryDto.createFromDao(skillMap2)],
+      };
+
+      // Test: Search for Skill Maps of User-1
+      return request(app.getHttpServer())
+        .post('/skill-repositories')
+        .send(input)
+        .expect(201)
+        .expect((res) => {
+          dbUtils.assert(res.body, emptyList);
+        });
+    });
+
+    it('By contained name', () => {
+      // Search DTO
+      const input: SkillRepositorySearchDto = {
+        name: 'awesome',
+      };
+
+      // Expected result
+      const emptyList: SkillRepositoryListDto = {
+        repositories: [SkillRepositoryDto.createFromDao(skillMap1), SkillRepositoryDto.createFromDao(skillMap3)],
+      };
+
+      // Test: Search for Skill Maps of User-1
+      return request(app.getHttpServer())
+        .post('/skill-repositories')
+        .send(input)
+        .expect(201)
+        .expect((res) => {
+          dbUtils.assert(res.body, emptyList);
+        });
+    });
   });
 
   describe('/skill-repositories', () => {

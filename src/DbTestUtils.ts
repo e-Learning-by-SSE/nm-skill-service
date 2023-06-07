@@ -59,4 +59,13 @@ export class DbTestUtils {
       },
     });
   }
+
+  /**
+   * Auxillary function that compares an actual returned DTO object with an expected DTO object based on their JSON representations.
+   * @param actual The received/returned DTO response object.
+   * @param expected The expected DTO response object.
+   */
+  assert(actual: any, expected: any) {
+    expect(JSON.stringify(expected)).toEqual(JSON.stringify(actual));
+  }
 }
