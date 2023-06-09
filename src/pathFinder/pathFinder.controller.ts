@@ -1,7 +1,5 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-
-
 
 import { PathFinderService } from './pathFinder.service';
 
@@ -28,8 +26,4 @@ export class PathFinderController {
   getPathToSkill(@Param('skillId') skillId: string) {
     return this.pfService.pathForSkill(skillId);
   }
-
- 
-
-
 }

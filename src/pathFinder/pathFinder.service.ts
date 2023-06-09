@@ -1,12 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SkillMgmtService } from 'src/skills/skill.service';
-import { ResolvedSkillDto, SkillDto } from 'src/skills/dto';
-import { contains } from 'class-validator';
-import { SearchLearningUnitDto, SelfLearnLearningUnitDto } from 'src/learningUnit/dto';
-import { LearningUnit } from '@prisma/client';
-import { check } from 'prettier';
+import { SkillDto } from 'src/skills/dto';
+import { SelfLearnLearningUnitDto } from 'src/learningUnit/dto';
 
 import { Graph, json, alg } from '@dagrejs/graphlib';
 import { LearningUnitMgmtService } from 'src/learningUnit/learningUnit.service';
@@ -38,8 +34,7 @@ export class PathFinderService {
     }
     return nuggets;
   }
-  public async getGraphForSkillId (skill: SkillDto): Promise<Graph>{
-    
+  public async getGraphForSkillId(skill: SkillDto): Promise<Graph> {
     const allskills = await this.db.skill.findMany({
       where: {
         repositoryId: skill.repositoryId,
@@ -49,9 +44,7 @@ export class PathFinderService {
       },
     });
 
-    
-    
-    var g = new Graph({ directed: true, multigraph: true });
+    const g = new Graph({ directed: true, multigraph: true });
     allskills.forEach((element1) => {
       g.setNode('sk' + element1.id, element1.name);
 
@@ -60,7 +53,7 @@ export class PathFinderService {
       });
     });
     const lus = await this.luService.loadAllLearningUnits();
-  lus.learningUnits = <SelfLearnLearningUnitDto[]>lus.learningUnits;
+    lus.learningUnits = <SelfLearnLearningUnitDto[]>lus.learningUnits;
     for (let i = 0; i < lus.learningUnits.length; i++) {
       if (lus.learningUnits[i].selfLearnId > 20) {
         lus.learningUnits.splice(i--, 1);
@@ -74,9 +67,8 @@ export class PathFinderService {
       elem.teachingGoals.forEach((element) => {
         g.setEdge('lu' + elem.selfLearnId, 'sk' + element);
       });
-     
     });
-    return g
+    return g;
   }
 
   public async getConnectedGraphForSkill(skillId: string) {
@@ -91,11 +83,11 @@ export class PathFinderService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
-    let g; 
+    let g;
     g = await this.getGraphForSkillId(skill);
     return json.write(g);
   }
- 
+
   public async isGraphForIdACycle(skillId: string) {
     const daoSkillIn = await this.db.skill.findUnique({
       where: {
@@ -108,7 +100,7 @@ export class PathFinderService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
-    let g; 
+    let g;
     g = await this.getGraphForSkillId(skill);
     return alg.isAcyclic(g);
   }
@@ -125,13 +117,10 @@ export class PathFinderService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
-    let g; 
+    let g;
     g = await this.getGraphForSkillId(skill);
-    console.log(alg.postorder(g,['sk'+skillId]))
-    console.log(alg.topsort(g))
+    console.log(alg.postorder(g, ['sk' + skillId]));
+    console.log(alg.topsort(g));
     return alg.topsort(g);
   }
-
-
-  
 }
