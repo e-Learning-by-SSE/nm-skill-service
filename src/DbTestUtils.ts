@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 
 import { PrismaService } from './prisma/prisma.service';
-import { SkillMap } from '@prisma/client';
+import { PathGoal, Prisma, Skill, SkillMap } from '@prisma/client';
 
 /**
  * Not a test suite, but functionality that supports writing test cases.
@@ -56,6 +56,74 @@ export class DbTestUtils {
         owner: ownerId,
         name: name,
         description: description,
+      },
+    });
+  }
+
+  async createLearningUnit(
+    title: string,
+    goals: Skill[],
+    requirements: Skill[],
+    infos:
+      | Prisma.SearchLearningUnitUncheckedCreateWithoutBasicUnitInput
+      | Prisma.SelfLearningUnitUncheckedCreateWithoutBasicUnitInput,
+    description?: string,
+  ) {
+    const createInput: Prisma.LearningUnitCreateArgs = {
+      data: {
+        title: title,
+        description: description ?? '',
+        language: 'en',
+        teachingGoals: {
+          connect: goals.map((goal) => ({ id: goal.id })),
+        },
+        requirements: {
+          connect: requirements.map((req) => ({ id: req.id })),
+        },
+      },
+    };
+
+    if (infos satisfies Prisma.SelfLearningUnitUncheckedCreateWithoutBasicUnitInput || Object.keys(infos).length === 0) {
+      createInput.data.selfLearnInfos = {
+        create: infos as Prisma.SelfLearningUnitUncheckedCreateWithoutBasicUnitInput,
+      };
+    }
+    if (infos satisfies Prisma.SearchLearningUnitUncheckedCreateWithoutBasicUnitInput || Object.keys(infos).length === 0) {
+      createInput.data.searchInfos = {
+        create: infos as Prisma.SearchLearningUnitUncheckedCreateWithoutBasicUnitInput,
+      };
+    } 
+    if (!(infos satisfies Prisma.SelfLearningUnitUncheckedCreateWithoutBasicUnitInput)
+        && !(infos satisfies Prisma.SearchLearningUnitUncheckedCreateWithoutBasicUnitInput)) {
+      fail('No project-specific extension provided');
+    }
+
+    return this.db.learningUnit.create(createInput);
+  }
+
+  async createPathGoal(title: string, goals: Skill[], requirements: Skill[], description?: string) {
+    return this.db.pathGoal.create({
+      data: {
+        title: title,
+        description: description,
+        pathTeachingGoals: {
+          connect: goals,
+        },
+        requirements: {
+          connect: requirements,
+        },
+      },
+    });
+  }
+
+  async createPath(title: string, pathGoal: PathGoal, description?: string) {
+    return this.db.learningPath.create({
+      data: {
+        title: title,
+        description: description,
+        goals: {
+          connect: pathGoal,
+        },
       },
     });
   }

@@ -49,6 +49,8 @@ export class LearningUnitFactory {
     const learningUnit = await this.db.learningUnit.findUnique({
       where: { id: Number(learningUnitId) },
       include: {
+        teachingGoals: true,
+        requirements: true,
         [this.extensionTable]: true,
       },
     });

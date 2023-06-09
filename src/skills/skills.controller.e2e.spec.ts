@@ -1,6 +1,6 @@
 import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
-import { ForbiddenException, INestApplication, Res } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { SkillModule } from './skill.module';
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -36,7 +36,7 @@ describe('Skill Controller Tests', () => {
   let nestedSkill1: Skill;
 
   /**
-   * Initializes (relevant parts of) the application before each test.
+   * Initializes (relevant parts of) the application before the first test.
    */
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({

@@ -39,12 +39,10 @@ model Skill {
   requirements         PathGoal[]      @relation("requirements")
 
   // Use in Learning Objects
-  createdAt                  DateTime      @default(now())
-  updatedAt                  DateTime      @updatedAt
-  learningUnit               LearningUnit? @relation("teachingGoals", fields: [learningUnitId], references: [id])
-  learningUnitId             Int?
-  requirementslearningUnit   LearningUnit? @relation("requirementslearningUnit", fields: [requirementslearningUnitId], references: [id])
-  requirementslearningUnitId Int?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  goalsOf              LearningUnit[]  @relation("teachingGoals")
+  requirementsOf       LearningUnit[]  @relation("requirementslearningUnit")
 
   @@unique([repositoryId, name])
   @@map("skills")
