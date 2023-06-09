@@ -1,6 +1,6 @@
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { validate } from 'class-validator';
 import { DbTestUtils } from '../DbTestUtils';
@@ -9,6 +9,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { DynamicLearningUnitModule } from './dynamic.module';
 import { LearningUnit, Skill, SkillMap } from '@prisma/client';
 import { SelfLearnLearningUnitDto, SelfLearnLearningUnitListDto } from './dto';
+import { TestConfig } from '../config/TestConfig';
 
 describe('LearningUnit Controller Tests', () => {
   let app: INestApplication;
@@ -25,13 +26,20 @@ describe('LearningUnit Controller Tests', () => {
      * Initializes (relevant parts of) the application before the first test.
      */
     beforeAll(async () => {
+      // LearningUnit Factory reads Extension property from Config service, this must be overwritten for testing
+      const testConfig = new TestConfig(new ConfigService());
+      testConfig.set('EXTENSION', MODE.SELFLEARN);
+
       const moduleRef = await Test.createTestingModule({
         imports: [
           ConfigModule.forRoot({ isGlobal: true, validate, validationOptions: { allowUnknown: false } }),
           PrismaModule,
           DynamicLearningUnitModule.registerByConfiguration(MODE.SELFLEARN),
         ],
-      }).compile();
+      })
+        .overrideProvider(ConfigService)
+        .useValue(testConfig)
+        .compile();
 
       app = moduleRef.createNestApplication();
       await app.init();
@@ -58,20 +66,20 @@ describe('LearningUnit Controller Tests', () => {
     describe('GET:learningUnitId', () => {
       it('Get existing Learning Unit', async () => {
         // Expected result
-        const expectedResult: SelfLearnLearningUnitDto = expect.objectContaining({
+        const expectedResult: SelfLearnLearningUnitDto = {
           language: expect.any(String),
           selfLearnId: lu1.id,
           title: lu1.title,
           teachingGoals: [skill1.id],
           requiredSkills: [skill2.id],
-        });
+        };
 
         // Test: Search Learning Unit by ID
         return request(app.getHttpServer())
           .get(`/learningUnits/${lu1.id}`)
           .expect(200)
           .expect((res) => {
-            expect(res.body as SelfLearnLearningUnitDto).toEqual(expectedResult);
+            expect(res.body as SelfLearnLearningUnitDto).toMatchObject(expectedResult);
           });
       });
     });
