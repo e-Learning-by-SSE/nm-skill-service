@@ -7,6 +7,7 @@ import { DynamicNuggetModuleModule } from './nugget/nugget.module';
 import { LearningPathModule } from './learningPath/learningPath.module';
 import { DynamicLearningUnitModule } from './learningUnit/dynamic.module';
 import { validate } from './config/env.validation';
+import { PathFinderModule } from './pathFinder/pathFinder.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { validate } from './config/env.validation';
     DynamicNuggetModuleModule.register(),
     LearningPathModule,
     DynamicLearningUnitModule.register(),
+    PathFinderModule
   ],
 })
 export class AppModule {}

@@ -5,7 +5,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
-import { LIB_VERSION } from './version';
+
 
 declare global {
   var USE_SEARCH: boolean;
@@ -26,7 +26,6 @@ async function bootstrap() {
     .setTitle('Skill Repository')
     .addBearerAuth()
     .setDescription('The API description of the Skill Repository.')
-    .setVersion(LIB_VERSION)
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

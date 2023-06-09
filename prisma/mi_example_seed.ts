@@ -287,7 +287,7 @@ const learningObjectives = [
     teachingGoals: ['3502'],
   },
   {
-    id: 304,
+    id: 3004,
     name: 'Auditives System',
     description: 'Auditives System',
     requirements: [],
