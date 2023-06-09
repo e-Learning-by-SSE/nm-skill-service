@@ -4,14 +4,17 @@ import { LearningUnitMgmtService } from './learningUnit.service';
 import { LearningUnitFactory } from './learningUnitFactory';
 import { SelfLearnLearningUnitController } from './learningUnit.selflearn.controller';
 import { SearchLearningUnitController } from './learningUnit.search.controller';
-import { MODE } from 'src/config/env.validation';
+import { MODE } from '../config/env.validation';
 
 @Module({})
 export class DynamicLearningUnitModule {
   static register(): DynamicModule {
+    return DynamicLearningUnitModule.registerByConfiguration(<MODE>process.env.EXTENSION);
+  }
+
+  static registerByConfiguration(extension: MODE): DynamicModule {
     console.log('DynamicLearningUnitModule register');
     const controllers = [];
-    const extension: MODE = <MODE>process.env.EXTENSION;
     switch (extension) {
       case MODE.SEARCH:
         console.log('Search loaded');

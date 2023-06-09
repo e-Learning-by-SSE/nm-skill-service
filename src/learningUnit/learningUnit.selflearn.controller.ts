@@ -39,8 +39,9 @@ export class SelfLearnLearningUnitController {
    * @returns The specified learningUnit.
    */
   @Get(':learningUnitId')
-  getLearningUnit(@Param('learningUnitId') learningUnitId: string) {
+  async getLearningUnit(@Param('learningUnitId') learningUnitId: string) {
     // Unsafe, does not support Refactoring / Type Checks -> Search for a solution based on TypeGuard
-    return this.learningUnitService.getLearningUnit(learningUnitId) as Promise<SelfLearnLearningUnitDto>;
+    const learningUnit = await this.learningUnitService.getLearningUnit(learningUnitId);
+    return learningUnit as SelfLearnLearningUnitDto;
   }
 }

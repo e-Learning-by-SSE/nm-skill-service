@@ -41,7 +41,7 @@ export class SkillMgmtController {
    * Skills and their relations are handled as IDs and need to be resolved on the client-side.
    * @returns The repositories of the specified user.
    */
-  @Get(':repositoryId')
+  @Get('byId/:repositoryId')
   async loadRepository(@Param('repositoryId') repositoryId: string) {
     return this.skillService.loadSkillRepository(repositoryId);
   }
@@ -99,7 +99,7 @@ export class SkillMgmtController {
    * @param dto specifies the attributes of the new repository
    * @returns The newly created repository or an error message.
    */
-  @Post('skill/create')
+  @Post('/create')
   createRepository(@Body() dto: SkillRepositoryCreationDto) {
     return this.skillService.createRepository(dto);
   }

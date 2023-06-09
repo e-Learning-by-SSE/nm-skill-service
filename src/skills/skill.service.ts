@@ -48,7 +48,7 @@ export class SkillMgmtService {
         pageSize = pageSize ?? 10;
       }
     }
-    if (page && page >= 0 && pageSize && pageSize > 0) {
+    if (page !== null && page >= 0 && pageSize !== null && pageSize > 0) {
       query.skip = page * pageSize;
       query.take = pageSize;
     }
@@ -77,6 +77,7 @@ export class SkillMgmtService {
         data: {
           owner: dto.owner,
           name: dto.name,
+          version: dto.version,
 
           description: dto.description,
         },
@@ -94,6 +95,16 @@ export class SkillMgmtService {
     }
   }
 
+  /**
+   * Loads a repository by ID with the specified parameters.
+   * Allows most options, other functions are based on this one
+   * @param owner Should only be specified if the repository is opened for writing.
+   *              Specifying an owner will ensure that the repository is owned by the specified user and throw an error otherwise.
+   * @param repositoryId The ID of the repository to be loaded
+   * @param includeSkills Specifies if all skills of the repository shall be included in the result
+   * @param args Additional arguments to be passed to the Prisma query
+   * @returns The loaded repository or throws an error if the repository does not exist or the user is not the owner
+   */
   public async getSkillRepository(
     owner: string | null,
     repositoryId: string,
@@ -134,13 +145,7 @@ export class SkillMgmtService {
 
   public async loadResolvedSkillRepository(repositoryId: string) {
     const repository = await this.getSkillRepository(null, repositoryId, false);
-    const result = ResolvedSkillRepositoryDto.create(
-      repository.id,
-      repository.name,
-      repository.version,
-
-      repository.description,
-    );
+    const result = ResolvedSkillRepositoryDto.createFromDao(repository);
 
     // Search for skills of that repository that do not have a parent -> top-level skills
     const topLevelSkills = await this.db.skill.findMany({
