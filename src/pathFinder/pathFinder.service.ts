@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SkillMgmtService } from 'src/skills/skill.service';
 import { SkillDto } from 'src/skills/dto';
 import { SelfLearnLearningUnitDto } from 'src/learningUnit/dto';
-
+import { isSelfLearnLearningUnitDto, isSearchLearningUnitDto } from '../learningUnit/types';
 import { Graph, json, alg } from '@dagrejs/graphlib';
 import { LearningUnitMgmtService } from 'src/learningUnit/learningUnit.service';
 
@@ -52,19 +52,24 @@ export class PathFinderService {
       });
     });
     const lus = await this.luService.loadAllLearningUnits();
-    lus.learningUnits = <SelfLearnLearningUnitDto[]>lus.learningUnits;
+    // lus.learningUnits = <SelfLearnLearningUnitDto[]>lus.learningUnits;
     for (let i = 0; i < lus.learningUnits.length; i++) {
-      if (lus.learningUnits[i].selfLearnId > 20) {
+      const unit = lus.learningUnits[i];
+      if (
+        (isSelfLearnLearningUnitDto(unit) && unit.selfLearnId > 20) ||
+        (isSearchLearningUnitDto(unit) && unit.searchId > 20)
+      ) {
         lus.learningUnits.splice(i--, 1);
       }
     }
     lus.learningUnits.forEach((elem) => {
-      g.setNode('lu' + elem.selfLearnId, elem.title);
+      const id = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
+      g.setNode('lu' + id, elem.title);
       elem.requiredSkills.forEach((element) => {
-        g.setEdge('sk' + element, 'lu' + elem.selfLearnId);
+        g.setEdge('sk' + element, 'lu' + id);
       });
       elem.teachingGoals.forEach((element) => {
-        g.setEdge('lu' + elem.selfLearnId, 'sk' + element);
+        g.setEdge('lu' + id, 'sk' + element);
       });
     });
     return g;
