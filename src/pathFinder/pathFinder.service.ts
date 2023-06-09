@@ -19,7 +19,6 @@ export class PathFinderService {
     private luService: LearningUnitMgmtService,
   ) {}
 
-  loclist = [];
   /**
    * Adds a new nugget
    * @param dto Specifies the nugget to be created
@@ -35,7 +34,7 @@ export class PathFinderService {
     return nuggets;
   }
   public async getGraphForSkillId(skill: SkillDto): Promise<Graph> {
-    const allskills = await this.db.skill.findMany({
+    const allSkills = await this.db.skill.findMany({
       where: {
         repositoryId: skill.repositoryId,
       },
@@ -45,7 +44,7 @@ export class PathFinderService {
     });
 
     const g = new Graph({ directed: true, multigraph: true });
-    allskills.forEach((element1) => {
+    allSkills.forEach((element1) => {
       g.setNode('sk' + element1.id, element1.name);
 
       element1.nestedSkills.forEach((element) => {
@@ -83,8 +82,7 @@ export class PathFinderService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
-    let g;
-    g = await this.getGraphForSkillId(skill);
+    const g = await this.getGraphForSkillId(skill);
     return json.write(g);
   }
 
@@ -100,8 +98,7 @@ export class PathFinderService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
-    let g;
-    g = await this.getGraphForSkillId(skill);
+    const g = await this.getGraphForSkillId(skill);
     return alg.isAcyclic(g);
   }
 
@@ -117,8 +114,7 @@ export class PathFinderService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
-    let g;
-    g = await this.getGraphForSkillId(skill);
+    const g = await this.getGraphForSkillId(skill);
     console.log(alg.postorder(g, ['sk' + skillId]));
     console.log(alg.topsort(g));
     return alg.topsort(g);
