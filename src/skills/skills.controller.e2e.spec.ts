@@ -407,7 +407,7 @@ describe('Skill Controller Tests', () => {
         .send(input)
         .expect(201)
         .expect((res) => {
-          expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
+          expect(res.body).toMatchObject(expectedObject);
         });
     });
 

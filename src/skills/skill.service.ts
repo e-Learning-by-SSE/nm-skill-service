@@ -189,7 +189,7 @@ export class SkillMgmtService {
         },
       });
 
-      return ResolvedSkillDto.createFromDao(skill);
+      return SkillDto.createFromDao(skill);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
