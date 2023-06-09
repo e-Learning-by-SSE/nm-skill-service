@@ -63,13 +63,13 @@ export class PathFinderService {
       }
     }
     lus.learningUnits.forEach((elem) => {
-      const id = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
-      g.setNode('lu' + id, elem.title);
+      const unitId = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
+      g.setNode('lu' + unitId, elem.title);
       elem.requiredSkills.forEach((element) => {
-        g.setEdge('sk' + element, 'lu' + id);
+        g.setEdge('sk' + element, 'lu' + unitId);
       });
       elem.teachingGoals.forEach((element) => {
-        g.setEdge('lu' + id, 'sk' + element);
+        g.setEdge('lu' + unitId, 'sk' + element);
       });
     });
     return g;
