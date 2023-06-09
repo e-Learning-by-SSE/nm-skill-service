@@ -58,20 +58,20 @@ describe('LearningUnit Controller Tests', () => {
     describe('GET:learningUnitId', () => {
       it('Get existing Learning Unit', async () => {
         // Expected result
-        const expectedResult: SelfLearnLearningUnitDto = {
+        const expectedResult: SelfLearnLearningUnitDto = expect.objectContaining({
           language: expect.any(String),
           selfLearnId: lu1.id,
           title: lu1.title,
           teachingGoals: [skill1.id],
           requiredSkills: [skill2.id],
-        };
+        });
 
         // Test: Search Learning Unit by ID
         return request(app.getHttpServer())
           .get(`/learningUnits/${lu1.id}`)
           .expect(200)
           .expect((res) => {
-            expect(res.body as SelfLearnLearningUnitDto).toMatchObject(expectedResult);
+            expect(res.body as SelfLearnLearningUnitDto).toEqual(expectedResult);
           });
       });
     });
