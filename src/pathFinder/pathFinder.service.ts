@@ -139,7 +139,7 @@ export class PathFinderService {
     const g = await this.getGraphWithKnowNothing(skill);
 
     const a = alg.preorder(g, ['sk0']);
-    const b: String[] = [];
+    const b: string[] = [];
     a.forEach((element) => {
       if (element.includes('lu')) {
         b.push(element);
