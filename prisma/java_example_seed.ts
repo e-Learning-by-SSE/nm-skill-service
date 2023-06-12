@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client';
+import { createLearningObjects } from './seed_functions';
 
 const prisma = new PrismaClient();
 
@@ -383,7 +384,7 @@ export async function javaSeed(): Promise<void> {
   console.log(' - %s\x1b[32m ✔\x1b[0m', 'Skills');
   await createSkillGroups();
   console.log(' - %s\x1b[32m ✔\x1b[0m', 'SkillGroups');
-  await createLearningObjects();
+  await createLearningObjects(learningObjectives);
   console.log(' - %s\x1b[32m ✔\x1b[0m', 'Learning Objects');
   await createGoals();
   console.log(' - %s\x1b[32m ✔\x1b[0m', 'Goals');
@@ -428,26 +429,6 @@ async function createSkillGroups() {
         level: skill.level,
         nestedSkills: {
           connect: nested,
-        },
-      },
-    });
-  }
-}
-
-async function createLearningObjects() {
-  // Avoid Deadlocks -> Run all in sequence
-  for (const unit of learningObjectives) {
-    await prisma.learningUnit.create({
-      data: {
-        id: unit.id,
-        title: unit.name,
-        language: 'de',
-        description: unit.description,
-        requirements: {
-          connect: unit.requirements.map((i) => ({ id: i })),
-        },
-        teachingGoals: {
-          connect: unit.teachingGoals.map((i) => ({ id: i })),
         },
       },
     });

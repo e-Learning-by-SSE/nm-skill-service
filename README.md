@@ -1,6 +1,6 @@
 # Competence Repository Service
 
-![Build Status](https://jenkins-2.sse.uni-hildesheim.de/job/Teaching_nm-competence-repository-service/job/main/lastBuild/badge/icon "Build Status")
+![Build Status](https://jenkins-2.sse.uni-hildesheim.de/job/Teaching_nm-competence-repository-service/job/main/lastBuild/badge/icon 'Build Status')
 
 The Competence Repository Service allows content creators / teachers to develop their own competence repositories (i.e., taxonomies), share them with others, and use them to model required and offered competencies of a course.
 
@@ -18,10 +18,10 @@ The service can be configured via the `.env` file placed in the root of this rep
 
 ```bash
 # Start the dev-db docker container
-npm run db:dev:start
+npm run db:start
 
 # Wipe and restart dev-db, also applies current db schema
-npm run db:dev:restart
+npm run db:restart
 
 # Create and deploy a new db migration (after the db schema has been changed), will also seed the db (applying sample data)
 npx prisma migrate dev

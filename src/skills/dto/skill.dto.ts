@@ -12,13 +12,17 @@ export class SkillDto extends OmitType(SkillCreationDto, ['owner', 'parentSkills
   @IsDefined()
   nestedSkills: string[];
 
-  constructor(id: string, name: string, level: number, description: string | null) {
+  @IsDefined()
+  repositoryId: string;
+
+  constructor(id: string, name: string, level: number, description: string | null, repositoryId: string) {
     super();
     this.name = name;
     this.level = level;
     this.description = description ?? undefined;
     this.id = id;
     this.nestedSkills = [];
+    this.repositoryId = repositoryId;
   }
 
   /**
@@ -27,6 +31,6 @@ export class SkillDto extends OmitType(SkillCreationDto, ['owner', 'parentSkills
    * @returns The corresponding DTO, but without parents/children
    */
   static createFromDao(skill: Skill): SkillDto {
-    return new SkillDto(skill.id, skill.name, skill.level, skill.description);
+    return new SkillDto(skill.id, skill.name, skill.level, skill.description, skill.repositoryId);
   }
 }

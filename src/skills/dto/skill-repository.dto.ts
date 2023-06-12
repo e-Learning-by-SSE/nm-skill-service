@@ -6,7 +6,7 @@ import { SkillRepositorySelectionDto } from './skill-repository-selection.dto';
 
 export class SkillRepositoryDto extends SkillRepositorySelectionDto {
   @IsNotEmpty()
-  ownerId: string;
+  owner: string;
 
   @IsNotEmpty()
   id: string;
@@ -16,7 +16,7 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
 
   constructor(
     id: string,
-    ownerId: string,
+    owner: string,
     name: string,
     version: string | null,
     taxonomy: string | null,
@@ -24,7 +24,7 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
   ) {
     super(name, version);
     this.id = id;
-    this.ownerId = ownerId;
+    this.owner = owner;
     this.taxonomy = taxonomy ?? undefined;
     this.description = description ?? undefined;
   }

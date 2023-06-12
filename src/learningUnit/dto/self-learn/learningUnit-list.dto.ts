@@ -4,5 +4,5 @@ import { SelfLearnLearningUnitDto } from './learningUnit.dto';
 
 export class SelfLearnLearningUnitListDto {
   @IsDefined()
-  learningUnits: SelfLearnLearningUnitDto[];
+  learningUnits: SelfLearnLearningUnitDto[] = [];
 }

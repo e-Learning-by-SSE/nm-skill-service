@@ -47,7 +47,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       unit.title,
       unit.language,
       unit.description,
-      unit.searchInfos.processingTime,
+      unit.searchInfos?.processingTime,
       unit.searchInfos.rating,
       unit.searchInfos.contentCreator,
       unit.searchInfos.contentProvider,

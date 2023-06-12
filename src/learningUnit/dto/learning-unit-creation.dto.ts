@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
  * Creates a new LearningUnit (Basic implementation for all extensions).
@@ -16,6 +16,12 @@ export class LearningUnitCreationDto {
 
   @IsOptional()
   description?: string;
+
+  @IsDefined()
+  teachingGoals: string[] = [];
+
+  @IsDefined()
+  requiredSkills: string[] = [];
 
   constructor(title: string, language: string, description?: string | null) {
     this.title = title;

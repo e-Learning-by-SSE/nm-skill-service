@@ -13,4 +13,21 @@ export class SelfLearnLearningUnitCreationDto extends LearningUnitCreationDto {
     super(title, language, description);
     this.order = order ?? undefined;
   }
+
+  /**
+   * Alternative, shorthand factory method to create testing objects.
+   * Only mandatory properties that are used during test need to be defined.
+   * @param params The properties to be set.
+   * @returns An instance suitable for testing, where all unset values are treated as `null`.
+   */
+  static createForTesting(
+    params: Pick<SelfLearnLearningUnitCreationDto, 'title'> & Partial<SelfLearnLearningUnitCreationDto>,
+  ): SelfLearnLearningUnitCreationDto {
+    return new SelfLearnLearningUnitCreationDto(
+      params.language ?? 'en',
+      params.title, // Mandatory
+      params.description ?? null,
+      params.order ?? null,
+    );
+  }
 }
