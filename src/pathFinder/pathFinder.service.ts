@@ -107,7 +107,8 @@ export class PathFinderService {
     return alg.isAcyclic(g);
   }
 
-  public async pathForSkill(skillId: string) {
+  public async pathForSkill() {
+    const skillId: string = '1'
     const daoSkillIn = await this.db.skill.findUnique({
       where: {
         id: skillId,
@@ -119,9 +120,66 @@ export class PathFinderService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
-    const g = await this.getGraphForSkillId(skill);
-    console.log(alg.postorder(g, ['sk' + skillId]));
-    console.log(alg.topsort(g));
-    return alg.topsort(g);
+    const g = await this.getGraphWithKnowNothing(skill);
+
+    
+
+    
+    const a = alg.preorder(g, ['sk0']);
+    const b : String[] = [];
+    a.forEach(element => {
+     if (element.includes('lu')){
+      b.push(element)
+     } 
+    });
+    
+    
+    return b;
+  }
+  public async getGraphWithKnowNothing(skill: SkillDto): Promise<Graph> {
+    const allSkills = await this.db.skill.findMany({
+      where: {
+        repositoryId: skill.repositoryId,
+      },
+      include: {
+        nestedSkills: true,
+      },
+    });
+
+    const g = new Graph({ directed: true, multigraph: true });
+    g.setNode('sk0', 0);
+    allSkills.forEach((element1) => {
+      g.setNode('sk' + element1.id, element1.name);
+
+      element1.nestedSkills.forEach((element) => {
+        g.setEdge('sk' + element.id, 'sk' + element1.id);
+      });
+    });
+    const lus = await this.luService.loadAllLearningUnits();
+    // lus.learningUnits = <SelfLearnLearningUnitDto[]>lus.learningUnits;
+    for (let i = 0; i < lus.learningUnits.length; i++) {
+      const unit = lus.learningUnits[i];
+      if (
+        (isSelfLearnLearningUnitDto(unit) && unit.selfLearnId > 20) ||
+        (isSearchLearningUnitDto(unit) && unit.searchId > 20)
+      ) {
+        lus.learningUnits.splice(i--, 1);
+      }
+    }
+    lus.learningUnits.forEach((elem) => {
+      const unitId = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
+      g.setNode('lu' + unitId, elem.title);
+      if (!elem.requiredSkills.length) {
+        g.setEdge('sk0', 'lu'+unitId)
+      } else {
+        elem.requiredSkills.forEach((element) => {
+          g.setEdge('sk' + element, 'lu' + unitId);
+        });
+      }
+      elem.teachingGoals.forEach((element) => {
+        g.setEdge('lu' + unitId, 'sk' + element);
+      });
+    });
+    return g;
   }
 }

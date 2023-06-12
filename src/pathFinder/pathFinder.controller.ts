@@ -22,8 +22,8 @@ export class PathFinderController {
   checkGraph(@Param('skillId') skillId: string) {
     return this.pfService.isGraphForIdACycle(skillId);
   }
-  @Get('getPathToSkill/:skillId')
-  getPathToSkill(@Param('skillId') skillId: string) {
-    return this.pfService.pathForSkill(skillId);
+  @Get('getPathforJava')
+  getPathToSkill() {
+    return this.pfService.pathForSkill();
   }
 }
