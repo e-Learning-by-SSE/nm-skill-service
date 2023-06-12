@@ -2,7 +2,7 @@ import { DynamicModule, Module } from '@nestjs/common';
 
 import { NuggetMgmtController } from './nugget.controller';
 import { NuggetMgmtService } from './nugget.service';
-import { MODE } from 'src/config/env.validation';
+import { MODE } from '../config/env.validation';
 
 @Module({})
 export class DynamicNuggetModuleModule {

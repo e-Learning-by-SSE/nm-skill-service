@@ -17,7 +17,7 @@ import { PathFinderModule } from './pathFinder/pathFinder.module';
     DynamicNuggetModuleModule.register(),
     LearningPathModule,
     DynamicLearningUnitModule.register(),
-    PathFinderModule
+    PathFinderModule,
   ],
 })
 export class AppModule {}

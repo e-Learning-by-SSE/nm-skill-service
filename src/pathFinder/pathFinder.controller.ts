@@ -8,14 +8,14 @@ import { PathFinderService } from './pathFinder.service';
 export class PathFinderController {
   constructor(private pfService: PathFinderService) {}
 
-  /**
-   * Lists all nuggets.
-   
-   * @returns List of all nuggets.
-   */
   @Get('getConnectedGraphForSkill/:skillId')
   getConnectedGraphForSkill(@Param('skillId') skillId: string) {
     return this.pfService.getConnectedGraphForSkill(skillId);
+  }
+
+  @Get('getConnectedGraphForSkillProposal/:skillId')
+  getConnectedGraphForSkillProposal(@Param('skillId') skillId: string) {
+    return this.pfService.getConnectedGraphForSkillProposal(skillId);
   }
 
   @Get('checkGraph/:skillId')

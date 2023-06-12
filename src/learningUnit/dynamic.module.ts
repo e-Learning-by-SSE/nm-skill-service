@@ -31,6 +31,7 @@ export class DynamicLearningUnitModule {
       module: DynamicLearningUnitModule,
       controllers,
       providers: [LearningUnitMgmtService, LearningUnitFactory],
+      exports: [LearningUnitMgmtService, LearningUnitFactory],
     };
   }
 }

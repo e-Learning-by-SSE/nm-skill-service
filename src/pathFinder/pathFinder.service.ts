@@ -1,12 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { SkillMgmtService } from 'src/skills/skill.service';
-import { SkillDto } from 'src/skills/dto';
+import { SkillDto } from '../skills/dto';
 import { isSelfLearnLearningUnitDto, isSearchLearningUnitDto } from '../learningUnit/types';
 import { Graph, alg } from '@dagrejs/graphlib';
-import { LearningUnitMgmtService } from 'src/learningUnit/learningUnit.service';
-import { NodeDto, GraphDto, EdgeDto, CheckGraphDto } from './dto';
-import { PathDto } from './dto/path.dto';
+import { LearningUnitMgmtService } from '../learningUnit/learningUnit.service';
+import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
+import { GraphMapper } from './graphMapper.service';
 
 /**
  * Service that manages the creation/update/deletion Nuggets
@@ -16,8 +15,8 @@ import { PathDto } from './dto/path.dto';
 export class PathFinderService {
   constructor(
     private db: PrismaService,
-    private skillService: SkillMgmtService,
     private luService: LearningUnitMgmtService,
+    private graphMapper: GraphMapper,
   ) {}
 
   /**
@@ -104,6 +103,23 @@ export class PathFinderService {
     });
     const gr = new GraphDto(edgeList, nodeList);
     return gr;
+  }
+
+  public async getConnectedGraphForSkillProposal(skillId: string) {
+    const daoSkillIn = await this.db.skill.findUnique({
+      where: {
+        id: skillId,
+      },
+      include: { nestedSkills: true },
+    });
+
+    if (!daoSkillIn) {
+      throw new NotFoundException(`Specified skill not found: ${skillId}`);
+    }
+    const skill = SkillDto.createFromDao(daoSkillIn);
+    const g = await this.getGraphForSkillId(skill);
+
+    return this.graphMapper.graphToDto(g);
   }
 
   public async isGraphForIdACycle(skillId: string) {
