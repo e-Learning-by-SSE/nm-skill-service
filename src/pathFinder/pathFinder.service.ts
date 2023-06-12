@@ -2,9 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SkillMgmtService } from 'src/skills/skill.service';
 import { SkillDto } from 'src/skills/dto';
-import { SelfLearnLearningUnitDto } from 'src/learningUnit/dto';
 import { isSelfLearnLearningUnitDto, isSearchLearningUnitDto } from '../learningUnit/types';
-import { Graph, json, alg } from '@dagrejs/graphlib';
+import { Graph, alg } from '@dagrejs/graphlib';
 import { LearningUnitMgmtService } from 'src/learningUnit/learningUnit.service';
 import { NodeDto, GraphDto, EdgeDto, CheckGraphDto } from './dto';
 import { PathDto } from './dto/path.dto';
@@ -120,7 +119,7 @@ export class PathFinderService {
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
     const g = await this.getGraphForSkillId(skill);
-    const retVal = new CheckGraphDto(alg.isAcyclic(g))
+    const retVal = new CheckGraphDto(alg.isAcyclic(g));
     return retVal;
   }
 
@@ -146,7 +145,7 @@ export class PathFinderService {
         b.push(element);
       }
     });
-    const retVal = new PathDto(b)
+    const retVal = new PathDto(b);
     return retVal;
   }
   public async getGraphWithKnowNothing(skill: SkillDto): Promise<Graph> {

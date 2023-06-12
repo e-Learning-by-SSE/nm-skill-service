@@ -1,7 +1,4 @@
-import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
-import { EdgeDto } from './edge.dto';
-import { NodeDto } from './node.dto';
-
+import { IsNotEmpty } from 'class-validator';
 
 export class PathDto {
   @IsNotEmpty()
@@ -9,6 +6,5 @@ export class PathDto {
 
   constructor(luIDs: String[]) {
     this.luIDs = luIDs;
-    
   }
 }

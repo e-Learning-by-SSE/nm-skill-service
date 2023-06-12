@@ -1,5 +1,4 @@
-import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
-import { ResolvedSkillDto } from '../../skills/dto';
+import { IsNotEmpty } from 'class-validator';
 
 export class EdgeDto {
   @IsNotEmpty()
