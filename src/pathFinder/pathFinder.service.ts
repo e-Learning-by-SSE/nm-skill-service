@@ -6,6 +6,8 @@ import { SelfLearnLearningUnitDto } from 'src/learningUnit/dto';
 import { isSelfLearnLearningUnitDto, isSearchLearningUnitDto } from '../learningUnit/types';
 import { Graph, json, alg } from '@dagrejs/graphlib';
 import { LearningUnitMgmtService } from 'src/learningUnit/learningUnit.service';
+import { NodeDto, GraphDto, EdgeDto, CheckGraphDto } from './dto';
+import { PathDto } from './dto/path.dto';
 
 /**
  * Service that manages the creation/update/deletion Nuggets
@@ -88,7 +90,21 @@ export class PathFinderService {
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
     const g = await this.getGraphForSkillId(skill);
-    return json.write(g);
+
+    const nodeList: NodeDto[] = [];
+    const edgeList: EdgeDto[] = [];
+
+    g.nodes().forEach((element) => {
+      const label = g.node(element);
+      const node = new NodeDto(element, label);
+      nodeList.push(node);
+    });
+    g.edges().forEach((element) => {
+      const edge = new EdgeDto(element.v, element.w);
+      edgeList.push(edge);
+    });
+    const gr = new GraphDto(edgeList, nodeList);
+    return gr;
   }
 
   public async isGraphForIdACycle(skillId: string) {
@@ -104,11 +120,12 @@ export class PathFinderService {
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
     const g = await this.getGraphForSkillId(skill);
-    return alg.isAcyclic(g);
+    const retVal = new CheckGraphDto(alg.isAcyclic(g))
+    return retVal;
   }
 
   public async pathForSkill() {
-    const skillId: string = '1'
+    const skillId: string = '1';
     const daoSkillIn = await this.db.skill.findUnique({
       where: {
         id: skillId,
@@ -122,19 +139,15 @@ export class PathFinderService {
     const skill = SkillDto.createFromDao(daoSkillIn);
     const g = await this.getGraphWithKnowNothing(skill);
 
-    
-
-    
     const a = alg.preorder(g, ['sk0']);
-    const b : String[] = [];
-    a.forEach(element => {
-     if (element.includes('lu')){
-      b.push(element)
-     } 
+    const b: String[] = [];
+    a.forEach((element) => {
+      if (element.includes('lu')) {
+        b.push(element);
+      }
     });
-    
-    
-    return b;
+    const retVal = new PathDto(b)
+    return retVal;
   }
   public async getGraphWithKnowNothing(skill: SkillDto): Promise<Graph> {
     const allSkills = await this.db.skill.findMany({
@@ -170,7 +183,7 @@ export class PathFinderService {
       const unitId = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
       g.setNode('lu' + unitId, elem.title);
       if (!elem.requiredSkills.length) {
-        g.setEdge('sk0', 'lu'+unitId)
+        g.setEdge('sk0', 'lu' + unitId);
       } else {
         elem.requiredSkills.forEach((element) => {
           g.setEdge('sk' + element, 'lu' + unitId);
