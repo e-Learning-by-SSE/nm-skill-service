@@ -6,6 +6,9 @@ import { Graph, alg } from '@dagrejs/graphlib';
 import { LearningUnitMgmtService } from '../learningUnit/learningUnit.service';
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
 import { GraphMapper } from './graphMapper.service';
+import { GraphWrapper as GraphWrapper } from './graph';
+import { ConfigService } from '@nestjs/config';
+import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
 
 /**
  * Service that manages the creation/update/deletion Nuggets
@@ -17,6 +20,8 @@ export class PathFinderService {
     private db: PrismaService,
     private luService: LearningUnitMgmtService,
     private graphMapper: GraphMapper,
+    private luFactory: LearningUnitFactory,
+    private config: ConfigService,
   ) {}
 
   /**
@@ -120,6 +125,23 @@ export class PathFinderService {
     const g = await this.getGraphForSkillId(skill);
 
     return this.graphMapper.graphToDto(g);
+  }
+
+  public async getConnectedGraphForSkillProposal2(skillId: string) {
+    const daoSkillIn = await this.db.skill.findUnique({
+      where: {
+        id: skillId,
+      },
+      include: { nestedSkills: true },
+    });
+
+    if (!daoSkillIn) {
+      throw new NotFoundException(`Specified skill not found: ${skillId}`);
+    }
+
+    const skill = SkillDto.createFromDao(daoSkillIn);
+    const graph = new GraphWrapper(this.db, this.luFactory, this.config);
+    return graph.getGraphForSkillId(skill);
   }
 
   public async isGraphForIdACycle(skillId: string) {

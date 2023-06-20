@@ -18,6 +18,11 @@ export class PathFinderController {
     return this.pfService.getConnectedGraphForSkillProposal(skillId);
   }
 
+  @Get('getConnectedGraphForSkillProposal2/:skillId')
+  getConnectedGraphForSkillProposal2(@Param('skillId') skillId: string) {
+    return this.pfService.getConnectedGraphForSkillProposal2(skillId);
+  }
+
   @Get('checkGraph/:skillId')
   checkGraph(@Param('skillId') skillId: string) {
     return this.pfService.isGraphForIdACycle(skillId);

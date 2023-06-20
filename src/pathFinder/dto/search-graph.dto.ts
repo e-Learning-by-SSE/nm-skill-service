@@ -5,13 +5,13 @@ import { SearchEdgeDto } from '.';
 
 export class SearchGraphDto {
   @IsNotEmpty()
-  edges: SearchEdgeDto[];
+  edges: SearchEdgeDto[] = [];
 
   @IsDefined()
-  skills: SkillDto[];
+  skills: SkillDto[] = [];
 
   @IsDefined()
-  learningUnits: SearchLearningUnitDto[];
+  learningUnits: SearchLearningUnitDto[] = [];
 
   constructor() {}
 }
