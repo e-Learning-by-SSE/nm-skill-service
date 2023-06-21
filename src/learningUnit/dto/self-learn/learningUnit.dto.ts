@@ -7,8 +7,15 @@ export class SelfLearnLearningUnitDto extends SelfLearnLearningUnitCreationDto {
   @IsNotEmpty()
   selfLearnId: number;
 
-  constructor(id: number, language: string, title: string, description?: string | null, order?: number | null) {
-    super(language, title, description, order);
+  constructor(
+    id: number,
+    language: string,
+    title: string,
+    resource: string,
+    description?: string | null,
+    order?: number | null,
+  ) {
+    super(language, title, resource, description, order);
     this.selfLearnId = id;
   }
 
@@ -17,6 +24,7 @@ export class SelfLearnLearningUnitDto extends SelfLearnLearningUnitCreationDto {
       unit.id,
       unit.language,
       unit.title,
+      unit.resource,
       unit.description,
       unit.selfLearnInfos.order,
     );

@@ -225,6 +225,7 @@ describe('LearningUnit Factory', () => {
         // Expected DTO class and values
         const expected: Partial<SelfLearnLearningUnitDto> = {
           title: creationDto.title,
+          resource: expect.any(String),
           requiredSkills: [],
           teachingGoals: [],
         };

@@ -8,6 +8,8 @@ import { PathGoal, Prisma, Skill, SkillMap } from '@prisma/client';
  * Simplifies operations on the database during tests.
  */
 export class DbTestUtils {
+  public readonly LU_URL = "a-url-to-a-resource";
+
   private static _instance: DbTestUtils;
   private db: PrismaService;
 
@@ -68,10 +70,12 @@ export class DbTestUtils {
       | Prisma.SearchLearningUnitUncheckedCreateWithoutBasicUnitInput
       | Prisma.SelfLearningUnitUncheckedCreateWithoutBasicUnitInput,
     description?: string,
+    url?:string
   ) {
     const createInput: Prisma.LearningUnitCreateArgs = {
       data: {
         title: title,
+        resource: url ?? this.LU_URL,
         description: description ?? '',
         language: 'en',
         teachingGoals: {

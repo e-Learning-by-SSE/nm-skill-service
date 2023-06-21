@@ -24,6 +24,7 @@ export class NuggetMgmtService {
       const nugget = await this.db.nugget.create({
         data: {
           language: dto.language,
+          resource: dto.resource,
           processingTime: dto.processingTime.toString(),
           isTypeOf: dto.isTypeOf,
           presenter: dto.presenter,

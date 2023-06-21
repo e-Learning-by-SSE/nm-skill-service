@@ -9,8 +9,8 @@ export class SelfLearnLearningUnitCreationDto extends LearningUnitCreationDto {
   @IsOptional()
   order?: number;
 
-  constructor(language: string, title: string, description?: string | null, order?: number | null) {
-    super(title, language, description);
+  constructor(language: string, title: string, resource: string, description?: string | null, order?: number | null) {
+    super(title, resource, language, description);
     this.order = order ?? undefined;
   }
 
@@ -26,6 +26,7 @@ export class SelfLearnLearningUnitCreationDto extends LearningUnitCreationDto {
     return new SelfLearnLearningUnitCreationDto(
       params.language ?? 'en',
       params.title, // Mandatory
+      params.resource ?? 'https://example.com/a-resource',
       params.description ?? null,
       params.order ?? null,
     );

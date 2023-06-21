@@ -156,6 +156,7 @@ export class LearningUnitFactory {
       const learningUnit = await this.db.learningUnit.create({
         data: {
           title: dto.title,
+          resource: dto.resource,
           description: dto.description ?? '',
           language: dto.language,
 
@@ -214,6 +215,7 @@ export class LearningUnitFactory {
       const learningUnit = await this.db.learningUnit.create({
         data: {
           title: dto.title,
+          resource: dto.resource,
           description: dto.description ?? '',
           language: dto.language,
 

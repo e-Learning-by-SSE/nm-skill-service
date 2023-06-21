@@ -10,6 +10,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   constructor(
     id: number,
     title: string,
+    ressource: string,
     language: string,
     description: string,
     processingTime: string | null,
@@ -26,6 +27,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     super(
       language,
       title,
+      ressource,
       description,
       processingTime,
       rating,
@@ -45,6 +47,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     return new SearchLearningUnitDto(
       unit.id,
       unit.title,
+      unit.resource,
       unit.language,
       unit.description,
       unit.searchInfos?.processingTime,

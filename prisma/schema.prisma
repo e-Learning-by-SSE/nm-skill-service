@@ -86,6 +86,7 @@ enum NuggetCategory {
 
 model Nugget {
   id             Int            @id @default(autoincrement())
+  resource      String         // Should point to the actual ressource
   language       String
   name           String?
   isTypeOf       NuggetCategory @default(CONTENT)
@@ -100,6 +101,7 @@ model Nugget {
 
 model LearningUnit {
   id                 Int      @id @default(autoincrement())
+  resource          String   // Should point to the actual ressource
   language           String
   title              String
   description        String

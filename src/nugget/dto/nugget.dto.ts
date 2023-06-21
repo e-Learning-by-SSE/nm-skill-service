@@ -11,18 +11,20 @@ export class NuggetDto extends NuggetCreationDto {
   constructor(
     id: number,
     language: string,
+    resource: string,
     isTypeOf: NuggetCategory,
     processingTime: string,
-    presenter?: string | null,
-    mediatype?: string | null,
+    presenter: string | null,
+    mediatype: string | null,
   ) {
-    super(language, processingTime, isTypeOf, presenter, mediatype);
+    super(language, resource, processingTime, isTypeOf, presenter, mediatype);
     this.id = id;
   }
 
   static createFromDao(nugget: Nugget): NuggetDto {
     return new NuggetDto(
       nugget.id,
+      nugget.resource,
       nugget.language,
       nugget.isTypeOf,
       nugget.processingTime,

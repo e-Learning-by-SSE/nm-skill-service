@@ -1,16 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { NuggetCategory } from '@prisma/client';
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 
 /**
  * Creates a new Nugget
  */
 export class NuggetCreationDto {
   @IsNotEmpty()
-  language!: string;
+  language: string;
 
   @IsNotEmpty()
-  processingTime!: string;
+  @IsUrl()
+  resource: string;
+
+  @IsNotEmpty()
+  processingTime: string;
+
   @ApiProperty({
     enum: NuggetCategory,
     isArray: true,
@@ -34,12 +39,14 @@ export class NuggetCreationDto {
 
   constructor(
     language: string,
+    resource: string,
     processingTime: string,
     isTypeOf: NuggetCategory,
-    presenter?: string | null,
-    mediatype?: string | null,
+    presenter: string | null,
+    mediatype: string | null,
   ) {
     this.language = language;
+    this.resource = resource;
     this.processingTime = processingTime;
     this.isTypeOf = isTypeOf;
     this.presenter = presenter ?? undefined;

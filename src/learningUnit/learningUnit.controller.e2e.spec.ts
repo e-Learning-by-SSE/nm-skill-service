@@ -68,6 +68,7 @@ describe('LearningUnit Controller Tests', () => {
         // Expected result
         const expectedResult: SelfLearnLearningUnitDto = {
           language: expect.any(String),
+          resource: expect.any(String),
           selfLearnId: lu1.id,
           title: lu1.title,
           teachingGoals: [skill1.id],
@@ -91,6 +92,7 @@ describe('LearningUnit Controller Tests', () => {
           learningUnits: [
             {
               language: expect.any(String),
+              resource: expect.any(String),
               selfLearnId: lu1.id,
               title: lu1.title,
               teachingGoals: [skill1.id],
@@ -98,6 +100,7 @@ describe('LearningUnit Controller Tests', () => {
             },
             {
               language: expect.any(String),
+              resource: expect.any(String),
               selfLearnId: lu2.id,
               title: lu2.title,
               teachingGoals: expect.arrayContaining([skill1.id, skill2.id, skill3.id]),
@@ -105,6 +108,7 @@ describe('LearningUnit Controller Tests', () => {
             },
             {
               language: expect.any(String),
+              resource: expect.any(String),
               selfLearnId: lu3.id,
               title: lu3.title,
               teachingGoals: [skill1.id],

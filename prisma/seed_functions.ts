@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client';
+import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
 
@@ -18,6 +19,7 @@ export async function createLearningObjects(learningObjectives: LearningUnitType
     await prisma.learningUnit.create({
       data: {
         id: unit.id,
+        resource: faker.internet.url(),
         title: unit.name,
         language: 'de',
         description: unit.description,
