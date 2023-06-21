@@ -5,7 +5,6 @@ import { isSelfLearnLearningUnitDto, isSearchLearningUnitDto } from '../learning
 import { Graph, alg } from '@dagrejs/graphlib';
 import { LearningUnitMgmtService } from '../learningUnit/learningUnit.service';
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
-import { GraphMapper } from './graphMapper.service';
 import { GraphWrapper as GraphWrapper } from './graph';
 import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
@@ -19,7 +18,6 @@ export class PathFinderService {
   constructor(
     private db: PrismaService,
     private luService: LearningUnitMgmtService,
-    private graphMapper: GraphMapper,
     private luFactory: LearningUnitFactory,
     private config: ConfigService,
   ) {}
@@ -109,7 +107,7 @@ export class PathFinderService {
     const gr = new GraphDto(edgeList, nodeList);
     return gr;
   }
-
+/*
   public async getConnectedGraphForSkillProposal(skillId: string) {
     const daoSkillIn = await this.db.skill.findUnique({
       where: {
@@ -126,8 +124,8 @@ export class PathFinderService {
 
     return this.graphMapper.graphToDto(g);
   }
-
-  public async getConnectedGraphForSkillProposal2(skillId: string) {
+*/
+  public async getConnectedGraphForSkillwithResolvedElements(skillId: string) {
     const daoSkillIn = await this.db.skill.findUnique({
       where: {
         id: skillId,
