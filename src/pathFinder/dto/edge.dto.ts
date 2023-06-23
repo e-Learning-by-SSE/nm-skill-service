@@ -7,6 +7,8 @@ export class EdgeDto {
   @IsNotEmpty()
   to: string;
 
+
+
   constructor(from: string, to: string) {
     this.from = from;
     this.to = to;

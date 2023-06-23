@@ -48,7 +48,7 @@ export class PathFinderService {
 
     const g = new Graph({ directed: true, multigraph: true });
     allSkills.forEach((element1) => {
-      g.setNode('sk' + element1.id, element1.name);
+      g.setNode('sk' + element1.id, {name:element1.name, level:element1.level, description:element1.description} );
 
       element1.nestedSkills.forEach((element) => {
         g.setEdge('sk' + element.id, 'sk' + element1.id);
@@ -67,7 +67,8 @@ export class PathFinderService {
     }
     lus.learningUnits.forEach((elem) => {
       const unitId = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
-      g.setNode('lu' + unitId, elem.title);
+ 
+      g.setNode('lu' + unitId, {titel:elem.title});
       elem.requiredSkills.forEach((element) => {
         g.setEdge('sk' + element, 'lu' + unitId);
       });
@@ -90,8 +91,7 @@ export class PathFinderService {
 
     const g = new Graph({ directed: true, multigraph: true });
     allSkills.forEach((element1) => {
-      g.setNode('sk' + element1.id, element1.name);
-
+      g.setNode('sk' + element1.id, {name:element1.name, level:element1.level, description:element1.description} );
       element1.nestedSkills.forEach((element) => {
         g.setEdge('sk' + element.id, 'sk' + element1.id);
       });
@@ -149,7 +149,8 @@ export class PathFinderService {
 
     g.nodes().forEach((element) => {
       const label = g.node(element);
-      const node = new NodeDto(element, label);
+      
+      const node = new NodeDto(element, label, );
       nodeList.push(node);
     });
     g.edges().forEach((element) => {
@@ -248,7 +249,7 @@ export class PathFinderService {
     });
 
     const g = new Graph({ directed: true, multigraph: true });
-    g.setNode('sk0', 0);
+    g.setNode('sk' + 0, {name:'Know Nothing', level:0, description:'Know Nothing'} );
     allSkills.forEach((element1) => {
       g.setNode('sk' + element1.id, element1.name);
 
@@ -269,7 +270,8 @@ export class PathFinderService {
     }
     lus.learningUnits.forEach((elem) => {
       const unitId = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
-      g.setNode('lu' + unitId, elem.title);
+   
+      g.setNode('lu' + unitId, {titel:elem.title});
       if (!elem.requiredSkills.length) {
         g.setEdge('sk0', 'lu' + unitId);
       } else {

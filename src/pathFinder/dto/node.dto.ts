@@ -1,14 +1,16 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class NodeDto {
   @IsNotEmpty()
   id: string;
 
   @IsNotEmpty()
-  name: string;
+  metadata: string;
 
-  constructor(id: string, name: string) {
+  
+  
+
+  constructor(id: string, meta: string ) {
     this.id = id;
-    this.name = name;
-  }
+    this.metadata =meta;}
 }
