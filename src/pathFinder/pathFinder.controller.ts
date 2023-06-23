@@ -13,6 +13,11 @@ export class PathFinderController {
     return this.pfService.getConnectedGraphForSkill(skillId);
   }
 
+  @Get('getConnectedSkillGraphForSkill/:skillId')
+  getConnectedSkillGraphForSkill(@Param('skillId') skillId: string) {
+    return this.pfService.getConnectedSkillGraphForSkill(skillId);
+  }
+
   @Get('getConnectedGraphForSkillwithResolvedElements/:skillId')
   getConnectedGraphForSkillwithResolvedElements(@Param('skillId') skillId: string) {
     return this.pfService.getConnectedGraphForSkillwithResolvedElements(skillId);

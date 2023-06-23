@@ -78,6 +78,28 @@ export class PathFinderService {
     return g;
   }
 
+  public async getSkillGraphForSkillId(skill: SkillDto): Promise<Graph> {
+    const allSkills = await this.db.skill.findMany({
+      where: {
+        repositoryId: skill.repositoryId,
+      },
+      include: {
+        nestedSkills: true,
+      },
+    });
+
+    const g = new Graph({ directed: true, multigraph: true });
+    allSkills.forEach((element1) => {
+      g.setNode('sk' + element1.id, element1.name);
+
+      element1.nestedSkills.forEach((element) => {
+        g.setEdge('sk' + element.id, 'sk' + element1.id);
+      });
+    });
+   
+    return g;
+  }
+
   public async getConnectedGraphForSkill(skillId: string) {
     const daoSkillIn = await this.db.skill.findUnique({
       where: {
@@ -107,6 +129,37 @@ export class PathFinderService {
     const gr = new GraphDto(edgeList, nodeList);
     return gr;
   }
+
+  public async getConnectedSkillGraphForSkill(skillId: string) {
+    const daoSkillIn = await this.db.skill.findUnique({
+      where: {
+        id: skillId,
+      },
+      include: { nestedSkills: true },
+    });
+
+    if (!daoSkillIn) {
+      throw new NotFoundException(`Specified skill not found: ${skillId}`);
+    }
+    const skill = SkillDto.createFromDao(daoSkillIn);
+    const g = await this.getSkillGraphForSkillId(skill);
+
+    const nodeList: NodeDto[] = [];
+    const edgeList: EdgeDto[] = [];
+
+    g.nodes().forEach((element) => {
+      const label = g.node(element);
+      const node = new NodeDto(element, label);
+      nodeList.push(node);
+    });
+    g.edges().forEach((element) => {
+      const edge = new EdgeDto(element.v, element.w);
+      edgeList.push(edge);
+    });
+    const gr = new GraphDto(edgeList, nodeList);
+    return gr;
+  }
+
 /*
   public async getConnectedGraphForSkillProposal(skillId: string) {
     const daoSkillIn = await this.db.skill.findUnique({
