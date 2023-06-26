@@ -4,6 +4,7 @@ import { SkillDto } from '../skills/dto';
 import { isSelfLearnLearningUnitDto, isSearchLearningUnitDto } from '../learningUnit/types';
 import { Graph, alg } from '@dagrejs/graphlib';
 import { LearningUnitMgmtService } from '../learningUnit/learningUnit.service';
+import { SkillMgmtService } from '../skills/skill.service';
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
 import { GraphWrapper as GraphWrapper } from './graph';
 import { ConfigService } from '@nestjs/config';
@@ -15,11 +16,13 @@ import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
  */
 @Injectable()
 export class PathFinderService {
+  
   constructor(
     private db: PrismaService,
     private luService: LearningUnitMgmtService,
     private luFactory: LearningUnitFactory,
     private config: ConfigService,
+    private skillService: SkillMgmtService
   ) {}
 
   /**
@@ -161,6 +164,38 @@ export class PathFinderService {
     return gr;
   }
 
+  public async findLuForRep(repId: string) {
+    const learningUnits = await this.db.learningUnit.findMany({
+      include: {
+        teachingGoals: true,
+        requirements: true,
+      },
+      where: {
+        OR: {
+          requirements: {
+            some: {
+              repositoryId: repId,
+            },
+          },
+          teachingGoals: {
+            some: {
+              repositoryId: repId,
+            },
+          },
+        },
+      },
+    });
+    if (!learningUnits) {
+      throw new NotFoundException(`Specified skill not found: ${repId}`);
+    }
+    
+
+    
+    return learningUnits;
+  }
+
+
+
 /*
   public async getConnectedGraphForSkillProposal(skillId: string) {
     const daoSkillIn = await this.db.skill.findUnique({
@@ -284,5 +319,40 @@ export class PathFinderService {
       });
     });
     return g;
+  }
+
+  public findMissingElements(list1: string[], list2: string[]): string[] {
+    const missingElements: string[] = [];
+  
+    for (const element of list1) {
+      if (!list2.includes(element)) {
+        missingElements.push(element);
+      }
+    }
+  
+    return missingElements;
+  }
+
+  public async allSkillsDone(repoId: string) {
+    const test = await this.findLuForRep(repoId)
+    const test2 =await this.skillService.loadSkillRepository(repoId)
+    const locList : string[] = []
+    test2.skills.forEach(element => {
+      locList.push(element)
+      
+    });
+
+    const locList2 : string[] = []
+    test.forEach(element => {
+      element.teachingGoals.forEach(element => {
+        locList2.push(element.id)
+      });
+      
+    });
+    const missingElements = this.findMissingElements(locList, locList2);
+    console.log(locList)
+    console.log(locList2)
+    console.log(missingElements)
+    return test
   }
 }

@@ -129,7 +129,6 @@ export class SkillMgmtService {
     if (owner && repository.owner !== owner) {
       throw new ForbiddenException(`Specified repository "${repositoryId}" is not owned by user: ${owner}`);
     }
-
     return repository;
   }
 
