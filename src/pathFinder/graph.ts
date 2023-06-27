@@ -122,8 +122,8 @@ export class GraphWrapper {
     for (let i = 0; i < lus.learningUnits.length; i++) {
       const unit = lus.learningUnits[i];
       if (
-        (isSelfLearnLearningUnitDto(unit) && unit.selfLearnId > 20) ||
-        (isSearchLearningUnitDto(unit) && unit.searchId > 20)
+        (isSelfLearnLearningUnitDto(unit) && Number(unit.selfLearnId) > 20) ||
+        (isSearchLearningUnitDto(unit) &&  Number(unit.searchId) > 20)
       ) {
         lus.learningUnits.splice(i--, 1);
       }

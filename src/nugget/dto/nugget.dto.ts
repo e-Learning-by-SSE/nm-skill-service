@@ -6,10 +6,10 @@ import { NuggetCreationDto } from './nugget-creation.dto';
 
 export class NuggetDto extends NuggetCreationDto {
   @IsNotEmpty()
-  id!: number;
+  id!: string;
 
   constructor(
-    id: number,
+    id: string,
     language: string,
     resource: string,
     isTypeOf: NuggetCategory,

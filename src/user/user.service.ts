@@ -2,7 +2,9 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { UserCreationDto, UserDto, UserListDto } from './dto';
+import { CompanyDto, UserCreationDto, UserDto } from './dto';
+import { CompanyCreationDto } from './dto/company-creation.dto';
+import { User } from '@prisma/client';
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -67,9 +69,32 @@ export class UserMgmtService {
       throw new NotFoundException('Can not find any users');
     }
 
-    const userList = new UserListDto();
-    userList.users = users.map((user) => UserDto.createFromDao(user));
+    let userList:User[] = [];
+    userList= users.map((user) => UserDto.createFromDao(user));
 
-    return users;
+    return userList;
   }
+  async createComp(dto: CompanyCreationDto) {
+    // Create and return company
+    try {
+      const comp = await this.db.company.create({
+        data: {
+          name: dto.name,
+         
+        },
+      });
+
+      return CompanyDto.createFromDao(comp);
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // unique field already exists
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('User already exists');
+        }
+      }
+      throw error;
+    }
+  }
+
+
 }

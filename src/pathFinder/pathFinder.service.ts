@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
 
 /**
- * Service that manages the creation/update/deletion Nuggets
+ * Service for Graphrequests 
  * @author Wenzel
  */
 @Injectable()
@@ -25,12 +25,7 @@ export class PathFinderService {
     private skillService: SkillMgmtService
   ) {}
 
-  /**
-   * Adds a new nugget
-   * @param dto Specifies the nugget to be created
-   * @returns The newly created nugget
-
-   */
+  
 
   public async loadAllNuggets() {
     const nuggets = await this.db.nugget.findMany();
@@ -62,8 +57,8 @@ export class PathFinderService {
     for (let i = 0; i < lus.learningUnits.length; i++) {
       const unit = lus.learningUnits[i];
       if (
-        (isSelfLearnLearningUnitDto(unit) && unit.selfLearnId > 20) ||
-        (isSearchLearningUnitDto(unit) && unit.searchId > 20)
+        (isSelfLearnLearningUnitDto(unit) &&  Number(unit.selfLearnId) > 20) ||
+        (isSearchLearningUnitDto(unit) &&  Number(unit.searchId) > 20)
       ) {
         lus.learningUnits.splice(i--, 1);
       }
@@ -297,8 +292,8 @@ export class PathFinderService {
     for (let i = 0; i < lus.learningUnits.length; i++) {
       const unit = lus.learningUnits[i];
       if (
-        (isSelfLearnLearningUnitDto(unit) && unit.selfLearnId > 20) ||
-        (isSearchLearningUnitDto(unit) && unit.searchId > 20)
+        (isSelfLearnLearningUnitDto(unit) &&  Number(unit.selfLearnId) > 20) ||
+        (isSearchLearningUnitDto(unit) &&  Number(unit.searchId) > 20)
       ) {
         lus.learningUnits.splice(i--, 1);
       }

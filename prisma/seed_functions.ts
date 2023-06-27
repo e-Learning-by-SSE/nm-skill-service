@@ -4,7 +4,7 @@ import { faker } from '@faker-js/faker';
 const prisma = new PrismaClient();
 
 type LearningUnitType = {
-  id: number;
+  id: string;
   name: string;
   description: string;
   requirements: string[];

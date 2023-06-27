@@ -47,7 +47,7 @@ export class LearningUnitFactory {
 
   public async loadLearningUnit(learningUnitId: string): Promise<LearningUnit> {
     const learningUnit = await this.db.learningUnit.findUnique({
-      where: { id: Number(learningUnitId) },
+      where: { id: learningUnitId },
       include: {
         teachingGoals: true,
         requirements: true,

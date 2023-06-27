@@ -5,10 +5,10 @@ import { SelfLearnLUDaoType } from '../../types';
 
 export class SelfLearnLearningUnitDto extends SelfLearnLearningUnitCreationDto {
   @IsNotEmpty()
-  selfLearnId: number;
+  selfLearnId: string;
 
   constructor(
-    id: number,
+    id: string,
     language: string,
     title: string,
     resource: string,

@@ -45,7 +45,7 @@ export class NuggetMgmtService {
   }
 
   private async loadNugget(nuggetId: string) {
-    const nugget = await this.db.nugget.findUnique({ where: { id: Number(nuggetId) } });
+    const nugget = await this.db.nugget.findUnique({ where: { id: nuggetId } });
 
     if (!nugget) {
       throw new NotFoundException('Specified nugget not found: ' + nuggetId);
