@@ -31,18 +31,18 @@ model Skill {
   level       Int
   description String?
 
-  repositoryId         String
-  repository           SkillMap @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  parentSkills         Skill[]         @relation("parentSkills")
-  nestedSkills         Skill[]         @relation("parentSkills")
-  pathTeachingGoals    PathGoal[]      @relation("pathTeachingGoal")
-  requirements         PathGoal[]      @relation("requirements")
+  repositoryId      String
+  repository        SkillMap   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  parentSkills      Skill[]    @relation("parentSkills")
+  nestedSkills      Skill[]    @relation("parentSkills")
+  pathTeachingGoals PathGoal[] @relation("pathTeachingGoal")
+  requirements      PathGoal[] @relation("requirements")
 
   // Use in Learning Objects
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  goalsOf              LearningUnit[]  @relation("teachingGoals")
-  requirementsOf       LearningUnit[]  @relation("requirementslearningUnit")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  goalsOf        LearningUnit[] @relation("teachingGoals")
+  requirementsOf LearningUnit[] @relation("requirementslearningUnit")
 
   @@unique([repositoryId, name])
   @@map("skills")
@@ -63,13 +63,13 @@ model PathGoal {
 }
 
 model LearningPath {
-  id               String      @id @default(cuid())
-  title            String
-  description      String?
-  version          String      @default("")
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  goals            PathGoal[]  @relation("pathGoals")
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  version     String     @default("")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  goals       PathGoal[] @relation("pathGoals")
 
   @@unique([title, version])
   @@map("paths")
@@ -85,8 +85,8 @@ enum NuggetCategory {
 }
 
 model Nugget {
-  id             Int            @id @default(autoincrement())
-  resource      String         // Should point to the actual ressource
+  id        String          @id @default(cuid())
+  resource       String // Should point to the actual ressource
   language       String
   name           String?
   isTypeOf       NuggetCategory @default(CONTENT)
@@ -96,48 +96,99 @@ model Nugget {
   presenter      String         @default("")
   mediatype      String         @default("")
   LearningUnit   LearningUnit?  @relation(fields: [learningUnitId], references: [id])
-  learningUnitId Int?
+  learningUnitId String?
 }
 
 model LearningUnit {
-  id                 Int      @id @default(autoincrement())
-  resource          String   // Should point to the actual ressource
-  language           String
-  title              String
-  description        String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  searchInfos        SearchLearningUnit?
-  selfLearnInfos     SelfLearningUnit?
+  id        String          @id @default(cuid())
+  resource       String  @default("") // Should point to the actual ressource
+  language       String
+  title          String
+  description    String
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  searchInfos    SearchLearningUnit?
+  selfLearnInfos SelfLearningUnit?
 
-  teachingGoals      Skill[]  @relation("teachingGoals")
-  requirements       Skill[]  @relation("requirementslearningUnit")
-  nuggets            Nugget[]
+  teachingGoals Skill[]  @relation("teachingGoals")
+  requirements  Skill[]  @relation("requirementslearningUnit")
+  nuggets       Nugget[]
 }
 
 model SearchLearningUnit {
-  id                 Int      @id @default(autoincrement())
-  processingTime     String   @default("")
-  rating             String   @default("")
-  contentCreator     String   @default("")
-  contentProvider    String   @default("")
-  targetAudience     String   @default("")
-  semanticDensity    String   @default("")
-  semanticGravity    String   @default("")
+  id        String          @id @default(cuid())
+  processingTime     String       @default("")
+  rating             String       @default("")
+  contentCreator     String       @default("")
+  contentProvider    String       @default("")
+  targetAudience     String       @default("")
+  semanticDensity    String       @default("")
+  semanticGravity    String       @default("")
   contentTags        String[]
   contextTags        String[]
   linkToHelpMaterial String?
   basicUnit          LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  unitId             Int
+  unitId             String
 
   @@unique([unitId])
 }
 
 model SelfLearningUnit {
-  id                 Int      @id @default(autoincrement())
-  order              Int?
-  basicUnit          LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  unitId             Int
+  id        String          @id @default(cuid())
+  order     Int?
+  basicUnit LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  unitId    String
 
   @@unique([unitId])
+}
+
+model Company {
+  id              String           @id @default(cuid())
+  name String @default("")
+  users User [] @relation("userOfComp")
+}
+
+model User {
+  id              String           @id @default(cuid())
+  name String @default("")
+  learningProfile LearningProfile?
+  skillProfile    SkillProfile?
+  roleGroup RoleGroup?
+  users       Company[] @relation("userOfComp")
+}
+
+model LearningProfile {
+  id                    String @id @default(cuid())
+  semanticDensity       Int
+  semanticGravity       Int
+  mediaType             String @default("")
+  language              String @default("")
+  processingTimePerUnit String @default("")
+  user                  User   @relation(fields: [userId], references: [id])
+  userId                String @unique // relation scalar field 
+}
+
+model SkillProfile {
+  id                    String @id @default(cuid())
+  jobHistory            String @default("")
+  professionalInterests String @default("")
+  user                  User   @relation(fields: [userId], references: [id])
+  userId                String @unique // relation scalar field 
+}
+model RoleGroup {
+  id    Int        @id @default(autoincrement())
+  name  String
+  roles Role[]
+  user                  User   @relation(fields: [userId], references: [id])
+  userId                String @unique // relation scalar field 
+}
+
+model Role {
+  id     Int    @id @default(autoincrement())
+  isTypeOf       RoleCategory @default(LERNENDER)
+  groups RoleGroup[]
+}
+enum RoleCategory {
+  LEHRERNDER
+  LERNENDER
 }
