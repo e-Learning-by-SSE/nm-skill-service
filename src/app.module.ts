@@ -8,6 +8,8 @@ import { LearningPathModule } from './learningPath/learningPath.module';
 import { DynamicLearningUnitModule } from './learningUnit/dynamic.module';
 import { validate } from './config/env.validation';
 import { PathFinderModule } from './pathFinder/pathFinder.module';
+import { UserMgmtController } from './user/user.controller';
+import { DynamicUserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -18,6 +20,7 @@ import { PathFinderModule } from './pathFinder/pathFinder.module';
     LearningPathModule,
     DynamicLearningUnitModule.register(),
     PathFinderModule,
+    DynamicUserModule.register()
   ],
 })
 export class AppModule {}

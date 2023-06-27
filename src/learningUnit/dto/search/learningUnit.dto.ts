@@ -5,10 +5,10 @@ import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   @IsNotEmpty()
-  searchId: number;
+  searchId: string;
 
   constructor(
-    id: number,
+    id: string,
     title: string,
     ressource: string,
     language: string,
