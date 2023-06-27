@@ -34,7 +34,6 @@ export class PathFinderController {
   // TODO: wird alles unterrichtet
   @Get('allSkillsDone/:repoId')
   allSkillsDone(@Param('repoId') repoId: string) {
-    console.log(repoId)
     return this.pfService.allSkillsDone(repoId);
   }
 
