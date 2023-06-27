@@ -181,7 +181,7 @@ model SkillProfile {
 }
 
 model RoleGroup {
-  id     Int    @id @default(autoincrement())
+  id     String @id @default(cuid())
   name   String
   roles  Role[]
   user   User   @relation(fields: [userId], references: [id])
@@ -189,7 +189,7 @@ model RoleGroup {
 }
 
 model Role {
-  id       Int          @id @default(autoincrement())
+  id       String       @id @default(cuid())
   isTypeOf RoleCategory @default(LERNENDER)
   groups   RoleGroup[]
 }

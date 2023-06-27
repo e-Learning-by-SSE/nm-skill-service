@@ -4,7 +4,9 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from '../prisma/prisma.service';
 import { CompanyDto, UserCreationDto, UserDto } from './dto';
 import { CompanyCreationDto } from './dto/company-creation.dto';
-import { User } from '@prisma/client';
+import { RoleCategory, User } from '@prisma/client';
+import { RoleGroupCreationDto } from './dto/roleGroup-creation.dto';
+import { RoleGroupDto } from './dto/roleGroup.dto';
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -12,6 +14,7 @@ import { User } from '@prisma/client';
  */
 @Injectable()
 export class UserMgmtService {
+  
   constructor(private db: PrismaService) {}
 
   /**
@@ -89,7 +92,33 @@ export class UserMgmtService {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
         if (error.code === 'P2002') {
-          throw new ForbiddenException('User already exists');
+          throw new ForbiddenException('Company already exists');
+        }
+      }
+      throw error;
+    }
+  }
+  
+  async createRoleGroup(dto: RoleGroupCreationDto) {
+   
+    try {
+      const rg = await this.db.roleGroup.create({
+        data: {
+          name: dto.name,
+          userId : dto.userId, 
+          roles:{
+            create: [
+              { isTypeOf: RoleCategory.LEHRERNDER }, // Populates authorId with user's id
+            ],
+          },
+        },
+      })
+      return RoleGroupDto.createFromDao(rg);
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // unique field already exists
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('Company already exists');
         }
       }
       throw error;

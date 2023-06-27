@@ -4,6 +4,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { UserCreationDto } from './dto';
 
 import { UserMgmtService } from './user.service';
+import { RoleGroupCreationDto } from './dto/roleGroup-creation.dto';
+import { CompanyCreationDto } from './dto/company-creation.dto';
 
 @ApiTags('User')
 @Controller('users')
@@ -21,15 +23,29 @@ export class UserMgmtController {
   }
 
   /**
-   * Creates a new user at the specified repository and returns the created user.
-   * @param userId The owner of the repository
-   * @param repositoryId The repository at which the user shall be added to.
+   * Creates a new user returns the created user.
    * @param dto The user description
    * @returns The created user.
    */
   @Post('add_user')
   addUser(@Body() dto: UserCreationDto) {
     return this.userService.createUser(dto);
+  }
+
+  @Post('add_company')
+  addCompany(@Body() dto: CompanyCreationDto) {
+    return this.userService.createComp(dto);
+  }
+
+
+  /**
+   * Creates a new user returns the created user.
+   * @param dto The user description
+   * @returns The created user.
+   */
+  @Post('add_roleGroup')
+  addroleGroup(@Body() dto: RoleGroupCreationDto) {
+    return this.userService.createRoleGroup(dto);
   }
 
   /**
