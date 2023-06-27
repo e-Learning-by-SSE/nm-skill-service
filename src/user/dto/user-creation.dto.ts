@@ -8,12 +8,13 @@ import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 export class UserCreationDto {
   @IsNotEmpty()
   name: string;
-
+  @IsNotEmpty()
+  companyId: string;
   
   constructor(
-    name: string,
+    name: string, compID: string
     ) {
     this.name = name;
-  
+    this.companyId = compID;  
   }
 }

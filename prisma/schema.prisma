@@ -85,7 +85,7 @@ enum NuggetCategory {
 }
 
 model Nugget {
-  id        String          @id @default(cuid())
+  id             String         @id @default(cuid())
   resource       String // Should point to the actual ressource
   language       String
   name           String?
@@ -100,8 +100,8 @@ model Nugget {
 }
 
 model LearningUnit {
-  id        String          @id @default(cuid())
-  resource       String  @default("") // Should point to the actual ressource
+  id             String              @id @default(cuid())
+  resource       String              @default("") // Should point to the actual ressource
   language       String
   title          String
   description    String
@@ -116,7 +116,7 @@ model LearningUnit {
 }
 
 model SearchLearningUnit {
-  id        String          @id @default(cuid())
+  id                 String       @id @default(cuid())
   processingTime     String       @default("")
   rating             String       @default("")
   contentCreator     String       @default("")
@@ -134,7 +134,7 @@ model SearchLearningUnit {
 }
 
 model SelfLearningUnit {
-  id        String          @id @default(cuid())
+  id        String       @id @default(cuid())
   order     Int?
   basicUnit LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId    String
@@ -143,18 +143,22 @@ model SelfLearningUnit {
 }
 
 model Company {
-  id              String           @id @default(cuid())
+  id   String @id @default(cuid())
   name String @default("")
-  users User [] @relation("userOfComp")
+
+  User User[]
 }
 
 model User {
   id              String           @id @default(cuid())
-  name String @default("")
+  name            String           @default("")
   learningProfile LearningProfile?
   skillProfile    SkillProfile?
-  roleGroup RoleGroup?
-  users       Company[] @relation("userOfComp")
+  roleGroup       RoleGroup?
+  companyId       String
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, name])
 }
 
 model LearningProfile {
@@ -175,19 +179,21 @@ model SkillProfile {
   user                  User   @relation(fields: [userId], references: [id])
   userId                String @unique // relation scalar field 
 }
+
 model RoleGroup {
-  id    Int        @id @default(autoincrement())
-  name  String
-  roles Role[]
-  user                  User   @relation(fields: [userId], references: [id])
-  userId                String @unique // relation scalar field 
+  id     Int    @id @default(autoincrement())
+  name   String
+  roles  Role[]
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique // relation scalar field 
 }
 
 model Role {
-  id     Int    @id @default(autoincrement())
-  isTypeOf       RoleCategory @default(LERNENDER)
-  groups RoleGroup[]
+  id       Int          @id @default(autoincrement())
+  isTypeOf RoleCategory @default(LERNENDER)
+  groups   RoleGroup[]
 }
+
 enum RoleCategory {
   LEHRERNDER
   LERNENDER

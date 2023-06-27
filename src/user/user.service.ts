@@ -26,7 +26,7 @@ export class UserMgmtService {
       const user = await this.db.user.create({
         data: {
           name: dto.name,
-         
+          companyId: dto.companyId
         },
       });
 
