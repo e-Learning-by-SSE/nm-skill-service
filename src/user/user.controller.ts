@@ -6,6 +6,8 @@ import { UserCreationDto } from './dto';
 import { UserMgmtService } from './user.service';
 import { RoleGroupCreationDto } from './dto/roleGroup-creation.dto';
 import { CompanyCreationDto } from './dto/company-creation.dto';
+import { LearningProfileCreationDto } from './dto/learningProfile-creation.dto';
+import { SkillProfileCreationDto } from './dto/skillProfil-creation.dto';
 
 @ApiTags('User')
 @Controller('users')
@@ -37,17 +39,19 @@ export class UserMgmtController {
     return this.userService.createComp(dto);
   }
 
-
-  /**
-   * Creates a new user returns the created user.
-   * @param dto The user description
-   * @returns The created user.
-   */
   @Post('add_roleGroup')
   addroleGroup(@Body() dto: RoleGroupCreationDto) {
     return this.userService.createRoleGroup(dto);
   }
 
+  @Post('add_learningProfile')
+  addLearningProfile(@Body() dto: LearningProfileCreationDto) {
+    return this.userService.createLP(dto);
+  }
+  @Post('add_skillProfile')
+  addSkillProfile(@Body() dto: SkillProfileCreationDto) {
+    return this.userService.createSP(dto);
+  }
   /**
    * Returns the specified user.
    * @param userId The ID of the user, that shall be returned

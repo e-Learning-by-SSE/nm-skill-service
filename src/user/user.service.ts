@@ -7,6 +7,10 @@ import { CompanyCreationDto } from './dto/company-creation.dto';
 import { RoleCategory, User } from '@prisma/client';
 import { RoleGroupCreationDto } from './dto/roleGroup-creation.dto';
 import { RoleGroupDto } from './dto/roleGroup.dto';
+import { LearningProfileCreationDto } from './dto/learningProfile-creation.dto';
+import { LearningProfileDto } from './dto/learningProfile.dto';
+import { SkillProfileCreationDto } from './dto/skillProfil-creation.dto';
+import { SkillProfileDto } from './dto/skillProfile.dto';
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -119,6 +123,53 @@ export class UserMgmtService {
         // unique field already exists
         if (error.code === 'P2002') {
           throw new ForbiddenException('Company already exists');
+        }
+      }
+      throw error;
+    }
+  }
+
+  async createLP(dto: LearningProfileCreationDto) {
+    try {
+      const lp = await this.db.learningProfile.create({
+        data: {
+          semanticDensity: Number(dto.semanticDensity),
+          semanticGravity: Number(dto.semanticGravity),
+          mediaType: dto.mediaType,
+          language: dto.language,
+          userId:dto.userId
+        },
+      });
+
+      return LearningProfileDto.createFromDao(lp);
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // unique field already exists
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('Learning Profile could not be created');
+        }
+      }
+      throw error;
+    }
+  }
+
+  async createSP(dto: SkillProfileCreationDto) {
+    try {
+      const sp = await this.db.skillProfile.create({
+        data: {
+        
+          jobHistory: dto.jobHistory,
+          professionalInterests: dto.professionalInterests,
+          userId:dto.userId
+        },
+      });
+
+      return SkillProfileDto.createFromDao(sp);
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // unique field already exists
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('Skill Profile could not be created');
         }
       }
       throw error;
