@@ -9,8 +9,7 @@ export class LearningProfileDto extends LearningProfileCreationDto {
   @IsNotEmpty()
   id: string;
 
-  @IsDefined()
-  userId: string;
+  
 
   constructor(id: string, semanticDensity: number | undefined, semanticGravity: number | undefined, mediaType: string | null, language: string | null, processingTPU: string | null, userId: string) {
     super();
