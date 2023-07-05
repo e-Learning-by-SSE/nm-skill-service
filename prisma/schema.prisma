@@ -113,6 +113,8 @@ model LearningUnit {
   teachingGoals Skill[]  @relation("teachingGoals")
   requirements  Skill[]  @relation("requirementslearningUnit")
   nuggets       Nugget[]
+
+  consumed ConsumedUnitData[]  @relation("consumedLU")
 }
 
 model SearchLearningUnit {
@@ -197,4 +199,11 @@ model Role {
 enum RoleCategory {
   LEHRERNDER
   LERNENDER
+}
+
+model ConsumedUnitData {
+  id       String       @id @default(cuid())
+  actualPocessingTime String
+  testPerformance Decimal @db.Decimal(5,2)
+  consumedLUId        LearningUnit[] @relation("consumedLU")
 }
