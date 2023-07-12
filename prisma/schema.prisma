@@ -159,7 +159,7 @@ model User {
   roleGroup       RoleGroup?
   companyId       String
   company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
+  profile LearningBehaviorData?
   @@unique([companyId, name])
 }
 
@@ -206,4 +206,14 @@ model ConsumedUnitData {
   actualPocessingTime String
   testPerformance Decimal @db.Decimal(5,2)
   consumedLUId        LearningUnit[] @relation("consumedLU")
+  lbData  LearningBehaviorData @relation(fields: [lbDataId], references: [id])
+  lbDataId String
+}
+
+model LearningBehaviorData {
+  id       String       @id @default(cuid())
+  clickdata String [] 
+  consumedUnit ConsumedUnitData[] 
+  user   User @relation(fields: [userId], references: [id])
+  userId String  @unique 
 }
