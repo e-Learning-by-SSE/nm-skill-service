@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { SkillCreationDto, SkillRepositorySearchDto, SkillRepositoryCreationDto, SkillSearchDto } from './dto';
@@ -132,6 +132,20 @@ export class SkillMgmtController {
    */
   @Get('resolve/skill/:skillId')
   getResolvedSkill(@Param('skillId') skillId: string) {
+    return this.skillService.getResolvedSkill(skillId);
+  }
+  /**
+   * Adapts a skill at the specified repository and returns the adapted skill.
+   * @param repositoryId The repository at which the skill shall be added to.
+   * @param dto The skill description
+   * @returns The created skill.
+   */
+  @Post(':repositoryId/skill/adapt_skill')
+  adaptSkill(@Param('repositoryId') repositoryId: string, @Body() dto: SkillCreationDto) {
+    return this.skillService.createSkill(repositoryId, dto);
+  }
+  @Delete('resolve/skill/:skillId')
+  delteSkill(@Param('skillId') skillId: string) {
     return this.skillService.getResolvedSkill(skillId);
   }
 }
