@@ -5,7 +5,7 @@ import { Skill } from '@prisma/client';
 import { SkillCreationDto } from './skill-creation.dto';
 import { OmitType } from '@nestjs/swagger';
 
-export class ResolvedSkillDto extends OmitType(SkillCreationDto, ['owner', 'parentSkills', 'nestedSkills']) {
+export class ResolvedSkillDto extends OmitType(SkillCreationDto, ['owner', 'nestedSkills']) {
   @IsNotEmpty()
   id: string;
 
