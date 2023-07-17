@@ -254,7 +254,19 @@ export class SkillMgmtService {
 
     return this.loadSkill(dao);
   }
+  public async deleteSkill(skillId: string) {
+    const dao = await this.db.skill.delete({
+      where: {
+        id: skillId,
+      }
+    });
 
+    if (!dao) {
+      throw new NotFoundException(`Specified skill not found: ${skillId}`);
+    }
+
+    return dao;
+  }
   /**
    * Recursive function to resolve nested sills.
    *
