@@ -329,25 +329,22 @@ export class PathFinderService {
   }
 
   public async allSkillsDone(repoId: string) {
-    const test = await this.findLuForRep(repoId)
-    const test2 =await this.skillService.loadSkillRepository(repoId)
+    const learningUnits = await this.findLuForRep(repoId)
+    const skillRepo =await this.skillService.loadSkillRepository(repoId)
     const locList : string[] = []
-    test2.skills.forEach(element => {
+    skillRepo.skills.forEach(element => {
       locList.push(element)
       
     });
 
     const locList2 : string[] = []
-    test.forEach(element => {
+    learningUnits.forEach(element => {
       element.teachingGoals.forEach(element => {
         locList2.push(element.id)
       });
       
     });
     const missingElements = this.findMissingElements(locList, locList2);
-    console.log(locList)
-    console.log(locList2)
-    console.log(missingElements)
-    return test
+    return learningUnits
   }
 }
