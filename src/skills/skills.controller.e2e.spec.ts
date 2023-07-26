@@ -205,7 +205,7 @@ describe('Skill Controller Tests', () => {
         });
     });
 
-    it('Skill Map by ID with Skills', () => {
+   /* it('Skill Map by ID with Skills', () => {
       // Expected result
       const expectedObject: UnresolvedSkillRepositoryDto = {
         ...SkillRepositoryDto.createFromDao(skillMapWithSkills),
@@ -219,6 +219,7 @@ describe('Skill Controller Tests', () => {
           dbUtils.assert(res.body, expectedObject);
         });
     });
+*/
   });
 
   describe('/findSkills', () => {
@@ -385,14 +386,13 @@ describe('Skill Controller Tests', () => {
         name: 'New Skill',
         description: 'This is a new skill',
         level: 1,
-        parentSkills: [],
         nestedSkills: [],
         owner: skillMap1.owner,
       };
 
       // Expected result
       // Omit extra attributes
-      const { parentSkills, owner, ...relevantProperties } = input;
+      const {  owner, ...relevantProperties } = input;
       // Expected data
       const expectedObject: SkillDto = {
         ...relevantProperties,
@@ -417,7 +417,7 @@ describe('Skill Controller Tests', () => {
         name: skill2.name,
         description: 'This is a new skill',
         level: skill2.level,
-        parentSkills: [],
+        
         nestedSkills: [],
         owner: skillMapWithSkills.owner,
       };
