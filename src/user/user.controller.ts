@@ -8,6 +8,7 @@ import { RoleGroupCreationDto } from './dto/roleGroup-creation.dto';
 import { CompanyCreationDto } from './dto/company-creation.dto';
 import { LearningProfileCreationDto } from './dto/learningProfile-creation.dto';
 import { SkillProfileCreationDto } from './dto/skillProfil-creation.dto';
+import { QualificationCreationDto } from './dto/qualification-creation.dto';
 
 @ApiTags('User')
 @Controller('users')

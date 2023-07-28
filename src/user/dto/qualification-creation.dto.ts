@@ -8,9 +8,13 @@ export class QualificationCreationDto {
    * Used to validate that the user is the owner of the target repository.
    */
 
+ // @IsOptional()
+  name: string;
+
+  //@IsOptional()
+  year: number;
 
   @IsDefined()
   userId: string;
-
 
 }

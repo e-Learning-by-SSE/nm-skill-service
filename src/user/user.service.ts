@@ -11,6 +11,7 @@ import { LearningProfileCreationDto } from './dto/learningProfile-creation.dto';
 import { LearningProfileDto } from './dto/learningProfile.dto';
 import { SkillProfileCreationDto } from './dto/skillProfil-creation.dto';
 import { SkillProfileDto } from './dto/skillProfile.dto';
+import { QualificationDto } from './dto/qualification.dto';
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -178,7 +179,7 @@ export class UserMgmtService {
 
     async createQualification(dto: QualificationDto) {
     try {
-      const sp = await this.db.qualification.create({
+      const qual = await this.db.qualification.create({
         data: {
         
           name: dto.name,
@@ -187,7 +188,7 @@ export class UserMgmtService {
         },
       });
 
-      return QualificationDto.createFromDao(sp);
+      return QualificationDto.createFromDao(qual);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists

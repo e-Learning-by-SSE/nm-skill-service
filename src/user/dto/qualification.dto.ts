@@ -11,11 +11,11 @@ export class QualificationDto extends QualificationCreationDto {
   @IsDefined()
   userId: string;
 
-  constructor(id: string, jobHistory: string| null, professionalInterests: string | null, userId: string ) {
+  constructor(id: string, name: string, year: number, userId: string ) {
     super();
     this.id = id;
-    this.name = name ?? undefined;
-    this.year = year ?? undefined;
+    this.name = name;
+    this.year = year;
     this.userId = userId;
   }
 
