@@ -53,9 +53,9 @@ export class UserMgmtController {
   addSkillProfile(@Body() dto: SkillProfileCreationDto) {
     return this.userService.createSP(dto);
   }
-   @Post('add_Qualification')
+  @Post('add_Qualification')
   addQualification(@Body() dto: QualificationCreationDto) {
-    return this.userService.createSP(dto);
+    return this.userService.createQualification(dto);
   }
   /**
    * Returns the specified user.
