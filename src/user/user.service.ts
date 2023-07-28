@@ -176,5 +176,28 @@ export class UserMgmtService {
     }
   }
 
+    async createQualification(dto: QualificationDto) {
+    try {
+      const sp = await this.db.qualification.create({
+        data: {
+        
+          name: dto.name,
+          year: dto.year,
+          userId:dto.userId
+        },
+      });
+
+      return QualificationDto.createFromDao(sp);
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // unique field already exists
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('Qualification could not be created');
+        }
+      }
+      throw error;
+    }
+  }
+
 
 }
