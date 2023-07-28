@@ -178,6 +178,7 @@ model SkillProfile {
   id                    String @id @default(cuid())
   jobHistory            String @default("")
   professionalInterests String @default("")
+  qualifications        Qualification[]
   user                  User   @relation(fields: [userId], references: [id])
   userId                String @unique // relation scalar field 
 }
@@ -216,4 +217,12 @@ model LearningBehaviorData {
   consumedUnit ConsumedUnitData[] 
   user   User @relation(fields: [userId], references: [id])
   userId String  @unique 
+}
+
+model Qualification {
+  id        String @id @default(cuid())
+  name      String
+  year      Int
+  user      SkillProfile   @relation(fields: [userId], references: [id])
+  userId    String @unique // relation scalar field 
 }

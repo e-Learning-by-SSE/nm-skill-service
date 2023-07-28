@@ -61,4 +61,9 @@ export class UserMgmtController {
   getUser(@Param('userId') userId: string) {
     return this.userService.getUser(userId);
   }
+
+    @Get(':userId2')
+  getUser2(@Param('userId2') userId2: string) {
+    return this.userService.getUser(userId2);
+  }
 }
