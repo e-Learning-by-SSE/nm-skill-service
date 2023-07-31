@@ -78,7 +78,7 @@ export class SkillMgmtService {
           owner: dto.owner,
           name: dto.name,
           version: dto.version,
-
+          access_rights:dto.access_rights,
           description: dto.description,
         },
       });

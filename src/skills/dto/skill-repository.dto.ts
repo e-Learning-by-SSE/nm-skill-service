@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-import { SkillMap } from '@prisma/client';
+import { ACCESS_RIGHTS, SkillMap } from '@prisma/client';
 
 import { SkillRepositorySelectionDto } from './skill-repository-selection.dto';
 
@@ -13,7 +13,7 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
 
   taxonomy?: string;
   description?: string;
-
+  access_rights?: ACCESS_RIGHTS;
   constructor(
     id: string,
     owner: string,
@@ -21,12 +21,14 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
     version: string | null,
     taxonomy: string | null,
     description: string | null,
+    access_right: ACCESS_RIGHTS| null 
   ) {
     super(name, version);
     this.id = id;
     this.owner = owner;
     this.taxonomy = taxonomy ?? undefined;
     this.description = description ?? undefined;
+    this.access_rights = access_right ?? undefined;
   }
 
   static createFromDao(repository: SkillMap): SkillRepositoryDto {
@@ -37,6 +39,7 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
       repository.version,
       repository.taxonomy,
       repository.description,
+      repository.access_rights
     );
   }
 }

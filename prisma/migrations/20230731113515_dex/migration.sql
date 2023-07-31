@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "ACCESS_RIGHTS" AS ENUM ('PRIVATE', 'PUBLIC');
+
+-- AlterTable
+ALTER TABLE "skill-maps" ADD COLUMN     "access_rights" "ACCESS_RIGHTS" NOT NULL DEFAULT 'PRIVATE';
