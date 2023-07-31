@@ -116,6 +116,21 @@ export class SkillMgmtController {
   }
 
   /**
+   * Adapts a skill at the specified repository and returns the adapted skill.
+   * @param repositoryId The repository at which the skill shall be added to.
+   * @param dto The skill description
+   * @returns The created skill.
+   */
+  @Post(':repositoryId/adapt')
+  adaptRepo(@Param('repositoryId') repositoryId: string, @Body() dto: SkillCreationDto) {
+    return this.skillService.createSkill(repositoryId, dto);
+  }
+  @Delete('repositoryId')
+  deleteRepo(@Param('skillId') skillId: string) {
+    return this.skillService.deleteSkill(skillId);
+  }
+
+  /**
    * Returns the specified skill.
    * @param skillId The ID of the skill, that shall be returned
    * @returns The specified skill.
