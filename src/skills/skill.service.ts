@@ -22,6 +22,7 @@ import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.
  */
 @Injectable()
 export class SkillMgmtService {
+
   constructor(private db: PrismaService) {}
 
   public async findSkillRepositories(
@@ -93,6 +94,25 @@ export class SkillMgmtService {
       }
       throw error;
     }
+  }
+
+ async deleteRepository(repositoryId: string) {
+  const dao = await this.db.skillMap.delete({
+    where: {
+      id: repositoryId,
+    }
+  });
+
+  if (!dao) {
+    throw new NotFoundException(`Specified repositroy not found: ${repositoryId}`);
+  }
+
+  return dao;
+  }
+
+
+ async adaptRepository(repositoryId: string, dto: SkillRepositoryDto) {
+    throw new Error('Method not implemented.');
   }
 
   /**
