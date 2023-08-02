@@ -163,8 +163,8 @@ model User {
   learningProfile LearningProfile?
   skillProfile    SkillProfile?
   roleGroup       RoleGroup?
-  companyId       String
-  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId       String?
+  company         Company?          @relation(fields: [companyId], references: [id], onDelete: SetNull)
   profile LearningBehaviorData?
   @@unique([companyId, name])
 }
