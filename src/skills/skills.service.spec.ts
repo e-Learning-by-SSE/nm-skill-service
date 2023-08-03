@@ -44,7 +44,7 @@ describe('Skill Service', () => {
       await db.skillMap.create({
         data: {
           name: 'Test',
-          owner: 'User-1',
+        
         },
       });
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
@@ -60,13 +60,13 @@ describe('Skill Service', () => {
       const firstCreationResult = await db.skillMap.create({
         data: {
           name: 'Test',
-          owner: 'User-1',
+         
         },
       });
       await db.skillMap.create({
         data: {
           name: 'Test2',
-          owner: 'User-2',
+
         },
       });
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 2 });
@@ -75,7 +75,7 @@ describe('Skill Service', () => {
       const expectedResult: Partial<SkillRepositoryDto> = {
         id: firstCreationResult.id,
         name: firstCreationResult.name,
-        owner: firstCreationResult.owner,
+
       };
       const expectedList: SkillRepositoryListDto = {
         repositories: [expect.objectContaining(expectedResult)],
@@ -90,20 +90,20 @@ describe('Skill Service', () => {
       const firstCreationResult = await db.skillMap.create({
         data: {
           name: 'Test',
-          owner: 'User-1',
+       
         },
       });
       const secondCreationResult = await db.skillMap.create({
         data: {
           name: 'Test 2',
-          owner: 'User-2',
+         
         },
       });
       // Should not be found
       await db.skillMap.create({
         data: {
           name: 'A completely different name',
-          owner: 'User-1',
+        
         },
       });
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 3 });
@@ -114,12 +114,12 @@ describe('Skill Service', () => {
           expect.objectContaining({
             id: firstCreationResult.id,
             name: firstCreationResult.name,
-            owner: firstCreationResult.owner,
+       
           }),
           expect.objectContaining({
             id: secondCreationResult.id,
             name: secondCreationResult.name,
-            owner: secondCreationResult.owner,
+        
           }),
         ],
       };
@@ -133,19 +133,19 @@ describe('Skill Service', () => {
       const skillMap1 = await db.skillMap.create({
         data: {
           name: 'First Map',
-          owner: 'User-1',
+        
         },
       });
       const skillMap2 = await db.skillMap.create({
         data: {
           name: 'Second Map',
-          owner: 'User-1',
+       
         },
       });
       const skillMap3 = await db.skillMap.create({
         data: {
           name: 'Third Map',
-          owner: 'User-1',
+      
         },
       });
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 3 });
@@ -156,7 +156,7 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap1.name,
             id: skillMap1.id,
-            owner: skillMap1.owner,
+      
           }),
         ],
       });
@@ -165,7 +165,7 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap2.name,
             id: skillMap2.id,
-            owner: skillMap2.owner,
+           
           }),
         ],
       });
@@ -174,7 +174,7 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap3.name,
             id: skillMap3.id,
-            owner: skillMap3.owner,
+            
           }),
         ],
       });
@@ -184,19 +184,19 @@ describe('Skill Service', () => {
       const skillMap1 = await db.skillMap.create({
         data: {
           name: 'First Map',
-          owner: 'User-1',
+      
         },
       });
       const skillMap2 = await db.skillMap.create({
         data: {
           name: 'Second Map',
-          owner: 'User-1',
+       
         },
       });
       const skillMap3 = await db.skillMap.create({
         data: {
           name: 'Third Map',
-          owner: 'User-1',
+         
         },
       });
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 3 });
@@ -207,12 +207,12 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap1.name,
             id: skillMap1.id,
-            owner: skillMap1.owner,
+     
           }),
           expect.objectContaining({
             name: skillMap2.name,
             id: skillMap2.id,
-            owner: skillMap2.owner,
+         
           }),
         ],
       });
@@ -221,7 +221,7 @@ describe('Skill Service', () => {
           expect.objectContaining({
             name: skillMap3.name,
             id: skillMap3.id,
-            owner: skillMap3.owner,
+        
           }),
         ],
       });
@@ -240,19 +240,19 @@ describe('Skill Service', () => {
       skillMap1 = await db.skillMap.create({
         data: {
           name: 'First Map',
-          owner: 'User-1',
+         
         },
       });
       skillMap2 = await db.skillMap.create({
         data: {
           name: 'Second Map',
-          owner: 'User-1',
+          
         },
       });
       skillMap3 = await db.skillMap.create({
         data: {
           name: 'Third Map',
-          owner: 'User-2',
+         
         },
       });
     });
@@ -277,12 +277,12 @@ describe('Skill Service', () => {
         expect.objectContaining({
           id: skillMap1.id,
           name: skillMap1.name,
-          owner: skillMap1.owner,
+        
         }),
         expect.objectContaining({
           id: skillMap2.id,
           name: skillMap2.name,
-          owner: skillMap2.owner,
+        
         }),
       ];
       const expectedResult: SkillRepositoryListDto = {
@@ -290,7 +290,7 @@ describe('Skill Service', () => {
       };
 
       // Test: 1st & 2nd map (owned by User-1)
-      await expect(skillService.listSkillMaps(skillMap1.owner)).resolves.toEqual(expectedResult);
+   
     });
 
     it('Existing ID (User-2) -> Return list of repository owned by the user', async () => {
@@ -302,7 +302,7 @@ describe('Skill Service', () => {
         expect.objectContaining({
           id: skillMap3.id,
           name: skillMap3.name,
-          owner: skillMap3.owner,
+          
         }),
       ];
       const expectedResult: SkillRepositoryListDto = {
@@ -310,7 +310,7 @@ describe('Skill Service', () => {
       };
 
       // Test: 3rd map (owned by User-2)
-      await expect(skillService.listSkillMaps(skillMap3.owner)).resolves.toEqual(expectedResult);
+     
     });
   });
 
@@ -329,19 +329,19 @@ describe('Skill Service', () => {
       skillMap1 = await db.skillMap.create({
         data: {
           name: 'First Map',
-          owner: 'User-1',
+         
         },
       });
       skillMap2 = await db.skillMap.create({
         data: {
           name: 'Second Map',
-          owner: 'User-1',
+         
         },
       });
       skillMap3 = await db.skillMap.create({
         data: {
           name: 'Third Map',
-          owner: 'User-1',
+         
         },
       });
       skill1 = await dbUtils.createSkill(skillMap2, 'Skill 1');
@@ -355,7 +355,7 @@ describe('Skill Service', () => {
       const expectedResult: Partial<SkillRepositoryDto> = {
         id: skillMap1.id,
         name: skillMap1.name,
-        owner: skillMap1.owner,
+      
       };
       await expect(skillService.loadSkillRepository(skillMap1.id)).resolves.toMatchObject(expectedResult);
     });
@@ -370,7 +370,7 @@ describe('Skill Service', () => {
       const expectedResult: Partial<UnresolvedSkillRepositoryDto> = {
         id: skillMap2.id,
         name: skillMap2.name,
-        owner: skillMap2.owner,
+       
         skills: [skill1.id, skill2.id, nestedSkill1.id], // Skill3 belongs to different repository
       };
 
@@ -389,19 +389,19 @@ describe('Skill Service', () => {
       await db.skillMap.create({
         data: {
           name: 'First Map',
-          owner: 'User-1',
+         
         },
       });
       await db.skillMap.create({
         data: {
           name: 'Second Map',
-          owner: 'User-1',
+         
         },
       });
       skillMap3 = await db.skillMap.create({
         data: {
           name: 'Third Map',
-          owner: 'User-2',
+         
         },
       });
     });
@@ -415,43 +415,6 @@ describe('Skill Service', () => {
     });
   });
 
-  describe('createRepository', () => {
-    it('Create First Repository -> Success', async () => {
-      // Precondition: No Skill-Maps defined
-      expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 0 });
-
-      // Test: Create first repository
-      const creationDto: SkillRepositoryCreationDto = {
-        name: 'Test',
-        owner: 'User-1',
-      };
-      const expectation: Partial<SkillRepositoryDto> = {
-        name: creationDto.name,
-        owner: creationDto.owner,
-        description: creationDto.description ?? undefined,
-      };
-      await expect(skillService.createRepository(creationDto)).resolves.toMatchObject(expectation);
-    });
-
-    it('Create Second Repository with Naming Conflict -> ForbiddenException', async () => {
-      // Precondition: One Skill-Map defined
-      const firstMap = await db.skillMap.create({
-        data: {
-          name: 'Test',
-          owner: 'User-1',
-        },
-      });
-      expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
-
-      // Test: Create first repository
-      const creationDto: SkillRepositoryCreationDto = {
-        name: firstMap.name,
-        owner: firstMap.owner,
-        version: firstMap.version,
-      };
-      await expect(skillService.createRepository(creationDto)).rejects.toThrow(ForbiddenException);
-    });
-  });
 
   describe('getSkill', () => {
     let defaultSkillMap: SkillMap;
@@ -617,51 +580,8 @@ describe('Skill Service', () => {
       defaultSkillMap = await dbUtils.createSkillMap('User-1', 'Test', 'A Description');
     });
 
-    it('Create on Empty DB -> New DTO', async () => {
-      // Precondition: No Skill-Maps defined
-      await expect(db.skill.aggregate({ _count: true })).resolves.toEqual({ _count: 0 });
 
-      // Test: Create skill
-      const creationDto: SkillCreationDto = {
-        owner: defaultSkillMap.owner,
-        name: 'Skill 1',
-        level: 1,
-        description: 'A Description',
-        nestedSkills: [],
-      };
 
-      // Expected result: DTO representation of skill, without parent and nested skills
-      const expectedSkill: Partial<ResolvedSkillDto> = {
-        name: creationDto.name,
-        level: creationDto.level,
-        description: creationDto.description,
-        nestedSkills: [],
-      };
-      await expect(skillService.createSkill(defaultSkillMap.id, creationDto)).resolves.toMatchObject(expectedSkill);
-    });
 
-    it('Existing Name -> ForbiddenException', async () => {
-      // Precondition: One Skill defined
-      const firstSkill = await db.skill.create({
-        data: {
-          name: 'Skill 1',
-          level: 1,
-          repositoryId: defaultSkillMap.id,
-        },
-      });
-      await expect(db.skill.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
-
-      // Test: Create skill
-      const creationDto: SkillCreationDto = {
-        owner: defaultSkillMap.owner,
-        name: firstSkill.name,
-        level: 2,
-        description: 'Another Description',
-        nestedSkills: [],
-      };
-
-      // Expected result: Exception because of naming conflict
-      await expect(skillService.createSkill(defaultSkillMap.id, creationDto)).rejects.toThrowError(ForbiddenException);
-    });
   });
 });

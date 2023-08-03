@@ -11,25 +11,27 @@ datasource db {
 }
 
 model SkillMap {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  taxonomy    String   @default("Bloom")
-  version     String   @default("")
-  owner       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  skills      Skill[]
+  id            String        @id @default(cuid())
+  name          String
+  description   String?
+  taxonomy      String        @default("Bloom")
+  version       String        @default("")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  skills        Skill[]
   access_rights ACCESS_RIGHTS @default(PRIVATE)
-  
-  @@unique([owner, name, version])
+  owner         User?         @relation(fields: [ownerId], references: [id])
+  ownerId       String?
+
+  @@unique([ownerId, name, version])
   @@map("skill-maps")
 }
+
 enum ACCESS_RIGHTS {
   PRIVATE
   PUBLIC
+  COMPANY
 }
-
 
 model Skill {
   id          String  @id @default(cuid())
@@ -45,13 +47,40 @@ model Skill {
   requirements      PathGoal[] @relation("requirements")
 
   // Use in Learning Objects
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  goalsOf        LearningUnit[] @relation("teachingGoals")
-  requirementsOf LearningUnit[] @relation("requirementslearningUnit")
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  goalsOf             LearningUnit[]      @relation("teachingGoals")
+  searchSkillInfos    SkillSearchInfo?
+  selfLearnSkillInfos SkillSelfLearnInfo?
 
   @@unique([repositoryId, name])
   @@map("skills")
+}
+
+model SkillSelfLearnInfo {
+  id             String              @id @default(cuid())
+  requirementsOf RelationSelflearn[] @relation("requirementslearningUnit")
+  skill          Skill               @relation(fields: [skillId], references: [id])
+  skillId        String              @unique
+}
+
+model SkillSearchInfo {
+  id             String               @id @default(cuid())
+  requirementsOf SearchLearningUnit[] @relation("requirementslearningUnit")
+  skill          Skill                @relation(fields: [skillId], references: [id])
+  skillId        String               @unique
+}
+
+model RelationSelflearn {
+  id                            String               @id @default(cuid())
+  degreeOfImportance            DegreeOfImportance
+  requiredSkillForLearningUinit SelfLearningUnit?
+  requirements                  SkillSelfLearnInfo[] @relation("requirementslearningUnit")
+}
+
+enum DegreeOfImportance {
+  MANDATROY
+  HELPFUL
 }
 
 model PathGoal {
@@ -116,27 +145,28 @@ model LearningUnit {
   searchInfos    SearchLearningUnit?
   selfLearnInfos SelfLearningUnit?
 
-  teachingGoals Skill[]  @relation("teachingGoals")
-  requirements  Skill[]  @relation("requirementslearningUnit")
-  nuggets       Nugget[]
+  teachingGoals Skill[] @relation("teachingGoals")
 
-  consumed ConsumedUnitData[]  @relation("consumedLU")
+  nuggets Nugget[]
+
+  consumed ConsumedUnitData[] @relation("consumedLU")
 }
 
 model SearchLearningUnit {
-  id                 String       @id @default(cuid())
-  processingTime     String       @default("")
-  rating             String       @default("")
-  contentCreator     String       @default("")
-  contentProvider    String       @default("")
-  targetAudience     String       @default("")
-  semanticDensity    String       @default("")
-  semanticGravity    String       @default("")
+  id                 String            @id @default(cuid())
+  processingTime     String            @default("")
+  rating             String            @default("")
+  contentCreator     String            @default("")
+  contentProvider    String            @default("")
+  targetAudience     String            @default("")
+  semanticDensity    String            @default("")
+  semanticGravity    String            @default("")
   contentTags        String[]
   contextTags        String[]
   linkToHelpMaterial String?
-  basicUnit          LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  basicUnit          LearningUnit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId             String
+  requirements       SkillSearchInfo[] @relation("requirementslearningUnit")
 
   @@unique([unitId])
 }
@@ -146,6 +176,9 @@ model SelfLearningUnit {
   order     Int?
   basicUnit LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId    String
+
+  relation   RelationSelflearn? @relation(fields: [relationId], references: [id])
+  relationId String             @unique // relation scalar field (used in the `@relation` attribute above)
 
   @@unique([unitId])
 }
@@ -158,14 +191,16 @@ model Company {
 }
 
 model User {
-  id              String           @id @default(cuid())
-  name            String           @default("")
+  id              String                @id @default(cuid())
+  name            String                @default("")
   learningProfile LearningProfile?
   skillProfile    SkillProfile?
   roleGroup       RoleGroup?
   companyId       String?
-  company         Company?          @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  profile LearningBehaviorData?
+  company         Company?              @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  profile         LearningBehaviorData?
+  skillMaps       SkillMap[]
+
   @@unique([companyId, name])
 }
 
@@ -181,12 +216,12 @@ model LearningProfile {
 }
 
 model SkillProfile {
-  id                    String @id @default(cuid())
-  jobHistory            String @default("")
-  professionalInterests String @default("")
+  id                    String          @id @default(cuid())
+  jobHistory            String          @default("")
+  professionalInterests String          @default("")
   qualifications        Qualification[]
-  user                  User   @relation(fields: [userId], references: [id])
-  userId                String @unique // relation scalar field 
+  user                  User            @relation(fields: [userId], references: [id])
+  userId                String          @unique // relation scalar field 
 }
 
 model RoleGroup {
@@ -209,26 +244,26 @@ enum RoleCategory {
 }
 
 model ConsumedUnitData {
-  id       String       @id @default(cuid())
+  id                  String               @id @default(cuid())
   actualPocessingTime String
-  testPerformance Decimal @db.Decimal(5,2)
-  consumedLUId        LearningUnit[] @relation("consumedLU")
-  lbData  LearningBehaviorData @relation(fields: [lbDataId], references: [id])
-  lbDataId String
+  testPerformance     Decimal              @db.Decimal(5, 2)
+  consumedLUId        LearningUnit[]       @relation("consumedLU")
+  lbData              LearningBehaviorData @relation(fields: [lbDataId], references: [id])
+  lbDataId            String
 }
 
 model LearningBehaviorData {
-  id       String       @id @default(cuid())
-  clickdata String [] 
-  consumedUnit ConsumedUnitData[] 
-  user   User @relation(fields: [userId], references: [id])
-  userId String  @unique 
+  id           String             @id @default(cuid())
+  clickdata    String[]
+  consumedUnit ConsumedUnitData[]
+  user         User               @relation(fields: [userId], references: [id])
+  userId       String             @unique
 }
 
 model Qualification {
-  id        String @id @default(cuid())
-  name      String
-  year      Int
-  user      SkillProfile   @relation(fields: [userId], references: [id])
-  userId    String @unique // relation scalar field 
+  id     String       @id @default(cuid())
+  name   String
+  year   Int
+  user   SkillProfile @relation(fields: [userId], references: [id])
+  userId String       @unique // relation scalar field 
 }

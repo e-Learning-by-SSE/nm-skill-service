@@ -6,7 +6,7 @@ import { IsNotEmpty, IsOptional } from 'class-validator';
  */
 export class SkillRepositoryCreationDto {
   @IsNotEmpty()
-  owner!: string;
+  ownerId!: string;
 
   @IsNotEmpty()
   name!: string;
