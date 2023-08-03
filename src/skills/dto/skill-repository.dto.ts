@@ -16,7 +16,6 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
   access_rights?: ACCESS_RIGHTS;
   constructor(
     id: string,
-    owner: string,
     name: string,
     version: string | null,
     taxonomy: string | null,
@@ -25,7 +24,6 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
   ) {
     super(name, version);
     this.id = id;
-    this.owner = owner;
     this.taxonomy = taxonomy ?? undefined;
     this.description = description ?? undefined;
     this.access_rights = access_right ?? undefined;
@@ -34,7 +32,6 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
   static createFromDao(repository: SkillMap): SkillRepositoryDto {
     return new SkillRepositoryDto(
       repository.id,
-      repository.owner,
       repository.name,
       repository.version,
       repository.taxonomy,
