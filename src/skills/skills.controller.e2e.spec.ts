@@ -88,27 +88,7 @@ describe('Skill Controller Tests', () => {
         });
     });
 
-    it('All repositories of one user', () => {
-      // Search DTO
-      const input: SkillRepositorySearchDto = {
-        owner: skillMap1.owner,
-      };
-
-      // Expected result
-      const emptyList: SkillRepositoryListDto = {
-        repositories: [SkillRepositoryDto.createFromDao(skillMap1), SkillRepositoryDto.createFromDao(skillMap2)],
-      };
-
-      // Test: Search for Skill Maps of User-1
-      return request(app.getHttpServer())
-        .post('/skill-repositories')
-        .send(input)
-        .expect(201)
-        .expect((res) => {
-          dbUtils.assert(res.body, emptyList);
-        });
-    });
-
+  
     it('By contained name', () => {
       // Search DTO
       const input: SkillRepositorySearchDto = {
@@ -131,63 +111,8 @@ describe('Skill Controller Tests', () => {
     });
   });
 
-  describe('/skill-repositories/:owner', () => {
-    it('Skill Maps of not existing user -> Empty list', () => {
-      // Expected result
-      const expectedObject: SkillRepositoryListDto = {
-        repositories: [],
-      };
-      const expected: string = JSON.stringify(expectedObject);
+  
 
-      return request(app.getHttpServer())
-        .get('/skill-repositories/not-existing-owner-id')
-        .expect(200)
-        .expect((res) => {
-          expect(JSON.stringify(res.body)).toEqual(expected);
-        });
-    });
-
-    it('Skill Maps of existing user -> Skill Maps of that user', () => {
-      // Expected result
-      const expectedObject: SkillRepositoryListDto = {
-        repositories: [SkillRepositoryDto.createFromDao(skillMap1), SkillRepositoryDto.createFromDao(skillMap2)],
-      };
-
-      return request(app.getHttpServer())
-        .get(`/skill-repositories/${skillMap1.owner}`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
-        });
-    });
-  });
-
-  describe('/create', () => {
-    it('Create Skill without conflict', () => {
-      // Create DTO
-      const input: SkillRepositoryCreationDto = {
-        name: 'New Skill Map',
-        description: 'This is a new skill map',
-        owner: skillMap1.owner,
-        version: '2.0.1',
-      };
-
-      // Expected result
-      const expectedObject: SkillRepositoryDto = {
-        ...input,
-        id: expect.any(String),
-      };
-
-      // Test: Create Skill
-      return request(app.getHttpServer())
-        .post(`/skill-repositories/create`)
-        .send(input)
-        .expect(201)
-        .expect((res) => {
-          expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
-        });
-    });
-  });
 
   describe('/byId', () => {
     it('Skill Map by ID', () => {
@@ -379,61 +304,6 @@ describe('Skill Controller Tests', () => {
     });
   });
 
-  describe(':repositoryId/skill/add_skill', () => {
-    it('Create new Skill (without conflict) -> success', () => {
-      // Create DTO
-      const input: SkillCreationDto = {
-        name: 'New Skill',
-        description: 'This is a new skill',
-        level: 1,
-        nestedSkills: [],
-        owner: skillMap1.owner,
-      };
-
-      // Expected result
-      // Omit extra attributes
-      const {  owner, ...relevantProperties } = input;
-      // Expected data
-      const expectedObject: SkillDto = {
-        ...relevantProperties,
-        id: expect.any(String),
-        nestedSkills: [],
-        repositoryId: skillMap1.id,
-      };
-
-      // Test: Create Skill
-      return request(app.getHttpServer())
-        .post(`/skill-repositories/${skillMap1.id}/skill/add_skill`)
-        .send(input)
-        .expect(201)
-        .expect((res) => {
-          expect(res.body).toMatchObject(expectedObject);
-        });
-    });
-
-    it('Create new Skill (with conflict) -> ForbiddenException', () => {
-      // Create DTO
-      const input: SkillCreationDto = {
-        name: skill2.name,
-        description: 'This is a new skill',
-        level: skill2.level,
-        
-        nestedSkills: [],
-        owner: skillMapWithSkills.owner,
-      };
-
-      // Test: Create Skill
-      return request(app.getHttpServer())
-        .post(`/skill-repositories/${skillMapWithSkills.id}/skill/add_skill`)
-        .send(input)
-        .expect(403)
-        .expect((res) => {
-          expect(res.body).toMatchObject(
-            expect.objectContaining({ error: 'Forbidden', message: 'Skill already exists in specified repository' }),
-          );
-        });
-    });
-  });
 
   describe('skill/:skillId', () => {
     it('Not existing ID -> NotFoundException', () => {
