@@ -22,6 +22,7 @@ import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.
  */
 @Injectable()
 export class SkillMgmtService {
+
   constructor(private db: PrismaService) {}
 
   public async findSkillRepositories(
@@ -37,7 +38,7 @@ export class SkillMgmtService {
     // https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#and
     if (owner || name || version) {
       query.where = {
-        owner: owner ?? undefined,
+        ownerId: owner ?? undefined,
         name: name ?? undefined,
         version: version ?? undefined,
       };
@@ -72,14 +73,19 @@ export class SkillMgmtService {
   }
 
   async createRepository(dto: SkillRepositoryCreationDto) {
+    
+    
+    
     try {
       const repository = await this.db.skillMap.create({
         data: {
-          owner: dto.owner,
           name: dto.name,
           version: dto.version,
-
+          access_rights:dto.access_rights,
           description: dto.description,
+          owner:{
+           connect: { id:dto.ownerId}
+          }
         },
       });
 
@@ -93,6 +99,25 @@ export class SkillMgmtService {
       }
       throw error;
     }
+  }
+
+ async deleteRepository(repositoryId: string) {
+  const dao = await this.db.skillMap.delete({
+    where: {
+      id: repositoryId,
+    }
+  });
+
+  if (!dao) {
+    throw new NotFoundException(`Specified repositroy not found: ${repositoryId}`);
+  }
+
+  return dao;
+  }
+
+
+ async adaptRepository(repositoryId: string, dto: SkillRepositoryDto) {
+    throw new Error('Method not implemented.');
   }
 
   /**
@@ -118,7 +143,7 @@ export class SkillMgmtService {
         id: repositoryId,
       },
       include: {
-        skills: includeSkills,
+        skills: includeSkills,owner : true
       },
     });
 
@@ -126,7 +151,7 @@ export class SkillMgmtService {
       throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
     }
 
-    if (owner && repository.owner !== owner) {
+    if (owner && repository.owner?.id !== owner) {
       throw new ForbiddenException(`Specified repository "${repositoryId}" is not owned by user: ${owner}`);
     }
     return repository;

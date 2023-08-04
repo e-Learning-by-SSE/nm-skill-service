@@ -39,3 +39,4 @@ lerna-debug.log*
 /output
 NUL
 /src/version.ts
+prisma/migrations/20230731090237_test/migration.sql

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { SkillCreationDto, SkillRepositorySearchDto, SkillRepositoryCreationDto, SkillSearchDto } from './dto';
+import { SkillCreationDto, SkillRepositorySearchDto, SkillRepositoryCreationDto, SkillSearchDto, SkillRepositoryDto } from './dto';
 
 import { SkillMgmtService } from './skill.service';
 import { Prisma } from '@prisma/client';
@@ -113,6 +113,23 @@ export class SkillMgmtController {
   @Post(':repositoryId/skill/add_skill')
   addSkill(@Param('repositoryId') repositoryId: string, @Body() dto: SkillCreationDto) {
     return this.skillService.createSkill(repositoryId, dto);
+  }
+
+  /**
+   * Adapts a repository and returns the adapted it.
+   * @param repositoryId The repository which  shall be adapted.
+   * @param dto The repository description
+   * @returns The adapted repository.
+   */
+  @Post(':repositoryId/adapt')
+  adaptRepo(@Param('repositoryId') repositoryId: string, @Body() dto: SkillRepositoryDto) {
+    return this.skillService.adaptRepository(repositoryId, dto);
+  }
+
+
+  @Delete(':repositoryId')
+  deleteRepo(@Param('repositoryId') repositoryId: string) {
+    return this.skillService.deleteRepository(repositoryId);
   }
 
   /**

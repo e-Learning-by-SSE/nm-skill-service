@@ -50,7 +50,7 @@ export class LearningUnitFactory {
       where: { id: learningUnitId },
       include: {
         teachingGoals: true,
-        requirements: true,
+       
         [this.extensionTable]: true,
       },
     });
@@ -73,7 +73,7 @@ export class LearningUnitFactory {
       ...args,
       include: {
         teachingGoals: true,
-        requirements: true,
+      
         [this.extensionTable]: true,
       },
       // where: {
@@ -108,7 +108,7 @@ export class LearningUnitFactory {
     },
   ) {
     const selfLearnUnit = SelfLearnLearningUnitDto.createFromDao(learningUnit);
-    selfLearnUnit.requiredSkills = learningUnit.requirements?.map((skill) => skill.id) ?? [];
+   
     selfLearnUnit.teachingGoals = learningUnit.teachingGoals?.map((skill) => skill.id) ?? [];
 
     return selfLearnUnit;
@@ -171,18 +171,19 @@ export class LearningUnitFactory {
               contentTags: dto.contentTags,
               contextTags: dto.contextTags,
               linkToHelpMaterial: dto.linkToHelpMaterial,
+              requirements:{
+                connect: dto.requiredSkills?.map((skillId) => ({ id: skillId })) ?? [],
+              }
             },
           },
-          requirements: {
-            connect: dto.requiredSkills?.map((skillId) => ({ id: skillId })) ?? [],
-          },
+         
           teachingGoals: {
             connect: dto.teachingGoals?.map((skillId) => ({ id: skillId })) ?? [],
           },
         },
         include: {
           searchInfos: true,
-          requirements: true,
+          
           teachingGoals: true,
         },
       });
@@ -224,16 +225,14 @@ export class LearningUnitFactory {
               order: dto.order,
             },
           },
-          requirements: {
-            connect: dto.requiredSkills?.map((skillId) => ({ id: skillId })) ?? [],
-          },
+        
           teachingGoals: {
             connect: dto.teachingGoals?.map((skillId) => ({ id: skillId })) ?? [],
           },
         },
         include: {
           selfLearnInfos: true,
-          requirements: true,
+          
           teachingGoals: true,
         },
       });

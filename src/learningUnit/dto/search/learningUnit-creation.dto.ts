@@ -1,4 +1,4 @@
-import { IsOptional } from 'class-validator';
+import { IsDefined, IsOptional } from 'class-validator';
 import { LearningUnitCreationDto } from '../learning-unit-creation.dto';
 
 /**
@@ -37,6 +37,9 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
   @IsOptional()
   linkToHelpMaterial?: string;
 
+  @IsOptional()
+  requiredSkills?: string[] = [];
+
   constructor(
     language: string,
     title: string,
@@ -52,6 +55,7 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
     contentTags: string[] | null,
     contextTags: string[] | null,
     linkToHelpMaterial: string | null,
+    
   ) {
     super(title, resource, language, description);
     this.processingTime = processingTime ?? undefined;
@@ -64,6 +68,7 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
     this.contentTags = contentTags ?? undefined;
     this.contextTags = contextTags ?? undefined;
     this.linkToHelpMaterial = linkToHelpMaterial ?? undefined;
+    
   }
 
   /**
@@ -90,6 +95,7 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
       params.contentTags ?? null,
       params.contextTags ?? null,
       params.linkToHelpMaterial ?? null,
+  
     );
   }
 }

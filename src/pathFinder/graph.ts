@@ -73,7 +73,7 @@ export class GraphWrapper {
     const luArgs: Prisma.LearningUnitFindManyArgs = {
       include: {
         teachingGoals: true,
-        requirements: true,
+        searchInfos: true,
       },
       where: {
         OR: {
@@ -84,13 +84,15 @@ export class GraphWrapper {
               },
             },
           },
-          requirements: {
-            some: {
-              repositoryId: {
-                in: usedRepositories,
-              },
-            },
-          },
+          searchInfos:{
+            requirements:{
+              some: {
+                id: {
+                  in: usedRepositories,
+                },
+              }
+            }
+          }
         },
       },
     };
@@ -104,6 +106,7 @@ export class GraphWrapper {
       },
       include: {
         nestedSkills: true,
+        searchSkillInfos: true
       },
     });
 
@@ -134,9 +137,12 @@ export class GraphWrapper {
       this.usedLUs.set(unitId, lu);
 
       this.graph.setNode(unitId, lu);
-      lu.requiredSkills.forEach((skill) => {
-        this.graph.setEdge('sk' + skill, unitId);
-      });
+      if (isSearchLearningUnitDto(lu)&& lu.requiredSkills){
+        lu.requiredSkills.forEach((skill) => {
+          this.graph.setEdge('sk' + skill, unitId);
+        });
+      }
+      
       lu.teachingGoals.forEach((skill) => {
         this.graph.setEdge(unitId, 'sk' + skill);
       });

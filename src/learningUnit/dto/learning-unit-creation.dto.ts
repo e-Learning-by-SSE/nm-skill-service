@@ -27,8 +27,7 @@ export class LearningUnitCreationDto {
   @IsDefined()
   teachingGoals: string[] = [];
 
-  @IsDefined()
-  requiredSkills: string[] = [];
+ 
 
   constructor(title: string, resource: string, language: string, description?: string | null) {
     this.title = title;

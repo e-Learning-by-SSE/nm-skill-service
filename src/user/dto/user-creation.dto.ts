@@ -8,13 +8,14 @@ import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 export class UserCreationDto {
   @IsNotEmpty()
   name: string;
-  @IsNotEmpty()
-  companyId: string;
+  
+  @IsOptional()
+  companyId?: string;
   
   constructor(
-    name: string, compID: string
+    name: string, compID: string | null, 
     ) {
     this.name = name;
-    this.companyId = compID;  
+    this.companyId = compID ?? undefined;  
   }
 }

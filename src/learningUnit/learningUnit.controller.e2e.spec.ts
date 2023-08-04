@@ -56,11 +56,7 @@ describe('LearningUnit Controller Tests', () => {
       skill3 = await dbUtils.createSkill(skillMap1, 'Skill 3');
 
       // One requirement, one goal: Skill2 -> Skill1
-      lu1 = await dbUtils.createLearningUnit('Learning Unit 1', [skill1], [skill2], {});
-      // Multiple goals, no requirements: {} -> Skill1, Skill2, Skill3
-      lu2 = await dbUtils.createLearningUnit('Learning Unit 2', [skill1, skill2, skill3], [], {});
-      // Nested is required by goal: NestedSkill1 -> Skill1
-      lu3 = await dbUtils.createLearningUnit('Learning Unit 3', [skill1], [nestedSkill1], {});
+    
     });
 
     describe('GET:learningUnitId', () => {
@@ -72,7 +68,7 @@ describe('LearningUnit Controller Tests', () => {
           selfLearnId: lu1.id,
           title: lu1.title,
           teachingGoals: [skill1.id],
-          requiredSkills: [skill2.id],
+        
         };
 
         // Test: Search Learning Unit by ID
@@ -96,7 +92,7 @@ describe('LearningUnit Controller Tests', () => {
               selfLearnId: lu1.id,
               title: lu1.title,
               teachingGoals: [skill1.id],
-              requiredSkills: [skill2.id],
+            
             },
             {
               language: expect.any(String),
@@ -104,7 +100,7 @@ describe('LearningUnit Controller Tests', () => {
               selfLearnId: lu2.id,
               title: lu2.title,
               teachingGoals: expect.arrayContaining([skill1.id, skill2.id, skill3.id]),
-              requiredSkills: [],
+              
             },
             {
               language: expect.any(String),
@@ -112,7 +108,7 @@ describe('LearningUnit Controller Tests', () => {
               selfLearnId: lu3.id,
               title: lu3.title,
               teachingGoals: [skill1.id],
-              requiredSkills: [nestedSkill1.id],
+            
             },
           ],
         };

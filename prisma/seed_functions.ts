@@ -23,9 +23,6 @@ export async function createLearningObjects(learningObjectives: LearningUnitType
         title: unit.name,
         language: 'de',
         description: unit.description,
-        requirements: {
-          connect: unit.requirements.map((i) => ({ id: i })),
-        },
         teachingGoals: {
           connect: unit.teachingGoals.map((i) => ({ id: i })),
         },
@@ -38,7 +35,9 @@ export async function createLearningObjects(learningObjectives: LearningUnitType
         },
         searchInfos: {
           create: {
-            // Ensure that searchInfos exist in demo seed
+            requirements: {
+              connect: unit.requirements.map((i) => ({ id: i })),
+            },// Ensure that searchInfos exist in demo seed
             rating: '1',
             ...unit.searchInfos,
           },
