@@ -79,10 +79,12 @@ pipeline {
                             ])
                         }
                         failure {
-                            if (env.BRANCH_NAME == 'master') {
-                                error('Stopping build on master branch due to test failures.')
-                            } else {
-                                unstable('Tests failed, but continuing build on development branches.')
+                            script {
+                                if (env.BRANCH_NAME == 'master') {
+                                    error('Stopping build on master branch due to test failures.')
+                                } else {
+                                    unstable('Tests failed, but continuing build on development branches.')
+                                }                            
                             }
                         }
                         always {
