@@ -5,7 +5,10 @@
     "\\src",
     "\\src\\prisma",
     "\\src\\skills",
-    "\\src\\user"
+    "\\src\\skills\\dto",
+    "\\src\\user",
+    "\\src\\user\\dto"
   ],
+  "SelectedNode": "\\src\\user\\dto\\company.dto.ts",
   "PreviewInSolutionExplorer": false
 }
