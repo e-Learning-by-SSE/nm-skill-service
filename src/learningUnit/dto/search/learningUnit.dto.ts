@@ -23,6 +23,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     contentTags: string[] | null,
     contextTags: string[] | null,
     linkToHelpMaterial: string | null,
+    
   ) {
     super(
       language,
@@ -39,6 +40,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       contentTags,
       contextTags,
       linkToHelpMaterial,
+    
     );
     this.searchId = id;
   }
@@ -59,7 +61,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       unit.searchInfos.semanticGravity,
       unit.searchInfos.contentTags,
       unit.searchInfos.contextTags,
-      unit.searchInfos.linkToHelpMaterial,
+      unit.searchInfos.linkToHelpMaterial, 
+      
     );
   }
 }

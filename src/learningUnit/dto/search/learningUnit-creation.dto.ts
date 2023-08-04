@@ -55,7 +55,7 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
     contentTags: string[] | null,
     contextTags: string[] | null,
     linkToHelpMaterial: string | null,
-    requiredSkills : string[] | null
+    
   ) {
     super(title, resource, language, description);
     this.processingTime = processingTime ?? undefined;
@@ -68,7 +68,7 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
     this.contentTags = contentTags ?? undefined;
     this.contextTags = contextTags ?? undefined;
     this.linkToHelpMaterial = linkToHelpMaterial ?? undefined;
-    this.requiredSkills = requiredSkills ?? undefined;
+    
   }
 
   /**
@@ -95,7 +95,7 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
       params.contentTags ?? null,
       params.contextTags ?? null,
       params.linkToHelpMaterial ?? null,
-      params.requiredSkills ?? null
+  
     );
   }
 }

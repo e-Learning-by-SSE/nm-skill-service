@@ -197,7 +197,7 @@ model User {
   skillProfile    SkillProfile?
   roleGroup       RoleGroup?
   companyId       String?
-  company         Company?              @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  company         Company?             @relation(fields: [companyId], references: [id])
   profile         LearningBehaviorData?
   skillMaps       SkillMap[]
 

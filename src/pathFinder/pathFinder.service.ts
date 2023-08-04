@@ -11,21 +11,18 @@ import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
 
 /**
- * Service for Graphrequests 
+ * Service for Graphrequests
  * @author Wenzel
  */
 @Injectable()
 export class PathFinderService {
-  
   constructor(
     private db: PrismaService,
     private luService: LearningUnitMgmtService,
     private luFactory: LearningUnitFactory,
     private config: ConfigService,
-    private skillService: SkillMgmtService
+    private skillService: SkillMgmtService,
   ) {}
-
-  
 
   public async loadAllNuggets() {
     const nuggets = await this.db.nugget.findMany();
@@ -46,7 +43,7 @@ export class PathFinderService {
 
     const g = new Graph({ directed: true, multigraph: true });
     allSkills.forEach((element1) => {
-      g.setNode('sk' + element1.id, {name:element1.name, level:element1.level, description:element1.description} );
+      g.setNode('sk' + element1.id, { name: element1.name, level: element1.level, description: element1.description });
 
       element1.nestedSkills.forEach((element) => {
         g.setEdge('sk' + element.id, 'sk' + element1.id);
@@ -57,19 +54,19 @@ export class PathFinderService {
     for (let i = 0; i < lus.learningUnits.length; i++) {
       const unit = lus.learningUnits[i];
       if (
-        (isSelfLearnLearningUnitDto(unit) &&  Number(unit.selfLearnId) > 20) ||
-        (isSearchLearningUnitDto(unit) &&  Number(unit.searchId) > 20)
+        (isSelfLearnLearningUnitDto(unit) && Number(unit.selfLearnId) > 20) ||
+        (isSearchLearningUnitDto(unit) && Number(unit.searchId) > 20)
       ) {
         lus.learningUnits.splice(i--, 1);
       }
     }
     lus.learningUnits.forEach((elem) => {
       const unitId = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
- 
-      g.setNode('lu' + unitId, {titel:elem.title});
-      elem.requiredSkills.forEach((element) => {
+
+      g.setNode('lu' + unitId, { titel: elem.title });
+      /*   elem.requiredSkills.forEach((element) => {
         g.setEdge('sk' + element, 'lu' + unitId);
-      });
+      });*/
       elem.teachingGoals.forEach((element) => {
         g.setEdge('lu' + unitId, 'sk' + element);
       });
@@ -89,12 +86,12 @@ export class PathFinderService {
 
     const g = new Graph({ directed: true, multigraph: true });
     allSkills.forEach((element1) => {
-      g.setNode('sk' + element1.id, {name:element1.name, level:element1.level, description:element1.description} );
+      g.setNode('sk' + element1.id, { name: element1.name, level: element1.level, description: element1.description });
       element1.nestedSkills.forEach((element) => {
         g.setEdge('sk' + element.id, 'sk' + element1.id);
       });
     });
-   
+
     return g;
   }
 
@@ -147,8 +144,8 @@ export class PathFinderService {
 
     g.nodes().forEach((element) => {
       const label = g.node(element);
-      
-      const node = new NodeDto(element, label, );
+
+      const node = new NodeDto(element, label);
       nodeList.push(node);
     });
     g.edges().forEach((element) => {
@@ -163,14 +160,12 @@ export class PathFinderService {
     const learningUnits = await this.db.learningUnit.findMany({
       include: {
         teachingGoals: true,
-        requirements: true,
+        searchInfos: true,
       },
       where: {
         OR: {
-          requirements: {
-            some: {
-              repositoryId: repId,
-            },
+          searchInfos: {
+            requirements: { some: { skill: { repositoryId: repId } } },
           },
           teachingGoals: {
             some: {
@@ -183,15 +178,11 @@ export class PathFinderService {
     if (!learningUnits) {
       throw new NotFoundException(`Specified skill not found: ${repId}`);
     }
-    
 
-    
     return learningUnits;
   }
 
-
-
-/*
+  /*
   public async getConnectedGraphForSkillProposal(skillId: string) {
     const daoSkillIn = await this.db.skill.findUnique({
       where: {
@@ -275,11 +266,12 @@ export class PathFinderService {
       },
       include: {
         nestedSkills: true,
+        searchSkillInfos:true
       },
     });
 
     const g = new Graph({ directed: true, multigraph: true });
-    g.setNode('sk' + 0, {name:'Know Nothing', level:0, description:'Know Nothing'} );
+    g.setNode('sk' + 0, { name: 'Know Nothing', level: 0, description: 'Know Nothing' });
     allSkills.forEach((element1) => {
       g.setNode('sk' + element1.id, element1.name);
 
@@ -292,22 +284,25 @@ export class PathFinderService {
     for (let i = 0; i < lus.learningUnits.length; i++) {
       const unit = lus.learningUnits[i];
       if (
-        (isSelfLearnLearningUnitDto(unit) &&  Number(unit.selfLearnId) > 20) ||
-        (isSearchLearningUnitDto(unit) &&  Number(unit.searchId) > 20)
+        (isSelfLearnLearningUnitDto(unit) && Number(unit.selfLearnId) > 20) ||
+        (isSearchLearningUnitDto(unit) && Number(unit.searchId) > 20)
       ) {
         lus.learningUnits.splice(i--, 1);
       }
     }
     lus.learningUnits.forEach((elem) => {
       const unitId = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
-   
-      g.setNode('lu' + unitId, {titel:elem.title});
-      if (!elem.requiredSkills.length) {
+
+      g.setNode('lu' + unitId, { titel: elem.title });
+      if (isSearchLearningUnitDto(elem) && elem.requiredSkills && !elem.requiredSkills.length) {
         g.setEdge('sk0', 'lu' + unitId);
       } else {
+       if(isSearchLearningUnitDto(elem) && elem.requiredSkills )
+       {
         elem.requiredSkills.forEach((element) => {
           g.setEdge('sk' + element, 'lu' + unitId);
         });
+       }
       }
       elem.teachingGoals.forEach((element) => {
         g.setEdge('lu' + unitId, 'sk' + element);
@@ -318,33 +313,31 @@ export class PathFinderService {
 
   public findMissingElements(list1: string[], list2: string[]): string[] {
     const missingElements: string[] = [];
-  
+
     for (const element of list1) {
       if (!list2.includes(element)) {
         missingElements.push(element);
       }
     }
-  
+
     return missingElements;
   }
 
   public async allSkillsDone(repoId: string) {
-    const learningUnits = await this.findLuForRep(repoId)
-    const skillRepo =await this.skillService.loadSkillRepository(repoId)
-    const locList : string[] = []
-    skillRepo.skills.forEach(element => {
-      locList.push(element)
-      
+    const learningUnits = await this.findLuForRep(repoId);
+    const skillRepo = await this.skillService.loadSkillRepository(repoId);
+    const locList: string[] = [];
+    skillRepo.skills.forEach((element) => {
+      locList.push(element);
     });
 
-    const locList2 : string[] = []
-    learningUnits.forEach(element => {
-      element.teachingGoals.forEach(element => {
-        locList2.push(element.id)
+    const locList2: string[] = [];
+    learningUnits.forEach((element) => {
+      element.teachingGoals.forEach((element) => {
+        locList2.push(element.id);
       });
-      
     });
     const missingElements = this.findMissingElements(locList, locList2);
-    return learningUnits
+    return learningUnits;
   }
 }

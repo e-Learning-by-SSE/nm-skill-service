@@ -12,6 +12,7 @@ import { LearningProfileDto } from './dto/learningProfile.dto';
 import { SkillProfileCreationDto } from './dto/skillProfil-creation.dto';
 import { SkillProfileDto } from './dto/skillProfile.dto';
 import { QualificationDto } from './dto/qualification.dto';
+import { UserListDto } from './dto/user-list.dto';
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -77,10 +78,10 @@ export class UserMgmtService {
       throw new NotFoundException('Can not find any users');
     }
 
-    let userList:User[] = [];
-    userList= users.map((user) => UserDto.createFromDao(user));
-
-    return userList;
+    const userList = new UserListDto;
+    userList.users = users.map((user) => UserDto.createFromDao(user))
+    
+    return users;
   }
   async createComp(dto: CompanyCreationDto) {
     // Create and return company
