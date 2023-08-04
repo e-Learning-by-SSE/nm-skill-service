@@ -78,6 +78,13 @@ pipeline {
                                 failingTarget: [methodCoverage: 0, conditionalCoverage: 0, statementCoverage: 0]       // optional, default is none
                             ])
                         }
+                        failure {
+                            if (env.BRANCH_NAME == 'master') {
+                                error('Stopping build on master branch due to test failures.')
+                            } else {
+                                unstable('Tests failed, but continuing build on development branches.')
+                            }
+                        }
                         always {
                             junit 'output/test/junit*.xml'
                         }
