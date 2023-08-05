@@ -57,13 +57,21 @@ pipeline {
                     }
                     steps {
                         script {
-                            withPostgres([ dbUser: env.POSTGRES_USER,  dbPassword: env.POSTGRES_PASSWORD,  dbName: env.POSTGRES_DB ]).insideSidecar('node:18-bullseye') {
-                                sh 'mv .env env-settings.backup' // only use jenkins .env
-                                sh 'npx prisma db push'
-                                sh 'npm run versioning'
-                                sh 'npm run test:jenkins'
-                                sh 'mv env-settings.backup .env' // Restore .env
-                                sh 'touch testfile.txt'
+                            try {
+                                withPostgres([ dbUser: env.POSTGRES_USER,  dbPassword: env.POSTGRES_PASSWORD,  dbName: env.POSTGRES_DB ]).insideSidecar('node:18-bullseye') {
+                                  sh 'mv .env env-settings.backup' // only use jenkins .env
+                                  sh 'npx prisma db push'
+                                  sh 'npm run versioning'
+                                  sh 'npm run test:jenkins'
+                                  sh 'mv env-settings.backup .env' // Restore .env
+                                  sh 'touch testfile.txt'
+                                }
+                            } catch(err) {
+                                if (env.BRANCH_NAME == 'master') {
+                                    error('Stopping build on master branch due to test failures.')
+                                } else {
+                                    unstable('Tests failed, but continuing build on development branches.')
+                                }            
                             }
                         }
                     }
@@ -77,17 +85,6 @@ pipeline {
                                 unhealthyTarget: [methodCoverage: 50, conditionalCoverage: 50, statementCoverage: 50], // optional, default is none
                                 failingTarget: [methodCoverage: 0, conditionalCoverage: 0, statementCoverage: 0]       // optional, default is none
                             ])
-                        }
-                        failure {
-                            script {
-                                if (env.BRANCH_NAME == 'master') {
-                                    error('Stopping build on master branch due to test failures.')
-                                } else {
-                                    unstable('Tests failed, but continuing build on development branches.')
-                                }                            
-                            }
-                        }
-                        always {
                             junit 'output/test/junit*.xml'
                         }
                     }
