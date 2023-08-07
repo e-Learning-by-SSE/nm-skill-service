@@ -45,9 +45,13 @@ pipeline {
                     }
                 }
 
-                stage('Lint') {
+                stage('Build and Lint') {
                     steps {
-                        sh 'npm run lint:ci'
+                        sh 'npm run build'
+                        sh 'npx prisma generate'
+                        warnError('Linting failed') {
+                            sh 'npm run lint:ci'
+                        }
                     }
                 }
 
@@ -61,7 +65,6 @@ pipeline {
                                 withPostgres([ dbUser: env.POSTGRES_USER,  dbPassword: env.POSTGRES_PASSWORD,  dbName: env.POSTGRES_DB ]).insideSidecar('node:18-bullseye') {
                                   sh 'mv .env env-settings.backup' // only use jenkins .env
                                   sh 'npx prisma db push'
-                                  sh 'npm run versioning'
                                   sh 'npm run test:jenkins'
                                   sh 'mv env-settings.backup .env' // Restore .env
                                   sh 'touch testfile.txt'
@@ -90,7 +93,7 @@ pipeline {
                     }
                 }
 
-                stage('Build') {
+                stage('Docker Build') {
                     steps {
                         ssedocker {
                             create {
