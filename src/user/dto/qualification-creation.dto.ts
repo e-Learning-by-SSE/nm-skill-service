@@ -7,10 +7,7 @@ export class QualificationCreationDto {
   /**
    * Used to validate that the user is the owner of the target repository.
    */
-<<<<<<< HEAD
   
-=======
->>>>>>> 0630bc811de407463885e88212c87780018fa89c
   @IsOptional()
   id: string;
 

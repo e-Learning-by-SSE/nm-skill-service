@@ -23,9 +23,9 @@ describe('LearningUnit Controller Tests', () => {
   let lu1: LearningUnit, lu2: LearningUnit, lu3: LearningUnit;
 
   describe('Self-Learn', () => {
-    /**
+    /*
      * Initializes (relevant parts of) the application before the first test.
-     **/
+     */
     beforeAll(async () => {
       // LearningUnit Factory reads Extension property from Config service, this must be overwritten for testing
       const testConfig = new TestConfig(new ConfigService());

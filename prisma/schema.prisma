@@ -261,7 +261,6 @@ model LearningBehaviorData {
 }
 
 model Qualification {
-<<<<<<< HEAD
  
  // unique id of the qualification
  id        String @id @default(cuid()) 
@@ -279,11 +278,3 @@ model Qualification {
 
 
 }
-=======
-  id     String       @id @default(cuid())
-  name   String
-  year   Int
-  user   SkillProfile @relation(fields: [userId], references: [id])
-  userId String       @unique // relation scalar field 
-}
->>>>>>> 0630bc811de407463885e88212c87780018fa89c
