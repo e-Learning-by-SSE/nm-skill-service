@@ -122,8 +122,8 @@ export class SkillMgmtController {
    * @returns The adapted repository.
    */
   @Post(':repositoryId/adapt')
-  adaptRepo(@Param('repositoryId') repositoryId: string, @Body() dto: SkillRepositoryDto) {
-    return this.skillService.adaptRepository(repositoryId, dto);
+  adaptRepo(@Param('repositoryId')  @Body() dto: SkillRepositoryDto) {
+    return this.skillService.adaptRepository( dto);
   }
 
 

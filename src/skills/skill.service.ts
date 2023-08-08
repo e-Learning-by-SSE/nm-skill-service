@@ -116,8 +116,28 @@ export class SkillMgmtService {
   }
 
 
- async adaptRepository(repositoryId: string, dto: SkillRepositoryDto) {
-    throw new Error('Method not implemented.');
+ async adaptRepository(dto: SkillRepositoryDto) {
+    const dao = await this.db.skillMap.update({
+    where: {
+      id:dto.id
+
+    }, 
+    data:{
+      access_rights : dto.access_rights,
+      description: dto.description, 
+      name:dto.name, 
+      taxonomy:dto.taxonomy, 
+      version : dto. version
+
+    }
+  });
+
+  if (!dao) {
+    throw new NotFoundException(`Specified repositroy not found: ${dto.id}`);
+  }
+
+  return dao;
+  
   }
 
   /**
