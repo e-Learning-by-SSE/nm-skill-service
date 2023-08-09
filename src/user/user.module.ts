@@ -21,7 +21,7 @@ export class DynamicUserModule {
         console.log('Self-Learn loaded');
         break;
       default:
-        throw new Error('No Extension activated, no LearningUnit Controller registered!');
+        throw new Error('No Extension activated, no User Controller registered!');
     }
     return {
       module: DynamicUserModule,
