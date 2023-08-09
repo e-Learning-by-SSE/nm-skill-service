@@ -83,9 +83,7 @@ export class SkillMgmtService {
           version: dto.version,
           access_rights:dto.access_rights,
           description: dto.description,
-          owner:{
-           connect: { id:dto.ownerId}
-          }
+          ownerId:dto.ownerId
         },
       });
 
@@ -163,7 +161,7 @@ export class SkillMgmtService {
         id: repositoryId,
       },
       include: {
-        skills: includeSkills,owner : true
+        skills: includeSkills
       },
     });
 
@@ -171,7 +169,7 @@ export class SkillMgmtService {
       throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
     }
 
-    if (owner && repository.owner?.id !== owner) {
+    if (owner && repository.ownerId !== owner) {
       throw new ForbiddenException(`Specified repository "${repositoryId}" is not owned by user: ${owner}`);
     }
     return repository;

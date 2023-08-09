@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { RoleCategory } from '@prisma/client';
+
 import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 
 /**

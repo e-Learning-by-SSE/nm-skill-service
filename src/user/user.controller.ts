@@ -4,7 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { UserCreationDto } from './dto';
 
 import { UserMgmtService } from './user.service';
-import { RoleGroupCreationDto } from './dto/roleGroup-creation.dto';
+
 import { CompanyCreationDto } from './dto/company-creation.dto';
 import { LearningProfileCreationDto } from './dto/learningProfile-creation.dto';
 import { SkillProfileCreationDto } from './dto/skillProfil-creation.dto';
@@ -40,10 +40,7 @@ export class UserMgmtController {
     return this.userService.createComp(dto);
   }
 
-  @Post('add_roleGroup')
-  addroleGroup(@Body() dto: RoleGroupCreationDto) {
-    return this.userService.createRoleGroup(dto);
-  }
+
 
   @Post('add_learningProfile')
   addLearningProfile(@Body() dto: LearningProfileCreationDto) {

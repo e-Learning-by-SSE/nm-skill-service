@@ -55,7 +55,7 @@ export class DbTestUtils {
   async createSkillMap(ownerId: string, name: string, description?: string) {
     return this.db.skillMap.create({
       data: {
-        
+        ownerId:ownerId ,  
         name: name,
         description: description,
       },

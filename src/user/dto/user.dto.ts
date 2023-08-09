@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-import { User, RoleCategory } from '@prisma/client';
+import { User } from '@prisma/client';
 
 import { UserCreationDto } from './user-creation.dto';
 
@@ -23,7 +23,7 @@ export class UserDto extends UserCreationDto {
     return new UserDto(
       user.id,
       user.name, 
-      user.companyId ?? null
+      user.companyId
     );
   }
 }
