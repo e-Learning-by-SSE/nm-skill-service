@@ -394,8 +394,7 @@ async function createRepositories() {
   await prisma.skillMap.create({
     data: {
       id: repository.id,
-      ownerId: repository.user
-        ,
+      ownerId: repository.user,
       name: repository.name,
       description: repository.description,
       taxonomy: repository.taxonomy,

@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CompanyDto, UserCreationDto, UserDto } from './dto';
 import { CompanyCreationDto } from './dto/company-creation.dto';
 import { User } from '@prisma/client';
-
 import { LearningProfileCreationDto } from './dto/learningProfile-creation.dto';
 import { LearningProfileDto } from './dto/learningProfile.dto';
 import { SkillProfileCreationDto } from './dto/skillProfil-creation.dto';
