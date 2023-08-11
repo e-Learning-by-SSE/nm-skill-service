@@ -61,7 +61,7 @@ export class DbTestUtils {
       },
     });
   }
-
+/*
   async createLearningUnit(
     title: string,
     goals: Skill[],
@@ -103,7 +103,7 @@ export class DbTestUtils {
     return this.db.learningUnit.create(createInput);
   }
   
-
+*/
   async createPathGoal(title: string, goals: Skill[], requirements: Skill[], description?: string) {
     return this.db.pathGoal.create({
       data: {
