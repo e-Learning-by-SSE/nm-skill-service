@@ -164,8 +164,10 @@ export class PathFinderService {
       },
       where: {
         OR: {
-          searchInfos: {
-            requirements: { some: { skill: { repositoryId: repId } } },
+          requirements: {
+            some: {
+              repositoryId: repId,
+            },
           },
           teachingGoals: {
             some: {
@@ -266,7 +268,6 @@ export class PathFinderService {
       },
       include: {
         nestedSkills: true,
-        searchSkillInfos:true
       },
     });
 
@@ -297,12 +298,11 @@ export class PathFinderService {
       if (isSearchLearningUnitDto(elem) && elem.requiredSkills && !elem.requiredSkills.length) {
         g.setEdge('sk0', 'lu' + unitId);
       } else {
-       if(isSearchLearningUnitDto(elem) && elem.requiredSkills )
-       {
-        elem.requiredSkills.forEach((element) => {
-          g.setEdge('sk' + element, 'lu' + unitId);
-        });
-       }
+        if (isSearchLearningUnitDto(elem) && elem.requiredSkills) {
+          elem.requiredSkills.forEach((element) => {
+            g.setEdge('sk' + element, 'lu' + unitId);
+          });
+        }
       }
       elem.teachingGoals.forEach((element) => {
         g.setEdge('lu' + unitId, 'sk' + element);

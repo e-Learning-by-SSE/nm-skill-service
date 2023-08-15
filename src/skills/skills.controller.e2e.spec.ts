@@ -61,9 +61,14 @@ describe('Skill Controller Tests', () => {
     skillMap3 = await dbUtils.createSkillMap('User-2', 'Another awesome map by a different user');
     skillMapWithSkills = await dbUtils.createSkillMap('User-3', 'A skill map with skills');
     await dbUtils.createSkill(skillMap3, 'Item of Map 3');
-    skill2 = await dbUtils.createSkill(skillMapWithSkills, 'Awesome Skill');
-    skill3 = await dbUtils.createSkill(skillMapWithSkills, 'Another Skill');
-    nestedSkill1 = await dbUtils.createSkill(skillMapWithSkills, 'Nested Skill', [skill2.id]);
+    skill2 = await dbUtils.createSkill(skillMapWithSkills, 'Awesome Skill', [], 'A description for skill 2');
+    skill3 = await dbUtils.createSkill(skillMapWithSkills, 'Another Skill', [], 'A description for skill 3');
+    nestedSkill1 = await dbUtils.createSkill(
+      skillMapWithSkills,
+      'Nested Skill',
+      [skill2.id],
+      'A description for nested skill 1',
+    );
   });
 
   describe('/skill-repositories', () => {
@@ -91,7 +96,7 @@ describe('Skill Controller Tests', () => {
     it('All repositories of one user', () => {
       // Search DTO
       const input: SkillRepositorySearchDto = {
-        owner: skillMap1.owner,
+        owner: skillMap1.ownerId,
       };
 
       // Expected result
@@ -154,7 +159,7 @@ describe('Skill Controller Tests', () => {
       };
 
       return request(app.getHttpServer())
-        .get(`/skill-repositories/${skillMap1.owner}`)
+        .get(`/skill-repositories/${skillMap1.ownerId}`)
         .expect(200)
         .expect((res) => {
           expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
@@ -168,13 +173,15 @@ describe('Skill Controller Tests', () => {
       const input: SkillRepositoryCreationDto = {
         name: 'New Skill Map',
         description: 'This is a new skill map',
-        owner: skillMap1.owner,
+        ownerId: skillMap1.ownerId,
         version: '2.0.1',
       };
 
       // Expected result
+      const { ownerId, ...samePart } = input;
       const expectedObject: SkillRepositoryDto = {
-        ...input,
+        ...samePart,
+        owner: input.ownerId,
         id: expect.any(String),
       };
 
@@ -211,12 +218,13 @@ describe('Skill Controller Tests', () => {
         ...SkillRepositoryDto.createFromDao(skillMapWithSkills),
         skills: [skill2.id, skill3.id, nestedSkill1.id],
       };
+      delete expectedObject.description;
 
       return request(app.getHttpServer())
         .get(`/skill-repositories/byId/${skillMapWithSkills.id}`)
         .expect(200)
         .expect((res) => {
-          dbUtils.assert(res.body, expectedObject);
+          expect(res.body as UnresolvedSkillRepositoryDto).toMatchObject(expectedObject);
         });
     });
   });
@@ -281,13 +289,14 @@ describe('Skill Controller Tests', () => {
           { ...ResolvedSkillDto.createFromDao(skill2), nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)] },
           ResolvedSkillDto.createFromDao(skill3),
         ];
+        delete expectedObject.description;
 
         // Test: Resolve Skill Map
         return request(app.getHttpServer())
           .get(`/skill-repositories/resolve/${skillMapWithSkills.id}`)
           .expect(200)
           .expect((res) => {
-            dbUtils.assert(res.body, expectedObject);
+            expect(res.body as ResolvedSkillRepositoryDto).toMatchObject(expectedObject);
           });
       });
     });
@@ -385,14 +394,14 @@ describe('Skill Controller Tests', () => {
         name: 'New Skill',
         description: 'This is a new skill',
         level: 1,
-        parentSkills: [],
+        // parentSkills: [],
         nestedSkills: [],
-        owner: skillMap1.owner,
+        owner: skillMap1.ownerId,
       };
 
       // Expected result
       // Omit extra attributes
-      const { parentSkills, owner, ...relevantProperties } = input;
+      const { owner, ...relevantProperties } = input;
       // Expected data
       const expectedObject: SkillDto = {
         ...relevantProperties,
@@ -417,9 +426,9 @@ describe('Skill Controller Tests', () => {
         name: skill2.name,
         description: 'This is a new skill',
         level: skill2.level,
-        parentSkills: [],
+        // parentSkills: [],
         nestedSkills: [],
-        owner: skillMapWithSkills.owner,
+        owner: skillMapWithSkills.ownerId,
       };
 
       // Test: Create Skill

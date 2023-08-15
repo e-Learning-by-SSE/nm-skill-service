@@ -84,15 +84,13 @@ export class GraphWrapper {
               },
             },
           },
-          searchInfos:{
-            requirements:{
-              some: {
-                id: {
-                  in: usedRepositories,
-                },
-              }
-            }
-          }
+          requirements: {
+            some: {
+              id: {
+                in: usedRepositories,
+              },
+            },
+          },
         },
       },
     };
@@ -106,7 +104,6 @@ export class GraphWrapper {
       },
       include: {
         nestedSkills: true,
-        searchSkillInfos: true
       },
     });
 
@@ -126,7 +123,7 @@ export class GraphWrapper {
       const unit = lus.learningUnits[i];
       if (
         (isSelfLearnLearningUnitDto(unit) && Number(unit.selfLearnId) > 20) ||
-        (isSearchLearningUnitDto(unit) &&  Number(unit.searchId) > 20)
+        (isSearchLearningUnitDto(unit) && Number(unit.searchId) > 20)
       ) {
         lus.learningUnits.splice(i--, 1);
       }
@@ -137,12 +134,12 @@ export class GraphWrapper {
       this.usedLUs.set(unitId, lu);
 
       this.graph.setNode(unitId, lu);
-      if (isSearchLearningUnitDto(lu)&& lu.requiredSkills){
+      if (isSearchLearningUnitDto(lu) && lu.requiredSkills) {
         lu.requiredSkills.forEach((skill) => {
           this.graph.setEdge('sk' + skill, unitId);
         });
       }
-      
+
       lu.teachingGoals.forEach((skill) => {
         this.graph.setEdge(unitId, 'sk' + skill);
       });

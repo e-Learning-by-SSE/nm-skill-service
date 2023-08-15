@@ -49,37 +49,10 @@ model Skill {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   goalsOf             LearningUnit[]      @relation("teachingGoals")
-  searchSkillInfos    SkillSearchInfo?
-  selfLearnSkillInfos SkillSelfLearnInfo?
+  requirementsOf      LearningUnit[]      @relation("requirements")
 
   @@unique([repositoryId, name])
   @@map("skills")
-}
-
-model SkillSelfLearnInfo {
-  id             String              @id @default(cuid())
-  requirementsOf RelationSelflearn[] @relation("requirementslearningUnit")
-  skill          Skill               @relation(fields: [skillId], references: [id])
-  skillId        String              @unique
-}
-
-model SkillSearchInfo {
-  id             String               @id @default(cuid())
-  requirementsOf SearchLearningUnit[] @relation("requirementslearningUnit")
-  skill          Skill                @relation(fields: [skillId], references: [id])
-  skillId        String               @unique
-}
-
-model RelationSelflearn {
-  id                            String               @id @default(cuid())
-  degreeOfImportance            DegreeOfImportance
-  requiredSkillForLearningUinit SelfLearningUnit?
-  requirements                  SkillSelfLearnInfo[] @relation("requirementslearningUnit")
-}
-
-enum DegreeOfImportance {
-  MANDATROY
-  HELPFUL
 }
 
 model PathGoal {
@@ -144,6 +117,7 @@ model LearningUnit {
   searchInfos    SearchLearningUnit?
   selfLearnInfos SelfLearningUnit?
 
+  requirements Skill[] @relation("requirements")
   teachingGoals Skill[] @relation("teachingGoals")
 
   nuggets Nugget[]
@@ -165,7 +139,6 @@ model SearchLearningUnit {
   linkToHelpMaterial String?
   basicUnit          LearningUnit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId             String
-  requirements       SkillSearchInfo[] @relation("requirementslearningUnit")
 
   @@unique([unitId])
 }
@@ -175,9 +148,6 @@ model SelfLearningUnit {
   order     Int?
   basicUnit LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId    String
-
-  relation   RelationSelflearn? @relation(fields: [relationId], references: [id])
-  relationId String             @unique // relation scalar field (used in the `@relation` attribute above)
 
   @@unique([unitId])
 }

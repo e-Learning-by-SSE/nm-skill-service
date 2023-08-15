@@ -8,7 +8,7 @@ import { PathGoal, Prisma, Skill, SkillMap } from '@prisma/client';
  * Simplifies operations on the database during tests.
  */
 export class DbTestUtils {
-  public readonly LU_URL = "a-url-to-a-resource";
+  public readonly LU_URL = 'a-url-to-a-resource';
 
   private static _instance: DbTestUtils;
   private db: PrismaService;
@@ -55,13 +55,13 @@ export class DbTestUtils {
   async createSkillMap(ownerId: string, name: string, description?: string) {
     return this.db.skillMap.create({
       data: {
-        ownerId:ownerId ,  
+        ownerId: ownerId,
         name: name,
         description: description,
       },
     });
   }
-/*
+  
   async createLearningUnit(
     title: string,
     goals: Skill[],
@@ -103,7 +103,7 @@ export class DbTestUtils {
     return this.db.learningUnit.create(createInput);
   }
   
-*/
+
   async createPathGoal(title: string, goals: Skill[], requirements: Skill[], description?: string) {
     return this.db.pathGoal.create({
       data: {
