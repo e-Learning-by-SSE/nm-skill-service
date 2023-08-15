@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_TARGET = 'e-learning-by-sse/nm-competence-repository:latest'
+        DOCKER_TARGET = 'e-learning-by-sse/nm-skill-service:latest'
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
         NPMRC = 'e-learning-by-sse'
 
