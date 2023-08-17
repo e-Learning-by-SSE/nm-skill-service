@@ -9,8 +9,6 @@ type LearningUnitType = {
   description: string;
   requirements: string[];
   teachingGoals: string[];
-  searchInfos?: Prisma.SearchLearningUnitUncheckedCreateNestedOneWithoutBasicUnitInput;
-  selflearnInfos?: Prisma.SelfLearningUnitUncheckedCreateNestedOneWithoutBasicUnitInput;
 }[];
 
 export async function createLearningObjects(learningObjectives: LearningUnitType) {
@@ -28,20 +26,6 @@ export async function createLearningObjects(learningObjectives: LearningUnitType
         },
         teachingGoals: {
           connect: unit.teachingGoals.map((i) => ({ id: i })),
-        },
-        selfLearnInfos: {
-          create: {
-            // Ensure that selfLearnInfos exist in demo seed
-            order: 1,
-            ...unit.selflearnInfos,
-          },
-        },
-        searchInfos: {
-          create: {
-            // Ensure that searchInfos exist in demo seed
-            rating: '1',
-            ...unit.searchInfos,
-          },
         },
       },
     });
