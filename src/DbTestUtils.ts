@@ -61,16 +61,8 @@ export class DbTestUtils {
       },
     });
   }
-  
-  async createLearningUnit(
-    title: string,
-    goals: Skill[],
-    requirements: Skill[],
-    infos:
-      | Prisma.SearchLearningUnitUncheckedCreateWithoutBasicUnitInput
-      | Prisma.SelfLearningUnitUncheckedCreateWithoutBasicUnitInput,
-    description?: string,
-  ) {
+
+  async createLearningUnit(title: string, goals: Skill[], requirements: Skill[], description?: string) {
     const createInput: Prisma.LearningUnitCreateArgs = {
       data: {
         title: title,
@@ -85,24 +77,8 @@ export class DbTestUtils {
       },
     };
 
-    if (infos satisfies Prisma.SelfLearningUnitUncheckedCreateWithoutBasicUnitInput || Object.keys(infos).length === 0) {
-      createInput.data.selfLearnInfos = {
-        create: infos as Prisma.SelfLearningUnitUncheckedCreateWithoutBasicUnitInput,
-      };
-    }
-    if (infos satisfies Prisma.SearchLearningUnitUncheckedCreateWithoutBasicUnitInput || Object.keys(infos).length === 0) {
-      createInput.data.searchInfos = {
-        create: infos as Prisma.SearchLearningUnitUncheckedCreateWithoutBasicUnitInput,
-      };
-    } 
-    if (!(infos satisfies Prisma.SelfLearningUnitUncheckedCreateWithoutBasicUnitInput)
-        && !(infos satisfies Prisma.SearchLearningUnitUncheckedCreateWithoutBasicUnitInput)) {
-      fail('No project-specific extension provided');
-    }
-
     return this.db.learningUnit.create(createInput);
   }
-  
 
   async createPathGoal(title: string, goals: Skill[], requirements: Skill[], description?: string) {
     return this.db.pathGoal.create({

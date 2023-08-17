@@ -1,17 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SkillDto } from '../skills/dto';
-import { isSelfLearnLearningUnitDto, isSearchLearningUnitDto } from '../learningUnit/types';
-// import { Graph, alg } from '@dagrejs/graphlib';
-// import { LearningUnitMgmtService } from '../learningUnit/learningUnit.service';
 import { SkillMgmtService } from '../skills/skill.service';
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
-import { GraphWrapper as GraphWrapper } from './graph';
 import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
-import { LuHandler, SkillHandler } from '../../nm-skill-lib/src/handlers';
-import { LearningUnit, Skill } from '../../nm-skill-lib/src/data';
-import { GraphAlgorithm } from '../../nm-skill-lib/src/pathPlanner';
+import { LuHandler, SkillHandler, LearningUnit, Skill, PathPlanner } from '../../nm-skill-lib/src';
 
 /**
  * Service for Graphrequests
@@ -45,17 +39,10 @@ export class PathFinderService implements SkillHandler, LuHandler {
     const results: LearningUnit[] = [];
 
     relevantLUs.learningUnits.forEach((lu) => {
-      if (isSelfLearnLearningUnitDto(lu)) {
-        results.push({
-          ...lu,
-          id: lu.selfLearnId,
-        });
-      } else if (isSearchLearningUnitDto(lu)) {
-        results.push({
-          ...lu,
-          id: lu.searchId,
-        });
-      }
+      results.push({
+        ...lu,
+        id: lu.searchId,
+      });
     });
 
     return results;
@@ -162,7 +149,7 @@ export class PathFinderService implements SkillHandler, LuHandler {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
-    const graphAlg = new GraphAlgorithm(this, this);
+    const graphAlg = new PathPlanner(this, this);
     const skill = SkillDto.createFromDao(daoSkillIn);
 
     const graph = await graphAlg.getConnectedGraphForSkill(skill, includeLearningUnits);
@@ -224,7 +211,6 @@ export class PathFinderService implements SkillHandler, LuHandler {
     const learningUnits = await this.db.learningUnit.findMany({
       include: {
         teachingGoals: true,
-        searchInfos: true,
       },
       where: {
         OR: {
@@ -266,22 +252,22 @@ export class PathFinderService implements SkillHandler, LuHandler {
     return this.graphMapper.graphToDto(g);
   }
 */
-  public async getConnectedGraphForSkillwithResolvedElements(skillId: string) {
-    const daoSkillIn = await this.db.skill.findUnique({
-      where: {
-        id: skillId,
-      },
-      include: { nestedSkills: true },
-    });
+  // public async getConnectedGraphForSkillwithResolvedElements(skillId: string) {
+  //   const daoSkillIn = await this.db.skill.findUnique({
+  //     where: {
+  //       id: skillId,
+  //     },
+  //     include: { nestedSkills: true },
+  //   });
 
-    if (!daoSkillIn) {
-      throw new NotFoundException(`Specified skill not found: ${skillId}`);
-    }
+  //   if (!daoSkillIn) {
+  //     throw new NotFoundException(`Specified skill not found: ${skillId}`);
+  //   }
 
-    const skill = SkillDto.createFromDao(daoSkillIn);
-    const graph = new GraphWrapper(this.db, this.luFactory, this.config);
-    return graph.getGraphForSkillId(skill);
-  }
+  //   const skill = SkillDto.createFromDao(daoSkillIn);
+  //   const graph = new GraphWrapper(this.db, this.luFactory, this.config);
+  //   return graph.getGraphForSkillId(skill);
+  // }
 
   public async isGraphForIdACycle(skillId: string) {
     const daoSkillIn = await this.db.skill.findUnique({
@@ -295,9 +281,8 @@ export class PathFinderService implements SkillHandler, LuHandler {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
-    const graph = new GraphAlgorithm(this, this);
-    graph.computeGraphForSkill(skill, true);
-    return new CheckGraphDto(graph.isAcyclic());
+    const graph = new PathPlanner(this, this);
+    return new CheckGraphDto(graph.isAcyclic(skill));
     // const g = await this.getGraphForSkillId(skill);
     // const retVal = new CheckGraphDto(alg.isAcyclic(g));
     // return retVal;
@@ -316,7 +301,7 @@ export class PathFinderService implements SkillHandler, LuHandler {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
-    const graph = new GraphAlgorithm(this, this);
+    const graph = new PathPlanner(this, this);
     const path = await graph.pathForSkill(skill);
     return new PathDto(path);
     // const g = await this.getGraphWithKnowNothing(skill);

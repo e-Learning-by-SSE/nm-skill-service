@@ -114,19 +114,8 @@ model LearningUnit {
   description    String
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
-  searchInfos    SearchLearningUnit?
-  selfLearnInfos SelfLearningUnit?
 
-  requirements Skill[] @relation("requirements")
-  teachingGoals Skill[] @relation("teachingGoals")
-
-  nuggets Nugget[]
-
-  consumed ConsumedUnitData[] @relation("consumedLU")
-}
-
-model SearchLearningUnit {
-  id                 String            @id @default(cuid())
+  // Search-specific meta data
   processingTime     String            @default("")
   rating             String            @default("")
   contentCreator     String            @default("")
@@ -137,19 +126,13 @@ model SearchLearningUnit {
   contentTags        String[]
   contextTags        String[]
   linkToHelpMaterial String?
-  basicUnit          LearningUnit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  unitId             String
 
-  @@unique([unitId])
-}
+  requirements Skill[] @relation("requirements")
+  teachingGoals Skill[] @relation("teachingGoals")
 
-model SelfLearningUnit {
-  id        String       @id @default(cuid())
-  order     Int?
-  basicUnit LearningUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  unitId    String
+  nuggets Nugget[]
 
-  @@unique([unitId])
+  consumed ConsumedUnitData[] @relation("consumedLU")
 }
 
 model Company {
@@ -190,10 +173,6 @@ model SkillProfile {
   user                  User            @relation(fields: [userId], references: [id])
   userId                String          @unique // relation scalar field 
 }
-
-
-
-
 
 model ConsumedUnitData {
   id                  String               @id @default(cuid())

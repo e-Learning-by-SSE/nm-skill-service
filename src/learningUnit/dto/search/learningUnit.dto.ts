@@ -1,7 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 
-import { SearchLUDaoType } from '../../types';
 import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';
+import { LearningUnit } from '@prisma/client';
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   @IsNotEmpty()
@@ -23,7 +23,6 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     contentTags: string[] | null,
     contextTags: string[] | null,
     linkToHelpMaterial: string | null,
-    
   ) {
     super(
       language,
@@ -40,29 +39,27 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       contentTags,
       contextTags,
       linkToHelpMaterial,
-    
     );
     this.searchId = id;
   }
 
-  static createFromDao(unit: SearchLUDaoType): SearchLearningUnitDto {
+  static createFromDao(unit: LearningUnit): SearchLearningUnitDto {
     return new SearchLearningUnitDto(
       unit.id,
       unit.title,
       unit.resource,
       unit.language,
       unit.description,
-      unit.searchInfos?.processingTime,
-      unit.searchInfos.rating,
-      unit.searchInfos.contentCreator,
-      unit.searchInfos.contentProvider,
-      unit.searchInfos.targetAudience,
-      unit.searchInfos.semanticDensity,
-      unit.searchInfos.semanticGravity,
-      unit.searchInfos.contentTags,
-      unit.searchInfos.contextTags,
-      unit.searchInfos.linkToHelpMaterial, 
-      
+      unit.processingTime,
+      unit.rating,
+      unit.contentCreator,
+      unit.contentProvider,
+      unit.targetAudience,
+      unit.semanticDensity,
+      unit.semanticGravity,
+      unit.contentTags,
+      unit.contextTags,
+      unit.linkToHelpMaterial,
     );
   }
 }
