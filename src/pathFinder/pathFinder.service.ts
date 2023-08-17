@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SkillDto } from '../skills/dto';
 import { isSelfLearnLearningUnitDto, isSearchLearningUnitDto } from '../learningUnit/types';
-import { Graph, alg } from '@dagrejs/graphlib';
-import { LearningUnitMgmtService } from '../learningUnit/learningUnit.service';
+// import { Graph, alg } from '@dagrejs/graphlib';
+// import { LearningUnitMgmtService } from '../learningUnit/learningUnit.service';
 import { SkillMgmtService } from '../skills/skill.service';
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
 import { GraphWrapper as GraphWrapper } from './graph';
@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
 import { LuHandler, SkillHandler } from '../../nm-skill-lib/src/handlers';
 import { LearningUnit, Skill } from '../../nm-skill-lib/src/data';
-import { GraphAlgorithm } from '../../nm-skill-lib/src/graph';
+import { GraphAlgorithm } from '../../nm-skill-lib/src/pathPlanner';
 
 /**
  * Service for Graphrequests
