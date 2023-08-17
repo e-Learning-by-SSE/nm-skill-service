@@ -10,18 +10,18 @@ export class PathFinderController {
 
   @Get('getConnectedGraphForSkill/:skillId')
   getConnectedGraphForSkill(@Param('skillId') skillId: string) {
-    return this.pfService.getConnectedGraphForSkill(skillId);
+    return this.pfService.getConnectedGraphForSkill(skillId, true);
   }
 
   @Get('getConnectedSkillGraphForSkill/:skillId')
   getConnectedSkillGraphForSkill(@Param('skillId') skillId: string) {
-    return this.pfService.getConnectedSkillGraphForSkill(skillId);
+    return this.pfService.getConnectedGraphForSkill(skillId, false);
   }
 
-  @Get('getConnectedGraphForSkillwithResolvedElements/:skillId')
-  getConnectedGraphForSkillwithResolvedElements(@Param('skillId') skillId: string) {
-    return this.pfService.getConnectedGraphForSkillwithResolvedElements(skillId);
-  }
+  // @Get('getConnectedGraphForSkillwithResolvedElements/:skillId')
+  // getConnectedGraphForSkillwithResolvedElements(@Param('skillId') skillId: string) {
+  //   return this.pfService.getConnectedGraphForSkillwithResolvedElements(skillId);
+  // }
 
   @Get('checkGraph/:skillId')
   checkGraph(@Param('skillId') skillId: string) {
@@ -29,12 +29,11 @@ export class PathFinderController {
   }
   @Get('getPathforJava')
   getPathToSkill() {
-    return this.pfService.pathForSkill();
+    return this.pfService.pathForSkill('1');
   }
   // TODO: wird alles unterrichtet
   @Get('allSkillsDone/:repoId')
   allSkillsDone(@Param('repoId') repoId: string) {
     return this.pfService.allSkillsDone(repoId);
   }
-
 }
