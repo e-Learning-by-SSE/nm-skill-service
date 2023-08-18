@@ -8,19 +8,18 @@ import { LearningPathModule } from './learningPath/learningPath.module';
 import { LearningUnitModule } from './learningUnit/learningUnit.module';
 import { validate } from './config/env.validation';
 import { PathFinderModule } from './pathFinder/pathFinder.module';
-import { UserMgmtController } from './user/user.controller';
-import { DynamicUserModule } from './user/user.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate, validationOptions: { allowUnknown: false } }),
     PrismaModule,
     SkillModule,
-    DynamicNuggetModuleModule.register(),
+    DynamicNuggetModuleModule,
     LearningPathModule,
     LearningUnitModule,
     PathFinderModule,
-    DynamicUserModule.register(),
+    UserModule,
   ],
 })
 export class AppModule {}

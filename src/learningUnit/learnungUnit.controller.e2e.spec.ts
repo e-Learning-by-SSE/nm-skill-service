@@ -1,14 +1,12 @@
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { validate } from 'class-validator';
 import { DbTestUtils } from '../DbTestUtils';
-import { MODE } from '../config/env.validation';
 import { PrismaModule } from '../prisma/prisma.module';
 import { LearningUnitModule } from './learningUnit.module';
 import { LearningUnit, Skill, SkillMap } from '@prisma/client';
-import { TestConfig } from '../config/TestConfig';
 import { SearchLearningUnitDto, SearchLearningUnitListDto } from './dto';
 
 describe('LearningUnit Controller Tests', () => {
@@ -25,20 +23,13 @@ describe('LearningUnit Controller Tests', () => {
    * Initializes (relevant parts of) the application before the first test.
    */
   beforeAll(async () => {
-    // LearningUnit Factory reads Extension property from Config service, this must be overwritten for testing
-    const testConfig = new TestConfig(new ConfigService());
-    testConfig.set('EXTENSION', MODE.SEARCH);
-
     const moduleRef = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true, validate, validationOptions: { allowUnknown: false } }),
         PrismaModule,
         LearningUnitModule,
       ],
-    })
-      .overrideProvider(ConfigService)
-      .useValue(testConfig)
-      .compile();
+    }).compile();
 
     app = moduleRef.createNestApplication();
     await app.init();

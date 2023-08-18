@@ -2,9 +2,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { DbTestUtils } from '../DbTestUtils';
 import { PrismaService } from '../prisma/prisma.service';
-import { MODE } from '../config/env.validation';
 import { LearningUnitFactory } from './learningUnitFactory';
-import { TestConfig } from '../config/TestConfig';
 import { SearchLearningUnitCreationDto, SearchLearningUnitDto, SearchLearningUnitListDto } from './dto';
 import { Skill, SkillMap } from '@prisma/client';
 
@@ -27,13 +25,6 @@ describe('LearningUnit Factory', () => {
     config = new ConfigService();
     db = new PrismaService(config);
     dbUtils = DbTestUtils.getInstance();
-  });
-
-  let testConfig: TestConfig;
-
-  beforeAll(async () => {
-    testConfig = new TestConfig(config);
-    testConfig.set('EXTENSION', MODE.SEARCH);
   });
 
   beforeEach(async () => {
