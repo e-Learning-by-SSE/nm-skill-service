@@ -48,10 +48,10 @@ export class PathFinderService implements SkillProvider, LearningUnitProvider {
     return results;
   }
 
-  async getSkillsByRepository(skill: Skill): Promise<Skill[]> {
+  async getSkillsByRepository(repositoryId: string): Promise<Skill[]> {
     const skills = await this.db.skill.findMany({
       where: {
-        repositoryId: skill.repositoryId,
+        repositoryId: repositoryId,
       },
 
       include: {
@@ -282,7 +282,7 @@ export class PathFinderService implements SkillProvider, LearningUnitProvider {
     }
     const skill = SkillDto.createFromDao(daoSkillIn);
     const graph = new PathPlanner(this, this);
-    return new CheckGraphDto(graph.isAcyclic(skill));
+    return new CheckGraphDto(await graph.isAcyclic(skill));
     // const g = await this.getGraphForSkillId(skill);
     // const retVal = new CheckGraphDto(alg.isAcyclic(g));
     // return retVal;
