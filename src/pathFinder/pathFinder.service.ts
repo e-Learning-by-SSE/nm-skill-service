@@ -5,14 +5,14 @@ import { SkillMgmtService } from '../skills/skill.service';
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
 import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
-import { LuHandler, SkillHandler, LearningUnit, Skill, PathPlanner } from '../../nm-skill-lib/src';
+import { LearningUnitProvider, SkillProvider, LearningUnit, Skill, PathPlanner } from '../../nm-skill-lib/src';
 
 /**
  * Service for Graphrequests
  * @author Wenzel
  */
 @Injectable()
-export class PathFinderService implements SkillHandler, LuHandler {
+export class PathFinderService implements SkillProvider, LearningUnitProvider {
   constructor(
     private db: PrismaService,
     // private luService: LearningUnitMgmtService,
@@ -21,7 +21,7 @@ export class PathFinderService implements SkillHandler, LuHandler {
     private skillService: SkillMgmtService,
   ) {}
 
-  async loadProvidingLearningUnits(skillIds: string[]): Promise<LearningUnit[]> {
+  async getLearningUnitsBySkills(skillIds: string[]): Promise<LearningUnit[]> {
     const relevantLUs = await this.luFactory.loadAllLearningUnits({
       where: {
         OR: {
@@ -48,7 +48,7 @@ export class PathFinderService implements SkillHandler, LuHandler {
     return results;
   }
 
-  async loadSkillsOfSameMap(skill: Skill): Promise<Skill[]> {
+  async getSkillsByRepository(skill: Skill): Promise<Skill[]> {
     const skills = await this.db.skill.findMany({
       where: {
         repositoryId: skill.repositoryId,
