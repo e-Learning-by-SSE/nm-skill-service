@@ -5,14 +5,14 @@ import { SkillMgmtService } from '../skills/skill.service';
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
 import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
-import { LearningUnitProvider, SkillProvider, LearningUnit, Skill, PathPlanner } from '../../nm-skill-lib/src';
+import { LearningUnitProvider, LearningUnit, Skill, isAcyclic, getPath } from '../../nm-skill-lib/src';
 
 /**
  * Service for Graphrequests
  * @author Wenzel
  */
 @Injectable()
-export class PathFinderService implements SkillProvider, LearningUnitProvider {
+export class PathFinderService implements LearningUnitProvider {
   constructor(
     private db: PrismaService,
     // private luService: LearningUnitMgmtService,
@@ -21,7 +21,7 @@ export class PathFinderService implements SkillProvider, LearningUnitProvider {
     private skillService: SkillMgmtService,
   ) {}
 
-  async getLearningUnitsBySkills(skillIds: string[]): Promise<LearningUnit[]> {
+  async getLearningUnitsBySkillIds(skillIds: string[]): Promise<LearningUnit[]> {
     const relevantLUs = await this.luFactory.loadAllLearningUnits({
       where: {
         OR: {
@@ -149,8 +149,8 @@ export class PathFinderService implements SkillProvider, LearningUnitProvider {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
-    const graphAlg = new PathPlanner(this, this);
     const skill = SkillDto.createFromDao(daoSkillIn);
+    const graphAlg = new PathPlanner(this, this);
 
     const graph = await graphAlg.getConnectedGraphForSkill(skill, includeLearningUnits);
     // TODO SE: Check what label is needed, e.g., title of learning units
@@ -276,16 +276,17 @@ export class PathFinderService implements SkillProvider, LearningUnitProvider {
       },
       include: { nestedSkills: true },
     });
-
     if (!daoSkillIn) {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
-    const skill = SkillDto.createFromDao(daoSkillIn);
-    const graph = new PathPlanner(this, this);
-    return new CheckGraphDto(await graph.isAcyclic(skill));
-    // const g = await this.getGraphForSkillId(skill);
-    // const retVal = new CheckGraphDto(alg.isAcyclic(g));
-    // return retVal;
+
+    const skills = await this.getSkillsByRepository(daoSkillIn.repositoryId);
+    const skillIds = [...new Set(skills.map((skill) => skill.id))];
+    const allLUs = await this.getLearningUnitsBySkillIds(skillIds);
+
+    isAcyclic(skills, allLUs);
+
+    return new CheckGraphDto(await isAcyclic(skills, allLUs));
   }
 
   public async pathForSkill(skillId: string) {
@@ -300,9 +301,11 @@ export class PathFinderService implements SkillProvider, LearningUnitProvider {
     if (!daoSkillIn) {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
-    const skill = SkillDto.createFromDao(daoSkillIn);
-    const graph = new PathPlanner(this, this);
-    const path = await graph.pathForSkill(skill);
+    const goal = SkillDto.createFromDao(daoSkillIn);
+
+    const skills = await this.getSkillsByRepository(daoSkillIn.repositoryId);
+    const path = await getPath({ skills: skills, luProvider: this, desiredSkills: [goal], ownedSkill: [] });
+
     return new PathDto(path);
     // const g = await this.getGraphWithKnowNothing(skill);
 

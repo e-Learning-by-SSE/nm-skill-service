@@ -2,9 +2,9 @@ import { IsNotEmpty } from 'class-validator';
 
 export class PathDto {
   @IsNotEmpty()
-  luIDs: String[];
+  luIDs: readonly string[];
 
-  constructor(luIDs: String[]) {
+  constructor(luIDs: readonly string[]) {
     this.luIDs = luIDs;
   }
 }
