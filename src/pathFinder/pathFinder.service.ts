@@ -5,7 +5,14 @@ import { SkillMgmtService } from '../skills/skill.service';
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
 import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
-import { LearningUnitProvider, LearningUnit, Skill, isAcyclic, getPath } from '../../nm-skill-lib/src';
+import {
+  LearningUnitProvider,
+  LearningUnit,
+  Skill,
+  isAcyclic,
+  getPath,
+  getConnectedGraphForLearningUnit,
+} from '../../nm-skill-lib/src';
 
 /**
  * Service for Graphrequests
@@ -149,10 +156,10 @@ export class PathFinderService implements LearningUnitProvider {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
-    const skill = SkillDto.createFromDao(daoSkillIn);
-    const graphAlg = new PathPlanner(this, this);
+    // const skill = SkillDto.createFromDao(daoSkillIn);
+    const skills = await this.getSkillsByRepository(daoSkillIn.repositoryId);
+    const graph = await getConnectedGraphForLearningUnit(this, skills);
 
-    const graph = await graphAlg.getConnectedGraphForSkill(skill, includeLearningUnits);
     // TODO SE: Check what label is needed, e.g., title of learning units
     const nodeList: NodeDto[] = graph.nodes.map((node) => new NodeDto(node.id, node.element.id));
     const edgeList: EdgeDto[] = graph.edges.map((edge) => new EdgeDto(edge.from, edge.to));
