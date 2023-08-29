@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SkillDto } from '../skills/dto';
 import { SkillMgmtService } from '../skills/skill.service';
-import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
+import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto, PathRequestDto } from './dto';
 import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
 import {
@@ -296,97 +296,92 @@ export class PathFinderService implements LearningUnitProvider {
     return new CheckGraphDto(await isAcyclic(skills, allLUs));
   }
 
-  public async pathForSkill(skillId: string) {
-    // const skillId: string = '1';
-    const daoSkillIn = await this.db.skill.findUnique({
+  public async pathForSkill(goalId: string) {
+    const goalDAO = await this.db.skill.findUnique({
       where: {
-        id: skillId,
+        id: goalId,
       },
       include: { nestedSkills: true },
     });
 
-    if (!daoSkillIn) {
-      throw new NotFoundException(`Specified skill not found: ${skillId}`);
+    if (!goalDAO) {
+      throw new NotFoundException(`Specified skill not found: ${goalId}`);
     }
-    const goal = SkillDto.createFromDao(daoSkillIn);
+    const goal = SkillDto.createFromDao(goalDAO);
 
-    const skills = await this.getSkillsByRepository(daoSkillIn.repositoryId);
+    const skills = await this.getSkillsByRepository(goalDAO.repositoryId);
     const path = await getPath({ skills: skills, luProvider: this, desiredSkills: [goal], ownedSkill: [] });
 
     return new PathDto(path);
-    // const g = await this.getGraphWithKnowNothing(skill);
-
-    // const a = alg.preorder(g, ['sk0']);
-    // const b: string[] = [];
-    // a.forEach((element) => {
-    //   if (element.includes('lu')) {
-    //     b.push(element);
-    //   }
-    // });
-    // const retVal = new PathDto(b);
-    // return retVal;
   }
-  // public async getGraphWithKnowNothing(skill: SkillDto): Promise<Graph> {
-  //   const allSkills = await this.db.skill.findMany({
-  //     where: {
-  //       repositoryId: skill.repositoryId,
-  //     },
-  //     include: {
-  //       nestedSkills: true,
-  //     },
-  //   });
 
-  //   const g = new Graph({ directed: true, multigraph: true });
-  //   g.setNode('sk' + 0, { name: 'Know Nothing', level: 0, description: 'Know Nothing' });
-  //   allSkills.forEach((element1) => {
-  //     g.setNode('sk' + element1.id, element1.name);
+  public async computePath(dto: PathRequestDto) {
+    const goals = await this.loadSkills(dto.goal);
 
-  //     element1.nestedSkills.forEach((element) => {
-  //       g.setEdge('sk' + element.id, 'sk' + element1.id);
-  //     });
-  //   });
-  //   const lus = await this.luService.loadAllLearningUnits();
-  //   // lus.learningUnits = <SelfLearnLearningUnitDto[]>lus.learningUnits;
-  //   for (let i = 0; i < lus.learningUnits.length; i++) {
-  //     const unit = lus.learningUnits[i];
-  //     if (
-  //       (isSelfLearnLearningUnitDto(unit) && Number(unit.selfLearnId) > 20) ||
-  //       (isSearchLearningUnitDto(unit) && Number(unit.searchId) > 20)
-  //     ) {
-  //       lus.learningUnits.splice(i--, 1);
-  //     }
-  //   }
-  //   lus.learningUnits.forEach((elem) => {
-  //     const unitId = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
+    // Find all skills that are in the same repository as the goals (most likely to find a solution for them)
+    // Could be revised in future if algorithm detects relevant skills
+    const repositories = [...new Set(goals.map((goal) => goal.repositoryId))];
+    const skills = await this.loadAllSkillsOfRepositories(repositories);
 
-  //     g.setNode('lu' + unitId, { titel: elem.title });
-  //     if (isSearchLearningUnitDto(elem) && elem.requiredSkills && !elem.requiredSkills.length) {
-  //       g.setEdge('sk0', 'lu' + unitId);
-  //     } else {
-  //       if (isSearchLearningUnitDto(elem) && elem.requiredSkills) {
-  //         elem.requiredSkills.forEach((element) => {
-  //           g.setEdge('sk' + element, 'lu' + unitId);
-  //         });
-  //       }
-  //     }
-  //     elem.teachingGoals.forEach((element) => {
-  //       g.setEdge('lu' + unitId, 'sk' + element);
-  //     });
-  //   });
-  //   return g;
-  // }
+    // TODO SE:
+    if (dto.userId) {
+      // 1. Load user if userId was provided
+      // 2. Find all skills that the user already has
+      // 3. Develop cost function based on UserProfile
+    }
 
-  // public findMissingElements(list1: string[], list2: string[]): string[] {
-  //   const missingElements: string[] = [];
+    const path = await getPath({ skills: skills, luProvider: this, desiredSkills: goals, ownedSkill: [] });
+    return new PathDto(path);
+  }
 
-  //   for (const element of list1) {
-  //     if (!list2.includes(element)) {
-  //       missingElements.push(element);
-  //     }
-  //   }
+  private async loadSkills(skillIds: string[]) {
+    const skillDAOs = await this.db.skill.findMany({
+      where: {
+        id: {
+          in: skillIds,
+        },
+      },
+      include: {
+        nestedSkills: true,
+      },
+    });
 
-  //   return missingElements;
-  // }
+    if (!skillDAOs) {
+      throw new NotFoundException(`Specified skills not found: ${skillIds}`);
+    } else if (skillDAOs.length < skillIds.length) {
+      const missedIds = skillIds.filter((id) => !skillDAOs.map((dao) => dao.id).includes(id));
+      throw new NotFoundException(`Not all specified skills could be found: ${missedIds}`);
+    }
+
+    return skillDAOs.map((skill) => ({
+      id: skill.id,
+      repositoryId: skill.repositoryId,
+      nestedSkills: skill.nestedSkills.map((skill) => skill.id),
+    }));
+  }
+
+  private async loadAllSkillsOfRepositories(repositories: string[]) {
+    const skillDAOs = await this.db.skill.findMany({
+      where: {
+        repositoryId: {
+          in: repositories,
+        },
+      },
+      include: {
+        nestedSkills: true,
+      },
+    });
+
+    if (!skillDAOs) {
+      throw new NotFoundException(`Could not find any skill for the specified repositories: ${repositories}`);
+    }
+
+    return skillDAOs.map((skill) => ({
+      id: skill.id,
+      repositoryId: skill.repositoryId,
+      nestedSkills: skill.nestedSkills.map((skill) => skill.id),
+    }));
+  }
 
   public async allSkillsDone(repoId: string) {
     const learningUnits = await this.findLuForRep(repoId);

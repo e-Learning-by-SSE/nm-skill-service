@@ -1,7 +1,8 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { PathFinderService } from './pathFinder.service';
+import { PathRequestDto } from './dto';
 
 @ApiTags('PathFinder')
 @Controller('PathFinder')
@@ -31,6 +32,12 @@ export class PathFinderController {
   getPathToSkill() {
     return this.pfService.pathForSkill('1');
   }
+
+  @Post('computePath/')
+  computePath(@Body() dto: PathRequestDto) {
+    return this.pfService.computePath(dto);
+  }
+
   // TODO: wird alles unterrichtet
   @Get('allSkillsDone/:repoId')
   allSkillsDone(@Param('repoId') repoId: string) {

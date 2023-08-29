@@ -204,14 +204,14 @@ const skillGroups = [
     level: 3,
     name: 'if/else concept',
     description: 'Complete understanding of if/else in Java',
-    nestedCompetencies: ['9', '10', '11', '12', '1003'],
+    nested: ['9', '10', '11', '12', '1003'],
   },
   {
     id: '1005',
     level: 3,
     name: 'switch/case concept',
     description: 'Complete understanding of switch/case in Java',
-    nestedCompetencies: ['13', '14', '23', '1003'],
+    nested: ['13', '14', '23', '1003'],
   },
   {
     id: '1006',
@@ -430,6 +430,9 @@ async function createSkillGroups() {
         nestedSkills: {
           connect: nested,
         },
+      },
+      include: {
+        nestedSkills: true,
       },
     });
   }
