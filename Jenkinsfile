@@ -127,7 +127,7 @@ pipeline {
                     when {
                         allOf {
                             branch 'main'
-                            expression { packageJson.isNewVersion() }
+                            // expression { packageJson.isNewVersion() }
                         }
                     }
                     options {
