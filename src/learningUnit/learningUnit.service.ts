@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { SearchLearningUnitCreationDto, SelfLearnLearningUnitCreationDto } from './dto';
+import { SearchLearningUnitCreationDto } from './dto';
 import { LearningUnitFactory } from './learningUnitFactory';
 
 /**
@@ -19,7 +19,7 @@ export class LearningUnitMgmtService {
    * @returns The newly created learningUnit
 
    */
-  async createLearningUnit(dto: SearchLearningUnitCreationDto | SelfLearnLearningUnitCreationDto) {
+  async createLearningUnit(dto: SearchLearningUnitCreationDto) {
     return this.luService.createLearningUnit(dto);
   }
 

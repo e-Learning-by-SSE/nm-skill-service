@@ -2,13 +2,12 @@ import { Module } from '@nestjs/common';
 
 import { PathFinderController } from './pathFinder.controller';
 import { PathFinderService } from './pathFinder.service';
-import { GraphMapper } from './graphMapper.service';
-import { DynamicLearningUnitModule } from '../learningUnit/dynamic.module';
+import { LearningUnitModule } from '../learningUnit/learningUnit.module';
 import { SkillModule } from '../skills/skill.module';
 
 @Module({
   controllers: [PathFinderController],
-  imports: [DynamicLearningUnitModule.register(), SkillModule],
-  providers: [PathFinderService, GraphMapper],
+  imports: [LearningUnitModule, SkillModule],
+  providers: [PathFinderService],
 })
 export class PathFinderModule {}

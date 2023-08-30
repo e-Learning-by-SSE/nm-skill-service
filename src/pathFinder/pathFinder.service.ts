@@ -1,24 +1,25 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SkillDto } from '../skills/dto';
-import { isSelfLearnLearningUnitDto, isSearchLearningUnitDto } from '../learningUnit/types';
-// import { Graph, alg } from '@dagrejs/graphlib';
-// import { LearningUnitMgmtService } from '../learningUnit/learningUnit.service';
 import { SkillMgmtService } from '../skills/skill.service';
-import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto } from './dto';
-import { GraphWrapper as GraphWrapper } from './graph';
+import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto, PathRequestDto } from './dto';
 import { ConfigService } from '@nestjs/config';
 import { LearningUnitFactory } from '../learningUnit/learningUnitFactory';
-import { LuHandler, SkillHandler } from '../../nm-skill-lib/src/handlers';
-import { LearningUnit, Skill } from '../../nm-skill-lib/src/data';
-import { GraphAlgorithm } from '../../nm-skill-lib/src/pathPlanner';
+import {
+  LearningUnitProvider,
+  LearningUnit,
+  Skill,
+  isAcyclic,
+  getPath,
+  getConnectedGraphForLearningUnit,
+} from '../../nm-skill-lib/src';
 
 /**
  * Service for Graphrequests
  * @author Wenzel
  */
 @Injectable()
-export class PathFinderService implements SkillHandler, LuHandler {
+export class PathFinderService implements LearningUnitProvider {
   constructor(
     private db: PrismaService,
     // private luService: LearningUnitMgmtService,
@@ -27,7 +28,7 @@ export class PathFinderService implements SkillHandler, LuHandler {
     private skillService: SkillMgmtService,
   ) {}
 
-  async loadProvidingLearningUnits(skillIds: string[]): Promise<LearningUnit[]> {
+  async getLearningUnitsBySkillIds(skillIds: string[]): Promise<LearningUnit[]> {
     const relevantLUs = await this.luFactory.loadAllLearningUnits({
       where: {
         OR: {
@@ -45,26 +46,19 @@ export class PathFinderService implements SkillHandler, LuHandler {
     const results: LearningUnit[] = [];
 
     relevantLUs.learningUnits.forEach((lu) => {
-      if (isSelfLearnLearningUnitDto(lu)) {
-        results.push({
-          ...lu,
-          id: lu.selfLearnId,
-        });
-      } else if (isSearchLearningUnitDto(lu)) {
-        results.push({
-          ...lu,
-          id: lu.searchId,
-        });
-      }
+      results.push({
+        ...lu,
+        id: lu.searchId,
+      });
     });
 
     return results;
   }
 
-  async loadSkillsOfSameMap(skill: Skill): Promise<Skill[]> {
+  async getSkillsByRepository(repositoryId: string): Promise<Skill[]> {
     const skills = await this.db.skill.findMany({
       where: {
-        repositoryId: skill.repositoryId,
+        repositoryId: repositoryId,
       },
 
       include: {
@@ -162,10 +156,10 @@ export class PathFinderService implements SkillHandler, LuHandler {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
-    const graphAlg = new GraphAlgorithm(this, this);
-    const skill = SkillDto.createFromDao(daoSkillIn);
+    // const skill = SkillDto.createFromDao(daoSkillIn);
+    const skills = await this.getSkillsByRepository(daoSkillIn.repositoryId);
+    const graph = await getConnectedGraphForLearningUnit(this, skills);
 
-    const graph = await graphAlg.getConnectedGraphForSkill(skill, includeLearningUnits);
     // TODO SE: Check what label is needed, e.g., title of learning units
     const nodeList: NodeDto[] = graph.nodes.map((node) => new NodeDto(node.id, node.element.id));
     const edgeList: EdgeDto[] = graph.edges.map((edge) => new EdgeDto(edge.from, edge.to));
@@ -224,7 +218,6 @@ export class PathFinderService implements SkillHandler, LuHandler {
     const learningUnits = await this.db.learningUnit.findMany({
       include: {
         teachingGoals: true,
-        searchInfos: true,
       },
       where: {
         OR: {
@@ -266,22 +259,22 @@ export class PathFinderService implements SkillHandler, LuHandler {
     return this.graphMapper.graphToDto(g);
   }
 */
-  public async getConnectedGraphForSkillwithResolvedElements(skillId: string) {
-    const daoSkillIn = await this.db.skill.findUnique({
-      where: {
-        id: skillId,
-      },
-      include: { nestedSkills: true },
-    });
+  // public async getConnectedGraphForSkillwithResolvedElements(skillId: string) {
+  //   const daoSkillIn = await this.db.skill.findUnique({
+  //     where: {
+  //       id: skillId,
+  //     },
+  //     include: { nestedSkills: true },
+  //   });
 
-    if (!daoSkillIn) {
-      throw new NotFoundException(`Specified skill not found: ${skillId}`);
-    }
+  //   if (!daoSkillIn) {
+  //     throw new NotFoundException(`Specified skill not found: ${skillId}`);
+  //   }
 
-    const skill = SkillDto.createFromDao(daoSkillIn);
-    const graph = new GraphWrapper(this.db, this.luFactory, this.config);
-    return graph.getGraphForSkillId(skill);
-  }
+  //   const skill = SkillDto.createFromDao(daoSkillIn);
+  //   const graph = new GraphWrapper(this.db, this.luFactory, this.config);
+  //   return graph.getGraphForSkillId(skill);
+  // }
 
   public async isGraphForIdACycle(skillId: string) {
     const daoSkillIn = await this.db.skill.findUnique({
@@ -290,108 +283,105 @@ export class PathFinderService implements SkillHandler, LuHandler {
       },
       include: { nestedSkills: true },
     });
-
     if (!daoSkillIn) {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
-    const skill = SkillDto.createFromDao(daoSkillIn);
-    const graph = new GraphAlgorithm(this, this);
-    graph.computeGraphForSkill(skill, true);
-    return new CheckGraphDto(graph.isAcyclic());
-    // const g = await this.getGraphForSkillId(skill);
-    // const retVal = new CheckGraphDto(alg.isAcyclic(g));
-    // return retVal;
+
+    const skills = await this.getSkillsByRepository(daoSkillIn.repositoryId);
+    const skillIds = [...new Set(skills.map((skill) => skill.id))];
+    const allLUs = await this.getLearningUnitsBySkillIds(skillIds);
+
+    isAcyclic(skills, allLUs);
+
+    return new CheckGraphDto(await isAcyclic(skills, allLUs));
   }
 
-  public async pathForSkill(skillId: string) {
-    // const skillId: string = '1';
-    const daoSkillIn = await this.db.skill.findUnique({
+  public async pathForSkill(goalId: string) {
+    const goalDAO = await this.db.skill.findUnique({
       where: {
-        id: skillId,
+        id: goalId,
       },
       include: { nestedSkills: true },
     });
 
-    if (!daoSkillIn) {
-      throw new NotFoundException(`Specified skill not found: ${skillId}`);
+    if (!goalDAO) {
+      throw new NotFoundException(`Specified skill not found: ${goalId}`);
     }
-    const skill = SkillDto.createFromDao(daoSkillIn);
-    const graph = new GraphAlgorithm(this, this);
-    const path = await graph.pathForSkill(skill);
+    const goal = SkillDto.createFromDao(goalDAO);
+
+    const skills = await this.getSkillsByRepository(goalDAO.repositoryId);
+    const path = await getPath({ skills: skills, luProvider: this, desiredSkills: [goal], ownedSkill: [] });
+
     return new PathDto(path);
-    // const g = await this.getGraphWithKnowNothing(skill);
-
-    // const a = alg.preorder(g, ['sk0']);
-    // const b: string[] = [];
-    // a.forEach((element) => {
-    //   if (element.includes('lu')) {
-    //     b.push(element);
-    //   }
-    // });
-    // const retVal = new PathDto(b);
-    // return retVal;
   }
-  // public async getGraphWithKnowNothing(skill: SkillDto): Promise<Graph> {
-  //   const allSkills = await this.db.skill.findMany({
-  //     where: {
-  //       repositoryId: skill.repositoryId,
-  //     },
-  //     include: {
-  //       nestedSkills: true,
-  //     },
-  //   });
 
-  //   const g = new Graph({ directed: true, multigraph: true });
-  //   g.setNode('sk' + 0, { name: 'Know Nothing', level: 0, description: 'Know Nothing' });
-  //   allSkills.forEach((element1) => {
-  //     g.setNode('sk' + element1.id, element1.name);
+  public async computePath(dto: PathRequestDto) {
+    const goals = await this.loadSkills(dto.goal);
 
-  //     element1.nestedSkills.forEach((element) => {
-  //       g.setEdge('sk' + element.id, 'sk' + element1.id);
-  //     });
-  //   });
-  //   const lus = await this.luService.loadAllLearningUnits();
-  //   // lus.learningUnits = <SelfLearnLearningUnitDto[]>lus.learningUnits;
-  //   for (let i = 0; i < lus.learningUnits.length; i++) {
-  //     const unit = lus.learningUnits[i];
-  //     if (
-  //       (isSelfLearnLearningUnitDto(unit) && Number(unit.selfLearnId) > 20) ||
-  //       (isSearchLearningUnitDto(unit) && Number(unit.searchId) > 20)
-  //     ) {
-  //       lus.learningUnits.splice(i--, 1);
-  //     }
-  //   }
-  //   lus.learningUnits.forEach((elem) => {
-  //     const unitId = isSelfLearnLearningUnitDto(elem) ? elem.selfLearnId : elem.searchId;
+    // Find all skills that are in the same repository as the goals (most likely to find a solution for them)
+    // Could be revised in future if algorithm detects relevant skills
+    const repositories = [...new Set(goals.map((goal) => goal.repositoryId))];
+    const skills = await this.loadAllSkillsOfRepositories(repositories);
 
-  //     g.setNode('lu' + unitId, { titel: elem.title });
-  //     if (isSearchLearningUnitDto(elem) && elem.requiredSkills && !elem.requiredSkills.length) {
-  //       g.setEdge('sk0', 'lu' + unitId);
-  //     } else {
-  //       if (isSearchLearningUnitDto(elem) && elem.requiredSkills) {
-  //         elem.requiredSkills.forEach((element) => {
-  //           g.setEdge('sk' + element, 'lu' + unitId);
-  //         });
-  //       }
-  //     }
-  //     elem.teachingGoals.forEach((element) => {
-  //       g.setEdge('lu' + unitId, 'sk' + element);
-  //     });
-  //   });
-  //   return g;
-  // }
+    // TODO SE:
+    if (dto.userId) {
+      // 1. Load user if userId was provided
+      // 2. Find all skills that the user already has
+      // 3. Develop cost function based on UserProfile
+    }
 
-  // public findMissingElements(list1: string[], list2: string[]): string[] {
-  //   const missingElements: string[] = [];
+    const path = await getPath({ skills: skills, luProvider: this, desiredSkills: goals, ownedSkill: [] });
+    return new PathDto(path);
+  }
 
-  //   for (const element of list1) {
-  //     if (!list2.includes(element)) {
-  //       missingElements.push(element);
-  //     }
-  //   }
+  private async loadSkills(skillIds: string[]) {
+    const skillDAOs = await this.db.skill.findMany({
+      where: {
+        id: {
+          in: skillIds,
+        },
+      },
+      include: {
+        nestedSkills: true,
+      },
+    });
 
-  //   return missingElements;
-  // }
+    if (!skillDAOs) {
+      throw new NotFoundException(`Specified skills not found: ${skillIds}`);
+    } else if (skillDAOs.length < skillIds.length) {
+      const missedIds = skillIds.filter((id) => !skillDAOs.map((dao) => dao.id).includes(id));
+      throw new NotFoundException(`Not all specified skills could be found: ${missedIds}`);
+    }
+
+    return skillDAOs.map((skill) => ({
+      id: skill.id,
+      repositoryId: skill.repositoryId,
+      nestedSkills: skill.nestedSkills.map((skill) => skill.id),
+    }));
+  }
+
+  private async loadAllSkillsOfRepositories(repositories: string[]) {
+    const skillDAOs = await this.db.skill.findMany({
+      where: {
+        repositoryId: {
+          in: repositories,
+        },
+      },
+      include: {
+        nestedSkills: true,
+      },
+    });
+
+    if (!skillDAOs) {
+      throw new NotFoundException(`Could not find any skill for the specified repositories: ${repositories}`);
+    }
+
+    return skillDAOs.map((skill) => ({
+      id: skill.id,
+      repositoryId: skill.repositoryId,
+      nestedSkills: skill.nestedSkills.map((skill) => skill.id),
+    }));
+  }
 
   public async allSkillsDone(repoId: string) {
     const learningUnits = await this.findLuForRep(repoId);

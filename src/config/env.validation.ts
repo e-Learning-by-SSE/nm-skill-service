@@ -1,31 +1,16 @@
 import { plainToInstance } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsNumber, validateSync } from 'class-validator';
 
-export enum MODE {
-  SEARCH = 'SEARCH',
-  SELFLEARN = 'SELFLEARN',
-}
-
 /**
  * Validation Schema for the configuration file.
  * Based on: https://docs.nestjs.com/techniques/configuration#custom-validate-function
  * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
  */
 export class EnvironmentVariables {
-  @IsEnum(MODE)
-  @IsNotEmpty()
-  EXTENSION: MODE;
-
   // App Configuration
   @IsNotEmpty()
   @IsNumber()
   APP_PORT: number;
-
-  @IsNotEmpty()
-  JWT_SECRET: string;
-
-  @IsNotEmpty()
-  JWT_EXPIRATION: string;
 
   // Database Configuration
   @IsNotEmpty()
