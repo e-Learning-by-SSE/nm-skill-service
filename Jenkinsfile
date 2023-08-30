@@ -135,31 +135,21 @@ pipeline {
                     }
                     environment {
                         APP_URL = "http://localhost:3000/api-json"
-                        clientEnvs = '''[
-                            {"extension": "SELFLEARN", "pkg": "competence_repository_selflearn_api"},
-                            {"extension": "SEARCH", "pkg": "competence_repository_search_api"}
-                        ]'''
                     }
                     steps {
                         script {
                             sh 'rm -f competence_repository*.zip'
-							def envs = readJSON text: env.clientEnvs
-                            for (envspecific in envs) {
-                                def extension = envspecific.extension
-                                def pkg = envspecific.pkg
+                            docker.image(env.DOCKER_TARGET).withRun("-e EXTENSION=\"SEARCH\" -p 3000:3000") {
+                                // Wait for the application to be ready (after container was started)  
+                                sleep(time:30, unit:"SECONDS")
+                
+                                generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "competence_repository_search_api", ['python'])
 
-                                docker.image(env.DOCKER_TARGET).withRun("-e EXTENSION=\"${extension}\" -p 3000:3000") {
-                                    // Wait for the application to be ready (after container was started)  
-                                    sleep(time:20, unit:"SECONDS")
-				    
-                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['python'])
-
-                                    generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "${pkg}", ['typescript-axios']) {
-                                        docker.image('node').inside('-v $HOME/.npm:/.npm') {
-                                            dir('target/generated-sources/openapi') {
-                                                sh 'npm install'
-                                                npmPublish("${NPMRC}")
-                                            }
+                                generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "competence_repository_search_api", ['typescript-axios']) {
+                                    docker.image('node').inside('-v $HOME/.npm:/.npm') {
+                                        dir('target/generated-sources/openapi') {
+                                            sh 'npm install'
+                                            npmPublish("${NPMRC}")
                                         }
                                     }
                                 }
