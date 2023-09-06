@@ -19,7 +19,7 @@ import {
  * @author Wenzel
  */
 @Injectable()
-export class PathFinderService implements LearningUnitProvider {
+export class PathFinderService implements LearningUnitProvider<LearningUnit> {
     constructor(
         private db: PrismaService,
         // private luService: LearningUnitMgmtService,
