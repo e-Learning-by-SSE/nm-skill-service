@@ -1,7 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { SkillCreationDto, SkillRepositorySearchDto, SkillRepositoryCreationDto, SkillSearchDto, SkillRepositoryDto } from './dto';
+import {
+  SkillCreationDto,
+  SkillRepositorySearchDto,
+  SkillRepositoryCreationDto,
+  SkillSearchDto,
+  SkillRepositoryDto,
+} from './dto';
 
 import { SkillMgmtService } from './skill.service';
 import { Prisma } from '@prisma/client';
@@ -30,8 +36,8 @@ export class SkillMgmtController {
    * @param owner The user for which the repositories shall be listed.
    * @returns The repositories of the specified user.
    */
-  @Get(':owner')
-  listRepositories(@Param('owner') owner: string) {
+  @Get('byOwner/:ownerId')
+  listRepositories(@Param('ownerId') owner: string) {
     // SE: I do not expect so many repositories per user that we need pagination here
     return this.skillService.findSkillRepositories(null, null, owner, null, null);
   }
@@ -122,10 +128,9 @@ export class SkillMgmtController {
    * @returns The adapted repository.
    */
   @Post(':repositoryId/adapt')
-  adaptRepo(@Param('repositoryId')  @Body() dto: SkillRepositoryDto) {
-    return this.skillService.adaptRepository( dto);
+  adaptRepo(@Param('repositoryId') @Body() dto: SkillRepositoryDto) {
+    return this.skillService.adaptRepository(dto);
   }
-
 
   @Delete(':repositoryId')
   deleteRepo(@Param('repositoryId') repositoryId: string) {
