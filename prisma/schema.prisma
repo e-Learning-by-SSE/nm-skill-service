@@ -46,10 +46,13 @@ model Skill {
   requirements      PathGoal[] @relation("requirements")
 
   // Use in Learning Objects
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  goalsOf             LearningUnit[]      @relation("teachingGoals")
-  requirementsOf      LearningUnit[]      @relation("requirements")
+  goalsOf           LearningUnit[]      @relation("teachingGoals")
+  requirementsOf    LearningUnit[]      @relation("requirements")
+
+  learnedBy         LearningProgress[]  @relation("learnedBy")
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 
   @@unique([repositoryId, name])
   @@map("skills")
@@ -139,19 +142,30 @@ model Company {
   id   String @id @default(cuid())
   name String @default("")
 
-  User User[]
+  User UserProfile[]
 }
 
-model User {
-  id              String                @id @default(cuid())
-  name            String                @default("")
-  learningProfile LearningProfile?
-  skillProfile    SkillProfile?
-  companyId       String?
-  company         Company?             @relation(fields: [companyId], references: [id])
-  profile         LearningBehaviorData?
+model UserProfile {
+  id                       String                @id @default(cuid())
+  name                     String                @default("")
+  learningProfile          LearningProfile?
+  skillProfile             SkillProfile?
+  companyId                String?
+  company                  Company?             @relation(fields: [companyId], references: [id])
+  learningBehavior         LearningBehaviorData?
+  learningProgress         LearningProgress[]
 
   @@unique([companyId, name])
+	@@map("user")
+}
+
+model LearningProgress {
+  id                    String       @id @default(cuid())
+  Skill                 Skill        @relation("learnedBy", fields: [skillId], references: [id])
+  skillId               String
+  user                  UserProfile  @relation(fields: [userId], references: [id])
+  userId                String       @unique
+  createdAt             DateTime     @default(now())
 }
 
 model LearningProfile {
@@ -161,7 +175,7 @@ model LearningProfile {
   mediaType             String @default("")
   language              String @default("")
   processingTimePerUnit String @default("")
-  user                  User   @relation(fields: [userId], references: [id])
+  user                  UserProfile   @relation(fields: [userId], references: [id])
   userId                String @unique // relation scalar field 
 }
 
@@ -170,7 +184,7 @@ model SkillProfile {
   jobHistory            String          @default("")
   professionalInterests String          @default("")
   qualifications        Qualification[]
-  user                  User            @relation(fields: [userId], references: [id])
+  user                  UserProfile            @relation(fields: [userId], references: [id])
   userId                String          @unique // relation scalar field 
 }
 
@@ -187,7 +201,7 @@ model LearningBehaviorData {
   id           String             @id @default(cuid())
   clickdata    String[]
   consumedUnit ConsumedUnitData[]
-  user         User               @relation(fields: [userId], references: [id])
+  user         UserProfile               @relation(fields: [userId], references: [id])
   userId       String             @unique
 }
 
