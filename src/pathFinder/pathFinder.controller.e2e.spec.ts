@@ -98,7 +98,7 @@ describe("PathFinder Controller Tests", () => {
                 userId: userId,
             };
 
-            // Test: Create a path to learn Skill 3, without prior knowledge
+            // Test: Create a path to learn Skill 3, with knowledge NestedSkill 2
             return request(app.getHttpServer())
                 .post("/PathFinder/computePath")
                 .send(input)
@@ -122,6 +122,32 @@ describe("PathFinder Controller Tests", () => {
             const input: PathRequestDto = {
                 goal: [skill3.id],
                 userId: userId,
+            };
+
+            // Test: Create a path to learn Skill 3, with knowledge Skill 1
+            return request(app.getHttpServer())
+                .post("/PathFinder/computePath")
+                .send(input)
+                .expect(201)
+                .expect((res) => {
+                    expect(res.body as PathDto).toMatchObject(expectedResult);
+                });
+        });
+
+        it("Compute Path w/ empty LearningProgress", async () => {
+            // Create UserProfile with empty LearningProgress
+            const userId = "User 1";
+            await dbUtils.createLearningProgress(userId, []);
+
+            // Expected result
+            // TODO SE: [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
+            const expectedResult: PathDto = {
+                luIDs: [lu1.id, lu2.id, lu3.id, lu4.id],
+            };
+
+            // Input
+            const input: PathRequestDto = {
+                goal: [skill3.id],
             };
 
             // Test: Create a path to learn Skill 3, without prior knowledge
