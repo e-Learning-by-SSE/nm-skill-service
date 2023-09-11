@@ -144,30 +144,6 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
         return new CheckGraphDto(await isAcyclic(skills, allLUs));
     }
 
-    public async pathForSkill(goalId: string) {
-        const goalDAO = await this.db.skill.findUnique({
-            where: {
-                id: goalId,
-            },
-            include: { nestedSkills: true },
-        });
-
-        if (!goalDAO) {
-            throw new NotFoundException(`Specified skill not found: ${goalId}`);
-        }
-        const goal = SkillDto.createFromDao(goalDAO);
-
-        const skills = await this.getSkillsByRepository(goalDAO.repositoryId);
-        const path = await getPath({
-            skills: skills,
-            luProvider: this,
-            desiredSkills: [goal],
-            ownedSkill: [],
-        });
-
-        return new PathDto(path);
-    }
-
     private async loadUser(userId: string) {
         const user = await this.db.userProfile.findUnique({
             where: {
@@ -196,6 +172,13 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
         return user;
     }
 
+    /**
+     * Computes an (optimal) learning path to learn the specified goal (set of skills to be obtained).
+     * Optionally, a specified user (learning behavior and progress to consider) can be specified.
+     * This functions supports a greedy (fast) and an optimal (slow) algorithm.
+     * @param dto Specifies the search parameters (goals to be learned, optional user profile, specification of greedy (default) or optimal algorithm)
+     * @returns The computed path or a NotFoundException if no path could be computed for the specified goal
+     */
     public async computePath(dto: PathRequestDto) {
         const goals = await this.loadSkills(dto.goal);
 
@@ -211,6 +194,7 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
                 userProfile.learningProgress.map((progress) => progress.Skill) ?? [];
 
             // DTO not required, but its constructor ensures that all required fields are handled
+            // For instance: Repository, nested Skills, ...
             knowledge = learnedSkills.map((skill) => SkillDto.createFromDao(skill));
 
             // TODO SE:
@@ -224,6 +208,12 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
             ownedSkill: knowledge,
             optimalSolution: dto.optimalSolution,
         });
+
+        if (!path) {
+            throw new NotFoundException(
+                `Could not compute a path for the specified goal: ${dto.goal}`,
+            );
+        }
         return new PathDto(path);
     }
 

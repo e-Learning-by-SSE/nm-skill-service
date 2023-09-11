@@ -25,5 +25,5 @@ export class PathRequestDto {
      * If true, the algorithm will try to find an optimal path, at cost of performance.
      */
     @IsOptional()
-    optimalSolution?: boolean;
+    optimalSolution?: boolean = false;
 }
