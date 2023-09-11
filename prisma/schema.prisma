@@ -164,7 +164,7 @@ model LearningProgress {
   Skill                 Skill        @relation("learnedBy", fields: [skillId], references: [id])
   skillId               String
   user                  UserProfile  @relation(fields: [userId], references: [id])
-  userId                String       @unique
+  userId                String
   createdAt             DateTime     @default(now())
 }
 
