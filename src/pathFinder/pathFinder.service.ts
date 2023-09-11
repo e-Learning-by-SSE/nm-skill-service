@@ -222,6 +222,7 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
             luProvider: this,
             desiredSkills: goals,
             ownedSkill: knowledge,
+            optimalSolution: dto.optimalSolution,
         });
         return new PathDto(path);
     }
