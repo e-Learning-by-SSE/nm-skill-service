@@ -168,6 +168,34 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
         return new PathDto(path);
     }
 
+    private async loadUser(userId: string) {
+        const user = await this.db.userProfile.findUnique({
+            where: {
+                id: userId,
+            },
+            include: {
+                company: true,
+                learningProfile: true,
+                skillProfile: true,
+                learningProgress: {
+                    include: {
+                        Skill: {
+                            include: {
+                                nestedSkills: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException(`Specified user not found: ${userId}`);
+        }
+
+        return user;
+    }
+
     public async computePath(dto: PathRequestDto) {
         const goals = await this.loadSkills(dto.goal);
 
@@ -176,10 +204,16 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
         const repositories = [...new Set(goals.map((goal) => goal.repositoryId))];
         const skills = await this.loadAllSkillsOfRepositories(repositories);
 
-        // TODO SE:
+        let knowledge: Skill[] | undefined;
         if (dto.userId) {
-            // 1. Load user if userId was provided
-            // 2. Find all skills that the user already has
+            const userProfile = await this.loadUser(dto.userId);
+            const learnedSkills =
+                userProfile.learningProgress.map((progress) => progress.Skill) ?? [];
+
+            // DTO not required, but its constructor ensures that all required fields are handled
+            knowledge = learnedSkills.map((skill) => SkillDto.createFromDao(skill));
+
+            // TODO SE:
             // 3. Develop cost function based on UserProfile
         }
 
@@ -187,7 +221,7 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
             skills: skills,
             luProvider: this,
             desiredSkills: goals,
-            ownedSkill: [],
+            ownedSkill: knowledge,
         });
         return new PathDto(path);
     }
