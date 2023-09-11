@@ -15,6 +15,7 @@ import {
   ResolvedSkillListDto,
 } from './dto';
 import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.dto';
+import { el } from '@faker-js/faker';
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -22,8 +23,15 @@ import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.
  */
 @Injectable()
 export class SkillMgmtService {
-
   constructor(private db: PrismaService) {}
+
+  /**
+   * getCommonElements
+   */
+  public getCommonElements(arrayA: string[], arrayB: string[]): string[] {
+    // Filter elements that are present in both arrays
+    return arrayA.filter((elementA) => arrayB.includes(elementA));
+  }
 
   public async findSkillRepositories(
     page: number | null,
@@ -73,17 +81,14 @@ export class SkillMgmtService {
   }
 
   async createRepository(dto: SkillRepositoryCreationDto) {
-    
-    
-    
     try {
       const repository = await this.db.skillMap.create({
         data: {
           name: dto.name,
           version: dto.version,
-          access_rights:dto.access_rights,
+          access_rights: dto.access_rights,
           description: dto.description,
-          ownerId:dto.ownerId
+          ownerId: dto.ownerId,
         },
       });
 
@@ -99,43 +104,128 @@ export class SkillMgmtService {
     }
   }
 
- async deleteRepository(repositoryId: string) {
-  const dao = await this.db.skillMap.delete({
-    where: {
-      id: repositoryId,
-    }
-  });
+  async checkIfSkillUsedInLearningUnits(skillId: string) {
+    const learningUnitsWithSkill = await this.db.learningUnit.findMany({
+      where: {
+        OR: [
+          {
+            requirements: {
+              some: {
+                id: skillId,
+              },
+            },
+          },
+          {
+            teachingGoals: {
+              some: {
+                id: skillId,
+              },
+            },
+          },
+        ],
+      },
+    });
 
-  if (!dao) {
-    throw new NotFoundException(`Specified repositroy not found: ${repositoryId}`);
+    return learningUnitsWithSkill.length > 0;
   }
 
-  return dao;
-  }
-
-
- async adaptRepository(dto: SkillRepositoryDto) {
-    const dao = await this.db.skillMap.update({
-    where: {
-      id:dto.id
-
-    }, 
-    data:{
-      access_rights : dto.access_rights,
-      description: dto.description, 
-      name:dto.name, 
-      taxonomy:dto.taxonomy, 
-      version : dto. version
-
-    }
-  });
-
-  if (!dao) {
-    throw new NotFoundException(`Specified repositroy not found: ${dto.id}`);
-  }
-
-  return dao;
+  async deleteRepository(repositoryId: string) {
+    const dao = await this.db.skillMap.findUnique({
+      where: {
+        id: repositoryId,
+      },
+      include: {
+        skills: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
   
+    if (!dao) {
+      throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
+    }
+  
+    const skillsInRepo = dao.skills.map((skill) => skill.id);
+  
+    const skillsUsedInLearningUnits = await this.db.learningUnit.findMany({
+      where: {
+        OR: [
+          {
+            requirements: {
+              some: {
+                repositoryId,
+              },
+            },
+          },
+          {
+            teachingGoals: {
+              some: {
+                repositoryId,
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+  
+    const usedSkillsinlearningUnitforRepo = skillsUsedInLearningUnits.map((unit) => unit.id);
+  
+    const commonElements = this.getCommonElements(skillsInRepo, usedSkillsinlearningUnitforRepo);
+  
+    if (commonElements.length === 0) {
+      await this.db.skill.deleteMany({
+        where: {
+          id: {
+            in: skillsInRepo,
+          },
+        },
+      });
+  
+      const deletedRepo = await this.db.skillMap.delete({
+        where: {
+          id: repositoryId,
+        },
+      });
+  
+      if (!deletedRepo) {
+        throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
+      }
+  
+      return deletedRepo;
+    } else {
+      throw new NotFoundException(`Specified repository with id: ${repositoryId} can not be deleted, some skills are part of an Learning Unit `);
+    }
+  }
+  
+
+  
+
+  
+
+  async adaptRepository(dto: SkillRepositoryDto) {
+    const dao = await this.db.skillMap.update({
+      where: {
+        id: dto.id,
+      },
+      data: {
+        access_rights: dto.access_rights,
+        description: dto.description,
+        name: dto.name,
+        taxonomy: dto.taxonomy,
+        version: dto.version,
+      },
+    });
+
+    if (!dao) {
+      throw new NotFoundException(`Specified repositroy not found: ${dto.id}`);
+    }
+
+    return dao;
   }
 
   /**
@@ -161,7 +251,7 @@ export class SkillMgmtService {
         id: repositoryId,
       },
       include: {
-        skills: includeSkills
+        skills: includeSkills,
       },
     });
 
@@ -301,7 +391,7 @@ export class SkillMgmtService {
     const dao = await this.db.skill.delete({
       where: {
         id: skillId,
-      }
+      },
     });
 
     if (!dao) {
