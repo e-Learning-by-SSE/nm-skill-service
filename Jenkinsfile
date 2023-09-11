@@ -47,8 +47,8 @@ pipeline {
 
                 stage('Build and Lint') {
                     steps {
-                        sh 'npm run build'
                         sh 'npx prisma generate'
+                        sh 'npm run build'
                         warnError('Linting failed') {
                             sh 'npm run lint:ci'
                         }
