@@ -616,4 +616,72 @@ export class SkillMgmtService {
       where: { id: skillId },
     });
   }
+
+  async checkNestedSkillsExist(nestedSkillIds: (string | undefined)[]): Promise<boolean> {
+    const validSkillIds = nestedSkillIds.filter((id) => typeof id === 'string');
+  
+    const skillMap = new Map<string, boolean>(); // To track visited skills
+    const skillsToCheck = [...validSkillIds]; // Copy of validSkillIds for processing
+  
+    while (skillsToCheck.length > 0) {
+      const skillId = skillsToCheck.pop();
+  
+      // Check if the skill has already been visited, indicating a cyclic relationship
+      if (skillId && skillMap.has(skillId)) {
+        return false; // Cyclic relationship detected
+      }
+  
+      // Mark the skill as visited
+      if (skillId) {
+        skillMap.set(skillId, true);
+      }
+  
+      // Query the database to check if the skill exists
+      if (skillId) {
+        const skill = await this.db.skill.findUnique({
+          where: { id: skillId },include:{nestedSkills:true}
+        });
+  
+        // If the skill doesn't exist, return false
+        if (!skill) {
+          return false;
+        }
+  
+        // Add the nested skills of the current skill to the list for further checking
+        skillsToCheck.push(...skill.nestedSkills.map((nestedSkill) => nestedSkill.id));
+      }
+    }
+  
+    return true;
+  }
+  
+  async adaptSkill( dto: SkillDto): Promise<void> {
+    // Check if the skill is already in use
+    const isUsed = await this.isSkillUsed(dto.id);
+    if (isUsed) {
+      throw new BadRequestException('Skill is already used and cannot be modified.');
+    }
+  
+    // Validate the nestedSkills to ensure they exist and won't create a cycle
+    const nestedSkillsExist = await this.checkNestedSkillsExist(dto.nestedSkills);
+    if (!nestedSkillsExist) {
+      throw new BadRequestException('One or more specified nested skills do not exist or would create a cyclic relationship.');
+    }
+  
+    // Update the skill with the provided data, including nestedSkills
+    const updatedSkill = await this.db.skill.update({
+      where: { id: dto.id },
+      data: {
+        name: dto.name,
+        level: dto.level,
+        description: dto.description,
+        nestedSkills: {
+          connect: dto.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
+        },
+      },
+    });
+  }
+  
+
+  
 }

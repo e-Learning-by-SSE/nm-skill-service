@@ -7,6 +7,7 @@ import {
   SkillRepositoryCreationDto,
   SkillSearchDto,
   SkillRepositoryDto,
+  SkillDto,
 } from './dto';
 
 import { SkillMgmtService } from './skill.service';
@@ -163,8 +164,8 @@ export class SkillMgmtController {
    * @returns The created skill.
    */
   @Post(':repositoryId/skill/adapt_skill')
-  adaptSkill(@Param('repositoryId') repositoryId: string, @Body() dto: SkillCreationDto) {
-    return this.skillService.createSkill(repositoryId, dto);
+  adaptSkill( @Body() dto: SkillDto) {
+    return this.skillService.adaptSkill( dto);
   }
   @Delete('/skill/deleteWithoutCheck/:skillId')
   delteSkillWithoutCheck(@Param('skillId') skillId: string) {
