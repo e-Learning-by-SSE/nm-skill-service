@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Skill } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
@@ -142,13 +142,13 @@ export class SkillMgmtService {
         },
       },
     });
-  
+
     if (!dao) {
       throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
     }
-  
+
     const skillsInRepo = dao.skills.map((skill) => skill.id);
-  
+
     const skillsUsedInLearningUnits = await this.db.learningUnit.findMany({
       where: {
         OR: [
@@ -172,11 +172,11 @@ export class SkillMgmtService {
         id: true,
       },
     });
-  
+
     const usedSkillsInLearningUnitForRepo = skillsUsedInLearningUnits.map((unit) => unit.id);
-  
+
     const commonElements = this.getCommonElements(skillsInRepo, usedSkillsInLearningUnitForRepo);
-  
+
     if (commonElements.length === 0) {
       await this.db.skill.deleteMany({
         where: {
@@ -185,27 +185,24 @@ export class SkillMgmtService {
           },
         },
       });
-  
+
       const deletedRepo = await this.db.skillMap.delete({
         where: {
           id: repositoryId,
         },
       });
-  
+
       if (!deletedRepo) {
         throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
       }
-  
+
       return deletedRepo;
     } else {
-      throw new NotFoundException(`Specified repository with id: ${repositoryId} can not be deleted, some skills are part of an Learning Unit `);
+      throw new NotFoundException(
+        `Specified repository with id: ${repositoryId} can not be deleted, some skills are part of an Learning Unit `,
+      );
     }
   }
-  
-
-  
-
-  
 
   async adaptRepository(dto: SkillRepositoryDto) {
     const dao = await this.db.skillMap.update({
@@ -325,11 +322,10 @@ export class SkillMgmtService {
         },
         include: {
           nestedSkills: true,
-          parentSkills:true // Include nestedSkills in the response
+          parentSkills: true, // Include nestedSkills in the response
         },
       });
-      console.log(skill.nestedSkills);
-      return SkillDto.createFromDao(skill );
+      return SkillDto.createFromDao(skill);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -366,7 +362,7 @@ export class SkillMgmtService {
       },
       include: {
         nestedSkills: true,
-        parentSkills: true
+        parentSkills: true,
       },
     });
 
@@ -376,7 +372,7 @@ export class SkillMgmtService {
 
     const skill = SkillDto.createFromDao(dao);
     skill.nestedSkills = dao.nestedSkills.map((c) => c.id);
-    skill.parentSkills = dao.parentSkills.map((sk)=> sk.id)
+    skill.parentSkills = dao.parentSkills.map((sk) => sk.id);
     return skill;
   }
 
@@ -387,7 +383,7 @@ export class SkillMgmtService {
       },
       include: {
         nestedSkills: true,
-        parentSkills: true
+        parentSkills: true,
       },
     });
 
@@ -397,7 +393,7 @@ export class SkillMgmtService {
 
     return this.loadNestedSkill(dao);
   }
-  public async deleteSkill(skillId: string) {
+  public async deleteSkillWithoutCheck(skillId: string) {
     const dao = await this.db.skill.delete({
       where: {
         id: skillId,
@@ -559,5 +555,65 @@ export class SkillMgmtService {
     }
 
     return skillList;
+  }
+
+  async deleteSkillWithCheck(skillId: string): Promise<void> {
+    // Check if the skill is already in use
+
+    const isUsed = await this.isSkillUsed(skillId);
+    if (isUsed) {
+      throw new BadRequestException('Skill is already used and cannot be deleted.');
+    }
+
+    // Retrieve all children of this skill
+    const childSkills = await this.getChildSkills(skillId);
+    let childIsUsed = false;
+    // Check if any Child is used i a Learning Unit
+    for (const childSkill of childSkills) {
+      if (await this.isSkillUsed(childSkill.id)) {
+        childIsUsed = true;
+      }
+    }
+    if (childIsUsed) {
+      throw new BadRequestException('Child of Skill is already used and cannot be deleted.');
+    }
+    // Recursively delete children
+    for (const childSkill of childSkills) {
+      await this.deleteSkillRecursive(childSkill.id);
+    }
+
+    // Delete the current skill
+    await this.db.skill.delete({
+      where: { id: skillId },
+    });
+  }
+
+  private async isSkillUsed(skillId: string): Promise<boolean> {
+    // Check if the skill is used in learning units
+    const learningUnits = await this.db.learningUnit.findMany({
+      where: {
+        OR: [{ requirements: { some: { id: skillId } } }, { teachingGoals: { some: { id: skillId } } }],
+      },
+    });
+    return learningUnits.length > 0;
+  }
+
+  private async getChildSkills(parentSkillId: string): Promise<Skill[]> {
+    // Query to retrieve children of the skill
+    return await this.db.skill.findMany({
+      where: { parentSkills: { some: { id: parentSkillId } } },
+    });
+  }
+
+  private async deleteSkillRecursive(skillId: string): Promise<void> {
+    const childSkills = await this.getChildSkills(skillId);
+
+    for (const childSkill of childSkills) {
+      await this.deleteSkillRecursive(childSkill.id);
+    }
+
+    await this.db.skill.delete({
+      where: { id: skillId },
+    });
   }
 }

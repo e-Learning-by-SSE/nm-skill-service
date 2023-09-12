@@ -166,8 +166,13 @@ export class SkillMgmtController {
   adaptSkill(@Param('repositoryId') repositoryId: string, @Body() dto: SkillCreationDto) {
     return this.skillService.createSkill(repositoryId, dto);
   }
-  @Delete('/skill/delete/:skillId')
-  delteSkill(@Param('skillId') skillId: string) {
-    return this.skillService.deleteSkill(skillId);
+  @Delete('/skill/deleteWithoutCheck/:skillId')
+  delteSkillWithoutCheck(@Param('skillId') skillId: string) {
+    return this.skillService.deleteSkillWithoutCheck(skillId);
+  }
+
+  @Delete('/skill/deleteWithCheck/:skillId')
+  delteSkillWithCheck(@Param('skillId') skillId: string) {
+    return this.skillService.deleteSkillWithCheck(skillId);
   }
 }
