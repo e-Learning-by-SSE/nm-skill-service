@@ -15,7 +15,7 @@ import {
   ResolvedSkillListDto,
 } from './dto';
 import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.dto';
-import { el } from '@faker-js/faker';
+import { el, sk } from '@faker-js/faker';
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -173,9 +173,9 @@ export class SkillMgmtService {
       },
     });
   
-    const usedSkillsinlearningUnitforRepo = skillsUsedInLearningUnits.map((unit) => unit.id);
+    const usedSkillsInLearningUnitForRepo = skillsUsedInLearningUnits.map((unit) => unit.id);
   
-    const commonElements = this.getCommonElements(skillsInRepo, usedSkillsinlearningUnitforRepo);
+    const commonElements = this.getCommonElements(skillsInRepo, usedSkillsInLearningUnitForRepo);
   
     if (commonElements.length === 0) {
       await this.db.skill.deleteMany({
@@ -295,7 +295,7 @@ export class SkillMgmtService {
     // Load all top-level skills
     const resolved = new Map<string, ResolvedSkillDto>();
     for (const skill of topLevelSkills) {
-      result.skills.push(await this.loadSkill(skill, resolved));
+      result.skills.push(await this.loadNestedSkill(skill, resolved));
     }
 
     return result;
@@ -312,16 +312,24 @@ export class SkillMgmtService {
 
     // Create and return skill
     try {
+      const nestedSkills = dto.nestedSkills || [];
       const skill = await this.db.skill.create({
         data: {
           repositoryId: skillRepositoryId,
           name: dto.name,
           level: dto.level,
           description: dto.description,
+          nestedSkills: {
+            connect: nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
+          },
+        },
+        include: {
+          nestedSkills: true,
+          parentSkills:true // Include nestedSkills in the response
         },
       });
-
-      return SkillDto.createFromDao(skill);
+      console.log(skill.nestedSkills);
+      return SkillDto.createFromDao(skill );
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -333,7 +341,7 @@ export class SkillMgmtService {
     }
   }
 
-  private async loadSkill(
+  private async loadNestedSkill(
     skill: Skill & {
       nestedSkills: Skill[];
     },
@@ -358,6 +366,7 @@ export class SkillMgmtService {
       },
       include: {
         nestedSkills: true,
+        parentSkills: true
       },
     });
 
@@ -367,7 +376,7 @@ export class SkillMgmtService {
 
     const skill = SkillDto.createFromDao(dao);
     skill.nestedSkills = dao.nestedSkills.map((c) => c.id);
-
+    skill.parentSkills = dao.parentSkills.map((sk)=> sk.id)
     return skill;
   }
 
@@ -378,6 +387,7 @@ export class SkillMgmtService {
       },
       include: {
         nestedSkills: true,
+        parentSkills: true
       },
     });
 
@@ -385,7 +395,7 @@ export class SkillMgmtService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
-    return this.loadSkill(dao);
+    return this.loadNestedSkill(dao);
   }
   public async deleteSkill(skillId: string) {
     const dao = await this.db.skill.delete({
@@ -545,7 +555,7 @@ export class SkillMgmtService {
     const resolved = new Map<string, ResolvedSkillDto>();
     for (const skill of skills) {
       // Promise.all would be much faster, but this would not guarantee reuse of already resolved objects
-      skillList.skills.push(await this.loadSkill(skill, resolved));
+      skillList.skills.push(await this.loadNestedSkill(skill, resolved));
     }
 
     return skillList;

@@ -20,5 +20,5 @@ export class SkillCreationDto {
   description?: string;
 
   @IsDefined()
-  nestedSkills: SkillCreationDto[];
+  nestedSkills: string[];
 }
