@@ -23,8 +23,10 @@ import { el, sk } from '@faker-js/faker';
  */
 @Injectable()
 export class SkillMgmtService {
-  constructor(private db: PrismaService) {}
-
+  constructor(private db: PrismaService) {
+     db = db
+  }
+  
   /**
    * getCommonElements
    */
@@ -414,7 +416,7 @@ export class SkillMgmtService {
    * @param resolved A map of already resolved skills, to prevent duplicate resolving
    * @returns The resolved skill
    */
-  private async getNestedSkill(skillId: string, resolved: Map<string, ResolvedSkillDto>) {
+  public async getNestedSkill(skillId: string, resolved: Map<string, ResolvedSkillDto>) {
     const resolvedSkill = resolved.get(skillId);
     let result: ResolvedSkillDto;
 
@@ -588,7 +590,7 @@ export class SkillMgmtService {
     });
   }
 
-  private async isSkillUsed(skillId: string): Promise<boolean> {
+  public async isSkillUsed(skillId: string): Promise<boolean> {
     // Check if the skill is used in learning units
     const learningUnits = await this.db.learningUnit.findMany({
       where: {
@@ -598,14 +600,14 @@ export class SkillMgmtService {
     return learningUnits.length > 0;
   }
 
-  private async getChildSkills(parentSkillId: string): Promise<Skill[]> {
+  public async getChildSkills(parentSkillId: string): Promise<Skill[]> {
     // Query to retrieve children of the skill
     return await this.db.skill.findMany({
       where: { parentSkills: { some: { id: parentSkillId } } },
     });
   }
 
-  private async deleteSkillRecursive(skillId: string): Promise<void> {
+  public async deleteSkillRecursive(skillId: string): Promise<void> {
     const childSkills = await this.getChildSkills(skillId);
 
     for (const childSkill of childSkills) {

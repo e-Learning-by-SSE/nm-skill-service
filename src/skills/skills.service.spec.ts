@@ -10,8 +10,8 @@ import {
   SkillRepositoryDto,
   SkillRepositoryListDto,
 } from './dto';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { Skill, SkillMap } from '@prisma/client';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ACCESS_RIGHTS, Skill, SkillMap } from '@prisma/client';
 import { UnresolvedSkillRepositoryDto } from './dto/unresolved-skill-repository.dto';
 
 describe('Skill Service', () => {
@@ -405,14 +405,32 @@ describe('Skill Service', () => {
         },
       });
     });
-
-    it('Repository of another owner loaded for writing -> ForbiddenException', async () => {
+    it('should successfully load the skill repository when the owner matches', async () => {
+      // Precondition: Some Skill-Maps defined
+      await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 3 });
+    
+      // Test: Load Skill-Map by ID and specify the correct owner
+      const skillRepository = await skillService.getSkillRepository('User-2', skillMap3.id);
+    
+      // Assert: Ensure that the correct skill repository is loaded
+      expect(skillRepository).toBeDefined();
+      expect(skillRepository.ownerId).toBe('User-2');
+    });
+    it('should throw ForbiddenException when loading the repository of another owner for writing', async () => {
       // Precondition: Some Skill-Maps defined
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 3 });
 
       // Test: Load Skill-Map by ID and specify owner (for writing)
       await expect(skillService.getSkillRepository('User-1', skillMap3.id)).rejects.toThrowError(ForbiddenException);
     });
+    it('should throw NotFoundException when loading a non-existent skill repository', async () => {
+      // Precondition: No Skill-Maps defined
+      await dbUtils.wipeDb();
+    
+      // Test: Attempt to load a non-existent Skill-Map
+      await expect(skillService.getSkillRepository('User-1', 'nonexistent-id')).rejects.toThrowError(NotFoundException);
+    });
+
   });
 
   describe('createRepository', () => {
@@ -610,6 +628,14 @@ describe('Skill Service', () => {
     });
   });
 
+  describe('deleteSkillWithCheck', () => {
+    it('should delete a skill without children or usage', async () => {});
+
+    it('should throw an error when trying to delete a skill in use', async () => {});
+
+    it('should throw an error when trying to delete a skill with children in use', async () => {});
+  });
+
   describe('createSkill', () => {
     let defaultSkillMap: SkillMap;
 
@@ -665,7 +691,7 @@ describe('Skill Service', () => {
     });
     it('Not known owner -> ForbiddenException', async () => {
       // Precondition: One Skill defined
-     
+
       // Test: Create skill
       const creationDto: SkillCreationDto = {
         owner: 'Unknown Owner',
@@ -678,6 +704,76 @@ describe('Skill Service', () => {
       // Expected result: Exception because of naming conflict
       await expect(skillService.createSkill(defaultSkillMap.id, creationDto)).rejects.toThrowError(ForbiddenException);
     });
+  });
 
+  describe('isSkillUsed', () => {
+    let dbTestUtils: DbTestUtils;
+    
+    beforeAll(() => {
+      // Initialize your testing utilities before running the tests
+      dbTestUtils = DbTestUtils.getInstance();
+     
+    });
+    beforeEach(async () => {
+      // Wipe the database before each test to ensure a clean state
+      await dbTestUtils.wipeDb();
+    });
+
+    afterAll(() => {
+      // Optionally, perform any cleanup or close resources after all tests are done
+    });
+
+    it('should return false if the skill is not used in any learning unit', async () => {
+      // Arrange: Create a skill, but don't associate it with any learning unit
+      const skillMap1 = await db.skillMap.create({
+        data: {
+          name: 'First Map',
+          ownerId: 'User-1',
+        },
+      });
+      const skill = await dbTestUtils.createSkill(skillMap1, 'Skill A');
+
+      // Act: Check if the skill is used
+      const used = await skillService.isSkillUsed(skill.id);
+
+      // Assert: Ensure that the skill is not used
+      await expect(used).toBe(false);
+    });
+
+    it('should return true if the skill is used in at least one learning unit', async () => {
+      
+      const skillMap1 = await db.skillMap.create({
+        data: {
+          name: 'First Map',
+          ownerId: 'User-1',
+        },
+      });// Arrange: Create a skill and associate it with a learning unit
+      const skill = await dbTestUtils.createSkill(skillMap1, 'Skill A');
+      const learningUnit = await dbTestUtils.createLearningUnit('Learning Unit 1', [skill], []);
+
+      // Act: Check if the skill is used
+      const used = await skillService.isSkillUsed(skill.id);
+
+      // Assert: Ensure that the skill is used
+      expect(used).toBe(true);
+    });
+
+    it('should return true if the skill is used as a requirement in a learning unit', async () => {
+      
+      const skillMap1 = await db.skillMap.create({
+        data: {
+          name: 'First Map',
+          ownerId: 'User-1',
+        },
+      });// Arrange: Create skills and a learning unit with the skill as a requirement
+      const skill = await dbTestUtils.createSkill(skillMap1, 'Skill A');
+      const learningUnit = await dbTestUtils.createLearningUnit('Learning Unit 1', [], [skill]);
+
+      // Act: Check if the skill is used
+      const used = await skillService.isSkillUsed(skill.id);
+
+      // Assert: Ensure that the skill is used
+      expect(used).toBe(true);
+    });
   });
 });
