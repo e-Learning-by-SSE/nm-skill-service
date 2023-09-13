@@ -433,6 +433,56 @@ describe('Skill Service', () => {
 
   });
 
+  describe('deleteRepository', () => {
+    beforeEach(async () => {
+      // Wipe DB before test
+      await dbUtils.wipeDb();
+    });
+    it('should successfully delete a repository with no associations', async () => {
+      // Arrange: Create a skill repository with no associations
+      const skillMap = await dbUtils.createSkillMap('User-1', 'Repository A');
+    
+      // Act: Attempt to delete the skill repository
+      const deletedRepo = await skillService.deleteRepository(skillMap.id);
+    
+      // Assert: Ensure that the repository is deleted
+      expect(deletedRepo).toBeDefined();
+      expect(deletedRepo.id).toBe(skillMap.id);
+    
+      // Verify that the repository no longer exists in the database
+      const repoInDatabase = await db.skillMap.findUnique({
+        where: {
+          id: skillMap.id,
+        },
+      });
+      expect(repoInDatabase).toBeNull();
+    });
+
+    it('should throw NotFoundException when trying to delete a repository with associated learning units', async () => {
+      // Arrange: Create a skill map with a skill
+      const skillMap = await db.skillMap.create({
+        data: {
+          name: 'Repository A',
+          ownerId: 'User-1',
+        },
+      });
+    
+      // Create a learning unit that uses the skill as a requirement
+      const skill = await dbUtils.createSkill(skillMap, 'Skill A');
+      const learningUnit = await dbUtils.createLearningUnit('Learning Unit 1', [skill], [skill]);
+    
+      // Act: Attempt to delete the skill repository
+      await expect(skillService.deleteRepository(skillMap.id)).rejects.toThrowError(NotFoundException);
+    });
+    
+
+    it('should throw an error when trying to delete a non-existent repository', async () => {
+      // Act: Attempt to delete a non-existent skill repository
+      await expect(skillService.deleteRepository('nonexistent-id')).rejects.toThrowError(NotFoundException);
+    });
+    
+  });
+
   describe('createRepository', () => {
     it('Create First Repository -> Success', async () => {
       // Precondition: No Skill-Maps defined
