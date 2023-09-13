@@ -48,7 +48,7 @@ export class DbTestUtils {
         parentSkills: {
           connect: parentSkills?.map((id) => ({ id: id })),
         },
-      },
+      },include:{nestedSkills:true}
     });
   }
 

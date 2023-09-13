@@ -663,5 +663,21 @@ describe('Skill Service', () => {
       // Expected result: Exception because of naming conflict
       await expect(skillService.createSkill(defaultSkillMap.id, creationDto)).rejects.toThrowError(ForbiddenException);
     });
+    it('Not known owner -> ForbiddenException', async () => {
+      // Precondition: One Skill defined
+     
+      // Test: Create skill
+      const creationDto: SkillCreationDto = {
+        owner: 'Unknown Owner',
+        name: 'Unknown Owner',
+        level: 2,
+        description: 'Another Description',
+        nestedSkills: [],
+      };
+
+      // Expected result: Exception because of naming conflict
+      await expect(skillService.createSkill(defaultSkillMap.id, creationDto)).rejects.toThrowError(ForbiddenException);
+    });
+
   });
 });

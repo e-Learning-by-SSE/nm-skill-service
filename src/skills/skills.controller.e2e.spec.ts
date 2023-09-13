@@ -407,6 +407,7 @@ describe('Skill Controller Tests', () => {
         ...relevantProperties,
         id: expect.any(String),
         nestedSkills: [],
+        parentSkills:[],
         repositoryId: skillMap1.id,
       };
 
@@ -459,8 +460,7 @@ describe('Skill Controller Tests', () => {
     it('Existing ID -> Skill', () => {
       // Expected result
       const expectedObject: SkillDto = {
-        ...SkillDto.createFromDao(skill2),
-        nestedSkills: [nestedSkill1.id],
+        ...SkillDto.createFromDao(skill2, [nestedSkill1] ),
       };
 
       return request(app.getHttpServer())

@@ -18,7 +18,14 @@ export class SkillDto extends OmitType(SkillCreationDto, ['owner', 'nestedSkills
   @IsDefined()
   repositoryId: string;
 
-  constructor(id: string, name: string, level: number, description: string | null, repositoryId: string, nestedSkills: string[] ) {
+  constructor(
+    id: string,
+    name: string,
+    level: number,
+    description: string | null,
+    repositoryId: string,
+    nestedSkills: string[],
+  ) {
     super();
     this.name = name;
     this.level = level;
@@ -34,13 +41,8 @@ export class SkillDto extends OmitType(SkillCreationDto, ['owner', 'nestedSkills
    * @param skill The DB result which shall be converted to a DTO
    * @returns The corresponding DTO, but without parents/children
    */
-  static createFromDao(skill: Skill & {
-    nestedSkills: Skill[];
-}): SkillDto {
-    const locArray: string[] = [];
-    skill.nestedSkills.forEach(element => {
-      locArray.push(element.id)
-    });
-    return new SkillDto(skill.id, skill.name, skill.level, skill.description, skill.repositoryId, locArray );
+  static createFromDao(skill: Skill, nestedSkills?: Skill[]): SkillDto {
+    const nestedSkillIds = nestedSkills?.map((element) => element.id) || [];
+    return new SkillDto(skill.id, skill.name, skill.level, skill.description, skill.repositoryId, nestedSkillIds);
   }
 }

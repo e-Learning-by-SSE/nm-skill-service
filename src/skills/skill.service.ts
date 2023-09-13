@@ -325,7 +325,7 @@ export class SkillMgmtService {
           parentSkills: true, // Include nestedSkills in the response
         },
       });
-      return SkillDto.createFromDao(skill);
+      return SkillDto.createFromDao(skill, skill.nestedSkills);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         // unique field already exists
@@ -370,7 +370,7 @@ export class SkillMgmtService {
       throw new NotFoundException(`Specified skill not found: ${skillId}`);
     }
 
-    const skill = SkillDto.createFromDao(dao);
+    const skill = SkillDto.createFromDao(dao, dao.nestedSkills);
     skill.nestedSkills = dao.nestedSkills.map((c) => c.id);
     skill.parentSkills = dao.parentSkills.map((sk) => sk.id);
     return skill;
@@ -494,7 +494,7 @@ export class SkillMgmtService {
     // Resolve nested skills if there are any
     const skillList = new SkillListDto();
     for (const skill of skills) {
-      const child = SkillDto.createFromDao(skill);
+      const child = SkillDto.createFromDao(skill, skill.nestedSkills);
       // Add nested skills
       child.nestedSkills = skill.nestedSkills.map((c) => c.id);
 
