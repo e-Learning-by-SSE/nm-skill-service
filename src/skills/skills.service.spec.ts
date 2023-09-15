@@ -469,7 +469,7 @@ describe('Skill Service', () => {
     
       // Create a learning unit that uses the skill as a requirement
       const skill = await dbUtils.createSkill(skillMap, 'Skill A');
-      const learningUnit = await dbUtils.createLearningUnit('Learning Unit 1', [skill], [skill]);
+      const learningUnit = await dbUtils.createLearningUnit('Learning Unit 1', [skill], []);
     
       // Act: Attempt to delete the skill repository
       await expect(skillService.deleteRepository(skillMap.id)).rejects.toThrowError(NotFoundException);
@@ -755,6 +755,28 @@ describe('Skill Service', () => {
       await expect(skillService.createSkill(defaultSkillMap.id, creationDto)).rejects.toThrowError(ForbiddenException);
     });
   });
+
+
+describe('loadAllSkills', () => {
+
+  beforeEach(async () => {
+    // Wipe the database before each test to ensure a clean state
+    await dbUtils.wipeDb();
+  });
+
+  it('should throw NotFoundException when no skills are found', async () => {
+    let error;
+    try {
+      await skillService.loadAllSkills();
+    } catch (e) {
+      error = e;
+    }
+
+    // Assert: Check if the method correctly threw a NotFoundException
+    expect(error).toBeInstanceOf(NotFoundException);
+    expect(error.message).toBe('Can not find any skills');
+  });
+});
 
   describe('isSkillUsed', () => {
     let dbTestUtils: DbTestUtils;

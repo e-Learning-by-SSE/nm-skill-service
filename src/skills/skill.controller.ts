@@ -18,6 +18,11 @@ import { Prisma } from '@prisma/client';
 export class SkillMgmtController {
   constructor(private skillService: SkillMgmtService) {}
 
+  @Get('showAllSkills')
+  listUsers() {
+    return this.skillService.loadAllSkills();
+  }
+
   @Post()
   searchForRepositories(@Body() dto?: SkillRepositorySearchDto) {
     // Return also repositories that contain the specified name
@@ -54,9 +59,9 @@ export class SkillMgmtController {
   }
 
   /**
-   * Lists all skills.
+   * Lists all skills matching given attributes.
    
-   * @returns List of all skills.
+   * @returns List of all skills matching given attributes.
    */
   @Post('findSkills')
   findSkills(@Body() dto: SkillSearchDto) {

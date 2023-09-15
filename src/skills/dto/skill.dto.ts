@@ -25,6 +25,7 @@ export class SkillDto extends OmitType(SkillCreationDto, ['owner', 'nestedSkills
     description: string | null,
     repositoryId: string,
     nestedSkills: string[],
+    parentSkills: string[],
   ) {
     super();
     this.name = name;
@@ -32,7 +33,7 @@ export class SkillDto extends OmitType(SkillCreationDto, ['owner', 'nestedSkills
     this.description = description ?? undefined;
     this.id = id;
     this.nestedSkills = nestedSkills;
-    this.parentSkills = [];
+    this.parentSkills = parentSkills;
     this.repositoryId = repositoryId;
   }
 
@@ -41,8 +42,9 @@ export class SkillDto extends OmitType(SkillCreationDto, ['owner', 'nestedSkills
    * @param skill The DB result which shall be converted to a DTO
    * @returns The corresponding DTO, but without parents/children
    */
-  static createFromDao(skill: Skill, nestedSkills?: Skill[]): SkillDto {
+  static createFromDao(skill: Skill, nestedSkills?: Skill[], parentSkills?: Skill[] ): SkillDto {
     const nestedSkillIds = nestedSkills?.map((element) => element.id) || [];
-    return new SkillDto(skill.id, skill.name, skill.level, skill.description, skill.repositoryId, nestedSkillIds);
+    const parentSkillIds = parentSkills?.map((element) => element.id) || [];
+    return new SkillDto(skill.id, skill.name, skill.level, skill.description, skill.repositoryId, nestedSkillIds, parentSkillIds);
   }
 }

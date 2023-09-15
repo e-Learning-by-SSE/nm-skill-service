@@ -24,9 +24,39 @@ import { el, sk } from '@faker-js/faker';
 @Injectable()
 export class SkillMgmtService {
   constructor(private db: PrismaService) {
-     db = db
+    db = db;
   }
-  
+
+  /**
+   * Retrieve all skills from the database, including their nestedSkills and parentSkills,
+   * and map them to SkillDto objects while maintaining the skill hierarchy.
+   * @returns {SkillListDto} A SkillListDto containing the complete list of skills.
+   * @throws {NotFoundException} If no skills are found in the database.
+   */
+  async loadAllSkills() {
+    // Retrieve skills from the database, including nestedSkills and parentSkills
+
+    const skills = await this.db.skill.findMany({
+      include: {
+        nestedSkills: true,
+        parentSkills: true,
+      },
+    });
+    // Check if no skills were found, and throw an exception if so
+    if (skills.length==0) {
+      throw new NotFoundException('Can not find any skills');
+    }
+    // Create a SkillListDto instance to store the list of skills
+    const skillList = new SkillListDto();
+
+    // Map the retrieved skills to SkillDto objects and include nestedSkills and parentSkills
+
+    skillList.skills = skills.map((skill) => SkillDto.createFromDao(skill, skill.nestedSkills, skill.parentSkills));
+
+    // Return the skillList containing the skills hierarchy
+    return skillList;
+  }
+
   /**
    * getCommonElements
    */
@@ -148,66 +178,64 @@ export class SkillMgmtService {
     if (!dao) {
       throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
     }
-    const usedSkillsInLearningUnitForRepo : Skill[] = []
+    const usedSkillsInLearningUnitForRepo: Skill[] = [];
     const skillsInRepo = dao.skills.map((skill) => skill.id);
-  
-    
 
-  // Use Promise.all to await all the queries for each skill
-  await Promise.all(
-    skillsInRepo.map(async (element) => {
-      const skillsUsedInLearningUnits = await this.db.learningUnit.findMany({
-        where: {
-          OR: [
-            {
-              requirements: {
-                some: {
-                  id: element,
+    // Use Promise.all to await all the queries for each skill
+    await Promise.all(
+      skillsInRepo.map(async (element) => {
+        const skillsUsedInLearningUnits = await this.db.learningUnit.findMany({
+          where: {
+            OR: [
+              {
+                requirements: {
+                  some: {
+                    id: element,
+                  },
                 },
               },
-            },
-            {
-              teachingGoals: {
-                some: {
-                  id: element,
+              {
+                teachingGoals: {
+                  some: {
+                    id: element,
+                  },
                 },
               },
-            },
-          ],
-        },
-        select: {
-          id: true,
-        },
-      });
+            ],
+          },
+          select: {
+            id: true,
+          },
+        });
 
-      if (skillsUsedInLearningUnits.length > 0) {
-        // If any skill is used in a learning unit, throw an error
-        throw new NotFoundException(
-          `Specified repository with id: ${repositoryId} can not be deleted, some skills are part of a Learning Unit`
-        );
-      }
-    })
-  );
-  await this.db.skill.deleteMany({
-    where: {
-      id: {
-        in: skillsInRepo,
+        if (skillsUsedInLearningUnits.length > 0) {
+          // If any skill is used in a learning unit, throw an error
+          throw new NotFoundException(
+            `Specified repository with id: ${repositoryId} can not be deleted, some skills are part of a Learning Unit`,
+          );
+        }
+      }),
+    );
+    await this.db.skill.deleteMany({
+      where: {
+        id: {
+          in: skillsInRepo,
+        },
       },
-    },
-  });
+    });
 
-  const deletedRepo = await this.db.skillMap.delete({
-    where: {
-      id: repositoryId,
-    },
-  });
+    const deletedRepo = await this.db.skillMap.delete({
+      where: {
+        id: repositoryId,
+      },
+    });
 
-  if (!deletedRepo) {
-    throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
+    if (!deletedRepo) {
+      throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
+    }
+
+    return deletedRepo;
   }
-
-  return deletedRepo;
-}
 
   async adaptRepository(dto: SkillRepositoryDto) {
     const dao = await this.db.skillMap.update({
@@ -624,55 +652,58 @@ export class SkillMgmtService {
 
   async checkNestedSkillsExist(nestedSkillIds: (string | undefined)[]): Promise<boolean> {
     const validSkillIds = nestedSkillIds.filter((id) => typeof id === 'string');
-  
+
     const skillMap = new Map<string, boolean>(); // To track visited skills
     const skillsToCheck = [...validSkillIds]; // Copy of validSkillIds for processing
-  
+
     while (skillsToCheck.length > 0) {
       const skillId = skillsToCheck.pop();
-  
+
       // Check if the skill has already been visited, indicating a cyclic relationship
       if (skillId && skillMap.has(skillId)) {
         return false; // Cyclic relationship detected
       }
-  
+
       // Mark the skill as visited
       if (skillId) {
         skillMap.set(skillId, true);
       }
-  
+
       // Query the database to check if the skill exists
       if (skillId) {
         const skill = await this.db.skill.findUnique({
-          where: { id: skillId },include:{nestedSkills:true}
+          where: { id: skillId },
+          include: { nestedSkills: true },
         });
-  
+
         // If the skill doesn't exist, return false
         if (!skill) {
           return false;
         }
-  
+
         // Add the nested skills of the current skill to the list for further checking
         skillsToCheck.push(...skill.nestedSkills.map((nestedSkill) => nestedSkill.id));
       }
     }
-  
+
     return true;
   }
-  
-  async adaptSkill( dto: SkillDto): Promise<void> {
+
+  async adaptSkill(dto: SkillDto): Promise<void> {
     // Check if the skill is already in use
     const isUsed = await this.isSkillUsed(dto.id);
     if (isUsed) {
       throw new BadRequestException('Skill is already used and cannot be modified.');
     }
-  
+
     // Validate the nestedSkills to ensure they exist and won't create a cycle
     const nestedSkillsExist = await this.checkNestedSkillsExist(dto.nestedSkills);
     if (!nestedSkillsExist) {
-      throw new BadRequestException('One or more specified nested skills do not exist or would create a cyclic relationship.');
+      throw new BadRequestException(
+        'One or more specified nested skills do not exist or would create a cyclic relationship.',
+      );
     }
-  
+
     // Update the skill with the provided data, including nestedSkills
     const updatedSkill = await this.db.skill.update({
       where: { id: dto.id },
@@ -686,7 +717,4 @@ export class SkillMgmtService {
       },
     });
   }
-  
-
-  
 }
