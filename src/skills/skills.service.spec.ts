@@ -408,10 +408,10 @@ describe('Skill Service', () => {
     it('should successfully load the skill repository when the owner matches', async () => {
       // Precondition: Some Skill-Maps defined
       await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 3 });
-    
+
       // Test: Load Skill-Map by ID and specify the correct owner
       const skillRepository = await skillService.getSkillRepository('User-2', skillMap3.id);
-    
+
       // Assert: Ensure that the correct skill repository is loaded
       expect(skillRepository).toBeDefined();
       expect(skillRepository.ownerId).toBe('User-2');
@@ -426,11 +426,10 @@ describe('Skill Service', () => {
     it('should throw NotFoundException when loading a non-existent skill repository', async () => {
       // Precondition: No Skill-Maps defined
       await dbUtils.wipeDb();
-    
+
       // Test: Attempt to load a non-existent Skill-Map
       await expect(skillService.getSkillRepository('User-1', 'nonexistent-id')).rejects.toThrowError(NotFoundException);
     });
-
   });
 
   describe('deleteRepository', () => {
@@ -441,14 +440,14 @@ describe('Skill Service', () => {
     it('should successfully delete a repository with no associations', async () => {
       // Arrange: Create a skill repository with no associations
       const skillMap = await dbUtils.createSkillMap('User-1', 'Repository A');
-    
+
       // Act: Attempt to delete the skill repository
       const deletedRepo = await skillService.deleteRepository(skillMap.id);
-    
+
       // Assert: Ensure that the repository is deleted
       expect(deletedRepo).toBeDefined();
       expect(deletedRepo.id).toBe(skillMap.id);
-    
+
       // Verify that the repository no longer exists in the database
       const repoInDatabase = await db.skillMap.findUnique({
         where: {
@@ -466,21 +465,19 @@ describe('Skill Service', () => {
           ownerId: 'User-1',
         },
       });
-    
+
       // Create a learning unit that uses the skill as a requirement
       const skill = await dbUtils.createSkill(skillMap, 'Skill A');
       const learningUnit = await dbUtils.createLearningUnit('Learning Unit 1', [skill], []);
-    
+
       // Act: Attempt to delete the skill repository
       await expect(skillService.deleteRepository(skillMap.id)).rejects.toThrowError(NotFoundException);
     });
-    
 
     it('should throw an error when trying to delete a non-existent repository', async () => {
       // Act: Attempt to delete a non-existent skill repository
       await expect(skillService.deleteRepository('nonexistent-id')).rejects.toThrowError(NotFoundException);
     });
-    
   });
 
   describe('createRepository', () => {
@@ -756,35 +753,98 @@ describe('Skill Service', () => {
     });
   });
 
+  describe('deleteRepository', () => {
+    let defaultSkillMap: SkillMap;
+    beforeEach(async () => {
+      // Set up any necessary mocks or database state here
+      await dbUtils.wipeDb();
+    });
 
-describe('loadAllSkills', () => {
+    it('should delete a repository when no skills are used in learning units', async () => {
+      // Arrange: Mock the database skillMap.findUnique and skill.deleteMany methods
+      defaultSkillMap = await dbUtils.createSkillMap('User-1', 'Test', 'A Description');
+      const skill1 = await dbUtils.createSkill(defaultSkillMap, 'Skill 1');
+      const skill2 = await dbUtils.createSkill(defaultSkillMap, 'Skill 2', [skill1.id]);
+      const skill3 = await dbUtils.createSkill(
+        defaultSkillMap,
+        'Skill 3',
+        [skill1.id, skill2.id],
+        'This skill is nested below Skill 1 AND Skill 2',
+      );
 
-  beforeEach(async () => {
-    // Wipe the database before each test to ensure a clean state
-    await dbUtils.wipeDb();
+    
+
+      const expectedResult: Partial<SkillMap> = {
+        id: defaultSkillMap.id,
+        name: defaultSkillMap.name,
+        ownerId: defaultSkillMap.ownerId,
+      };
+
+      // Assert: Check that the repository and associated skills were deleted
+
+      const result = await skillService.deleteRepository(defaultSkillMap.id);
+
+      // Assert: Check that the repository and associated skills were deleted
+      expect(result).toMatchObject(expectedResult);
+      await expect(skillService.loadSkillRepository(defaultSkillMap.id)).rejects.toThrowError(NotFoundException);
+    });
+
+    it('should throw NotFoundException when the repository is not found', async () => {
+      // Arrange: Attempt to delete a non-existent repository
+      const nonExistentRepositoryId = 'non-existent-repo-id';
+  
+      // Act and Assert: Call the deleteRepository method and expect a NotFoundException
+      await expect(skillService.deleteRepository(nonExistentRepositoryId)).rejects.toThrowError(NotFoundException);
+    });
+  
+    it('should throw NotFoundException when skills are used in learning units', async () => {
+      // Arrange: Create a SkillMap with associated skills used in learning units
+      defaultSkillMap = await dbUtils.createSkillMap('User-1', 'Test', 'A Description');
+      const skill1 = await dbUtils.createSkill(defaultSkillMap, 'Skill 1');
+      const skill2 = await dbUtils.createSkill(defaultSkillMap, 'Skill 2', [skill1.id]);
+      const skill3 = await dbUtils.createSkill(
+        defaultSkillMap,
+        'Skill 3',
+        [skill1.id, skill2.id],
+        'This skill is nested below Skill 1 AND Skill 2',
+      );
+  
+      // Create a learning unit that uses one of the skills
+      await dbUtils.createLearningUnit( 'Learning Unit 1', [skill3], [skill3]);
+  
+      // Act and Assert: Call the deleteRepository method and expect a NotFoundException
+      await expect(skillService.deleteRepository(defaultSkillMap.id)).rejects.toThrowError(ForbiddenException);
+    });
+
+
   });
 
-  it('should throw NotFoundException when no skills are found', async () => {
-    let error;
-    try {
-      await skillService.loadAllSkills();
-    } catch (e) {
-      error = e;
-    }
+  describe('loadAllSkills', () => {
+    beforeEach(async () => {
+      // Wipe the database before each test to ensure a clean state
+      await dbUtils.wipeDb();
+    });
 
-    // Assert: Check if the method correctly threw a NotFoundException
-    expect(error).toBeInstanceOf(NotFoundException);
-    expect(error.message).toBe('Can not find any skills');
+    it('should throw NotFoundException when no skills are found', async () => {
+      let error;
+      try {
+        await skillService.loadAllSkills();
+      } catch (e) {
+        error = e;
+      }
+
+      // Assert: Check if the method correctly threw a NotFoundException
+      expect(error).toBeInstanceOf(NotFoundException);
+      expect(error.message).toBe('Can not find any skills');
+    });
   });
-});
 
   describe('isSkillUsed', () => {
     let dbTestUtils: DbTestUtils;
-    
+
     beforeAll(() => {
       // Initialize your testing utilities before running the tests
       dbTestUtils = DbTestUtils.getInstance();
-     
     });
     beforeEach(async () => {
       // Wipe the database before each test to ensure a clean state
@@ -813,13 +873,12 @@ describe('loadAllSkills', () => {
     });
 
     it('should return true if the skill is used in at least one learning unit', async () => {
-      
       const skillMap1 = await db.skillMap.create({
         data: {
           name: 'First Map',
           ownerId: 'User-1',
         },
-      });// Arrange: Create a skill and associate it with a learning unit
+      }); // Arrange: Create a skill and associate it with a learning unit
       const skill = await dbTestUtils.createSkill(skillMap1, 'Skill A');
       const learningUnit = await dbTestUtils.createLearningUnit('Learning Unit 1', [skill], []);
 
@@ -831,13 +890,12 @@ describe('loadAllSkills', () => {
     });
 
     it('should return true if the skill is used as a requirement in a learning unit', async () => {
-      
       const skillMap1 = await db.skillMap.create({
         data: {
           name: 'First Map',
           ownerId: 'User-1',
         },
-      });// Arrange: Create skills and a learning unit with the skill as a requirement
+      }); // Arrange: Create skills and a learning unit with the skill as a requirement
       const skill = await dbTestUtils.createSkill(skillMap1, 'Skill A');
       const learningUnit = await dbTestUtils.createLearningUnit('Learning Unit 1', [], [skill]);
 

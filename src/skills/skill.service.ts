@@ -178,7 +178,6 @@ export class SkillMgmtService {
     if (!dao) {
       throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
     }
-    const usedSkillsInLearningUnitForRepo: Skill[] = [];
     const skillsInRepo = dao.skills.map((skill) => skill.id);
 
     // Use Promise.all to await all the queries for each skill
@@ -210,7 +209,7 @@ export class SkillMgmtService {
 
         if (skillsUsedInLearningUnits.length > 0) {
           // If any skill is used in a learning unit, throw an error
-          throw new NotFoundException(
+          throw new ForbiddenException(
             `Specified repository with id: ${repositoryId} can not be deleted, some skills are part of a Learning Unit`,
           );
         }
@@ -237,6 +236,8 @@ export class SkillMgmtService {
     return deletedRepo;
   }
 
+
+  
   async adaptRepository(dto: SkillRepositoryDto) {
     const dao = await this.db.skillMap.update({
       where: {
