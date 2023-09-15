@@ -214,7 +214,10 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
                 `Could not compute a path for the specified goal: ${dto.goal}`,
             );
         }
-        return new PathDto(path);
+        return new PathDto(
+            path.path.map((lu) => lu.id),
+            path.cost,
+        );
     }
 
     private async loadSkills(skillIds: string[]) {

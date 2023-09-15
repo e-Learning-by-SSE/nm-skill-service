@@ -72,7 +72,8 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 // TODO SE: [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
-                    luIDs: [lu1.id, lu2.id, lu3.id, lu4.id],
+                    learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
+                    cost: 4,
                 };
 
                 // Input
@@ -97,7 +98,8 @@ describe("PathFinder Controller Tests", () => {
 
                 // Expected result
                 const expectedResult: PathDto = {
-                    luIDs: [lu1.id, lu3.id, lu4.id],
+                    learningUnits: [lu1.id, lu3.id, lu4.id],
+                    cost: 3,
                 };
 
                 // Input
@@ -123,7 +125,8 @@ describe("PathFinder Controller Tests", () => {
 
                 // Expected result
                 const expectedResult: PathDto = {
-                    luIDs: [lu3.id, lu4.id],
+                    learningUnits: [lu3.id, lu4.id],
+                    cost: 2,
                 };
 
                 // Input
@@ -150,7 +153,8 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 // TODO SE: [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
-                    luIDs: [lu1.id, lu2.id, lu3.id, lu4.id],
+                    learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
+                    cost: 4,
                 };
 
                 // Input
@@ -213,7 +217,8 @@ describe("PathFinder Controller Tests", () => {
             it("Compute Path (Optimal)", async () => {
                 // Expected result
                 const expectedResult: PathDto = {
-                    luIDs: [lu2.id, lu3.id, lu4.id],
+                    learningUnits: [lu2.id, lu3.id, lu4.id],
+                    cost: 3,
                 };
 
                 // Input
@@ -235,7 +240,8 @@ describe("PathFinder Controller Tests", () => {
             it("Compute Path (Greedy)", async () => {
                 // Expected result
                 const expectedResult: PathDto = {
-                    luIDs: [lu1.id, lu2.id, lu3.id, lu4.id],
+                    learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
+                    cost: 4,
                 };
 
                 // Input
