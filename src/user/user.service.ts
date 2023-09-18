@@ -10,6 +10,8 @@ import { SkillProfileCreationDto } from "./dto/skillProfil-creation.dto";
 import { SkillProfileDto } from "./dto/skillProfile.dto";
 import { QualificationDto } from "./dto/qualification.dto";
 import { UserListDto } from "./dto/user-list.dto";
+import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
+import { UpdateLearningProgressDto } from "./dto/learningProgrss-update.dto";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -17,6 +19,16 @@ import { UserListDto } from "./dto/user-list.dto";
  */
 @Injectable()
 export class UserMgmtService {
+    updateLearningProgress(userId: string, updateLearningProgressDto: UpdateLearningProgressDto) {
+      throw new Error('Method not implemented.');
+    }
+    createProgressForUserId(userId: string, createLearningProgressDto: CreateLearningProgressDto) {
+      throw new Error('Method not implemented.');
+    }
+    
+    findProgressForUserId(id: string) {
+      throw new Error('Method not implemented.');
+    }
     constructor(private db: PrismaService) {}
 
     /**
