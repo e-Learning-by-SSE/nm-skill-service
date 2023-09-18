@@ -839,6 +839,60 @@ describe('Skill Service', () => {
     });
   });
 
+  describe('adaptRepository', () => {
+    let defaultSkillMap: SkillMap;
+  
+    beforeEach(async () => {
+      // Set up any necessary mocks or database state here
+      await dbUtils.wipeDb();
+    });
+  
+    it('should update a repository with the provided data', async () => {
+      // Arrange: Create a SkillMap with initial data
+      defaultSkillMap = await dbUtils.createSkillMap('User-1', 'Initial Name', 'Initial Description');
+  
+      const updatedDto: SkillRepositoryDto = {
+        owner:'User-1',
+        id: defaultSkillMap.id,
+        access_rights: ACCESS_RIGHTS.PUBLIC,
+        description: 'Updated Description',
+        name: 'Updated Name',
+        taxonomy: 'Updated Taxonomy',
+        version: 'Updated Version',
+      };
+  
+      // Act: Call the adaptRepository method to update the repository
+      const updatedRepository = await skillService.adaptRepository(updatedDto);
+  
+      // Assert: Check that the repository was updated with the provided data
+      expect(updatedRepository).toMatchObject(updatedDto);
+  
+      // Verify that the database reflects the updates
+      const retrievedRepository = await skillService.getSkillRepository(defaultSkillMap.ownerId, defaultSkillMap.id)
+      
+      expect(retrievedRepository.ownerId).toEqual(updatedDto.owner);
+      expect(retrievedRepository.name).toEqual(updatedDto.name);
+      expect(retrievedRepository.description).toEqual(updatedDto.description);
+    });
+  
+    it('should throw NotFoundException when the repository is not found', async () => {
+      // Arrange: Attempt to update a non-existent repository
+      const nonExistentRepositoryDto: SkillRepositoryDto = {
+        owner:'any Owner',
+        id: 'non-existent-repo-id',
+        access_rights: ACCESS_RIGHTS.PUBLIC,
+        description: 'Updated Description',
+        name: 'Updated Name',
+        taxonomy: 'Updated Taxonomy',
+        version: 'Updated Version',
+      };
+  
+      // Act and Assert: Call the adaptRepository method and expect a NotFoundException
+      await expect(skillService.adaptRepository(nonExistentRepositoryDto)).rejects.toThrowError(NotFoundException);
+    });
+  });
+  
+
   describe('isSkillUsed', () => {
     let dbTestUtils: DbTestUtils;
 

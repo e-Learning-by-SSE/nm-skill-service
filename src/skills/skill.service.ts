@@ -250,13 +250,17 @@ export class SkillMgmtService {
         taxonomy: dto.taxonomy,
         version: dto.version,
       },
+      include:{skills:true}
     });
-
     if (!dao) {
       throw new NotFoundException(`Specified repositroy not found: ${dto.id}`);
     }
-
-    return dao;
+    
+    const result: UnresolvedSkillRepositoryDto = {
+      ...SkillRepositoryDto.createFromDao(dao),
+      skills: dao.skills.map((c) => c.id),
+    };
+    return result;
   }
 
   /**

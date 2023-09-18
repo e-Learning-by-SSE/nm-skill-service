@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import {
@@ -18,8 +18,8 @@ import { Prisma } from '@prisma/client';
 export class SkillMgmtController {
   constructor(private skillService: SkillMgmtService) {}
 
-  @Get('showAllSkills')
-  listUsers() {
+  @Get('/skill/')
+  listUsers(@Param('repositoryId')  dto: SkillSearchDto) {
     return this.skillService.loadAllSkills();
   }
 
@@ -133,8 +133,8 @@ export class SkillMgmtController {
    * @param dto The repository description
    * @returns The adapted repository.
    */
-  @Post(':repositoryId/adapt')
-  adaptRepo(@Param('repositoryId') @Body() dto: SkillRepositoryDto) {
+  @Put(':repositoryId/adapt')
+  adaptRepo( @Body() dto: SkillRepositoryDto) {
     return this.skillService.adaptRepository(dto);
   }
 
@@ -168,7 +168,7 @@ export class SkillMgmtController {
    * @param dto The skill description
    * @returns The created skill.
    */
-  @Post(':repositoryId/skill/adapt_skill')
+  @Put(':repositoryId/skill/adapt_skill')
   adaptSkill( @Body() dto: SkillDto) {
     return this.skillService.adaptSkill( dto);
   }
