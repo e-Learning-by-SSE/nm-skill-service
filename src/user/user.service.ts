@@ -25,7 +25,7 @@ export class UserMgmtService {
         try {
             const deleteEntry=  await this.db.learningProgress.delete({ where: { id: id } });
             return deleteEntry;
-            // Return a success message or handle the response as needed
+          
           } catch (error) {
             // Add error handling here, and you can throw errors or return appropriate responses to the controller
             throw new Error('Error deleting learning progress.');
