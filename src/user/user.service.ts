@@ -11,7 +11,9 @@ import { SkillProfileDto } from "./dto/skillProfile.dto";
 import { QualificationDto } from "./dto/qualification.dto";
 import { UserListDto } from "./dto/user-list.dto";
 import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
-import { UpdateLearningProgressDto } from "./dto/learningProgrss-update.dto";
+import { UpdateLearningProgressDto } from "./dto/learningProgress-update.dto";
+import { DeleteLearningProgressDto } from "./dto/learningProgress-deletion.dto";
+import { de } from "@faker-js/faker";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -19,15 +21,46 @@ import { UpdateLearningProgressDto } from "./dto/learningProgrss-update.dto";
  */
 @Injectable()
 export class UserMgmtService {
-    updateLearningProgress(userId: string, updateLearningProgressDto: UpdateLearningProgressDto) {
-      throw new Error('Method not implemented.');
+    async deleteProgressForUserId(id: string) {
+        try {
+            const deleteEntry=  await this.db.learningProgress.delete({ where: { id: id } });
+            return deleteEntry;
+            // Return a success message or handle the response as needed
+          } catch (error) {
+            // Add error handling here, and you can throw errors or return appropriate responses to the controller
+            throw new Error('Error deleting learning progress.');
+          }
     }
-    createProgressForUserId(userId: string, createLearningProgressDto: CreateLearningProgressDto) {
-      throw new Error('Method not implemented.');
+    async updateLearningProgress(userId: string, updateLearningProgressDto: UpdateLearningProgressDto) {
+        try {
+           
+          
+            
+           
+          } catch (error) {
+            throw new Error('Error updating learning progress.');
+          }
+        
+    }
+    async createProgressForUserId(userId: string, createLearningProgressDto: CreateLearningProgressDto) {
+        try {
+            const createEntry=   await this.db.learningProgress.create({ data: { userId, ...createLearningProgressDto } });
+            return createEntry;
+           
+          } catch (error) {
+            throw new Error('Error creating learning progress.');
+          }
     }
     
-    findProgressForUserId(id: string) {
-      throw new Error('Method not implemented.');
+    async findProgressForUserId(id: string) {
+        try {
+            const progressEntries = await this.db.learningProgress.findMany({ where: { userId:id } });
+            
+           return progressEntries
+          } catch (error) {
+            // Add error handling here, and you can throw errors or return appropriate responses to the controller
+            throw new Error('Error finding learning progress.');
+          }
     }
     constructor(private db: PrismaService) {}
 

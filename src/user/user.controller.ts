@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { UserCreationDto } from './dto';
@@ -10,7 +10,8 @@ import { LearningProfileCreationDto } from './dto/learningProfile-creation.dto';
 import { SkillProfileCreationDto } from './dto/skillProfil-creation.dto';
 import { QualificationCreationDto } from './dto/qualification-creation.dto';
 import { CreateLearningProgressDto } from './dto/learningProgress-creation.dto';
-import { UpdateLearningProgressDto } from './dto/learningProgrss-update.dto';
+import { UpdateLearningProgressDto } from './dto/learningProgress-update.dto';
+import { DeleteLearningProgressDto } from './dto/learningProgress-deletion.dto';
 
 @ApiTags('User')
 @Controller('users')
@@ -85,6 +86,15 @@ export class UserMgmtController {
     // Create a new learning progress entry for a user
     return this.userService.createProgressForUserId(userId, createLearningProgressDto);
   }
+
+  @Delete(':id/learning-progress')
+  async deleteLearningProgress(
+    @Param('id') progressId: string
+  ) {
+    
+    return this.userService.deleteProgressForUserId(progressId);
+  }
+
 
   @Put(':id/learning-progress')
   async updateLearningProfile(
