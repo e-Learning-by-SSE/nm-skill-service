@@ -145,7 +145,7 @@ describe('Skill Controller Tests', () => {
       const expected: string = JSON.stringify(expectedObject);
 
       return request(app.getHttpServer())
-        .get('/skill-repositories/not-existing-owner-id')
+        .get('/skill-repositories/byOwner/not-existing-owner-id')
         .expect(200)
         .expect((res) => {
           expect(JSON.stringify(res.body)).toEqual(expected);
@@ -159,7 +159,7 @@ describe('Skill Controller Tests', () => {
       };
 
       return request(app.getHttpServer())
-        .get(`/skill-repositories/${skillMap1.ownerId}`)
+        .get(`/skill-repositories/byOwner/${skillMap1.ownerId}`)
         .expect(200)
         .expect((res) => {
           expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
