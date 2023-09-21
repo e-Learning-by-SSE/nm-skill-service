@@ -21,48 +21,63 @@ import { de } from "@faker-js/faker";
  */
 @Injectable()
 export class UserMgmtService {
-    async deleteProgressForUserId(id: string) {
-        try {
-            const deleteEntry=  await this.db.learningProgress.delete({ where: { id: id } });
-            return deleteEntry;
-          
-          } catch (error) {
-            // Add error handling here, and you can throw errors or return appropriate responses to the controller
-            throw new Error('Error deleting learning progress.');
-          }
+    constructor(private db: PrismaService) {}
+
+    async deleteProgressForId(id: string) {
+        const recordToDelete = await this.db.learningProgress.findUnique({
+            where: {
+                id: id, // Replace with the actual record ID you want to delete
+            },
+        });
+
+        if (!recordToDelete) {
+            // The record with the specified ID doesn't exist; handle it accordingly
+            throw new NotFoundException(`Record not found: ${id}`);
+        }
+
+        const dao = await this.db.learningProgress.delete({ where: { id: id } });
+
+        if (!dao) {
+            throw new NotFoundException(`Specified repositroy not found: ${id}`);
+        }
+
+        return dao;
     }
-    async updateLearningProgress(userId: string, updateLearningProgressDto: UpdateLearningProgressDto) {
+    async updateLearningProgress(
+        userId: string,
+        updateLearningProgressDto: UpdateLearningProgressDto,
+    ) {
         try {
-           
-          
-            
-           
-          } catch (error) {
-            throw new Error('Error updating learning progress.');
-          }
-        
+        } catch (error) {
+            throw new Error("Error updating learning progress.");
+        }
     }
-    async createProgressForUserId(userId: string, createLearningProgressDto: CreateLearningProgressDto) {
+    async createProgressForUserId(
+        userId: string,
+        createLearningProgressDto: CreateLearningProgressDto,
+    ) {
         try {
-            const createEntry=   await this.db.learningProgress.create({ data: { userId, ...createLearningProgressDto } });
+            const createEntry = await this.db.learningProgress.create({
+                data: { userId, ...createLearningProgressDto },
+            });
             return createEntry;
-           
-          } catch (error) {
-            throw new Error('Error creating learning progress.');
-          }
+        } catch (error) {
+            throw new Error("Error creating learning progress.");
+        }
     }
-    
+
     async findProgressForUserId(id: string) {
         try {
-            const progressEntries = await this.db.learningProgress.findMany({ where: { userId:id } });
-            
-           return progressEntries
-          } catch (error) {
+            const progressEntries = await this.db.learningProgress.findMany({
+                where: { userId: id },
+            });
+
+            return progressEntries;
+        } catch (error) {
             // Add error handling here, and you can throw errors or return appropriate responses to the controller
-            throw new Error('Error finding learning progress.');
-          }
+            throw new Error("Error finding learning progress.");
+        }
     }
-    constructor(private db: PrismaService) {}
 
     /**
    * Adds a new user

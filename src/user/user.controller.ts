@@ -92,16 +92,15 @@ export class UserMgmtController {
     @Param('id') progressId: string
   ) {
     
-    return this.userService.deleteProgressForUserId(progressId);
+    return this.userService.deleteProgressForId(progressId);
   }
 
-
-  @Put(':id/learning-progress')
+/*  @Put(':id/learning-progress')
   async updateLearningProfile(
     @Param('id') userId: string,
     @Body() updateLearningProgressDto: UpdateLearningProgressDto,
   ) {
     // Update a user's learning profile
     return this.userService.updateLearningProgress(userId, updateLearningProgressDto);
-  }
+  }*/
 }
