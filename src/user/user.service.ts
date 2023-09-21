@@ -37,9 +37,7 @@ export class UserMgmtService {
 
         const dao = await this.db.learningProgress.delete({ where: { id: id } });
 
-        if (!dao) {
-            throw new NotFoundException(`Specified repositroy not found: ${id}`);
-        }
+        
 
         return dao;
     }
@@ -69,14 +67,18 @@ export class UserMgmtService {
     async findProgressForUserId(id: string) {
         try {
             const progressEntries = await this.db.learningProgress.findMany({
-                where: { userId: id },
+              where: { userId: id },
             });
-
+        
+            if (progressEntries.length === 0) {
+              throw new NotFoundException('No learning progress found.');
+            }
+        
             return progressEntries;
-        } catch (error) {
-            // Add error handling here, and you can throw errors or return appropriate responses to the controller
-            throw new Error("Error finding learning progress.");
-        }
+          } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw new Error('Error finding learning progress.');
+          }
     }
 
     /**
