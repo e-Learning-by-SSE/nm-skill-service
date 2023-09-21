@@ -32,7 +32,10 @@ describe("PathFinder Controller Tests", () => {
         app = moduleRef.createNestApplication();
         await app.init();
     });
-
+    beforeEach(async () => {
+        // Wipe DB before test
+        await dbUtils.wipeDb();
+    });
     describe("POST:computePath", () => {
         /**
          * Tests for the computePath() method with and without the presence of a LearningProgressProfile (as part of the UserProfile).
