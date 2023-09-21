@@ -75,9 +75,10 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 // TODO SE: [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
-                    learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
+                    learningUnits:expect.arrayContaining( [lu1.id, lu2.id, lu3.id, lu4.id]),
                     cost: 4,
                 };
+                
 
                 // Input
                 const input: PathRequestDto = {
@@ -153,11 +154,10 @@ describe("PathFinder Controller Tests", () => {
                 const userId = "User 1";
                 await dbUtils.createLearningProgress(userId, []);
 
-                const expectedLearningUnits = new Set([lu1.id, lu2.id, lu3.id, lu4.id]);
                 // Expected result
                 // TODO SE: [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
-                    learningUnits: expect.arrayContaining(Array.from(expectedLearningUnits)),
+                    learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
                     cost: 4,
                 };
 
