@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { SearchLearningUnitCreationDto } from './dto';
 import { LearningUnitFactory } from './learningUnitFactory';
+import { MLSEvent } from '../events/dtos/mls-event.dto';
 
 /**
  * Service that manages the creation/update/deletion of learning units.
@@ -11,6 +12,9 @@ import { LearningUnitFactory } from './learningUnitFactory';
  */
 @Injectable()
 export class LearningUnitMgmtService {
+  getEvent(dto: MLSEvent) {
+    throw new Error('Method not implemented.');
+  }
   constructor(private luService: LearningUnitFactory) {}
 
   /**
