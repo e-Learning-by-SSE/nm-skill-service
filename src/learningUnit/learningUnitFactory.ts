@@ -84,11 +84,12 @@ export class LearningUnitFactory {
     try {
       const learningUnit = await this.db.learningUnit.create({
         data: {
-          title: dto.title,
+          id: dto.id,
+          title: dto.title ?? '',
           orga_id: dto.orga_id,
           lifecycle: dto.lifecycle,
           description: dto.description ?? '',
-          language: dto.language,
+          language: dto.language ?? '',
 
           processingTime: dto.processingTime,
           rating: dto.rating,

@@ -10,8 +10,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   constructor(
     id: string,
     title: string,
-    lifecycle : LIFECYCLE,
-    orga_id : string | null,
+    
     language: string,
     description: string,
     processingTime: string | null,
@@ -24,12 +23,13 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     contentTags: string[] | null,
     contextTags: string[] | null,
     linkToHelpMaterial: string | null,
+    lifecycle : LIFECYCLE,
+    orga_id : string | null,
   ) {
-    super(
+    super(id,
       language,
       title,
-      lifecycle,
-      orga_id,
+      
       description,
       processingTime,
       rating,
@@ -41,6 +41,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       contentTags,
       contextTags,
       linkToHelpMaterial,
+      lifecycle,
+      orga_id,
     );
     this.searchId = id;
   }
@@ -49,8 +51,6 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     return new SearchLearningUnitDto(
       unit.id,
       unit.title,
-      unit.lifecycle,
-      unit.orga_id,
       unit.language,
       unit.description,
       unit.processingTime,
@@ -63,6 +63,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       unit.contentTags,
       unit.contextTags,
       unit.linkToHelpMaterial,
+      unit.lifecycle,
+      unit.orga_id,
     );
   }
 }

@@ -9,15 +9,17 @@ import { IsDefined, IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
  */
 export class LearningUnitCreationDto {
   @IsNotEmpty()
-  title: string;
+  id: string;
+  @IsOptional()
+  title?: string;
 
   /**
    * Should point to a resource (e.g. a website) which contains the learning unit.
    */
   
 
-  @IsNotEmpty()
-  language: string;
+  @IsOptional()
+  language?: string;
 
   @IsOptional()
   description?: string;
@@ -28,10 +30,10 @@ export class LearningUnitCreationDto {
   @IsDefined()
   requiredSkills: string[] = [];
 
-  constructor(title: string, language: string, description?: string | null) {
-    this.title = title;
-
-    this.language = language;
+  constructor(id: string, title?: string | null, language?: string | null, description?: string | null) {
+    this.id  = id; 
+    this.title = title ?? undefined;
+    this.language = language ?? undefined;
     this.description = description ?? undefined;
   }
 }
