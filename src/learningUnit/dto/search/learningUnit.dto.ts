@@ -1,7 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 
 import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';
-import { LearningUnit } from '@prisma/client';
+import { LIFECYCLE, LearningUnit } from '@prisma/client';
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   @IsNotEmpty()
@@ -10,7 +10,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
   constructor(
     id: string,
     title: string,
-    ressource: string,
+    lifecycle : LIFECYCLE,
+    orga_id : string | null,
     language: string,
     description: string,
     processingTime: string | null,
@@ -27,7 +28,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     super(
       language,
       title,
-      ressource,
+      lifecycle,
+      orga_id,
       description,
       processingTime,
       rating,
@@ -47,7 +49,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     return new SearchLearningUnitDto(
       unit.id,
       unit.title,
-      unit.resource,
+      unit.lifecycle,
+      unit.orga_id,
       unit.language,
       unit.description,
       unit.processingTime,

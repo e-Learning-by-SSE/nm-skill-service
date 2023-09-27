@@ -62,7 +62,7 @@ describe('LearningUnit Controller Tests', () => {
         title: lu1.title,
         teachingGoals: [skill1.id],
         requiredSkills: [skill2.id],
-        resource: expect.any(String),
+       
       };
 
       // Test: Search Learning Unit by ID
@@ -86,7 +86,7 @@ describe('LearningUnit Controller Tests', () => {
             title: lu1.title,
             teachingGoals: [skill1.id],
             requiredSkills: [skill2.id],
-            resource: expect.any(String),
+          
           },
           {
             language: expect.any(String),
@@ -94,7 +94,7 @@ describe('LearningUnit Controller Tests', () => {
             title: lu2.title,
             teachingGoals: expect.arrayContaining([skill1.id, skill2.id, skill3.id]),
             requiredSkills: [],
-            resource: expect.any(String),
+         
           },
           {
             language: expect.any(String),
@@ -102,7 +102,7 @@ describe('LearningUnit Controller Tests', () => {
             title: lu3.title,
             teachingGoals: [skill1.id],
             requiredSkills: [nestedSkill1.id],
-            resource: expect.any(String),
+            
           },
         ],
       };
