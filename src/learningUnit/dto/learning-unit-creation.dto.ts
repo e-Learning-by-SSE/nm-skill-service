@@ -14,9 +14,7 @@ export class LearningUnitCreationDto {
   /**
    * Should point to a resource (e.g. a website) which contains the learning unit.
    */
-  @IsNotEmpty()
-  @IsUrl()
-  resource: string;
+  
 
   @IsNotEmpty()
   language: string;
@@ -30,9 +28,9 @@ export class LearningUnitCreationDto {
   @IsDefined()
   requiredSkills: string[] = [];
 
-  constructor(title: string, resource: string, language: string, description?: string | null) {
+  constructor(title: string, language: string, description?: string | null) {
     this.title = title;
-    this.resource = resource;
+
     this.language = language;
     this.description = description ?? undefined;
   }

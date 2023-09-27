@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { LIFECYCLE, Prisma, PrismaClient } from '@prisma/client';
 import { createLearningObjects } from './seed_functions';
 
 const prisma = new PrismaClient();
@@ -271,6 +271,8 @@ const learningObjectives = [
     description: 'Menschen, Medien, Maschinen',
     requirements: [],
     teachingGoals: ['3001'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3002',
@@ -278,6 +280,8 @@ const learningObjectives = [
     description: 'Informationsverarbeitung (Intro)',
     requirements: [],
     teachingGoals: ['3006'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3003',
@@ -285,6 +289,8 @@ const learningObjectives = [
     description: 'Visuelles System',
     requirements: [],
     teachingGoals: ['3502'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3004',
@@ -292,6 +298,8 @@ const learningObjectives = [
     description: 'Auditives System',
     requirements: [],
     teachingGoals: ['3503'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3005',
@@ -299,6 +307,8 @@ const learningObjectives = [
     description: 'Haptik',
     requirements: [],
     teachingGoals: ['3012'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3006',
@@ -306,6 +316,8 @@ const learningObjectives = [
     description: 'Gedächtnis',
     requirements: [],
     teachingGoals: ['3504'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3007',
@@ -313,6 +325,8 @@ const learningObjectives = [
     description: 'Motorisches System',
     requirements: [],
     teachingGoals: ['3505'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3008',
@@ -320,6 +334,8 @@ const learningObjectives = [
     description: 'Human Capabilities (Outro)',
     requirements: [],
     teachingGoals: ['3018'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3009',
@@ -327,6 +343,8 @@ const learningObjectives = [
     description: 'Medien und Interaktion',
     requirements: [],
     teachingGoals: ['3506'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3010',
@@ -334,6 +352,8 @@ const learningObjectives = [
     description: 'Medien(-theorie)',
     requirements: [],
     teachingGoals: ['3507'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3011',
@@ -341,6 +361,8 @@ const learningObjectives = [
     description: 'Semiotik',
     requirements: [],
     teachingGoals: ['3508'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
   {
     id: '3012',
@@ -348,6 +370,8 @@ const learningObjectives = [
     description: 'Mensch-Computer-Interaktion',
     requirements: [],
     teachingGoals: ['3029'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '2',
   },
 ];
 
