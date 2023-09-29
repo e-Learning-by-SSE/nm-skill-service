@@ -48,7 +48,7 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
         relevantLUs.learningUnits.forEach((lu) => {
             results.push({
                 ...lu,
-                id: lu.searchId,
+                id: lu.id,
             });
         });
 

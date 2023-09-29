@@ -142,6 +142,7 @@ model LearningUnit {
   orga_id String @default("")
   
   lifecycle LIFECYCLE  @default(DRAFT)
+  @@unique([id])
 }
 
 model Company {

@@ -4,9 +4,7 @@ import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';
 import { LIFECYCLE, LearningUnit } from '@prisma/client';
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
-  @IsNotEmpty()
-  searchId: string;
-
+ 
   constructor(
     id: string,
     title: string,
@@ -44,7 +42,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       lifecycle,
       orga_id,
     );
-    this.searchId = id;
+   
   }
 
   static createFromDao(unit: LearningUnit): SearchLearningUnitDto {
