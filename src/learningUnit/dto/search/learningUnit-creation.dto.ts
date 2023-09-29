@@ -61,7 +61,7 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
     contentTags: string[] | null,
     contextTags: string[] | null,
     linkToHelpMaterial: string | null,
-    lifecycle : LIFECYCLE,
+    lifecycle : LIFECYCLE | null, 
     orga_id : string | null,
   ) {
     super(id,title, language, description);

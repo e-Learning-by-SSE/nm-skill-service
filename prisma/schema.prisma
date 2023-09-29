@@ -146,6 +146,7 @@ model LearningUnit {
   orga_id String @default("")
   
   lifecycle LIFECYCLE  @default(DRAFT)
+  @@unique([id])
 }
 
 // Softconstraints per LearningUnit & Path to support orderings defined by content creators 
