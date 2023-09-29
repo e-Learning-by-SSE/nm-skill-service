@@ -86,7 +86,7 @@ export class LearningUnitFactory {
         data: {
           id: dto.id,
           title: dto.title ?? '',
-          orga_id: dto.orga_id,
+          orga_id: dto.orga_id ?? '',
           lifecycle: dto.lifecycle,
           description: dto.description ?? '',
           language: dto.language ?? '',
