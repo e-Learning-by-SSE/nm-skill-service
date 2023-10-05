@@ -1,5 +1,7 @@
 export enum MlsActionEntity {
     User = "User",
-    Skill = "Skill",
-    LearningUnit = "LearningUnit",
+    TaskToDo = "TaskTodo",
+    TaskToDoInfo = "TaskTodoInfo",
+    Task = "Task",
+    TaskStep = "TaskStep"
   }
