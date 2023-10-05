@@ -59,6 +59,7 @@ export class DbTestUtils {
                     connect: parentSkills?.map((id) => ({ id: id })),
                 },
             },
+            include: { nestedSkills: true },
         });
     }
 

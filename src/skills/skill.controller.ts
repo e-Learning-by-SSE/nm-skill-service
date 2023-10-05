@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 
 import {
@@ -7,6 +7,7 @@ import {
     SkillRepositoryCreationDto,
     SkillSearchDto,
     SkillRepositoryDto,
+    SkillDto,
 } from "./dto";
 
 import { SkillMgmtService } from "./skill.service";
@@ -16,6 +17,11 @@ import { Prisma } from "@prisma/client";
 @Controller("skill-repositories")
 export class SkillMgmtController {
     constructor(private skillService: SkillMgmtService) {}
+
+    @Get("/skill/")
+    listUsers(@Param("repositoryId") dto: SkillSearchDto) {
+        return this.skillService.loadAllSkills();
+    }
 
     @Post()
     searchForRepositories(@Body() dto?: SkillRepositorySearchDto) {
@@ -38,8 +44,8 @@ export class SkillMgmtController {
      * @param owner The user for which the repositories shall be listed.
      * @returns The repositories of the specified user.
      */
-    @Get(":owner")
-    listRepositories(@Param("owner") owner: string) {
+    @Get("byOwner/:ownerId")
+    listRepositories(@Param("ownerId") owner: string) {
         // SE: I do not expect so many repositories per user that we need pagination here
         return this.skillService.findSkillRepositories(null, null, owner, null, null);
     }
@@ -55,9 +61,9 @@ export class SkillMgmtController {
     }
 
     /**
-   * Lists all skills.
+   * Lists all skills matching given attributes.
    
-   * @returns List of all skills.
+   * @returns List of all skills matching given attributes.
    */
     @Post("findSkills")
     findSkills(@Body() dto: SkillSearchDto) {
@@ -168,12 +174,17 @@ export class SkillMgmtController {
      * @param dto The skill description
      * @returns The created skill.
      */
-    @Post(":repositoryId/skill/adapt_skill")
-    adaptSkill(@Param("repositoryId") repositoryId: string, @Body() dto: SkillCreationDto) {
-        return this.skillService.createSkill(repositoryId, dto);
+    @Put(":repositoryId/skill/adapt_skill")
+    adaptSkill(@Body() dto: SkillDto) {
+        return this.skillService.adaptSkill(dto);
     }
-    @Delete("/skill/delete/:skillId")
-    delteSkill(@Param("skillId") skillId: string) {
-        return this.skillService.deleteSkill(skillId);
+    @Delete("/skill/deleteWithoutCheck/:skillId")
+    delteSkillWithoutCheck(@Param("skillId") skillId: string) {
+        return this.skillService.deleteSkillWithoutCheck(skillId);
+    }
+
+    @Delete("/skill/deleteWithCheck/:skillId")
+    delteSkillWithCheck(@Param("skillId") skillId: string) {
+        return this.skillService.deleteSkillWithCheck(skillId);
     }
 }
