@@ -32,7 +32,10 @@ describe("PathFinder Controller Tests", () => {
         app = moduleRef.createNestApplication();
         await app.init();
     });
-
+    beforeEach(async () => {
+        // Wipe DB before test
+        await dbUtils.wipeDb();
+    });
     describe("POST:computePath", () => {
         /**
          * Tests for the computePath() method with and without the presence of a LearningProgressProfile (as part of the UserProfile).
@@ -72,9 +75,10 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
-                    learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
+                    learningUnits:expect.arrayContaining( [lu1.id, lu2.id, lu3.id, lu4.id]),
                     cost: 4,
                 };
+                
 
                 // Input
                 const input: PathRequestDto = {

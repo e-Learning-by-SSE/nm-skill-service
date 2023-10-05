@@ -10,6 +10,10 @@ import { SkillProfileCreationDto } from "./dto/skillProfil-creation.dto";
 import { SkillProfileDto } from "./dto/skillProfile.dto";
 import { QualificationDto } from "./dto/qualification.dto";
 import { UserListDto } from "./dto/user-list.dto";
+import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
+import { UpdateLearningProgressDto } from "./dto/learningProgress-update.dto";
+import { DeleteLearningProgressDto } from "./dto/learningProgress-deletion.dto";
+import { de } from "@faker-js/faker";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -18,6 +22,64 @@ import { UserListDto } from "./dto/user-list.dto";
 @Injectable()
 export class UserMgmtService {
     constructor(private db: PrismaService) {}
+
+    async deleteProgressForId(id: string) {
+        const recordToDelete = await this.db.learningProgress.findUnique({
+            where: {
+                id: id, // Replace with the actual record ID you want to delete
+            },
+        });
+
+        if (!recordToDelete) {
+            // The record with the specified ID doesn't exist; handle it accordingly
+            throw new NotFoundException(`Record not found: ${id}`);
+        }
+
+        const dao = await this.db.learningProgress.delete({ where: { id: id } });
+
+        
+
+        return dao;
+    }
+    async updateLearningProgress(
+        userId: string,
+        updateLearningProgressDto: UpdateLearningProgressDto,
+    ) {
+        try {
+        } catch (error) {
+            throw new Error("Error updating learning progress.");
+        }
+    }
+    async createProgressForUserId(
+        userId: string,
+        createLearningProgressDto: CreateLearningProgressDto,
+    ) {
+        try {
+            const createEntry = await this.db.learningProgress.create({
+                data: { userId, ...createLearningProgressDto },
+            });
+            return createEntry;
+        } catch (error) {
+            throw new Error("Error creating learning progress.");
+        }
+    }
+
+    async findProgressForUserId(id: string) {
+        try {
+            const progressEntries = await this.db.learningProgress.findMany({
+              where: { userId: id },
+            });
+        
+            if (progressEntries.length === 0) {
+              throw new NotFoundException('No learning progress found.');
+            }
+        
+            return progressEntries;
+          } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw new Error('Error finding learning progress.');
+          }
+    }
 
     /**
    * Adds a new user
