@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { SearchLearningUnitCreationDto, SearchLearningUnitDto, SearchLearningUnitListDto } from './dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
-import { LearningUnit, Prisma, Skill } from '@prisma/client';
+import { LIFECYCLE, LearningUnit, Prisma, Skill } from '@prisma/client';
 
 /**
  * This factory is responsible for database-based operations on Learning Units. It is used to:
@@ -14,10 +14,43 @@ import { LearningUnit, Prisma, Skill } from '@prisma/client';
 export class LearningUnitFactory {
   
   
-  public async deleteLearningUnit(learningUnit: SearchLearningUnitDto) {
-    throw new Error("Method not implemented.");
-  }
+  
   constructor(private db: PrismaService) {}
+
+
+  public async deleteLearningUnit(learningUnitId: string) {
+    try {
+      // Check if the Learning Unit exists before attempting to delete it
+      const existingLearningUnit = await this.loadLearningUnit(learningUnitId);
+  
+      if (!existingLearningUnit) {
+        throw new NotFoundException(`Learning Unit not found: ${learningUnitId}`);
+      }
+      if (existingLearningUnit.lifecycle === LIFECYCLE.DRAFT){
+        throw new ForbiddenException(`Learning Unit not found: ${learningUnitId} is not in LIFECYCLE DRAFT State`);
+      }
+
+      // Perform the deletion
+      const deletedLearningUnit = await this.db.learningUnit.delete({
+        where: { id: learningUnitId },
+      });
+  
+      // Check if the deletion was successful
+      if (!deletedLearningUnit) {
+        throw new Error(`Failed to delete Learning Unit: ${learningUnitId}`);
+      }
+  
+      // Return a success message or any other appropriate response
+      return { message: `Learning Unit deleted successfully: ${learningUnitId}` };
+    } catch (error) {
+      // Handle specific errors or throw a custom exception if needed
+      throw error;
+    }
+  }
+
+  
+  
+  
 
   public async loadLearningUnit(learningUnitId: string): Promise<LearningUnit> {
     const learningUnit = await this.db.learningUnit.findUnique({
@@ -31,7 +64,7 @@ export class LearningUnitFactory {
     if (!learningUnit) {
       throw new NotFoundException(`Specified LearningUnit not found: ${learningUnitId}`);
     }
-
+   
     return learningUnit;
   }
 
