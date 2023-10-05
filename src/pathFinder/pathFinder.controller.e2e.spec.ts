@@ -70,7 +70,7 @@ describe("PathFinder Controller Tests", () => {
 
             it("Compute Path wo/ knowledge", async () => {
                 // Expected result
-                // TODO SE: [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
+                // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
                     cost: 4,
@@ -87,7 +87,18 @@ describe("PathFinder Controller Tests", () => {
                     .send(input)
                     .expect(201)
                     .expect((res) => {
-                        expect(res.body as PathDto).toMatchObject(expectedResult);
+                        const result = res.body as PathDto;
+                        if (
+                            result.learningUnits[0] === lu2.id &&
+                            result.learningUnits[1] === lu1.id
+                        ) {
+                            // Swap LU1 and LU2 (Both combinations are valid)
+                            const reorderedUnits = [...result.learningUnits];
+                            reorderedUnits[0] = result.learningUnits[1];
+                            reorderedUnits[1] = result.learningUnits[0];
+                            result.learningUnits = reorderedUnits;
+                        }
+                        expect(result).toMatchObject(expectedResult);
                     });
             });
 
@@ -151,7 +162,7 @@ describe("PathFinder Controller Tests", () => {
                 await dbUtils.createLearningProgress(userId, []);
 
                 // Expected result
-                // TODO SE: [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
+                // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
                     cost: 4,
@@ -168,7 +179,18 @@ describe("PathFinder Controller Tests", () => {
                     .send(input)
                     .expect(201)
                     .expect((res) => {
-                        expect(res.body as PathDto).toMatchObject(expectedResult);
+                        const result = res.body as PathDto;
+                        if (
+                            result.learningUnits[0] === lu2.id &&
+                            result.learningUnits[1] === lu1.id
+                        ) {
+                            // Swap LU1 and LU2 (Both combinations are valid)
+                            const reorderedUnits = [...result.learningUnits];
+                            reorderedUnits[0] = result.learningUnits[1];
+                            reorderedUnits[1] = result.learningUnits[0];
+                            result.learningUnits = reorderedUnits;
+                        }
+                        expect(result).toMatchObject(expectedResult);
                     });
             });
         });
