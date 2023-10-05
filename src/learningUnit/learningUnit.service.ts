@@ -38,7 +38,7 @@ export class LearningUnitMgmtService {
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.PUT) {
 
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.DELETE) {
-
+          this.deleteLearningUnit(dto.id)
         } else {
             return "error";
         }
@@ -58,8 +58,8 @@ export class LearningUnitMgmtService {
     public async getLearningUnit(learningUnitId: string) {
         return this.luService.getLearningUnit(learningUnitId);
     }
-    public async deleteLearningUnit(learningUnit: SearchLearningUnitDto) {
-      return this.luService.deleteLearningUnit(learningUnit);
+    public async deleteLearningUnit(learningUnitId: string) {
+      return this.luService.deleteLearningUnit(learningUnitId);
   }
 
     public async loadAllLearningUnits() {
