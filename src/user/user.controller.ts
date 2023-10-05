@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { UserCreationDto } from './dto';
@@ -9,6 +9,9 @@ import { CompanyCreationDto } from './dto/company-creation.dto';
 import { LearningProfileCreationDto } from './dto/learningProfile-creation.dto';
 import { SkillProfileCreationDto } from './dto/skillProfil-creation.dto';
 import { QualificationCreationDto } from './dto/qualification-creation.dto';
+import { CreateLearningProgressDto } from './dto/learningProgress-creation.dto';
+import { UpdateLearningProgressDto } from './dto/learningProgress-update.dto';
+import { DeleteLearningProgressDto } from './dto/learningProgress-deletion.dto';
 
 @ApiTags('User')
 @Controller('users')
@@ -68,4 +71,36 @@ export class UserMgmtController {
   getUser2(@Param('userId2') userId2: string) {
     return this.userService.getUser(userId2);
   }
+
+  @Get(':id/learning-progress')
+  async getUserLearningProgress(@Param('id') id: string) {
+    // Fetch a user's learning progress by user ID
+    return this.userService.findProgressForUserId(id);
+  }
+
+  @Post(':id/learning-progress')
+  async createLearningProgress(
+    @Param('id') userId: string,
+    @Body() createLearningProgressDto: CreateLearningProgressDto,
+  ) {
+    // Create a new learning progress entry for a user
+    return this.userService.createProgressForUserId(userId, createLearningProgressDto);
+  }
+
+  @Delete(':id/learning-progress')
+  async deleteLearningProgress(
+    @Param('id') progressId: string
+  ) {
+    
+    return this.userService.deleteProgressForId(progressId);
+  }
+
+/*  @Put(':id/learning-progress')
+  async updateLearningProfile(
+    @Param('id') userId: string,
+    @Body() updateLearningProgressDto: UpdateLearningProgressDto,
+  ) {
+    // Update a user's learning profile
+    return this.userService.updateLearningProgress(userId, updateLearningProgressDto);
+  }*/
 }

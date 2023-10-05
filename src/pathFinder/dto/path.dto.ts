@@ -1,10 +1,14 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsDefined, IsNotEmpty } from "class-validator";
 
 export class PathDto {
-  @IsNotEmpty()
-  luIDs: readonly string[];
+    @IsNotEmpty()
+    learningUnits: readonly string[];
 
-  constructor(luIDs: readonly string[]) {
-    this.luIDs = luIDs;
-  }
+    @IsDefined()
+    cost: number;
+
+    constructor(luIDs: readonly string[], cost: number) {
+        this.learningUnits = luIDs;
+        this.cost = cost;
+    }
 }
