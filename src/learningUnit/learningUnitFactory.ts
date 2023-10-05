@@ -12,6 +12,11 @@ import { LearningUnit, Prisma, Skill } from '@prisma/client';
  */
 @Injectable()
 export class LearningUnitFactory {
+  
+  
+  public async deleteLearningUnit(learningUnit: SearchLearningUnitDto) {
+    throw new Error("Method not implemented.");
+  }
   constructor(private db: PrismaService) {}
 
   public async loadLearningUnit(learningUnitId: string): Promise<LearningUnit> {
