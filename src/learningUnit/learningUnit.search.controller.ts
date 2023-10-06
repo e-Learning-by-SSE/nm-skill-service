@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { SearchLearningUnitCreationDto } from './dto/search';
@@ -45,5 +45,9 @@ export class SearchLearningUnitController {
   @Get(':learningUnitId')
   getLearningUnit(@Param('learningUnitId') learningUnitId: string) {
     return this.learningUnitService.getLearningUnit(learningUnitId);
+  }
+  @Delete(':learningUnitId')
+  deleteLearningUnit(@Param('learningUnitId') learningUnitId: string) {
+    return this.learningUnitService.deleteLearningUnit(learningUnitId);
   }
 }
