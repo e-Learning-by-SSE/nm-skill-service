@@ -318,7 +318,7 @@ describe("Skill Controller Tests", () => {
                         nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)],
                     },
                     ResolvedSkillDto.createFromDao(skill3),
-                ].sort();
+                ].sort((a, b) => a.id.localeCompare(b.id));
                 delete expectedObject.description;
 
                 // Test: Resolve Skill Map
@@ -327,9 +327,9 @@ describe("Skill Controller Tests", () => {
                     .expect(200)
                     .expect((res) => {
                         res.body.skills.sort();
-                        expect(res.body as ResolvedSkillRepositoryDto).toMatchObject(
-                            expectedObject,
-                        );
+                        const result = res.body as ResolvedSkillRepositoryDto;
+                        result.skills.sort((a, b) => a.id.localeCompare(b.id));
+                        expect(result).toMatchObject(expectedObject);
                     });
             });
         });

@@ -13,6 +13,7 @@ import {
     getPath,
     getConnectedGraphForLearningUnit,
 } from "../../nm-skill-lib/src";
+import { SearchLearningUnitDto } from "../learningUnit/dto";
 
 /**
  * Service for Graphrequests
@@ -29,7 +30,7 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
     ) {}
 
     async getLearningUnitsBySkillIds(skillIds: string[]): Promise<LearningUnit[]> {
-        const relevantLUs = await this.luFactory.loadAllLearningUnits({
+        const learningUnits = await this.db.learningUnit.findMany({
             where: {
                 OR: {
                     teachingGoals: {
@@ -41,16 +42,26 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
                     },
                 },
             },
+            include: {
+                requirements: {
+                    include: {
+                        nestedSkills: true,
+                    },
+                },
+                teachingGoals: {
+                    include: {
+                        nestedSkills: true,
+                    },
+                },
+            },
         });
 
-        const results: LearningUnit[] = [];
-
-        relevantLUs.learningUnits.forEach((lu) => {
-            results.push({
-                ...lu,
-                id: lu.searchId,
-            });
-        });
+        const results: LearningUnit[] = learningUnits.map((lu) => ({
+            id: lu.id,
+            requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
+            teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
+            suggestedSkills: [],
+        }));
 
         return results;
     }

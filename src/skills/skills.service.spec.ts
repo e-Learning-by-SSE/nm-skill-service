@@ -401,12 +401,12 @@ describe("Skill Service", () => {
                 id: skillMap2.id,
                 name: skillMap2.name,
                 owner: skillMap2.ownerId,
-                skills: [skill1.id, skill2.id, nestedSkill1.id].sort(), // Skill3 belongs to different repository
+                skills: [skill1.id, skill2.id, nestedSkill1.id].sort((a, b) => a.localeCompare(b)), // Skill3 belongs to different repository
             };
 
             // Test: Load Skill-Map by ID
             const result = await skillService.loadSkillRepository(skillMap2.id);
-            result.skills.sort();
+            result.skills.sort((a, b) => a.localeCompare(b));
             await expect(skillService.loadSkillRepository(skillMap2.id)).resolves.toMatchObject(
                 expectedResult,
             );

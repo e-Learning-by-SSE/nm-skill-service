@@ -75,10 +75,9 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
-                    learningUnits:expect.arrayContaining( [lu1.id, lu2.id, lu3.id, lu4.id]),
-                    cost: 4,
+                    learningUnits: expect.arrayContaining([lu1.id, lu2.id, lu3.id, lu4.id]),
+                    cost: 4.6,
                 };
-                
 
                 // Input
                 const input: PathRequestDto = {
@@ -114,7 +113,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu3.id, lu4.id],
-                    cost: 3,
+                    cost: 3.4,
                 };
 
                 // Input
@@ -141,7 +140,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: [lu3.id, lu4.id],
-                    cost: 2,
+                    cost: 2.2,
                 };
 
                 // Input
@@ -169,7 +168,7 @@ describe("PathFinder Controller Tests", () => {
                 // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
-                    cost: 4,
+                    cost: 4.6,
                 };
 
                 // Input
@@ -244,7 +243,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: [lu2.id, lu3.id, lu4.id],
-                    cost: 3,
+                    cost: 3.4,
                 };
 
                 // Input
@@ -267,7 +266,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
-                    cost: 4,
+                    cost: 4.4,
                 };
 
                 // Input
