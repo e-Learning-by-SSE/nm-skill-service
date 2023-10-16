@@ -48,6 +48,7 @@ model Skill {
   // Use in Learning Objects
   goalsOf           LearningUnit[]      @relation("teachingGoals")
   requirementsOf    LearningUnit[]      @relation("requirements")
+  suggestedBy       LearningUnit[]      @relation("suggestedSkills")
 
   learnedBy         LearningProgress[]  @relation("learnedBy")
 
@@ -118,6 +119,12 @@ model LearningUnit {
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
 
+  requirements Skill[] @relation("requirements")
+  teachingGoals Skill[] @relation("teachingGoals")
+  // Softconstraints (Ordering)
+  // TODO SE: Currently without weight, check if we need some (supported by algorithm)
+  suggestedSkills Skill[] @relation("suggestedSkills")
+
   // Search-specific meta data
   processingTime     String            @default("")
   rating             String            @default("")
@@ -130,8 +137,6 @@ model LearningUnit {
   contextTags        String[]
   linkToHelpMaterial String?
 
-  requirements Skill[] @relation("requirements")
-  teachingGoals Skill[] @relation("teachingGoals")
 
   nuggets Nugget[]
 
