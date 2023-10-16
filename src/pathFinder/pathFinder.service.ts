@@ -44,9 +44,13 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
                         nestedSkills: true,
                     },
                 },
-                suggestedSkills: {
+                orderings: {
                     include: {
-                        nestedSkills: true,
+                        suggestedSkills: {
+                            include: {
+                                nestedSkills: true,
+                            },
+                        },
                     },
                 },
             },
@@ -56,10 +60,12 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
             id: lu.id,
             requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
             teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
-            suggestedSkills: lu.suggestedSkills.map((skill) => ({
-                weight: 0.1,
-                skill: SkillDto.createFromDao(skill),
-            })),
+            suggestedSkills: lu.orderings
+                .flatMap((ordering) => ordering.suggestedSkills)
+                .map((skill) => ({
+                    weight: 0.1,
+                    skill: SkillDto.createFromDao(skill),
+                })),
         }));
 
         return results;

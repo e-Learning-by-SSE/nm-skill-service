@@ -48,7 +48,7 @@ model Skill {
   // Use in Learning Objects
   goalsOf           LearningUnit[]      @relation("teachingGoals")
   requirementsOf    LearningUnit[]      @relation("requirements")
-  suggestedBy       LearningUnit[]      @relation("suggestedSkills")
+  suggestedBy       PreferredOrdering[] @relation("suggestedSkills")
 
   learnedBy         LearningProgress[]  @relation("learnedBy")
 
@@ -119,11 +119,10 @@ model LearningUnit {
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
 
-  requirements Skill[] @relation("requirements")
-  teachingGoals Skill[] @relation("teachingGoals")
+  requirements   Skill[] @relation("requirements")
+  teachingGoals  Skill[] @relation("teachingGoals")
   // Softconstraints (Ordering)
-  // TODO SE: Currently without weight, check if we need some (supported by algorithm)
-  suggestedSkills Skill[] @relation("suggestedSkills")
+  orderings      PreferredOrdering[]
 
   // Search-specific meta data
   processingTime     String            @default("")
@@ -141,6 +140,20 @@ model LearningUnit {
   nuggets Nugget[]
 
   consumed ConsumedUnitData[] @relation("consumedLU")
+}
+
+// Softconstraints per LearningUnit & Path to support orderings defined by content creators 
+model PreferredOrdering {
+  id              String        @id @default(cuid())
+
+  // TODO SE: Currently without weight, check if we need some (supported by algorithm)
+  suggestedSkills Skill[]       @relation("suggestedSkills")
+  learningUnit    LearningUnit? @relation(fields: [learningUnitId], references: [id])
+  learningUnitId  String?
+  orderId         String
+
+  @@unique([learningUnitId, orderId])
+  @@map("orderings")
 }
 
 model Company {
