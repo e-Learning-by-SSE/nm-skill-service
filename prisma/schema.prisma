@@ -45,17 +45,21 @@ model Skill {
   pathTeachingGoals PathGoal[] @relation("pathTeachingGoal")
   requirements      PathGoal[] @relation("requirements")
 
+  selfReported CareerProfile[] @relation("selfReportedSkill")
+  verified     CareerProfile[] @relation("verifiedSkill")
+
   // Use in Learning Objects
-  goalsOf           LearningUnit[]      @relation("teachingGoals")
-  requirementsOf    LearningUnit[]      @relation("requirements")
+  goalsOf        LearningUnit[] @relation("teachingGoals")
+  requirementsOf LearningUnit[] @relation("requirements")
 
-  learnedBy         LearningProgress[]  @relation("learnedBy")
+  learnedBy LearningProgress[] @relation("learnedBy")
 
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // da gibts noch mehr Datenbankfefehle mit @@ - nochmal nachsehen -> "@@" ausl�sen von Datenbankbefehlen "heissen: Blockattributes"
 
-  @@unique([repositoryId, name])
-  @@map("skills")
+  @@unique([repositoryId, name]) // @@unique: Kombination aus repository und name muss eindeutig sein 
+  @@map("skills") // @@map:  Mappen der "Skill" Tabelle auf ""skills" im Typescript code
 }
 
 model PathGoal {
@@ -110,82 +114,124 @@ model Nugget {
 }
 
 model LearningUnit {
-  id             String              @id @default(cuid())
-  resource       String              @default("") // Should point to the actual ressource
-  language       String
-  title          String
-  description    String
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  id          String   @id @default(cuid())
+  resource    String   @default("") // Should point to the actual ressource
+  language    String
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  completedBy LearningHistory[] @relation("completedBy")
+  startedBy   LearningHistory[] @relation("startedBy")
 
   // Search-specific meta data
-  processingTime     String            @default("")
-  rating             String            @default("")
-  contentCreator     String            @default("")
-  contentProvider    String            @default("")
-  targetAudience     String            @default("")
-  semanticDensity    String            @default("")
-  semanticGravity    String            @default("")
+  processingTime     String   @default("")
+  rating             String   @default("")
+  contentCreator     String   @default("")
+  contentProvider    String   @default("")
+  targetAudience     String   @default("")
+  semanticDensity    String   @default("")
+  semanticGravity    String   @default("")
   contentTags        String[]
   contextTags        String[]
   linkToHelpMaterial String?
 
-  requirements Skill[] @relation("requirements")
+  requirements  Skill[] @relation("requirements")
   teachingGoals Skill[] @relation("teachingGoals")
 
   nuggets Nugget[]
 
-  consumed ConsumedUnitData[] @relation("consumedLU")
+  consumed          ConsumedUnitData[] @relation("consumedLU")
+  LearningHistory   LearningHistory?   @relation(fields: [learningHistoryId], references: [id])
+  learningHistoryId String?
 }
 
 model Company {
-  id   String @id @default(cuid())
-  name String @default("")
+  id         String          @id @default(cuid())
+  name       String          @default("")
+  workedAt   CareerProfile[] @relation("workedAt")
+  workingNow CareerProfile[] @relation("workingNow")
 
-  User UserProfile[]
+  // User UserProfile[]        // clarify this
+  // Job  Job[]                // clarify this
+  users        UserProfile[]
+  jobs         Job[]
 }
 
-model UserProfile {
-  id                       String                @id @default(cuid())
-  name                     String                @default("")
-  learningProfile          LearningProfile?
-  skillProfile             SkillProfile?
-  companyId                String?
-  company                  Company?             @relation(fields: [companyId], references: [id])
-  learningBehavior         LearningBehaviorData?
-  learningProgress         LearningProgress[]
+// ######## Einf�gen der MLS-Id  ########
 
-  @@unique([companyId, name])
-	@@map("user")
+model UserProfile {
+  id               String                @id @default(cuid())
+  // mlsUserId	   String                 // ersetzen wir hier "unsere" Id oder erg�nzen um die mlsUserId ?
+  name             String                @default("")
+  learningProfile  LearningProfile?
+  careerProfile    CareerProfile?
+  company          Company?              @relation(fields: [companyId], references: [id])
+  companyId        String?
+  learningBehavior LearningBehaviorData?
+  learningProgress LearningProgress[]
+  LearningHistory  LearningHistory?
+
+  status String // (active, inactive)  setzen des Values bei User-Events (create / delete)
+
+  Qualification Qualification[]
+  Job           Job?
+
+  @@unique([companyId, name]) // unique Schluessel noch bearebeiten
+  @@map("user")
 }
 
 model LearningProgress {
-  id                    String       @id @default(cuid())
-  Skill                 Skill        @relation("learnedBy", fields: [skillId], references: [id])
-  skillId               String
-  user                  UserProfile  @relation(fields: [userId], references: [id])
-  userId                String
-  createdAt             DateTime     @default(now())
+  id                String           @id @default(cuid())
+  Skill             Skill            @relation("learnedBy", fields: [skillId], references: [id])
+  skillId           String
+  user              UserProfile      @relation(fields: [userId], references: [id])
+  userId            String
+  createdAt         DateTime         @default(now())
+  LearningHistory   LearningHistory? @relation(fields: [learningHistoryId], references: [id])
+  learningHistoryId String?
 }
 
 model LearningProfile {
-  id                    String @id @default(cuid())
+  id                    String           @id @default(cuid())
   semanticDensity       Int
   semanticGravity       Int
-  mediaType             String @default("")
-  language              String @default("")
-  processingTimePerUnit String @default("")
-  user                  UserProfile   @relation(fields: [userId], references: [id])
-  userId                String @unique // relation scalar field 
+  mediaType             String           @default("")
+  language              String           @default("")
+  processingTimePerUnit String           @default("")
+  learningHistory       LearningHistory? @relation(fields: [learningHistoryId], references: [id])
+  user                  UserProfile      @relation(fields: [userId], references: [id])
+  userId                String           @unique // relation scalar field 
+  learningHistoryId     String?
 }
 
-model SkillProfile {
+model LearningHistory {
+  id                     String             @id @default(cuid())
+  startedLearningUnits   LearningUnit[]     @relation("startedBy")
+  completedLearningUnits LearningUnit[]     @relation("completedBy")
+  learnedSkills          LearningProgress[]
+  user                   UserProfile        @relation(fields: [userId], references: [id])
+  userId                 String             @unique // relation scalar field 
+  LearningProfile        LearningProfile[]
+  LearningUnit           LearningUnit[]
+}
+
+model CareerProfile {
   id                    String          @id @default(cuid())
-  jobHistory            String          @default("")
+  jobHistory            Job[]           @relation("pastJobs")
   professionalInterests String          @default("")
-  qualifications        Qualification[]
-  user                  UserProfile            @relation(fields: [userId], references: [id])
-  userId                String          @unique // relation scalar field 
+  qualifications        Qualification[] @relation("currentQualifications")
+
+  selfReportedSkills Skill[] @relation("selfReportedSkill")
+  verifiedSkills     Skill[] @relation("verifiedSkill")
+
+  pastCompanies    Company[] @relation("workedAt")
+  currentCompany   Company   @relation("workingNow", fields: [currentCompanyId], references: [id])
+  currentCompanyId String
+
+  user   UserProfile @relation(fields: [userId], references: [id])
+  userId String      @unique // relation scalar field 
 }
 
 model ConsumedUnitData {
@@ -201,25 +247,33 @@ model LearningBehaviorData {
   id           String             @id @default(cuid())
   clickdata    String[]
   consumedUnit ConsumedUnitData[]
-  user         UserProfile               @relation(fields: [userId], references: [id])
+  user         UserProfile        @relation(fields: [userId], references: [id])
   userId       String             @unique
 }
 
 model Qualification {
- 
- // unique id of the qualification
- id        String @id @default(cuid()) 
-  
- // Name of the qualification
- name      String 
-  
- // Year the qualification was acquired
- year      Int      
- 
- // SkillProfile id of the user
- // DB-Entry           //From DB-SkillProfile   // us the "UserDd" to link to the "id" in DB-SkillProfile
- userSkillProfileId    SkillProfile             @relation(fields: [userId], references: [id])
- userId    String @unique    // relation scalar field 
+  id     String      @id @default(cuid())
+  name   String
+  year   Int
+  user   UserProfile @relation(fields: [userId], references: [id])
+  userId String
 
+  userQualifications CareerProfile[] @relation("currentQualifications")
 
+  // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
+  // userCareerProfileId String          @unique // relation scalar field 
+}
+
+model Job {
+  id        String          @id @default(cuid())
+  jobtitle  String
+  starttime DateTime
+  endtime   DateTime // Year the job was ended, if the job is still on-going set this to NULL
+  company   Company         @relation(fields: [companyId], references: [id]) //company at which the job was/is
+  companyId String
+  userJobs  CareerProfile[] @relation("pastJobs")
+  user      UserProfile     @relation(fields: [userId], references: [id])
+  userId    String          @unique // relation scalar field
+  // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
+  // userCareerProfileId String          @unique // relation scalar field   
 }

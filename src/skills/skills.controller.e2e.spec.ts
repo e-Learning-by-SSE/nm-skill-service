@@ -168,7 +168,7 @@ describe("Skill Controller Tests", () => {
             const expected: string = JSON.stringify(expectedObject);
 
             return request(app.getHttpServer())
-                .get("/skill-repositories/not-existing-owner-id")
+                .get("/skill-repositories/byOwner/not-existing-owner-id")
                 .expect(200)
                 .expect((res) => {
                     expect(JSON.stringify(res.body)).toEqual(expected);
@@ -185,7 +185,7 @@ describe("Skill Controller Tests", () => {
             };
 
             return request(app.getHttpServer())
-                .get(`/skill-repositories/${skillMap1.ownerId}`)
+                .get(`/skill-repositories/byOwner/${skillMap1.ownerId}`)
                 .expect(200)
                 .expect((res) => {
                     expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
@@ -318,7 +318,7 @@ describe("Skill Controller Tests", () => {
                         nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)],
                     },
                     ResolvedSkillDto.createFromDao(skill3),
-                ].sort();
+                ].sort((a, b) => a.id.localeCompare(b.id));
                 delete expectedObject.description;
 
                 // Test: Resolve Skill Map
@@ -327,9 +327,9 @@ describe("Skill Controller Tests", () => {
                     .expect(200)
                     .expect((res) => {
                         res.body.skills.sort();
-                        expect(res.body as ResolvedSkillRepositoryDto).toMatchObject(
-                            expectedObject,
-                        );
+                        const result = res.body as ResolvedSkillRepositoryDto;
+                        result.skills.sort((a, b) => a.id.localeCompare(b.id));
+                        expect(result).toMatchObject(expectedObject);
                     });
             });
         });
@@ -443,6 +443,7 @@ describe("Skill Controller Tests", () => {
                 ...relevantProperties,
                 id: expect.any(String),
                 nestedSkills: [],
+                parentSkills: [],
                 repositoryId: skillMap1.id,
             };
 
@@ -501,8 +502,7 @@ describe("Skill Controller Tests", () => {
         it("Existing ID -> Skill", () => {
             // Expected result
             const expectedObject: SkillDto = {
-                ...SkillDto.createFromDao(skill2),
-                nestedSkills: [nestedSkill1.id],
+                ...SkillDto.createFromDao(skill2, [nestedSkill1]),
             };
 
             return request(app.getHttpServer())

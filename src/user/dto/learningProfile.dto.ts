@@ -1,8 +1,8 @@
 import { IsDefined, IsNotEmpty } from 'class-validator';
 
-import { LearningProfile, Skill } from '@prisma/client';
+import { LearningProfile, Skill, LearningHistory } from '@prisma/client';
 import { OmitType } from '@nestjs/swagger';
-import { SkillProfileCreationDto } from './skillProfil-creation.dto';
+import { CareerProfileCreationDto } from './careerProfile-creation.dto';
 import { LearningProfileCreationDto } from './learningProfile-creation.dto';
 
 export class LearningProfileDto extends LearningProfileCreationDto {
@@ -11,7 +11,7 @@ export class LearningProfileDto extends LearningProfileCreationDto {
 
   
 
-  constructor(id: string, semanticDensity: number | undefined, semanticGravity: number | undefined, mediaType: string | null, language: string | null, processingTPU: string | null, userId: string) {
+  constructor(id: string, semanticDensity: number | undefined, semanticGravity: number | undefined, mediaType: string | null, language: string | null, processingTPU: string | null, learningHistoryId: string | null, userId: string) {
     super();
     
     this.id = id;
@@ -20,7 +20,8 @@ export class LearningProfileDto extends LearningProfileCreationDto {
     this.mediaType = mediaType ?? undefined;
     this.language = language ?? undefined;
     this.processingTimePerUnit = processingTPU ?? undefined;
-    this.userId = userId ;
+    this.learningHistoryId   =    learningHistoryId ?? undefined;
+    this.userId = userId;
   }
 
   /**
@@ -29,6 +30,6 @@ export class LearningProfileDto extends LearningProfileCreationDto {
    * @returns The corresponding DTO, but without parents/children
    */
   static createFromDao(lp: LearningProfile): LearningProfileCreationDto {
-    return new LearningProfileDto(lp.id, lp.semanticDensity, lp.semanticGravity, lp.mediaType, lp.language,lp.processingTimePerUnit ,lp.userId);
+    return new LearningProfileDto(lp.id, lp.semanticDensity, lp.semanticGravity, lp.mediaType, lp.language,lp.processingTimePerUnit, lp.learningHistoryId, lp.userId);
   }
 }

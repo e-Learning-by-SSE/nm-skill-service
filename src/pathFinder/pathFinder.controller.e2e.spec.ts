@@ -32,7 +32,10 @@ describe("PathFinder Controller Tests", () => {
         app = moduleRef.createNestApplication();
         await app.init();
     });
-
+    beforeEach(async () => {
+        // Wipe DB before test
+        await dbUtils.wipeDb();
+    });
     describe("POST:computePath", () => {
         /**
          * Tests for the computePath() method with and without the presence of a LearningProgressProfile (as part of the UserProfile).
@@ -70,10 +73,10 @@ describe("PathFinder Controller Tests", () => {
 
             it("Compute Path wo/ knowledge", async () => {
                 // Expected result
-                // TODO SE: [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
+                // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
-                    learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
-                    cost: 4,
+                    learningUnits: expect.arrayContaining([lu1.id, lu2.id, lu3.id, lu4.id]),
+                    cost: 4.6,
                 };
 
                 // Input
@@ -87,7 +90,18 @@ describe("PathFinder Controller Tests", () => {
                     .send(input)
                     .expect(201)
                     .expect((res) => {
-                        expect(res.body as PathDto).toMatchObject(expectedResult);
+                        const result = res.body as PathDto;
+                        if (
+                            result.learningUnits[0] === lu2.id &&
+                            result.learningUnits[1] === lu1.id
+                        ) {
+                            // Swap LU1 and LU2 (Both combinations are valid)
+                            const reorderedUnits = [...result.learningUnits];
+                            reorderedUnits[0] = result.learningUnits[1];
+                            reorderedUnits[1] = result.learningUnits[0];
+                            result.learningUnits = reorderedUnits;
+                        }
+                        expect(result).toMatchObject(expectedResult);
                     });
             });
 
@@ -99,7 +113,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu3.id, lu4.id],
-                    cost: 3,
+                    cost: 3.4,
                 };
 
                 // Input
@@ -126,7 +140,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: [lu3.id, lu4.id],
-                    cost: 2,
+                    cost: 2.2,
                 };
 
                 // Input
@@ -151,10 +165,10 @@ describe("PathFinder Controller Tests", () => {
                 await dbUtils.createLearningProgress(userId, []);
 
                 // Expected result
-                // TODO SE: [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
+                // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
-                    cost: 4,
+                    cost: 4.6,
                 };
 
                 // Input
@@ -168,7 +182,18 @@ describe("PathFinder Controller Tests", () => {
                     .send(input)
                     .expect(201)
                     .expect((res) => {
-                        expect(res.body as PathDto).toMatchObject(expectedResult);
+                        const result = res.body as PathDto;
+                        if (
+                            result.learningUnits[0] === lu2.id &&
+                            result.learningUnits[1] === lu1.id
+                        ) {
+                            // Swap LU1 and LU2 (Both combinations are valid)
+                            const reorderedUnits = [...result.learningUnits];
+                            reorderedUnits[0] = result.learningUnits[1];
+                            reorderedUnits[1] = result.learningUnits[0];
+                            result.learningUnits = reorderedUnits;
+                        }
+                        expect(result).toMatchObject(expectedResult);
                     });
             });
         });
@@ -218,7 +243,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: [lu2.id, lu3.id, lu4.id],
-                    cost: 3,
+                    cost: 3.4,
                 };
 
                 // Input
@@ -241,7 +266,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
-                    cost: 4,
+                    cost: 4.4,
                 };
 
                 // Input

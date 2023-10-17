@@ -26,6 +26,7 @@ export async function createProfiles() {
                             data: profile.skills.map((skill) => ({ skillId: skill })),
                         },
                     },
+                    status: "active",
                 },
             });
         }),

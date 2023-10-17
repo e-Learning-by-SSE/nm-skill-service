@@ -1,20 +1,18 @@
 import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
- * Creates a new Skill.
+ * Creates a new CareerProfile.
  */
-export class SkillProfileCreationDto {
+export class CareerProfileCreationDto {
   /**
    * Used to validate that the user is the owner of the target repository.
    */
-  @IsOptional()
-  jobHistory?: string;
 
-  @IsOptional()
-  professionalInterests?: string;
+  currentCompanyId: string;
+  professionalInterests: string;
 
   @IsDefined()
   userId: string;
 
-
 }
+

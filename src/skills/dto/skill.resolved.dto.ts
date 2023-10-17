@@ -12,6 +12,9 @@ export class ResolvedSkillDto extends OmitType(SkillCreationDto, ['owner', 'nest
   @IsDefined()
   nestedSkills: ResolvedSkillDto[];
 
+  @IsDefined()
+  parentSkills: ResolvedSkillDto[];
+
   constructor(id: string, name: string, level: number, description: string | null) {
     super();
     this.name = name;
@@ -19,6 +22,7 @@ export class ResolvedSkillDto extends OmitType(SkillCreationDto, ['owner', 'nest
     this.description = description ?? undefined;
     this.id = id;
     this.nestedSkills = [];
+    this.parentSkills = [];
   }
 
   /**

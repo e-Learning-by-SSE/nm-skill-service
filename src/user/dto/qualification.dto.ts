@@ -1,6 +1,6 @@
 import { IsDefined, IsNotEmpty } from 'class-validator';
 
-import { Qualification, SkillProfile } from '@prisma/client';
+import { Qualification, CareerProfile } from '@prisma/client';
 
 import { QualificationCreationDto } from './qualification-creation.dto';
 
@@ -11,7 +11,7 @@ export class QualificationDto extends QualificationCreationDto {
   @IsDefined()
   userId: string;
 
-  constructor(id: string, name: string, year: number, userId: string ) {
+  constructor(id: string, name: string, year: number, userId: string) {
     super();
     this.id = id;
     this.name = name;

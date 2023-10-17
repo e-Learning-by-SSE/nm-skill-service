@@ -21,6 +21,10 @@ export class LearningProfileCreationDto {
 
   @IsOptional()
   processingTimePerUnit?: string;
+  
+  @IsOptional()
+  learningHistoryId?: string;
+
   @IsDefined()
   userId: string;
 

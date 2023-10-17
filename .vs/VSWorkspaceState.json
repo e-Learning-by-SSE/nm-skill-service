@@ -1,14 +1,16 @@
 {
   "ExpandedNodes": [
     "",
-    "\\prisma",
     "\\src",
-    "\\src\\prisma",
+    "\\src\\learningPath",
+    "\\src\\learningUnit",
+    "\\src\\learningUnit\\dto",
+    "\\src\\learningUnit\\dto\\search",
     "\\src\\skills",
     "\\src\\skills\\dto",
     "\\src\\user",
     "\\src\\user\\dto"
   ],
-  "SelectedNode": "\\src\\user\\dto\\company.dto.ts",
+  "SelectedNode": "\\src\\skills\\dto\\resolved-skill-repository.dto.ts",
   "PreviewInSolutionExplorer": false
 }

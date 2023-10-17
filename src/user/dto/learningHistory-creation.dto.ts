@@ -2,16 +2,17 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 
 /**
- * Creates a new Company
+ * Creates a new LearningHistory
  */
-export class CompanyCreationDto {
+export class LearningHistoryCreationDto {
   @IsNotEmpty()
-  name: string;
+  userId: string;
 
   constructor(
-    name: string,
+    userId: string,
     ) {
-    this.name = name;
+    this.userId = userId;
   
   }
 }
+
