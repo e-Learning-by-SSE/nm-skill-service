@@ -11,6 +11,7 @@ import {
     getPath,
     getConnectedGraphForLearningUnit,
 } from "../../nm-skill-lib/src";
+import { PreferredOrdering, Skill as PrismaSkill } from "@prisma/client";
 
 /**
  * Service for Graphrequests
@@ -62,9 +63,15 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
             teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
             suggestedSkills: lu.orderings
                 .flatMap((ordering) => ordering.suggestedSkills)
+                // Avoid duplicates which would increase the weight of the skill
+                .filter(
+                    (skill, index, array) =>
+                        index === array.findIndex((elem) => elem.id === skill.id),
+                )
+                .map((skill) => SkillDto.createFromDao(skill))
                 .map((skill) => ({
                     weight: 0.1,
-                    skill: SkillDto.createFromDao(skill),
+                    skill: skill,
                 })),
         }));
 

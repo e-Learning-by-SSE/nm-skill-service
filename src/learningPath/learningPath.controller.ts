@@ -5,6 +5,7 @@ import { LearningPathCreationDto, PreferredPathDto } from "./dto";
 
 import { LearningPathMgmtService } from "./learningPath.service";
 import { PreferredOrdering } from "@prisma/client";
+import { deprecate } from "util";
 
 @ApiTags("LearningPath")
 @Controller("learning-paths")
@@ -44,10 +45,10 @@ export class LearningPathMgmtController {
     }
 
     /**
-     *
-     * @param learningPathId
-     * @param dto
-     * @returns
+     * Specifies a preferred ordering of the learning units (for a learning path).
+     * @param learningPathId The ID of the learning path for which the ordering should be defined. Re-using the same ID will overwrite the previous ordering.
+     * @param dto The ordering of the learning units, which shall be defined.
+     * @returns 200 if the operation was successful or 404 if some of the specified learning units do not exist.
      *
      * @example
      * Default ordering of first 5 units of the first DigiMedia chapter:

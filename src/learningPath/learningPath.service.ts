@@ -97,6 +97,12 @@ export class LearningPathMgmtService {
         return learningPathList;
     }
 
+    /**
+     * Specifies a preferred ordering of the learning units (for a learning path).
+     * This is done by taking the taught skills of predecessor units and adding them as suggested skills to the following units, omitting skills that are already specified as requirements.
+     * @param learningPathId The ID of the learning path for which the ordering should be defined. Re-using the same ID will overwrite the previous ordering.
+     * @param dto The ordering of the learning units, which shall be defined.
+     */
     public async definePreferredPath(dto: PreferredPathDto, preferredPathId: string) {
         const learningUnits = await this.db.learningUnit.findMany({
             where: {
@@ -115,11 +121,6 @@ export class LearningPathMgmtService {
             },
         });
 
-        // Order learningUnits by a list of ids
-        learningUnits.sort((a, b) => {
-            return dto.learningUnits.indexOf(a.id) - dto.learningUnits.indexOf(b.id);
-        });
-
         if (!learningUnits) {
             throw new NotFoundException("Can not find any learningUnits");
         } else if (learningUnits.length !== dto.learningUnits.length) {
@@ -127,8 +128,13 @@ export class LearningPathMgmtService {
                 (requestedId) =>
                     !learningUnits.some((learningUnit) => learningUnit.id === requestedId),
             );
-            throw new NotFoundException(`Can not find all learningUnits: ${missingIds}`);
+            throw new NotFoundException(`Can not find all LearningUnits. Missing: ${missingIds}`);
         }
+
+        // Order learningUnits by the given ID list
+        learningUnits.sort((a, b) => {
+            return dto.learningUnits.indexOf(a.id) - dto.learningUnits.indexOf(b.id);
+        });
 
         // Iterate over all learningUnits starting at index 2 and set ordering condition to previous learningUnit
         for (let i = 1; i < learningUnits.length; i++) {
@@ -141,7 +147,6 @@ export class LearningPathMgmtService {
                 );
 
             if (missingSkills.length > 0) {
-                console.log(`[${i}] ${currentUnit.id}: ${missingSkills.map((s) => s)}`);
                 const updateQuery: Prisma.PreferredOrderingUncheckedUpdateWithoutLearningUnitInput &
                     Prisma.PreferredOrderingUncheckedCreateWithoutLearningUnitInput = {
                     orderId: preferredPathId,
@@ -150,6 +155,7 @@ export class LearningPathMgmtService {
                     },
                 };
 
+                // Update / Overwrite order-constraint for the given preferredPathId
                 await this.db.learningUnit.update({
                     where: {
                         id: currentUnit.id,
