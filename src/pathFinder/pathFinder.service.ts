@@ -59,7 +59,6 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
 
         const results: LearningUnit[] = learningUnits.map((lu) => ({
             id: lu.id,
-          //  [...new Set(skills.map((skill) => skill.id))];
             requiredSkills: lu.requirements.map((skill) => skill.id),
             teachingGoals: lu.teachingGoals.map((skill) => skill.id),
             suggestedSkills: lu.orderings
