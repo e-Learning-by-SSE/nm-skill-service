@@ -3,8 +3,8 @@ import { Injectable } from "@nestjs/common";
 import { SearchLearningUnitCreationDto, SearchLearningUnitDto } from "./dto";
 import { LearningUnitFactory } from "./learningUnitFactory";
 import { MLSEvent } from "../events/dtos/mls-event.dto";
-import { MlsActionEntity } from "src/events/dtos/mls-actionEntity.dto";
-import { MlsActionType } from "src/events/dtos/mls-actionType.dto";
+import { MlsActionEntity } from "../events/dtos/mls-actionEntity.dto";
+import { MlsActionType } from "../events/dtos/mls-actionType.dto";
 
 /**
  * Service that manages the creation/update/deletion of learning units.
