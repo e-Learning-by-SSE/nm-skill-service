@@ -185,14 +185,7 @@ describe("LearningUnit Factory", () => {
                 },
             });
 
-            if (learningUnit) {
-                // Learning unit with the specified criteria was found
-                console.log("Found Learning Unit:", learningUnit);
-            } else {
-                // Learning unit with the specified criteria was not found
-                console.log("Learning Unit not found");
-            }
-
+            
             // Check that the result includes a success message
             await expect(
                 (
