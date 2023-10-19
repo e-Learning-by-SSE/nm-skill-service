@@ -60,9 +60,11 @@ describe("LearningUnit Factory", () => {
         it("With Parameter -> Only exact match should return", async () => {
             const creationDtoMatch = SearchLearningUnitCreationDto.createForTesting({
                 title: "Awesome Title",
+                id:"1"
             });
             const creationDtoNoMatch = SearchLearningUnitCreationDto.createForTesting({
                 title: "Awesome Title 2",
+                id:"2"
             });
             await factory.createLearningUnit(creationDtoMatch);
             await factory.createLearningUnit(creationDtoNoMatch);
@@ -100,8 +102,8 @@ describe("LearningUnit Factory", () => {
                 teachingGoals: [],
             };
             expect(result).toMatchObject(expected);
-            // Test that it is actually a SearchLearningUnitDto, by testing for the existence of search-specific mandatory properties
-            expect(result).toHaveProperty("searchId");
+           
+            expect(result).toHaveProperty("id");
         });
 
         it("Empty DB, Required Skill -> Create Learning Unit", async () => {
@@ -118,8 +120,7 @@ describe("LearningUnit Factory", () => {
                 teachingGoals: [],
             };
             expect(result).toMatchObject(expected);
-            // Test that it is actually a SearchLearningUnitDto, by testing for the existence of search-specific mandatory properties
-            expect(result).toHaveProperty("searchId");
+            expect(result).toHaveProperty("id");
         });
 
         it("Empty DB, Taught Skill -> Create Learning Unit", async () => {
@@ -138,7 +139,7 @@ describe("LearningUnit Factory", () => {
             };
             expect(result).toMatchObject(expected);
             // Test that it is actually a SearchLearningUnitDto, by testing for the existence of search-specific mandatory properties
-            expect(result).toHaveProperty("searchId");
+            expect(result).toHaveProperty("id");
         });
 
         it("Empty DB, Required/Taught Skills -> Create Learning Unit", async () => {
@@ -155,8 +156,8 @@ describe("LearningUnit Factory", () => {
                 teachingGoals: creationDto.teachingGoals,
             };
             expect(result).toMatchObject(expected);
-            // Test that it is actually a SearchLearningUnitDto, by testing for the existence of search-specific mandatory properties
-            expect(result).toHaveProperty("searchId");
+             
+            expect(result).toHaveProperty("id");
         });
     });
 

@@ -26,8 +26,8 @@ export class LearningUnitFactory {
       if (!existingLearningUnit) {
         throw new NotFoundException(`Learning Unit not found: ${learningUnitId}`);
       }
-      if (existingLearningUnit.lifecycle === LIFECYCLE.DRAFT){
-        throw new ForbiddenException(`Learning Unit not found: ${learningUnitId} is not in LIFECYCLE DRAFT State`);
+      if (existingLearningUnit.lifecycle != LIFECYCLE.DRAFT){
+        throw new ForbiddenException(`Learning Unit : ${learningUnitId} is not in LIFECYCLE DRAFT State`);
       }
 
       // Perform the deletion
