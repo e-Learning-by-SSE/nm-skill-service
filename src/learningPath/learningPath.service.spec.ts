@@ -10,9 +10,8 @@ import {
     PathGoalDto,
     PreferredPathDto,
 } from "./dto";
-import { LUProvider, LearningUnit, LearningUnitProvider, getPath } from "../../nm-skill-lib/src";
+import { LearningUnit, LearningUnitProvider, getPath } from "../../nm-skill-lib/src";
 import { SkillDto } from "../skills/dto";
-import { PathRequestDto } from "../pathFinder/dto";
 
 describe("LearningPath Service", () => {
     // Auxillary objects

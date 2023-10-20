@@ -1,5 +1,4 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 
 import { PrismaService } from "../prisma/prisma.service";
 import {
@@ -20,6 +19,7 @@ import {
     UserDto,
     UserListDto,
 } from "./dto";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 
 /**
  * Service that manages the creation/update/deletion Users
