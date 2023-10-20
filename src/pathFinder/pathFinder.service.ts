@@ -59,8 +59,8 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
 
         const results: LearningUnit[] = learningUnits.map((lu) => ({
             id: lu.id,
-            requiredSkills: lu.requirements.map((skill) => skill.id),
-            teachingGoals: lu.teachingGoals.map((skill) => skill.id),
+            requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
+            teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
             suggestedSkills: lu.orderings
                 .flatMap((ordering) => ordering.suggestedSkills)
                 // Avoid duplicates which would increase the weight of the skill
