@@ -1,5 +1,6 @@
 import { IsOptional } from 'class-validator';
 import { LearningUnitCreationDto } from '../learning-unit-creation.dto';
+import { LIFECYCLE } from '@prisma/client';
 
 /**
  * Creates a new learningUnit
@@ -37,10 +38,18 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
   @IsOptional()
   linkToHelpMaterial?: string;
 
+  @IsOptional()
+  lifecycle?: LIFECYCLE;
+
+  @IsOptional()
+  orga_id?: string;
+
+
   constructor(
-    language: string,
-    title: string,
-    resource: string,
+    id:string,
+    language: string| null,
+    title: string | null,
+    
     description: string | null,
     processingTime: string | null,
     rating: string | null,
@@ -52,8 +61,10 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
     contentTags: string[] | null,
     contextTags: string[] | null,
     linkToHelpMaterial: string | null,
+    lifecycle : LIFECYCLE | null, 
+    orga_id : string | null,
   ) {
-    super(title, resource, language, description);
+    super(id,title, language, description);
     this.processingTime = processingTime ?? undefined;
     this.rating = rating ?? undefined;
     this.contentCreator = contentCreator ?? undefined;
@@ -64,6 +75,8 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
     this.contentTags = contentTags ?? undefined;
     this.contextTags = contextTags ?? undefined;
     this.linkToHelpMaterial = linkToHelpMaterial ?? undefined;
+    this.lifecycle = lifecycle ?? undefined;
+    this.orga_id = orga_id ?? undefined; 
   }
 
   /**
@@ -76,9 +89,9 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
     params: Pick<SearchLearningUnitCreationDto, 'title'> & Partial<SearchLearningUnitCreationDto>,
   ): SearchLearningUnitCreationDto {
     return new SearchLearningUnitCreationDto(
+      params.id ?? '',
       params.language ?? 'en',
-      params.title, // Mandatory
-      params.resource ?? 'https://example.com/a-resource',
+      params.title ?? null, // Mandatory
       params.description ?? null,
       params.processingTime ?? null,
       params.rating ?? null,
@@ -90,6 +103,8 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
       params.contentTags ?? null,
       params.contextTags ?? null,
       params.linkToHelpMaterial ?? null,
+      params.lifecycle ?? LIFECYCLE.DRAFT,
+      params.orga_id ?? null,
     );
   }
 }

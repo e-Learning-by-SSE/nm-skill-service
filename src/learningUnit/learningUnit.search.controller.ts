@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { SearchLearningUnitCreationDto } from './dto/search';
 
 import { LearningUnitMgmtService } from './learningUnit.service';
+import { MLSEvent } from '../events/dtos/mls-event.dto';
 
 @ApiTags('LearningUnit')
 @Controller('learningUnits')
@@ -31,6 +32,10 @@ export class SearchLearningUnitController {
   addLearningUnitSearch(@Body() dto: SearchLearningUnitCreationDto) {
     return this.learningUnitService.createLearningUnit(dto);
   }
+  @Post('events/')
+  getEvents(@Body() dto: MLSEvent) {
+    return this.learningUnitService.getEvent(dto);
+  }
 
   /**
    * Returns the specified learningUnit.
@@ -40,5 +45,9 @@ export class SearchLearningUnitController {
   @Get(':learningUnitId')
   getLearningUnit(@Param('learningUnitId') learningUnitId: string) {
     return this.learningUnitService.getLearningUnit(learningUnitId);
+  }
+  @Delete(':learningUnitId')
+  deleteLearningUnit(@Param('learningUnitId') learningUnitId: string) {
+    return this.learningUnitService.deleteLearningUnit(learningUnitId);
   }
 }
