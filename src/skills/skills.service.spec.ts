@@ -407,9 +407,7 @@ describe("Skill Service", () => {
             // Test: Load Skill-Map by ID
             const result = await skillService.loadSkillRepository(skillMap2.id);
             result.skills.sort((a, b) => a.localeCompare(b));
-            await expect(skillService.loadSkillRepository(skillMap2.id)).resolves.toMatchObject(
-                expectedResult,
-            );
+            expect(result).toMatchObject(expectedResult);
         });
     });
 

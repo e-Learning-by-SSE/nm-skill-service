@@ -326,7 +326,6 @@ describe("Skill Controller Tests", () => {
                     .get(`/skill-repositories/resolve/${skillMapWithSkills.id}`)
                     .expect(200)
                     .expect((res) => {
-                        res.body.skills.sort();
                         const result = res.body as ResolvedSkillRepositoryDto;
                         result.skills.sort((a, b) => a.id.localeCompare(b.id));
                         expect(result).toMatchObject(expectedObject);

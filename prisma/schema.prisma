@@ -31,6 +31,12 @@ enum ACCESS_RIGHTS {
   PUBLIC
   COMPANY
 }
+enum LIFECYCLE {
+  DRAFT
+  POOL
+  ARCHIVED
+}
+
 
 model Skill {
   id          String  @id @default(cuid())
@@ -49,8 +55,9 @@ model Skill {
   verified     CareerProfile[] @relation("verifiedSkill")
 
   // Use in Learning Objects
-  goalsOf        LearningUnit[] @relation("teachingGoals")
-  requirementsOf LearningUnit[] @relation("requirements")
+  goalsOf           LearningUnit[]      @relation("teachingGoals")
+  requirementsOf    LearningUnit[]      @relation("requirements")
+  suggestedBy       PreferredOrdering[] @relation("suggestedSkills")
 
   learnedBy LearningProgress[] @relation("learnedBy")
 
@@ -109,7 +116,6 @@ model Nugget {
   processingTime String         @default("")
   presenter      String         @default("")
   mediatype      String         @default("")
-  LearningUnit   LearningUnit?  @relation(fields: [learningUnitId], references: [id])
   learningUnitId String?
 }
 
@@ -125,6 +131,11 @@ model LearningUnit {
   completedBy LearningHistory[] @relation("completedBy")
   startedBy   LearningHistory[] @relation("startedBy")
 
+  requirements   Skill[] @relation("requirements")
+  teachingGoals  Skill[] @relation("teachingGoals")
+  // Softconstraints (Ordering)
+  orderings      PreferredOrdering[]
+
   // Search-specific meta data
   processingTime     String   @default("")
   rating             String   @default("")
@@ -137,14 +148,27 @@ model LearningUnit {
   contextTags        String[]
   linkToHelpMaterial String?
 
-  requirements  Skill[] @relation("requirements")
-  teachingGoals Skill[] @relation("teachingGoals")
-
-  nuggets Nugget[]
-
   consumed          ConsumedUnitData[] @relation("consumedLU")
   LearningHistory   LearningHistory?   @relation(fields: [learningHistoryId], references: [id])
   learningHistoryId String?
+  orga_id String @default("")
+  
+  lifecycle LIFECYCLE  @default(DRAFT)
+  @@unique([id])
+}
+
+// Softconstraints per LearningUnit & Path to support orderings defined by content creators 
+model PreferredOrdering {
+  id              String        @id @default(cuid())
+
+  // TODO SE: Currently without weight, check if we need some (supported by algorithm)
+  suggestedSkills Skill[]       @relation("suggestedSkills")
+  learningUnit    LearningUnit? @relation(fields: [learningUnitId], references: [id])
+  learningUnitId  String?
+  orderId         String
+
+  @@unique([learningUnitId, orderId])
+  @@map("orderings")
 }
 
 model Company {

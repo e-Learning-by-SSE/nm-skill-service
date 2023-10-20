@@ -34,6 +34,7 @@ export class DbTestUtils {
         await this.db.learningPath.deleteMany();
 
         // Learning Units
+        await this.db.preferredOrdering.deleteMany();
         await this.db.learningUnit.deleteMany();
         await this.db.nugget.deleteMany();
 

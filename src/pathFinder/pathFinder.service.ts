@@ -3,8 +3,6 @@ import { PrismaService } from "../prisma/prisma.service";
 import { SkillDto } from "../skills/dto";
 import { SkillMgmtService } from "../skills/skill.service";
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto, PathRequestDto } from "./dto";
-import { ConfigService } from "@nestjs/config";
-import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import {
     LearningUnitProvider,
     LearningUnit,
@@ -13,7 +11,7 @@ import {
     getPath,
     getConnectedGraphForLearningUnit,
 } from "../../nm-skill-lib/src";
-import { SearchLearningUnitDto } from "../learningUnit/dto";
+import { PreferredOrdering, Skill as PrismaSkill } from "@prisma/client";
 
 /**
  * Service for Graphrequests
@@ -21,13 +19,7 @@ import { SearchLearningUnitDto } from "../learningUnit/dto";
  */
 @Injectable()
 export class PathFinderService implements LearningUnitProvider<LearningUnit> {
-    constructor(
-        private db: PrismaService,
-        // private luService: LearningUnitMgmtService,
-        private luFactory: LearningUnitFactory,
-        private config: ConfigService,
-        private skillService: SkillMgmtService,
-    ) {}
+    constructor(private db: PrismaService, private skillService: SkillMgmtService) {}
 
     async getLearningUnitsBySkillIds(skillIds: string[]): Promise<LearningUnit[]> {
         const learningUnits = await this.db.learningUnit.findMany({
@@ -53,6 +45,15 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
                         nestedSkills: true,
                     },
                 },
+                orderings: {
+                    include: {
+                        suggestedSkills: {
+                            include: {
+                                nestedSkills: true,
+                            },
+                        },
+                    },
+                },
             },
         });
 
@@ -60,7 +61,18 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
             id: lu.id,
             requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
             teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
-            suggestedSkills: [],
+            suggestedSkills: lu.orderings
+                .flatMap((ordering) => ordering.suggestedSkills)
+                // Avoid duplicates which would increase the weight of the skill
+                .filter(
+                    (skill, index, array) =>
+                        index === array.findIndex((elem) => elem.id === skill.id),
+                )
+                .map((skill) => SkillDto.createFromDao(skill))
+                .map((skill) => ({
+                    weight: 0.1,
+                    skill: skill,
+                })),
         }));
 
         return results;

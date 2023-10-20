@@ -1,16 +1,14 @@
 import { IsNotEmpty } from 'class-validator';
 
 import { SearchLearningUnitCreationDto } from './learningUnit-creation.dto';
-import { LearningUnit } from '@prisma/client';
+import { LIFECYCLE, LearningUnit } from '@prisma/client';
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
-  @IsNotEmpty()
-  searchId: string;
-
+ 
   constructor(
     id: string,
     title: string,
-    ressource: string,
+    
     language: string,
     description: string,
     processingTime: string | null,
@@ -23,11 +21,13 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     contentTags: string[] | null,
     contextTags: string[] | null,
     linkToHelpMaterial: string | null,
+    lifecycle : LIFECYCLE,
+    orga_id : string | null,
   ) {
-    super(
+    super(id,
       language,
       title,
-      ressource,
+      
       description,
       processingTime,
       rating,
@@ -39,15 +39,16 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       contentTags,
       contextTags,
       linkToHelpMaterial,
+      lifecycle,
+      orga_id,
     );
-    this.searchId = id;
+   
   }
 
   static createFromDao(unit: LearningUnit): SearchLearningUnitDto {
     return new SearchLearningUnitDto(
       unit.id,
       unit.title,
-      unit.resource,
       unit.language,
       unit.description,
       unit.processingTime,
@@ -60,6 +61,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
       unit.contentTags,
       unit.contextTags,
       unit.linkToHelpMaterial,
+      unit.lifecycle,
+      unit.orga_id,
     );
   }
 }

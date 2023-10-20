@@ -40,10 +40,8 @@ lerna-debug.log*
 NUL
 /src/version.ts
 prisma/migrations/20230731090237_test/migration.sql
-/src/user/user.controller.ts
-/src/user/user.service.ts
-/.vs/VSWorkspaceState.json
-*.vsidx
-/.vs/nm-skill-service/v17/.wsuo
-/.vs/slnx.sqlite
-/.vs/nm-skill-service/FileContentIndex/f9d1e02d-4a9c-4aa4-856c-0832f53afd96.vsidx
+prisma/migrations/20230927080837_/migration.sql
+prisma/migrations/20230927081511_/migration.sql
+prisma/migrations/20230929100146_/migration.sql
+prisma/migrations/20231017074325_/migration.sql
+/.vs

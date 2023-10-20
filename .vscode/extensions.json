@@ -1,9 +1,10 @@
 {
-  "recommendations": [
-    "usernamehw.errorlens",
-    "esbenp.prettier-vscode",
-    "dbaeumer.vscode-eslint",
-    "prisma.prisma",
-    "streetsidesoftware.code-spell-checker"
-  ]
+    "recommendations": [
+        "usernamehw.errorlens",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "prisma.prisma",
+        "streetsidesoftware.code-spell-checker",
+        "firsttris.vscode-jest-runner"
+    ]
 }

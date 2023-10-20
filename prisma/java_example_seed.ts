@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { LIFECYCLE, Prisma, PrismaClient } from '@prisma/client';
 import { createLearningObjects } from './seed_functions';
 
 const prisma = new PrismaClient();
@@ -251,6 +251,9 @@ const learningObjectives = [
     description: 'Motivation & Hello-World Example',
     requirements: [],
     teachingGoals: ['15', '1001'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
+   
   },
   {
     id: '2',
@@ -258,6 +261,9 @@ const learningObjectives = [
     description: 'Explanation what javac & java do',
     requirements: ['1001'],
     teachingGoals: ['1002'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
+    
   },
   {
     id: '3',
@@ -265,6 +271,8 @@ const learningObjectives = [
     description: 'How to write first programs / program structure',
     requirements: ['15'],
     teachingGoals: ['16'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   // Java Chapter 2
   {
@@ -273,6 +281,8 @@ const learningObjectives = [
     description: 'Constant expressions',
     requirements: ['16', '1002'],
     teachingGoals: ['18'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '5',
@@ -280,6 +290,8 @@ const learningObjectives = [
     description: 'Constant expressions',
     requirements: ['16', '18', '1002'],
     teachingGoals: ['5', '6', '17'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '6',
@@ -287,6 +299,8 @@ const learningObjectives = [
     description: 'Variable Expressions',
     requirements: ['1002'],
     teachingGoals: ['7', '19'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '7',
@@ -294,6 +308,8 @@ const learningObjectives = [
     description: 'Using Scanner for user input',
     requirements: ['6', '7', '16', '1002'],
     teachingGoals: ['20', '21'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '8',
@@ -301,6 +317,8 @@ const learningObjectives = [
     description: 'Using Scanner for user input',
     requirements: ['16', '20', '1002', '1003'],
     teachingGoals: ['9'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '9',
@@ -308,6 +326,8 @@ const learningObjectives = [
     description: 'Using Scanner for user input',
     requirements: ['9', '16', '20', '1002', '1003'],
     teachingGoals: ['10'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '10',
@@ -315,6 +335,8 @@ const learningObjectives = [
     description: 'Using Scanner for user input',
     requirements: ['9', '10', '16', '20', '1002', '1003'],
     teachingGoals: ['11', '12'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '11',
@@ -322,6 +344,8 @@ const learningObjectives = [
     description: 'Random numbers using Math.random',
     requirements: ['6', '7', '16', '1002', '1003'],
     teachingGoals: ['22'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '12',
@@ -329,6 +353,8 @@ const learningObjectives = [
     description: 'switch case as alternative to if/else',
     requirements: ['16', '20', '1002', '1003', '1004'],
     teachingGoals: ['13', '14'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '13',
@@ -336,6 +362,8 @@ const learningObjectives = [
     description: 'Allowing more than 1 statement & scope',
     requirements: ['16', '1002'],
     teachingGoals: ['23', '24'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '14',
@@ -343,6 +371,8 @@ const learningObjectives = [
     description: 'Introduction of Loops',
     requirements: ['16', '1002', '1006'],
     teachingGoals: ['25'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '15',
@@ -350,6 +380,8 @@ const learningObjectives = [
     description: 'For-Loop',
     requirements: ['16', '25', '1002', '1006'],
     teachingGoals: ['26'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '16',
@@ -357,6 +389,8 @@ const learningObjectives = [
     description: 'While-Loop',
     requirements: ['16', '25', '1002', '1006'],
     teachingGoals: ['27'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
   {
     id: '17',
@@ -364,6 +398,8 @@ const learningObjectives = [
     description: 'Do-While-Loop',
     requirements: ['16', '25', '1002', '1006'],
     teachingGoals: ['28'],
+    lifecycle: LIFECYCLE.DRAFT,
+    orga_id: '1',
   },
 ];
 
