@@ -2,29 +2,25 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 
 import { PrismaService } from "../prisma/prisma.service";
-import { CompanyDto, UserCreationDto, UserDto } from "./dto";
-import { CompanyCreationDto } from "./dto/company-creation.dto";
-import { LearningProfileCreationDto } from "./dto/learningProfile-creation.dto";
-import { LearningProfileDto } from "./dto/learningProfile.dto";
-import { CareerProfileCreationDto } from "./dto/careerProfile-creation.dto";
-import { CareerProfileDto } from "./dto/careerProfile.dto";
-import { QualificationDto } from "./dto/qualification.dto";
-import { UserListDto } from "./dto/user-list.dto";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { JobCreationDto } from "./dto/job-creation.dto";
-import { JobDto } from "./dto/job.dto";
-import { LearningHistoryCreationDto } from "./dto/learningHistory-creation.dto";
-import { LearningHistoryDto } from "./dto/learningHistory.dto";
-=======
-=======
->>>>>>> b8cf74c710f60e069ae598931e557b6982f7d825
-import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
-import { UpdateLearningProgressDto } from "./dto/learningProgress-update.dto";
-import { DeleteLearningProgressDto } from "./dto/learningProgress-deletion.dto";
-import { de } from "@faker-js/faker";
+import {
+    CareerProfileCreationDto,
+    CareerProfileDto,
+    CompanyCreationDto,
+    CompanyDto,
+    CreateLearningProgressDto,
+    JobCreationDto,
+    JobDto,
+    LearningHistoryCreationDto,
+    LearningHistoryDto,
+    LearningProfileCreationDto,
+    LearningProfileDto,
+    QualificationDto,
+    UpdateLearningProgressDto,
+    UserCreationDto,
+    UserDto,
+    UserListDto,
+} from "./dto";
 
->>>>>>> b8cf74c710f60e069ae598931e557b6982f7d825
 /**
  * Service that manages the creation/update/deletion Users
  * @author Wenzel
@@ -46,8 +42,6 @@ export class UserMgmtService {
         }
 
         const dao = await this.db.learningProgress.delete({ where: { id: id } });
-
-        
 
         return dao;
     }
@@ -77,18 +71,18 @@ export class UserMgmtService {
     async findProgressForUserId(id: string) {
         try {
             const progressEntries = await this.db.learningProgress.findMany({
-              where: { userId: id },
+                where: { userId: id },
             });
-        
+
             if (progressEntries.length === 0) {
-              throw new NotFoundException('No learning progress found.');
+                throw new NotFoundException("No learning progress found.");
             }
-        
+
             return progressEntries;
-          } catch (error) {
+        } catch (error) {
             // Handle any other errors or rethrow them as needed
-            throw new Error('Error finding learning progress.');
-          }
+            throw new Error("Error finding learning progress.");
+        }
     }
 
     /**
@@ -184,7 +178,7 @@ export class UserMgmtService {
         }
     }
 
-        async createJob(dto: JobCreationDto) {
+    async createJob(dto: JobCreationDto) {
         // Create and return a Job
         try {
             const jb = await this.db.job.create({
@@ -209,7 +203,7 @@ export class UserMgmtService {
         }
     }
 
-        async createLH(dto: LearningHistoryCreationDto) {
+    async createLH(dto: LearningHistoryCreationDto) {
         try {
             const lh = await this.db.learningHistory.create({
                 data: {
@@ -257,7 +251,6 @@ export class UserMgmtService {
         try {
             const cp = await this.db.careerProfile.create({
                 data: {
-             
                     professionalInterests: dto.professionalInterests,
                     userId: dto.userId,
                     currentCompanyId: dto.currentCompanyId,

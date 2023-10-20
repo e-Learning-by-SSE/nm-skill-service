@@ -11,7 +11,6 @@ import {
     getPath,
     getConnectedGraphForLearningUnit,
 } from "../../nm-skill-lib/src";
-import { PreferredOrdering, Skill as PrismaSkill } from "@prisma/client";
 
 /**
  * Service for Graphrequests
@@ -175,7 +174,7 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
             include: {
                 company: true,
                 learningProfile: true,
-                skillProfile: true,
+                careerProfile: true,
                 learningProgress: {
                     include: {
                         Skill: {

@@ -19,7 +19,7 @@ describe("User Service", () => {
         await dbUtils.wipeDb();
     });
     describe("createProgressForUserId", () => {
-         let userProf: UserProfile;
+        let userProf: UserProfile;
         let skillMap1: SkillMap;
         let skill1: Skill;
         let lePro: LearningProgress;
@@ -28,6 +28,7 @@ describe("User Service", () => {
             userProf = await db.userProfile.create({
                 data: {
                     name: "TestUser",
+                    status: "ACTIVE",
                     id: "testId",
                 },
             });
@@ -38,13 +39,12 @@ describe("User Service", () => {
                 },
             });
             skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
-         
         });
         it("should create a learning progress entry", async () => {
             // Arrange: Define test data
             const userId = userProf.id; // Replace with a valid user ID
             const createLearningProgressDto: CreateLearningProgressDto = {
-               skillId : skill1.id
+                skillId: skill1.id,
             };
 
             // Act: Call the createProgressForUserId method
@@ -62,11 +62,11 @@ describe("User Service", () => {
             // Arrange: Define test data that may cause an error
             const invalidUserId = "non-existent-user"; // An invalid user ID
             const createLearningProgressDto: CreateLearningProgressDto = {
-                skillId : skill1.id
-             };
+                skillId: skill1.id,
+            };
             // Act and Assert: Call the createProgressForUserId method and expect it to throw an error
             await expect(
-                userService.createProgressForUserId(invalidUserId, createLearningProgressDto ),
+                userService.createProgressForUserId(invalidUserId, createLearningProgressDto),
             ).rejects.toThrowError("Error creating learning progress.");
         });
     });
@@ -80,6 +80,7 @@ describe("User Service", () => {
             userProf = await db.userProfile.create({
                 data: {
                     name: "TestUser",
+                    status: "ACTIVE",
                     id: "testId",
                 },
             });
@@ -114,9 +115,9 @@ describe("User Service", () => {
             const invalidUserId = "non-existent-user"; // An invalid user ID
 
             // Act and Assert: Call the findProgressForUserId method and expect it to throw an error
-            await expect(
-                userService.findProgressForUserId(invalidUserId),
-            ).rejects.toThrowError("Error finding learning progress.");
+            await expect(userService.findProgressForUserId(invalidUserId)).rejects.toThrowError(
+                "Error finding learning progress.",
+            );
         });
     });
 
@@ -130,6 +131,7 @@ describe("User Service", () => {
             userProf = await db.userProfile.create({
                 data: {
                     name: "TestUser",
+                    status: "ACTIVE",
                     id: "testId",
                 },
             });

@@ -133,6 +133,7 @@ export class DbTestUtils {
         return this.db.userProfile.create({
             data: {
                 id: userId,
+                status: "active",
                 learningProgress: {
                     createMany: {
                         data: learningUnitIds.map((skill) => ({ skillId: skill })),

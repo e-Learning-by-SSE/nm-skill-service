@@ -1,23 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-
-import { UserCreationDto } from "./dto";
-
-import { UserMgmtService } from "./user.service";
-
-<<<<<<< HEAD
-import { CompanyCreationDto } from './dto/company-creation.dto';
-import { LearningProfileCreationDto } from './dto/learningProfile-creation.dto';
-import { CareerProfileCreationDto } from './dto/careerProfile-creation.dto';
-import { QualificationCreationDto } from './dto/qualification-creation.dto';
-import { JobCreationDto } from './dto/job-creation.dto';
-import { LearningHistoryCreationDto } from './dto/learningHistory-creation.dto';
-=======
-import { CompanyCreationDto } from "./dto/company-creation.dto";
-import { LearningProfileCreationDto } from "./dto/learningProfile-creation.dto";
-import { SkillProfileCreationDto } from "./dto/skillProfil-creation.dto";
+import {
+    UserCreationDto,
+    CompanyCreationDto,
+    LearningProfileCreationDto,
+    CreateLearningProgressDto,
+    CareerProfileCreationDto,
+} from "./dto";
 import { QualificationCreationDto } from "./dto/qualification-creation.dto";
-import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
+import { UserMgmtService } from "./user.service";
 
 @ApiTags("User")
 @Controller("users")
@@ -54,8 +45,8 @@ export class UserMgmtController {
         return this.userService.createLP(dto);
     }
     @Post("add_skillProfile")
-    addSkillProfile(@Body() dto: SkillProfileCreationDto) {
-        return this.userService.createSP(dto);
+    addSkillProfile(@Body() dto: CareerProfileCreationDto) {
+        return this.userService.createCP(dto);
     }
     @Post("add_Qualification")
     addQualification(@Body() dto: QualificationCreationDto) {
