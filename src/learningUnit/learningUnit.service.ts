@@ -5,6 +5,10 @@ import { LearningUnitFactory } from "./learningUnitFactory";
 import { MLSEvent } from "../events/dtos/mls-event.dto";
 import { MlsActionEntity } from "../events/dtos/mls-actionEntity.dto";
 import { MlsActionType } from "../events/dtos/mls-actionType.dto";
+import { Configuration, TaskApi } from '../clients/mls-client';
+
+const api = new TaskApi(new Configuration({ basePath: 'https://api.example.com' }));
+
 
 /**
  * Service that manages the creation/update/deletion of learning units.
@@ -38,6 +42,9 @@ export class LearningUnitMgmtService {
             );
             return this.createLearningUnit(locDto);
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.PUT) {
+            // Make API requests
+        const response = await api.getTaskItem(dto.id);
+        console.log(response.data);
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.DELETE) {
             this.deleteLearningUnit(dto.id);
         } else {
