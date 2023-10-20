@@ -9,6 +9,7 @@ import { LearningUnitModule } from './learningUnit/learningUnit.module';
 import { validate } from './config/env.validation';
 import { PathFinderModule } from './pathFinder/pathFinder.module';
 import { UserModule } from './user/user.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UserModule } from './user/user.module';
     LearningUnitModule,
     PathFinderModule,
     UserModule,
+    FeedbackModule
   ],
 })
 export class AppModule {}

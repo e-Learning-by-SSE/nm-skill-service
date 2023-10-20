@@ -55,9 +55,9 @@ model Skill {
   verified     CareerProfile[] @relation("verifiedSkill")
 
   // Use in Learning Objects
-  goalsOf           LearningUnit[]      @relation("teachingGoals")
-  requirementsOf    LearningUnit[]      @relation("requirements")
-  suggestedBy       PreferredOrdering[] @relation("suggestedSkills")
+  goalsOf        LearningUnit[]      @relation("teachingGoals")
+  requirementsOf LearningUnit[]      @relation("requirements")
+  suggestedBy    PreferredOrdering[] @relation("suggestedSkills")
 
   learnedBy LearningProgress[] @relation("learnedBy")
 
@@ -131,10 +131,10 @@ model LearningUnit {
   completedBy LearningHistory[] @relation("completedBy")
   startedBy   LearningHistory[] @relation("startedBy")
 
-  requirements   Skill[] @relation("requirements")
-  teachingGoals  Skill[] @relation("teachingGoals")
+  requirements  Skill[]             @relation("requirements")
+  teachingGoals Skill[]             @relation("teachingGoals")
   // Softconstraints (Ordering)
-  orderings      PreferredOrdering[]
+  orderings     PreferredOrdering[]
 
   // Search-specific meta data
   processingTime     String   @default("")
@@ -159,7 +159,7 @@ model LearningUnit {
 
 // Softconstraints per LearningUnit & Path to support orderings defined by content creators 
 model PreferredOrdering {
-  id              String        @id @default(cuid())
+  id String @id @default(cuid())
 
   // TODO SE: Currently without weight, check if we need some (supported by algorithm)
   suggestedSkills Skill[]       @relation("suggestedSkills")
@@ -300,4 +300,22 @@ model Job {
   userId    String          @unique // relation scalar field
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
   // userCareerProfileId String          @unique // relation scalar field   
+}
+
+model Feedback {
+  id                       String   @id @default(cuid())
+  userId                   String   @default("TestUserId1")
+  learningUnitId           String   @default("TestLUId1")
+  //user                  UserProfile  @relation(fields: [userId], references: [id])
+  //userId                String  @unique 
+  //learningUnit    LearningUnit  @relation(fields: [learningUnitId], references: [id])
+  //learningUnitId  String  @unique 
+  comprehensivenessStars   Int      @default(1)
+  comprehensivenessComment String   @default("")
+  presentationStars        Int      @default(1)
+  presentationComment      String   @default("")
+  learningValueStars       Int      @default(1)
+  learningValueComment     String   @default("")
+  otherComment             String   @default("")
+  createdAt                DateTime @default(now())
 }
