@@ -10,7 +10,7 @@ import {
     PathGoalDto,
     PreferredPathDto,
 } from "./dto";
-import { LearningUnit, LearningUnitProvider, getPath } from "../../nm-skill-lib/src";
+import { LearningUnit, getPath } from "../../nm-skill-lib/src";
 import { SkillDto } from "../skills/dto";
 
 describe("LearningPath Service", () => {
@@ -214,7 +214,7 @@ describe("LearningPath Service", () => {
             // Pre-condition: Determine default path produced by the algorithm
             const path = await getPath({
                 skills: [skill1Dto, skill2Dto, skill3Dto],
-                luProvider: new LuProvider(db),
+                learningUnits: await findAll(db),
                 desiredSkills: [skill3Dto],
                 ownedSkill: [],
                 optimalSolution: true,
@@ -230,7 +230,7 @@ describe("LearningPath Service", () => {
             // Post-condition: Check that the path is now different (according to spec of unitOrdering)
             const newPath = await getPath({
                 skills: [skill1Dto, skill2Dto, skill3Dto],
-                luProvider: new LuProvider(db),
+                learningUnits: await findAll(db),
                 desiredSkills: [skill3Dto],
                 ownedSkill: [],
                 optimalSolution: true,
@@ -241,63 +241,52 @@ describe("LearningPath Service", () => {
     });
 });
 
-class LuProvider implements LearningUnitProvider<LearningUnit> {
-    constructor(private db: PrismaService) {}
-
-    async getLearningUnitsBySkillIds(skillIds: string[]): Promise<LearningUnit[]> {
-        const learningUnits = await this.db.learningUnit.findMany({
-            where: {
-                OR: {
-                    teachingGoals: {
-                        some: {
-                            id: {
-                                in: skillIds,
-                            },
+async function findAll_internal(db: PrismaService) {
+    return await db.learningUnit.findMany({
+        include: {
+            requirements: {
+                include: {
+                    nestedSkills: true,
+                },
+            },
+            teachingGoals: {
+                include: {
+                    nestedSkills: true,
+                },
+            },
+            orderings: {
+                include: {
+                    suggestedSkills: {
+                        include: {
+                            nestedSkills: true,
                         },
                     },
                 },
             },
-            include: {
-                requirements: {
-                    include: {
-                        nestedSkills: true,
-                    },
-                },
-                teachingGoals: {
-                    include: {
-                        nestedSkills: true,
-                    },
-                },
-                orderings: {
-                    include: {
-                        suggestedSkills: {
-                            include: {
-                                nestedSkills: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
+        },
+    });
+}
 
-        const results: LearningUnit[] = learningUnits.map((lu) => ({
-            id: lu.id,
-            requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
-            teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
-            suggestedSkills: lu.orderings
-                .flatMap((ordering) => ordering.suggestedSkills)
-                // Avoid duplicates which would increase the weight of the skill
-                .filter(
-                    (skill, index, array) =>
-                        index === array.findIndex((elem) => elem.id === skill.id),
-                )
-                .map((skill) => SkillDto.createFromDao(skill))
-                .map((skill) => ({
-                    weight: 0.1,
-                    skill: skill,
-                })),
-        }));
+async function findAll(db: PrismaService) {
+    const results: LearningUnit[] = (await findAll_internal(db)).map((lu) => ({
+        // findAll_internal(db).then((lus) =>
+        //     lus
+        //         .map((lu) => ({
+        id: lu.id,
+        requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
+        teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
+        suggestedSkills: lu.orderings
+            .flatMap((ordering) => ordering.suggestedSkills)
+            // Avoid duplicates which would increase the weight of the skill
+            .filter(
+                (skill, index, array) => index === array.findIndex((elem) => elem.id === skill.id),
+            )
+            .map((skill) => SkillDto.createFromDao(skill))
+            .map((skill) => ({
+                weight: 0.1,
+                skill: skill,
+            })),
+    }));
 
-        return results;
-    }
+    return results;
 }

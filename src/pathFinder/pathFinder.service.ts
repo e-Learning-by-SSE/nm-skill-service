@@ -4,78 +4,25 @@ import { SkillDto } from "../skills/dto";
 import { SkillMgmtService } from "../skills/skill.service";
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto, PathRequestDto } from "./dto";
 import {
-    LearningUnitProvider,
-    LearningUnit,
     Skill,
     isAcyclic,
     getPath,
     getConnectedGraphForLearningUnit,
 } from "../../nm-skill-lib/src";
+import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 
 /**
- * Service for Graphrequests
+ * Service for Graph requests
  * @author Wenzel
+ * @author El-Sharkawy
  */
 @Injectable()
-export class PathFinderService implements LearningUnitProvider<LearningUnit> {
-    constructor(private db: PrismaService, private skillService: SkillMgmtService) {}
-
-    async getLearningUnitsBySkillIds(skillIds: string[]): Promise<LearningUnit[]> {
-        const learningUnits = await this.db.learningUnit.findMany({
-            where: {
-                OR: {
-                    teachingGoals: {
-                        some: {
-                            id: {
-                                in: skillIds,
-                            },
-                        },
-                    },
-                },
-            },
-            include: {
-                requirements: {
-                    include: {
-                        nestedSkills: true,
-                    },
-                },
-                teachingGoals: {
-                    include: {
-                        nestedSkills: true,
-                    },
-                },
-                orderings: {
-                    include: {
-                        suggestedSkills: {
-                            include: {
-                                nestedSkills: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
-
-        const results: LearningUnit[] = learningUnits.map((lu) => ({
-            id: lu.id,
-            requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
-            teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
-            suggestedSkills: lu.orderings
-                .flatMap((ordering) => ordering.suggestedSkills)
-                // Avoid duplicates which would increase the weight of the skill
-                .filter(
-                    (skill, index, array) =>
-                        index === array.findIndex((elem) => elem.id === skill.id),
-                )
-                .map((skill) => SkillDto.createFromDao(skill))
-                .map((skill) => ({
-                    weight: 0.1,
-                    skill: skill,
-                })),
-        }));
-
-        return results;
-    }
+export class PathFinderService {
+    constructor(
+        private db: PrismaService,
+        private skillService: SkillMgmtService,
+        private luFactory: LearningUnitFactory,
+    ) {}
 
     async getSkillsByRepository(repositoryId: string): Promise<Skill[]> {
         const skills = await this.db.skill.findMany({
@@ -107,9 +54,17 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
             throw new NotFoundException(`Specified skill not found: ${skillId}`);
         }
 
-        // const skill = SkillDto.createFromDao(daoSkillIn);
         const skills = await this.getSkillsByRepository(daoSkillIn.repositoryId);
-        const graph = await getConnectedGraphForLearningUnit(this, skills);
+        const learningUnits = await this.luFactory.getLearningUnits({
+            teachingGoals: {
+                some: {
+                    id: {
+                        in: skills.map((skill) => skill.id),
+                    },
+                },
+            },
+        });
+        const graph = await getConnectedGraphForLearningUnit(learningUnits, skills);
 
         // TODO SE: Check what label is needed, e.g., title of learning units
         const nodeList: NodeDto[] = graph.nodes.map(
@@ -159,7 +114,15 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
 
         const skills = await this.getSkillsByRepository(daoSkillIn.repositoryId);
         const skillIds = [...new Set(skills.map((skill) => skill.id))];
-        const allLUs = await this.getLearningUnitsBySkillIds(skillIds);
+        const allLUs = await this.luFactory.getLearningUnits({
+            teachingGoals: {
+                some: {
+                    id: {
+                        in: skillIds,
+                    },
+                },
+            },
+        });
 
         isAcyclic(skills, allLUs);
 
@@ -225,7 +188,7 @@ export class PathFinderService implements LearningUnitProvider<LearningUnit> {
 
         const path = await getPath({
             skills: skills,
-            luProvider: this,
+            learningUnits: await this.luFactory.getLearningUnits(),
             desiredSkills: goals,
             ownedSkill: knowledge,
             optimalSolution: dto.optimalSolution,

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 
-import { SearchLearningUnitCreationDto, SearchLearningUnitDto } from "./dto";
+import { SearchLearningUnitCreationDto } from "./dto";
 import { LearningUnitFactory } from "./learningUnitFactory";
 import { MLSEvent } from "../events/dtos/mls-event.dto";
 import { MlsActionEntity } from "../events/dtos/mls-actionEntity.dto";
@@ -14,6 +14,8 @@ import { MlsActionType } from "../events/dtos/mls-actionType.dto";
  */
 @Injectable()
 export class LearningUnitMgmtService {
+    constructor(private luService: LearningUnitFactory) {}
+
     async getEvent(dto: MLSEvent) {
         if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.POST) {
             let locDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(
@@ -36,14 +38,12 @@ export class LearningUnitMgmtService {
             );
             return this.createLearningUnit(locDto);
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.PUT) {
-
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.DELETE) {
-          this.deleteLearningUnit(dto.id)
+            this.deleteLearningUnit(dto.id);
         } else {
             return "error";
         }
     }
-    constructor(private luService: LearningUnitFactory) {}
 
     /**
    * Adds a new LearningUnit
@@ -59,8 +59,8 @@ export class LearningUnitMgmtService {
         return this.luService.getLearningUnit(learningUnitId);
     }
     public async deleteLearningUnit(learningUnitId: string) {
-      return this.luService.deleteLearningUnit(learningUnitId);
-  }
+        return this.luService.deleteLearningUnit(learningUnitId);
+    }
 
     public async loadAllLearningUnits() {
         return this.luService.loadAllLearningUnits();
