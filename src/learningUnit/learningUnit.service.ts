@@ -5,7 +5,7 @@ import { LearningUnitFactory } from "./learningUnitFactory";
 import { MLSEvent } from "../events/dtos/mls-event.dto";
 import { MlsActionEntity } from "../events/dtos/mls-actionEntity.dto";
 import { MlsActionType } from "../events/dtos/mls-actionType.dto";
-import { MLSClient } from "src/clients/clientService/mlsClient.service";
+import { MLSClient } from "../clients/clientService/mlsClient.service";
 
 
 
