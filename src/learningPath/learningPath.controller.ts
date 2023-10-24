@@ -1,11 +1,9 @@
 import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { LearningPathCreationDto, PreferredPathDto } from "./dto";
+import { CreateEmptyPathRequestDto, PreferredPathDto } from "./dto";
 
 import { LearningPathMgmtService } from "./learningPath.service";
-import { PreferredOrdering } from "@prisma/client";
-import { deprecate } from "util";
 
 @ApiTags("LearningPath")
 @Controller("learning-paths")
@@ -13,25 +11,23 @@ export class LearningPathMgmtController {
     constructor(private learningpathService: LearningPathMgmtService) {}
 
     /**
-   * Lists all learning paths.
-   
-   * @returns List of all learning paths.
-   */
-    @Get("showAllLearningPaths")
-    listLearningPaths() {
-        return this.learningpathService.loadAllLearningPaths();
+     * Creates a new empty learning path for the specified owner (orga-id).
+     * @param dto Specifies the owner (orga-id)of the new learning path.
+     * @returns The newly created learning path specification.
+     */
+    @Post()
+    createEmptyLearningPath(dto: CreateEmptyPathRequestDto) {
+        return this.learningpathService.createEmptyLearningPath(dto);
     }
 
     /**
-     * Creates a new learningpath at the specified repository and returns the created learningpath.
-     * @param userId The owner of the repository
-     * @param repositoryId The repository at which the learningpath shall be added to.
-     * @param dto The learningpath description
-     * @returns The created learningpath.
+     * Lists all learning paths.
+     * @returns List of all learning paths.
      */
-    @Post("add_learningpath")
-    addLearningpath(@Body() dto: LearningPathCreationDto) {
-        return this.learningpathService.createLearningPath(dto);
+    @ApiOperation({ deprecated: true })
+    @Get("showAllLearningPaths")
+    listLearningPaths() {
+        return this.learningpathService.loadLearningPathList();
     }
 
     /**

@@ -85,9 +85,10 @@ model PathGoal {
 
 model LearningPath {
   id          String     @id @default(cuid())
-  title       String
+  owner       String
+  title       String?
   description String?
-  version     String     @default("")
+  version     String     @default("v1")
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   goals       PathGoal[] @relation("pathGoals")

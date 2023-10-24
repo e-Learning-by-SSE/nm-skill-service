@@ -1,16 +1,16 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { PrismaService } from "../prisma/prisma.service";
 import {
-    LearningPathCreationDto,
+    CreateEmptyPathRequestDto,
     LearningPathDto,
     LearningPathListDto,
     PreferredPathDto,
 } from "./dto";
-import { Prisma } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningUnit, computeSuggestedSkills } from "../../nm-skill-lib/src";
+import { PrismaService } from "../prisma/prisma.service";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { Prisma } from "@prisma/client";
 
 /**
  * Service that manages the creation/update/deletion
@@ -21,34 +21,16 @@ export class LearningPathMgmtService {
     constructor(private db: PrismaService, private luFactory: LearningUnitFactory) {}
 
     /**
-     * Adds a new learningPath
-     * @param userId The ID of the user who wants to create a learningPath 
-     * @param dto Specifies the learningPath to be created 
+     * Adds a new empty learningPath
+     * @param dto Specifies the owner of the new learning path
      * @returns The newly created learningPath
-
-    */
-    async createLearningPath(dto: LearningPathCreationDto) {
+     */
+    async createEmptyLearningPath(dto: CreateEmptyPathRequestDto) {
         // Create and return learningPath
         try {
             const learningPath = await this.db.learningPath.create({
                 data: {
-                    title: dto.title,
-                    description: dto.description,
-                    goals: {
-                        create: dto.goals.map((goal) => ({
-                            title: goal.title,
-                            description: goal.description,
-                            targetAudience: goal.targetAudience,
-                            requirements: {
-                                connect: goal.requirements.map((requirement) => ({
-                                    id: requirement.id,
-                                })),
-                            },
-                            pathTeachingGoals: {
-                                connect: goal.pathGoals.map((goal) => ({ id: goal.id })),
-                            },
-                        })),
-                    },
+                    owner: dto.owner,
                 },
                 include: {
                     goals: true,
@@ -67,6 +49,53 @@ export class LearningPathMgmtService {
         }
     }
 
+    // /**
+    //  * Adds a new learningPath
+    //  * @param userId The ID of the user who wants to create a learningPath
+    //  * @param dto Specifies the learningPath to be created
+    //  * @returns The newly created learningPath
+    //  * @deprecated Use createEmptyLearningPath instead
+    //  */
+    // async createLearningPath(dto: LearningPathCreationDto) {
+    //     // Create and return learningPath
+    //     try {
+    //         const learningPath = await this.db.learningPath.create({
+    //             data: {
+    //                 title: dto.title,
+    //                 description: dto.description,
+    //                 goals: {
+    //                     create: dto.goals.map((goal) => ({
+    //                         title: goal.title,
+    //                         description: goal.description,
+    //                         targetAudience: goal.targetAudience,
+    //                         requirements: {
+    //                             connect: goal.requirements.map((requirement) => ({
+    //                                 id: requirement.id,
+    //                             })),
+    //                         },
+    //                         pathTeachingGoals: {
+    //                             connect: goal.pathGoals.map((goal) => ({ id: goal.id })),
+    //                         },
+    //                     })),
+    //                 },
+    //             },
+    //             include: {
+    //                 goals: true,
+    //             },
+    //         });
+
+    //         return LearningPathDto.createFromDao(learningPath);
+    //     } catch (error) {
+    //         if (error instanceof PrismaClientKnownRequestError) {
+    //             // unique field already exists
+    //             if (error.code === "P2002") {
+    //                 throw new ForbiddenException("LearningPath already exists");
+    //             }
+    //         }
+    //         throw error;
+    //     }
+    // }
+
     public async getLearningPath(learningPathId: string) {
         const dao = await this.db.learningPath.findUnique({
             where: { id: learningPathId },
@@ -80,22 +109,24 @@ export class LearningPathMgmtService {
         return LearningPathDto.createFromDao(dao);
     }
 
-    public async loadAllLearningPaths(args?: Prisma.LearningPathFindManyArgs) {
+    public async loadLearningPathList(where?: Prisma.LearningPathWhereInput) {
+        const learningPathList = new LearningPathListDto();
+        learningPathList.learningPaths = await this.loadLearningPaths(where);
+    }
+
+    public async loadLearningPaths(where?: Prisma.LearningPathWhereInput) {
         const learningPaths = await this.db.learningPath.findMany({
-            ...args,
-            include: { goals: true },
+            where,
+            include: {
+                goals: true,
+            },
         });
 
         if (!learningPaths) {
             throw new NotFoundException("Can not find any learningPaths");
         }
 
-        const learningPathList = new LearningPathListDto();
-        learningPathList.learningPaths = learningPaths.map((learningPath) =>
-            LearningPathDto.createFromDao(learningPath),
-        );
-
-        return learningPathList;
+        return learningPaths.map((learningPath) => LearningPathDto.createFromDao(learningPath));
     }
 
     /**
@@ -126,53 +157,56 @@ export class LearningPathMgmtService {
             return dto.learningUnits.indexOf(a.id) - dto.learningUnits.indexOf(b.id);
         });
 
-        computeSuggestedSkills(learningUnits, async (lu: LearningUnit, missingSkills: string[]) => {
-            if (missingSkills.length > 0) {
-                const updateQuery: Prisma.PreferredOrderingUncheckedUpdateWithoutLearningUnitInput &
-                    Prisma.PreferredOrderingUncheckedCreateWithoutLearningUnitInput = {
-                    orderId: preferredPathId,
-                    suggestedSkills: {
-                        connect: missingSkills.map((skillId) => ({ id: skillId })),
-                    },
-                };
+        await computeSuggestedSkills(
+            learningUnits,
+            async (lu: LearningUnit, missingSkills: string[]) => {
+                if (missingSkills.length > 0) {
+                    const updateQuery: Prisma.PreferredOrderingUncheckedUpdateWithoutLearningUnitInput &
+                        Prisma.PreferredOrderingUncheckedCreateWithoutLearningUnitInput = {
+                        orderId: preferredPathId,
+                        suggestedSkills: {
+                            connect: missingSkills.map((skillId) => ({ id: skillId })),
+                        },
+                    };
 
-                // Update / Overwrite order-constraint for the given preferredPathId
-                await this.db.learningUnit.update({
-                    where: {
-                        id: lu.id,
-                    },
+                    // Update / Overwrite order-constraint for the given preferredPathId
+                    await this.db.learningUnit.update({
+                        where: {
+                            id: lu.id,
+                        },
 
-                    data: {
-                        orderings: {
-                            upsert: {
-                                where: {
-                                    learningUnitId_orderId: {
-                                        learningUnitId: lu.id,
-                                        orderId: preferredPathId,
+                        data: {
+                            orderings: {
+                                upsert: {
+                                    where: {
+                                        learningUnitId_orderId: {
+                                            learningUnitId: lu.id,
+                                            orderId: preferredPathId,
+                                        },
                                     },
+                                    create: updateQuery,
+                                    update: updateQuery,
                                 },
-                                create: updateQuery,
-                                update: updateQuery,
                             },
                         },
-                    },
-                });
-            } else {
-                // Delete old constraint if there was nothing specified
-                await this.db.learningUnit.update({
-                    where: {
-                        id: lu.id,
-                    },
+                    });
+                } else {
+                    // Delete old constraint if there was nothing specified
+                    await this.db.learningUnit.update({
+                        where: {
+                            id: lu.id,
+                        },
 
-                    data: {
-                        orderings: {
-                            deleteMany: {
-                                orderId: preferredPathId,
+                        data: {
+                            orderings: {
+                                deleteMany: {
+                                    orderId: preferredPathId,
+                                },
                             },
                         },
-                    },
-                });
-            }
-        });
+                    });
+                }
+            },
+        );
     }
 }
