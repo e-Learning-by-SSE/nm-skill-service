@@ -12,15 +12,17 @@ import {
 } from "./dto";
 import { LearningUnit, getPath } from "../../nm-skill-lib/src";
 import { SkillDto } from "../skills/dto";
+import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 
 describe("LearningPath Service", () => {
     // Auxillary objects
     const config = new ConfigService();
     const db = new PrismaService(config);
+    const luFactory = new LearningUnitFactory(db);
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
-    const learningPathService = new LearningPathMgmtService(db);
+    const learningPathService = new LearningPathMgmtService(db, luFactory);
 
     beforeEach(async () => {
         // Wipe DB before test

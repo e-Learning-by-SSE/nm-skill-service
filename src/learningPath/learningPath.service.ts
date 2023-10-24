@@ -9,6 +9,8 @@ import {
 } from "./dto";
 import { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
+import { LearningUnit, computeSuggestedSkills } from "../../nm-skill-lib/src";
 
 /**
  * Service that manages the creation/update/deletion
@@ -16,7 +18,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
  */
 @Injectable()
 export class LearningPathMgmtService {
-    constructor(private db: PrismaService) {}
+    constructor(private db: PrismaService, private luFactory: LearningUnitFactory) {}
 
     /**
      * Adds a new learningPath
@@ -103,20 +105,9 @@ export class LearningPathMgmtService {
      * @param dto The ordering of the learning units, which shall be defined.
      */
     public async definePreferredPath(dto: PreferredPathDto, preferredPathId: string) {
-        const learningUnits = await this.db.learningUnit.findMany({
-            where: {
-                id: {
-                    in: dto.learningUnits,
-                },
-            },
-            include: {
-                orderings: {
-                    where: {
-                        orderId: preferredPathId,
-                    },
-                },
-                teachingGoals: true,
-                requirements: true,
+        const learningUnits = await this.luFactory.getLearningUnits({
+            id: {
+                in: dto.learningUnits,
             },
         });
 
@@ -135,16 +126,7 @@ export class LearningPathMgmtService {
             return dto.learningUnits.indexOf(a.id) - dto.learningUnits.indexOf(b.id);
         });
 
-        // Iterate over all learningUnits starting at index 2 and set ordering condition to previous learningUnit
-        for (let i = 1; i < learningUnits.length; i++) {
-            const previousUnit = learningUnits[i - 1];
-            const currentUnit = learningUnits[i];
-            const missingSkills = previousUnit.teachingGoals
-                .map((goal) => goal.id)
-                .filter(
-                    (goalId) => !currentUnit.requirements.map((skill) => skill.id).includes(goalId),
-                );
-
+        computeSuggestedSkills(learningUnits, async (lu: LearningUnit, missingSkills: string[]) => {
             if (missingSkills.length > 0) {
                 const updateQuery: Prisma.PreferredOrderingUncheckedUpdateWithoutLearningUnitInput &
                     Prisma.PreferredOrderingUncheckedCreateWithoutLearningUnitInput = {
@@ -157,7 +139,7 @@ export class LearningPathMgmtService {
                 // Update / Overwrite order-constraint for the given preferredPathId
                 await this.db.learningUnit.update({
                     where: {
-                        id: currentUnit.id,
+                        id: lu.id,
                     },
 
                     data: {
@@ -165,7 +147,7 @@ export class LearningPathMgmtService {
                             upsert: {
                                 where: {
                                     learningUnitId_orderId: {
-                                        learningUnitId: currentUnit.id,
+                                        learningUnitId: lu.id,
                                         orderId: preferredPathId,
                                     },
                                 },
@@ -179,7 +161,7 @@ export class LearningPathMgmtService {
                 // Delete old constraint if there was nothing specified
                 await this.db.learningUnit.update({
                     where: {
-                        id: currentUnit.id,
+                        id: lu.id,
                     },
 
                     data: {
@@ -191,6 +173,6 @@ export class LearningPathMgmtService {
                     },
                 });
             }
-        }
+        });
     }
 }
