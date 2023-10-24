@@ -5,9 +5,9 @@ import { LearningUnitFactory } from "./learningUnitFactory";
 import { MLSEvent } from "../events/dtos/mls-event.dto";
 import { MlsActionEntity } from "../events/dtos/mls-actionEntity.dto";
 import { MlsActionType } from "../events/dtos/mls-actionType.dto";
-import { Configuration, TaskApi } from '../clients/mls-client';
+import { MLSClient } from "src/clients/clientService/mlsClient.service";
 
-const api = new TaskApi(new Configuration({ basePath: 'https://api.example.com' }));
+
 
 
 /**
@@ -42,11 +42,10 @@ export class LearningUnitMgmtService {
             );
             return this.createLearningUnit(locDto);
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.PUT) {
-            // Make API requests
-        const response = await api.getTaskItem(dto.id);
-        console.log(response.data);
+          let client = new MLSClient()
+          console.log(client.login());
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.DELETE) {
-            this.deleteLearningUnit(dto.id);
+          return this.deleteLearningUnit(dto.id)
         } else {
             return "error";
         }
