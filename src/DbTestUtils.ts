@@ -117,18 +117,6 @@ export class DbTestUtils {
         });
     }
 
-    async createPath(title: string, pathGoal: PathGoal, description?: string) {
-        return this.db.learningPath.create({
-            data: {
-                title: title,
-                description: description,
-                goals: {
-                    connect: pathGoal,
-                },
-            },
-        });
-    }
-
     async createLearningProgress(userId: string, learningUnitIds: string[]) {
         return this.db.userProfile.create({
             data: {
