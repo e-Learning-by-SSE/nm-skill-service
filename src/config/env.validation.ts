@@ -5,6 +5,7 @@ import { IsEnum, IsNotEmpty, IsNumber, validateSync } from 'class-validator';
  * Validation Schema for the configuration file.
  * Based on: https://docs.nestjs.com/techniques/configuration#custom-validate-function
  * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
+ * @author Carsten Wenzel  <wenzel@sse.uni-hildesheim.de>
  */
 export class EnvironmentVariables {
   // App Configuration

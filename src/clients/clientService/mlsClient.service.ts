@@ -30,7 +30,7 @@ export class MLSClient {
   }
 
   async login(): Promise<any> {
-    console.log(this.CLIENT_SECRET)
+    
     try {
       const loginResponse = await axios.post(
         `${this.LOGIN_SERVER_URL}/realms/${this.REALM}/protocol/openid-connect/token`,
@@ -69,10 +69,10 @@ export class MLSClient {
     }
   }
 
-  async run() {
+  async getLearningUnitForId(id:string) {
     try {
       let { access_token, refresh_token } = await this.login();
-      let tasksResponse = await axios.get(`${this.BASE_URL}/mls-api/tasks.jsonld`, {
+      let tasksResponse = await axios.get(`${this.BASE_URL}/mls-api/tasks/`+id, {
         responseType: "json",
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -81,43 +81,8 @@ export class MLSClient {
 
       let pageIndex = 1;
 
-      while (tasksResponse.data["hydra:view"]?.["hydra:next"] != null) {
-        const refreshResponse = await this.refresh(refresh_token);
-        access_token = refreshResponse.access_token;
-        refresh_token = refreshResponse.refresh_token;
-
-        console.log(`=== Page ${pageIndex} ===`);
-
-        tasksResponse = await axios.get(
-          `${this.BASE_URL}/mls-api/tasks.jsonld?pagination=true&page=${pageIndex}`,
-          {
-            responseType: "json",
-            headers: {
-              Authorization: `Bearer ${access_token}`,
-            },
-          }
-        );
-
-        for (let task of tasksResponse.data["hydra:member"]) {
-          console.log("task: ", task.title);
-
-          for (let taskStepIri of task.taskSteps) {
-            const taskStepResponse = await axios.get(`${this.BASE_URL}${taskStepIri}`, {
-              responseType: "json",
-              headers: {
-                Authorization: `Bearer ${access_token}`,
-                "Content-Type": "application/json",
-              },
-            });
-
-            console.log(`- ${taskStepResponse.data.title}`);
-          }
-
-          console.log("");
-        }
-
-        pageIndex++;
-      }
+      console.log(tasksResponse.data);
+      return (tasksResponse.data)
     } catch (error) {
       throw error;
     }

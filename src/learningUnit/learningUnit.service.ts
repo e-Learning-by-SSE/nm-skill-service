@@ -43,7 +43,8 @@ export class LearningUnitMgmtService {
             return this.createLearningUnit(locDto);
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.PUT) {
           let client = new MLSClient()
-          console.log(client.login());
+       
+          return client.getLearningUnitForId(dto.id);
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.DELETE) {
           return this.deleteLearningUnit(dto.id)
         } else {
