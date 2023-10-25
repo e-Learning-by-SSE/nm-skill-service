@@ -15,6 +15,7 @@ import { LearningUnit } from "../../nm-skill-lib/src";
  * - Convert Self-Learning/Search specific DTOs into database operations (CRUD operations)
  * - Convert DAOs received from the data based to project-specific DTOs (including error handling)
  * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
+ * @author Carsten Wenzel <wenzelc@sse.uni-hildesheim.de>
  */
 @Injectable()
 export class LearningUnitFactory {

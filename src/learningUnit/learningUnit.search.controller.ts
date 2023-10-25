@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { SearchLearningUnitCreationDto } from './dto/search';
@@ -6,8 +6,8 @@ import { SearchLearningUnitCreationDto } from './dto/search';
 import { LearningUnitMgmtService } from './learningUnit.service';
 import { MLSEvent } from '../events/dtos/mls-event.dto';
 
-@ApiTags('LearningUnit')
-@Controller('learningUnits')
+@ApiTags('Learning-units')
+@Controller('learning-units')
 export class SearchLearningUnitController {
   constructor(private learningUnitService: LearningUnitMgmtService) {}
 
@@ -48,6 +48,10 @@ export class SearchLearningUnitController {
   }
   @Delete(':learningUnitId')
   deleteLearningUnit(@Param('learningUnitId') learningUnitId: string) {
+    return this.learningUnitService.deleteLearningUnit(learningUnitId);
+  }
+  @Patch(':learningUnitId')
+  patchLearningUnit(@Param('learningUnitId') learningUnitId: string, @Body() dto: SearchLearningUnitCreationDto) {
     return this.learningUnitService.deleteLearningUnit(learningUnitId);
   }
 }
