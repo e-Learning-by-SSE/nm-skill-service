@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CreateEmptyPathRequestDto, PreferredPathDto } from "./dto";
@@ -18,6 +18,11 @@ export class LearningPathMgmtController {
     @Post()
     createEmptyLearningPath(@Body() dto: CreateEmptyPathRequestDto) {
         return this.learningpathService.createEmptyLearningPath(dto);
+    }
+
+    @Get()
+    getLearningPathsOfOwner(@Query("owner") owner: string) {
+        return this.learningpathService.loadLearningPathList({ owner: owner });
     }
 
     /**

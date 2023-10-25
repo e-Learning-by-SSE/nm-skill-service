@@ -112,6 +112,7 @@ export class LearningPathMgmtService {
     public async loadLearningPathList(where?: Prisma.LearningPathWhereInput) {
         const learningPathList = new LearningPathListDto();
         learningPathList.learningPaths = await this.loadLearningPaths(where);
+        return learningPathList;
     }
 
     public async loadLearningPaths(where?: Prisma.LearningPathWhereInput) {

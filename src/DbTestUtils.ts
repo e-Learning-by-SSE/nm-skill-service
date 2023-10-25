@@ -97,6 +97,14 @@ export class DbTestUtils {
         return this.db.learningUnit.create(createInput);
     }
 
+    async createLearningPath(owner: string) {
+        return this.db.learningPath.create({
+            data: {
+                owner: owner,
+            },
+        });
+    }
+
     async createPathGoal(
         title: string,
         goals: Skill[],

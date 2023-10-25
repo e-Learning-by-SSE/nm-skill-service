@@ -6,9 +6,7 @@ import { validate } from "class-validator";
 import { ConfigModule } from "@nestjs/config";
 import { PrismaModule } from "../prisma/prisma.module";
 import { LearningPathModule } from "./learningPath.module";
-import { CreateEmptyPathRequestDto, LearningPathDto } from "./dto";
-import exp from "constants";
-
+import { CreateEmptyPathRequestDto, LearningPathDto, LearningPathListDto } from "./dto";
 describe("Learning-Path Controller E2E-Tests", () => {
     let app: INestApplication;
     const dbUtils = DbTestUtils.getInstance();
@@ -99,6 +97,83 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     console.log(`Result: ${JSON.stringify(result)}`);
                     expect(result).toMatchObject(expectedResult);
                     expect(result.id).not.toEqual(firstResult.id);
+                });
+        });
+    });
+
+    describe("GET:?owner", () => {
+        it("Request Learning-Paths of non-existent user", async () => {
+            dbUtils.createLearningPath("test-orga");
+
+            // Expected Result
+            const expectedResult: LearningPathListDto = {
+                learningPaths: [],
+            };
+
+            // Test: Create one empty path
+            return request(app.getHttpServer())
+                .get("/learning-paths?owner=unknown-orga")
+                .expect(200)
+                .expect((res) => {
+                    const result = res.body as LearningPathDto;
+                    expect(result).toMatchObject(expectedResult);
+                });
+        });
+
+        it("Request Learning-Paths of user with 1 path", async () => {
+            dbUtils.createLearningPath("test-orga");
+
+            // Expected Result
+            const expectedResult: LearningPathListDto = {
+                learningPaths: [
+                    {
+                        id: expect.any(String),
+                        owner: "test-orga",
+                        title: "",
+                        goals: [],
+                    },
+                ],
+            };
+
+            // Test: Create one empty path
+            return request(app.getHttpServer())
+                .get("/learning-paths?owner=test-orga")
+                .expect(200)
+                .expect((res) => {
+                    const result = res.body as LearningPathDto;
+                    expect(result).toMatchObject(expectedResult);
+                });
+        });
+
+        it("Request Learning-Paths of user with multiple paths", async () => {
+            const path1 = await dbUtils.createLearningPath("test-orga");
+            const path2 = await dbUtils.createLearningPath("test-orga");
+
+            // Expected Result
+            const expectedResult: LearningPathListDto = {
+                learningPaths: expect.arrayContaining([
+                    {
+                        id: path1.id,
+                        owner: "test-orga",
+                        title: "",
+                        goals: [],
+                    },
+                    {
+                        id: path2.id,
+                        owner: "test-orga",
+                        title: "",
+                        goals: [],
+                    },
+                ]),
+            };
+
+            // Test: Create one empty path
+            return request(app.getHttpServer())
+                .get("/learning-paths?owner=test-orga")
+                .expect(200)
+                .expect((res) => {
+                    const result = res.body as LearningPathDto;
+                    expect(result).toMatchObject(expectedResult);
                 });
         });
     });
