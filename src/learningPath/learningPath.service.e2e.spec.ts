@@ -103,7 +103,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
 
     describe("GET:?owner", () => {
         it("Request Learning-Paths of non-existent user", async () => {
-            dbUtils.createLearningPath("test-orga");
+            await dbUtils.createLearningPath("test-orga");
 
             // Expected Result
             const expectedResult: LearningPathListDto = {
@@ -121,7 +121,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
         });
 
         it("Request Learning-Paths of user with 1 path", async () => {
-            dbUtils.createLearningPath("test-orga");
+            await dbUtils.createLearningPath("test-orga");
 
             // Expected Result
             const expectedResult: LearningPathListDto = {
