@@ -16,7 +16,7 @@ export class LearningPathMgmtController {
      * @returns The newly created learning path specification.
      */
     @Post()
-    createEmptyLearningPath(dto: CreateEmptyPathRequestDto) {
+    createEmptyLearningPath(@Body() dto: CreateEmptyPathRequestDto) {
         return this.learningpathService.createEmptyLearningPath(dto);
     }
 
