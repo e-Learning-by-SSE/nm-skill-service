@@ -18,8 +18,10 @@ import { MLSClient } from "../clients/clientService/mlsClient.service";
  */
 @Injectable()
 export class LearningUnitMgmtService {
-    constructor(private luService: LearningUnitFactory) {}
-
+    checkLearningUnit(learningUnitId: string) {
+      throw new Error('Method not implemented.');
+    }
+    
     async getEvent(dto: MLSEvent) {
         if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.POST) {
             let locDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(

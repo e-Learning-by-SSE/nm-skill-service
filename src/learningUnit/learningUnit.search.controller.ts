@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiTags, ApiQuery } from '@nestjs/swagger'; // Import ApiQuery decorator
 
 import { SearchLearningUnitCreationDto } from './dto/search';
@@ -83,4 +83,12 @@ export class SearchLearningUnitController {
   patchLearningUnit(@Param('learningUnitId') learningUnitId: string, @Body() dto: SearchLearningUnitCreationDto) {
     return this.learningUnitService.patchLearningUnit(learningUnitId, dto);
   }
+  @Put(':learningUnitId/checks')
+  checkLearningUnit(@Param('learningUnitId') learningUnitId: string) {
+    return this.learningUnitService.checkLearningUnit(learningUnitId);
+  }
+
+
+
+  
 }
