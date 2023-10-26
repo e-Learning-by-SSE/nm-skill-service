@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { CreateEmptyPathRequestDto, PreferredPathDto } from "./dto";
+import { CreateEmptyPathRequestDto, PreferredPathDto, UpdatePathRequestDto } from "./dto";
 
 import { LearningPathMgmtService } from "./learningPath.service";
 
@@ -25,6 +25,14 @@ export class LearningPathMgmtController {
         return this.learningpathService.loadLearningPathList({ owner: owner });
     }
 
+    @Patch(":learningPathId")
+    updateLearningPath(
+        @Param("learningPathId") learningPathId: string,
+        @Body() dto: UpdatePathRequestDto,
+    ) {
+        return this.learningpathService.updateLearningPath(learningPathId, dto);
+    }
+
     /**
      * Lists all learning paths.
      * @returns List of all learning paths.
@@ -41,7 +49,7 @@ export class LearningPathMgmtController {
      * @returns The specified learningpath.
      */
     @Get(":learningpathId")
-    getLearningPath(@Param("learningpathId") learningpathId: string) {
+    async getLearningPath(@Param("learningpathId") learningpathId: string) {
         return this.learningpathService.getLearningPath(learningpathId);
     }
 

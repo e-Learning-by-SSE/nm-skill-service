@@ -39,61 +39,48 @@ enum LIFECYCLE {
 
 
 model Skill {
-  id          String  @id @default(cuid())
-  name        String
-  level       Int
-  description String?
+  id                String              @id @default(cuid())
+  name              String
+  level             Int
+  description       String?
 
   repositoryId      String
-  repository        SkillMap   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  parentSkills      Skill[]    @relation("parentSkills")
-  nestedSkills      Skill[]    @relation("parentSkills")
-  pathTeachingGoals PathGoal[] @relation("pathTeachingGoal")
-  requirements      PathGoal[] @relation("requirements")
+  repository        SkillMap            @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  parentSkills      Skill[]             @relation("parentSkills")
+  nestedSkills      Skill[]             @relation("parentSkills")
+  pathTeachingGoals LearningPath[]      @relation("pathGoals")
+  requirements      LearningPath[]      @relation("pathRequirements")
 
-  selfReported CareerProfile[] @relation("selfReportedSkill")
-  verified     CareerProfile[] @relation("verifiedSkill")
+  selfReported      CareerProfile[]     @relation("selfReportedSkill")
+  verified          CareerProfile[]     @relation("verifiedSkill")
 
   // Use in Learning Objects
   goalsOf           LearningUnit[]      @relation("teachingGoals")
   requirementsOf    LearningUnit[]      @relation("requirements")
   suggestedBy       PreferredOrdering[] @relation("suggestedSkills")
 
-  learnedBy LearningProgress[] @relation("learnedBy")
+  learnedBy         LearningProgress[]  @relation("learnedBy")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  // da gibts noch mehr Datenbankfefehle mit @@ - nochmal nachsehen -> "@@" ausl�sen von Datenbankbefehlen "heissen: Blockattributes"
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 
-  @@unique([repositoryId, name]) // @@unique: Kombination aus repository und name muss eindeutig sein 
-  @@map("skills") // @@map:  Mappen der "Skill" Tabelle auf ""skills" im Typescript code
-}
-
-model PathGoal {
-  id                String         @id @default(cuid())
-  title             String
-  targetAudience    String?
-  description       String?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-  pathTeachingGoals Skill[]        @relation("pathTeachingGoal")
-  requirements      Skill[]        @relation("requirements")
-  paths             LearningPath[] @relation("pathGoals")
-
-  @@map("path_goals")
+  @@unique([repositoryId, name])
+  @@map("skills")
 }
 
 model LearningPath {
-  id          String     @id @default(cuid())
-  owner       String
-  title       String?
-  description String?
-  version     String     @default("v1")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  goals       PathGoal[] @relation("pathGoals")
+  id                      String         @id @default(cuid())
+  owner                   String
+  title                   String?
+  targetAudience          String?
+  description             String?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  pathTeachingGoals       Skill[]        @relation("pathGoals")
+  requirements            Skill[]        @relation("pathRequirements")
+  recommendedUnitSequence LearningUnit[] @relation("recommendedUnitsOfLEarningPath")
+  lifecycle               LIFECYCLE      @default(DRAFT)
 
-  @@unique([title, version])
   @@map("paths")
 }
 
@@ -153,6 +140,8 @@ model LearningUnit {
   LearningHistory   LearningHistory?   @relation(fields: [learningHistoryId], references: [id])
   learningHistoryId String?
   orga_id String @default("")
+
+  usedInRecommendations LearningPath[] @relation("recommendedUnitsOfLEarningPath")
   
   lifecycle LIFECYCLE  @default(DRAFT)
   @@unique([id])
