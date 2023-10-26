@@ -72,4 +72,8 @@ export class LearningUnitMgmtService {
     public async loadAllLearningUnits() {
         return this.luService.loadAllLearningUnits();
     }
+    public async patchLearningUnit(learningUnitId: string, dto: SearchLearningUnitCreationDto) {
+        return this.luService.patchLearningUnit(learningUnitId, dto);
+      }
+
 }
