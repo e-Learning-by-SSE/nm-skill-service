@@ -79,8 +79,6 @@ export class MLSClient {
         },
       });
 
-      let pageIndex = 1;
-
       console.log(tasksResponse.data);
       return (tasksResponse.data)
     } catch (error) {

@@ -6,6 +6,7 @@ import { MLSEvent } from "../events/dtos/mls-event.dto";
 import { MlsActionEntity } from "../events/dtos/mls-actionEntity.dto";
 import { MlsActionType } from "../events/dtos/mls-actionType.dto";
 import { MLSClient } from "../clients/clientService/mlsClient.service";
+import { LearningUnitFilterDto } from "./dto/search/learningUnit-filter.dto";
 
 
 
@@ -18,6 +19,9 @@ import { MLSClient } from "../clients/clientService/mlsClient.service";
  */
 @Injectable()
 export class LearningUnitMgmtService {
+    getLearningUnitByFilter(filter: LearningUnitFilterDto) {
+      throw new Error("Method not implemented.");
+    }
     checkLearningUnit(learningUnitId: string) {
       throw new Error('Method not implemented.');
     }
