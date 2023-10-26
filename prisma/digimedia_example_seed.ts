@@ -1077,8 +1077,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2001", "2002"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
-        
+        orga_id: "3",
     },
     {
         id: "2002",
@@ -1088,7 +1087,7 @@ const learningObjectives = [
         requirements: ["2002"],
         teachingGoals: ["2003", "2004", "2005"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2003",
@@ -1098,7 +1097,7 @@ const learningObjectives = [
         requirements: ["2005"],
         teachingGoals: ["2006", "2007", "2008"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2004",
@@ -1108,7 +1107,7 @@ const learningObjectives = [
         requirements: ["2008"],
         teachingGoals: ["2009"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2005",
@@ -1118,7 +1117,7 @@ const learningObjectives = [
         requirements: ["2004"],
         teachingGoals: ["2010"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     // Chapter 2
     {
@@ -1129,7 +1128,7 @@ const learningObjectives = [
         requirements: ["2009"],
         teachingGoals: ["2011"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2007",
@@ -1139,7 +1138,7 @@ const learningObjectives = [
         requirements: ["2011"],
         teachingGoals: ["2012"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2008",
@@ -1149,7 +1148,7 @@ const learningObjectives = [
         requirements: ["2012"],
         teachingGoals: ["2013", "2014", "2015"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2009",
@@ -1159,7 +1158,7 @@ const learningObjectives = [
         requirements: ["2013"],
         teachingGoals: ["2016", "2017", "2018"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2010",
@@ -1169,7 +1168,7 @@ const learningObjectives = [
         requirements: ["2013"],
         teachingGoals: ["2019", "2020", "2021"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2011",
@@ -1179,7 +1178,7 @@ const learningObjectives = [
         requirements: ["2013"],
         teachingGoals: ["2022", "2023", "2024"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2012",
@@ -1189,7 +1188,7 @@ const learningObjectives = [
         requirements: ["2013"],
         teachingGoals: ["2025", "2026", "2027"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2013",
@@ -1199,7 +1198,7 @@ const learningObjectives = [
         requirements: ["2011"],
         teachingGoals: ["2028", "2029", "2030"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2014",
@@ -1209,7 +1208,7 @@ const learningObjectives = [
         requirements: ["2025"],
         teachingGoals: ["2031"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2015",
@@ -1219,7 +1218,7 @@ const learningObjectives = [
         requirements: ["2004"],
         teachingGoals: ["2032", "2033"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2016",
@@ -1229,7 +1228,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2034", "2035"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2017",
@@ -1239,7 +1238,7 @@ const learningObjectives = [
         requirements: ["2007"],
         teachingGoals: ["2036", "2037", "2038", "2039"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     // Chapter 3
     {
@@ -1250,7 +1249,7 @@ const learningObjectives = [
         requirements: ["2004"],
         teachingGoals: ["2040", "2041"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2019",
@@ -1260,7 +1259,7 @@ const learningObjectives = [
         requirements: ["2041"],
         teachingGoals: ["2042", "2043", "2044", "2045"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2020",
@@ -1270,7 +1269,7 @@ const learningObjectives = [
         requirements: ["2009"],
         teachingGoals: ["2046", "2047", "2048"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2021",
@@ -1280,7 +1279,7 @@ const learningObjectives = [
         requirements: ["2047", "2041"],
         teachingGoals: ["2049", "2050", "2051"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     //Chapter 4
     {
@@ -1291,7 +1290,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2052", "2053", "2054", "2055"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2023",
@@ -1301,7 +1300,7 @@ const learningObjectives = [
         requirements: ["2025", "2052"],
         teachingGoals: ["2056", "2057", "2058", "2059", "2060"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2024",
@@ -1311,7 +1310,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2061", "2062", "2063"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2025",
@@ -1321,7 +1320,7 @@ const learningObjectives = [
         requirements: ["2027", "2063"],
         teachingGoals: ["2064", "2065"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2026",
@@ -1331,7 +1330,7 @@ const learningObjectives = [
         requirements: ["2056"],
         teachingGoals: ["2066", "2067", "2068"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2027",
@@ -1341,7 +1340,7 @@ const learningObjectives = [
         requirements: ["2066"],
         teachingGoals: ["2069", "2070", "2071", "2072"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2028",
@@ -1351,7 +1350,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2073", "2074"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2029",
@@ -1361,7 +1360,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2075", "2076", "2077"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     // Chapter 5
     {
@@ -1372,7 +1371,7 @@ const learningObjectives = [
         requirements: ["2025", "2026"],
         teachingGoals: ["2078", "2079", "2080"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2031",
@@ -1382,7 +1381,7 @@ const learningObjectives = [
         requirements: ["2080"],
         teachingGoals: ["2081", "2082"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2032",
@@ -1392,7 +1391,7 @@ const learningObjectives = [
         requirements: ["2026"],
         teachingGoals: ["2083", "2084", "2085", "2086", "2087"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2033",
@@ -1402,7 +1401,7 @@ const learningObjectives = [
         requirements: ["2086"],
         teachingGoals: ["2088", "2089"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2034",
@@ -1412,7 +1411,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2090", "2091"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     // Chapter 6
     {
@@ -1423,7 +1422,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2092", "2093", "2094"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2036",
@@ -1433,7 +1432,7 @@ const learningObjectives = [
         requirements: ["2093"],
         teachingGoals: ["2095", "2096", "2097"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2037",
@@ -1443,7 +1442,7 @@ const learningObjectives = [
         requirements: ["2095", "2096", "2097"],
         teachingGoals: ["2098", "2099", "2100"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2038",
@@ -1453,7 +1452,7 @@ const learningObjectives = [
         requirements: ["2093", "2099"],
         teachingGoals: ["2101", "2102", "2103", "2104"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2039",
@@ -1463,7 +1462,7 @@ const learningObjectives = [
         requirements: ["2093"],
         teachingGoals: ["2105"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     // Chapter 7
     {
@@ -1474,7 +1473,7 @@ const learningObjectives = [
         requirements: ["2043"],
         teachingGoals: ["2106", "2107", "2108", "2109"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2041",
@@ -1483,7 +1482,7 @@ const learningObjectives = [
         requirements: ["2108"],
         teachingGoals: ["2110", "2111"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2042",
@@ -1493,7 +1492,7 @@ const learningObjectives = [
         requirements: ["2108"],
         teachingGoals: ["2112", "2113", "2114"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2043",
@@ -1503,7 +1502,7 @@ const learningObjectives = [
         requirements: ["2108"],
         teachingGoals: ["2115", "2116", "2117", "2118", "2119"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2044",
@@ -1513,7 +1512,7 @@ const learningObjectives = [
         requirements: ["2108"],
         teachingGoals: ["2120", "2121", "2122"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2045",
@@ -1523,7 +1522,7 @@ const learningObjectives = [
         requirements: ["2108"],
         teachingGoals: ["2123", "2124", "2125"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2046",
@@ -1533,7 +1532,7 @@ const learningObjectives = [
         requirements: ["2108"],
         teachingGoals: ["2126", "2127", "2128", "2129"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2047",
@@ -1543,7 +1542,7 @@ const learningObjectives = [
         requirements: ["2108"],
         teachingGoals: ["2130", "2131", "2132", "2133"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2048",
@@ -1553,7 +1552,7 @@ const learningObjectives = [
         requirements: ["2108"],
         teachingGoals: ["2134", "2135", "2136", "2137"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     // Chapter 8
     {
@@ -1564,7 +1563,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2138", "2139"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2050",
@@ -1574,7 +1573,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2140", "2141", "2142"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2051",
@@ -1584,7 +1583,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2143", "2144", "2145", "2146"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2052",
@@ -1594,7 +1593,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2147", "2148", "2149", "2150"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     //Chapter 9
     {
@@ -1605,7 +1604,7 @@ const learningObjectives = [
         requirements: ["2146"],
         teachingGoals: ["2151", "2152", "2153"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2054",
@@ -1615,7 +1614,7 @@ const learningObjectives = [
         requirements: ["2151"],
         teachingGoals: ["2154", "2155", "2156", "2157"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2055",
@@ -1625,7 +1624,7 @@ const learningObjectives = [
         requirements: ["2154"],
         teachingGoals: ["2158", "2159", "2160"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     // Chapter 10
     {
@@ -1636,7 +1635,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2161", "2162"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2057",
@@ -1646,7 +1645,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2163", "2164", "2165", "2166"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2058",
@@ -1656,7 +1655,7 @@ const learningObjectives = [
         requirements: ["2161"],
         teachingGoals: ["2167", "2168", "2169"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2059",
@@ -1666,7 +1665,7 @@ const learningObjectives = [
         requirements: ["2161", "2167"],
         teachingGoals: ["2170", "2171", "2172"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2060",
@@ -1676,7 +1675,7 @@ const learningObjectives = [
         requirements: ["2161"],
         teachingGoals: ["2173", "2174", "2175", "2176"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2061",
@@ -1686,7 +1685,7 @@ const learningObjectives = [
         requirements: ["2161"],
         teachingGoals: ["2177", "2178", "2179", "2180"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2062",
@@ -1696,7 +1695,7 @@ const learningObjectives = [
         requirements: ["2161"],
         teachingGoals: ["2181", "2182"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2063",
@@ -1706,7 +1705,7 @@ const learningObjectives = [
         requirements: ["2161"],
         teachingGoals: ["2183", "2184", "2185"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     // Chapter 11
     {
@@ -1717,7 +1716,7 @@ const learningObjectives = [
         requirements: [],
         teachingGoals: ["2186", "2187"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2065",
@@ -1727,7 +1726,7 @@ const learningObjectives = [
         requirements: ["2186"],
         teachingGoals: ["2188", "2189", "2190"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2066",
@@ -1737,7 +1736,7 @@ const learningObjectives = [
         requirements: ["2190"],
         teachingGoals: ["2191", "2192", "2193"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2067",
@@ -1747,7 +1746,7 @@ const learningObjectives = [
         requirements: ["2193"],
         teachingGoals: ["2194"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     // Chapter 12
     {
@@ -1758,7 +1757,7 @@ const learningObjectives = [
         requirements: ["2012"],
         teachingGoals: ["2195", "2196", "2197"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2069",
@@ -1767,7 +1766,7 @@ const learningObjectives = [
         requirements: ["2197"],
         teachingGoals: ["2198", "2199"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
     {
         id: "2070",
@@ -1777,13 +1776,14 @@ const learningObjectives = [
         requirements: ["2198"],
         teachingGoals: ["2200", "2201", "2202"],
         lifecycle: LIFECYCLE.DRAFT,
-        orga_id: '3',
+        orga_id: "3",
     },
 ];
 
 const learningGoals = [
     {
         id: "2001",
+        owner: "orga-2",
         repositoryId: "1",
         name: "Industrie im Wandel der Zeit",
         description: undefined,
@@ -1869,9 +1869,10 @@ async function createSkillGroups() {
 async function createGoals() {
     // Avoid Deadlocks -> Run all in sequence
     for (const goal of learningGoals) {
-        await prisma.pathGoal.create({
+        await prisma.learningPath.create({
             data: {
                 id: goal.id,
+                owner: goal.owner,
                 title: goal.name,
                 description: goal.description,
                 pathTeachingGoals: {

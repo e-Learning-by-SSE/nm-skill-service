@@ -7,6 +7,7 @@ import { ConfigModule } from "@nestjs/config";
 import { PrismaModule } from "../prisma/prisma.module";
 import { LearningPathModule } from "./learningPath.module";
 import { CreateEmptyPathRequestDto, LearningPathDto, LearningPathListDto } from "./dto";
+import { LIFECYCLE } from "@prisma/client";
 describe("Learning-Path Controller E2E-Tests", () => {
     let app: INestApplication;
     const dbUtils = DbTestUtils.getInstance();
@@ -47,7 +48,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 id: expect.any(String),
                 owner: input.owner,
                 title: "",
+                lifecycle: LIFECYCLE.DRAFT,
+                requirements: [],
                 goals: [],
+                recommendedUnitSequence: [],
             };
 
             // Test: Create one empty path
@@ -72,7 +76,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 id: expect.any(String),
                 owner: input.owner,
                 title: "",
+                lifecycle: LIFECYCLE.DRAFT,
+                requirements: [],
                 goals: [],
+                recommendedUnitSequence: [],
             };
 
             // Test: Create 2 paths; second path should have different ID
@@ -130,7 +137,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         id: expect.any(String),
                         owner: "test-orga",
                         title: "",
+                        lifecycle: LIFECYCLE.DRAFT,
+                        requirements: [],
                         goals: [],
+                        recommendedUnitSequence: [],
                     },
                 ],
             };
@@ -156,13 +166,19 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         id: path1.id,
                         owner: "test-orga",
                         title: "",
+                        lifecycle: LIFECYCLE.DRAFT,
+                        requirements: [],
                         goals: [],
+                        recommendedUnitSequence: [],
                     },
                     {
                         id: path2.id,
                         owner: "test-orga",
                         title: "",
+                        lifecycle: LIFECYCLE.DRAFT,
+                        requirements: [],
                         goals: [],
+                        recommendedUnitSequence: [],
                     },
                 ]),
             };

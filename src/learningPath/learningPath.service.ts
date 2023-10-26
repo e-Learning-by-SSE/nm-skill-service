@@ -5,6 +5,7 @@ import {
     LearningPathDto,
     LearningPathListDto,
     PreferredPathDto,
+    UpdatePathRequestDto,
 } from "./dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningUnit, computeSuggestedSkills } from "../../nm-skill-lib/src";
@@ -33,7 +34,9 @@ export class LearningPathMgmtService {
                     owner: dto.owner,
                 },
                 include: {
-                    goals: true,
+                    requirements: true,
+                    pathTeachingGoals: true,
+                    recommendedUnitSequence: true,
                 },
             });
 
@@ -49,64 +52,68 @@ export class LearningPathMgmtService {
         }
     }
 
-    // /**
-    //  * Adds a new learningPath
-    //  * @param userId The ID of the user who wants to create a learningPath
-    //  * @param dto Specifies the learningPath to be created
-    //  * @returns The newly created learningPath
-    //  * @deprecated Use createEmptyLearningPath instead
-    //  */
-    // async createLearningPath(dto: LearningPathCreationDto) {
-    //     // Create and return learningPath
-    //     try {
-    //         const learningPath = await this.db.learningPath.create({
-    //             data: {
-    //                 title: dto.title,
-    //                 description: dto.description,
-    //                 goals: {
-    //                     create: dto.goals.map((goal) => ({
-    //                         title: goal.title,
-    //                         description: goal.description,
-    //                         targetAudience: goal.targetAudience,
-    //                         requirements: {
-    //                             connect: goal.requirements.map((requirement) => ({
-    //                                 id: requirement.id,
-    //                             })),
-    //                         },
-    //                         pathTeachingGoals: {
-    //                             connect: goal.pathGoals.map((goal) => ({ id: goal.id })),
-    //                         },
-    //                     })),
-    //                 },
-    //             },
-    //             include: {
-    //                 goals: true,
-    //             },
-    //         });
+    /**
+     * Partially updates a LearningPath. This function considers a tristate logic:
+     * - null: The field shall be deleted (reset to default), this is supported only by optional fields
+     * - undefined: The field shall not be changed
+     * - value: The field shall be updated to the given value
+     * @param learningPathId Specifies the LearningPath that shall be updated.
+     * @param dto The new values for the LearningPath.
+     * @returns The updated LearningPath.
+     */
+    async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto) {
+        const requirements =
+            dto.requirements === null ? [] : dto.requirements?.map((req) => ({ id: req }));
+        const pathTeachingGoals =
+            dto.pathGoals === null ? [] : dto.pathGoals?.map((goal) => ({ id: goal }));
+        const unitOrder =
+            dto.recommendedUnitSequence === null
+                ? []
+                : dto.recommendedUnitSequence?.map((unit) => ({ id: unit }));
 
-    //         return LearningPathDto.createFromDao(learningPath);
-    //     } catch (error) {
-    //         if (error instanceof PrismaClientKnownRequestError) {
-    //             // unique field already exists
-    //             if (error.code === "P2002") {
-    //                 throw new ForbiddenException("LearningPath already exists");
-    //             }
-    //         }
-    //         throw error;
-    //     }
-    // }
-
-    public async getLearningPath(learningPathId: string) {
-        const dao = await this.db.learningPath.findUnique({
-            where: { id: learningPathId },
-            include: { goals: true },
+        const result = await this.db.learningPath.update({
+            where: {
+                id: learningPathId,
+            },
+            data: {
+                owner: dto.owner,
+                title: dto.title,
+                description: dto.description,
+                targetAudience: dto.targetAudience,
+                lifecycle: dto.lifecycle,
+                requirements: {
+                    set: requirements,
+                },
+                pathTeachingGoals: {
+                    set: pathTeachingGoals,
+                },
+                recommendedUnitSequence: {
+                    set: unitOrder,
+                },
+            },
+            include: {
+                requirements: true,
+                pathTeachingGoals: true,
+                recommendedUnitSequence: true,
+            },
         });
 
-        if (!dao) {
-            throw new NotFoundException(`Specified learningPath not found: ${learningPathId}`);
+        if (dto.recommendedUnitSequence) {
+            // Define / Update preferred path
+            await this.definePreferredPath(
+                { learningUnits: dto.recommendedUnitSequence },
+                learningPathId,
+            );
+        } else if (dto.recommendedUnitSequence === null) {
+            // Delete preferred path
+            await this.db.preferredOrdering.deleteMany({
+                where: {
+                    orderId: learningPathId,
+                },
+            });
         }
 
-        return LearningPathDto.createFromDao(dao);
+        return LearningPathDto.createFromDao(result);
     }
 
     public async loadLearningPathList(where?: Prisma.LearningPathWhereInput) {
@@ -119,7 +126,9 @@ export class LearningPathMgmtService {
         const learningPaths = await this.db.learningPath.findMany({
             where,
             include: {
-                goals: true,
+                requirements: true,
+                pathTeachingGoals: true,
+                recommendedUnitSequence: true,
             },
         });
 
@@ -128,6 +137,25 @@ export class LearningPathMgmtService {
         }
 
         return learningPaths.map((learningPath) => LearningPathDto.createFromDao(learningPath));
+    }
+
+    public async getLearningPath(learningPathId: string) {
+        const learningPath = await this.db.learningPath.findUnique({
+            where: {
+                id: learningPathId,
+            },
+            include: {
+                requirements: true,
+                pathTeachingGoals: true,
+                recommendedUnitSequence: true,
+            },
+        });
+
+        if (!learningPath) {
+            throw new NotFoundException(`Can not find learningPath with id ${learningPathId}`);
+        }
+
+        return LearningPathDto.createFromDao(learningPath);
     }
 
     /**

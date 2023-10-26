@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 
 import { PrismaService } from "./prisma/prisma.service";
-import { PathGoal, Prisma, Skill, SkillMap } from "@prisma/client";
+import { Prisma, Skill, SkillMap } from "@prisma/client";
 
 /**
  * Not a test suite, but functionality that supports writing test cases.
@@ -102,25 +102,10 @@ export class DbTestUtils {
             data: {
                 owner: owner,
             },
-        });
-    }
-
-    async createPathGoal(
-        title: string,
-        goals: Skill[],
-        requirements: Skill[],
-        description?: string,
-    ) {
-        return this.db.pathGoal.create({
-            data: {
-                title: title,
-                description: description,
-                pathTeachingGoals: {
-                    connect: goals,
-                },
-                requirements: {
-                    connect: requirements,
-                },
+            include: {
+                requirements: true,
+                pathTeachingGoals: true,
+                recommendedUnitSequence: true,
             },
         });
     }
