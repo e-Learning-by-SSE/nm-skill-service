@@ -41,6 +41,9 @@ export class DbTestUtils {
         // Skills
         await this.db.skill.deleteMany();
         await this.db.skillMap.deleteMany();
+
+        // Feedback
+        await this.db.feedback.deleteMany();
     }
 
     public getDb() {
