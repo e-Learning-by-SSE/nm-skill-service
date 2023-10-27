@@ -1,6 +1,6 @@
 # Competence Repository Service
 
-![Build Status](https://jenkins-2.sse.uni-hildesheim.de/job/Teaching_nm-competence-repository-service/job/main/lastBuild/badge/icon 'Build Status')
+![Build Status](https://jenkins-2.sse.uni-hildesheim.de/job/Teaching_nm-competence-repository-service/job/main/lastBuild/badge/icon "Build Status")
 
 The Competence Repository Service allows content creators / teachers to develop their own competence repositories (i.e., taxonomies), share them with others, and use them to model required and offered competencies of a course.
 
@@ -20,17 +20,17 @@ The service can be configured via the `.env` file placed in the root of this rep
 # Start the dev-db docker container
 npm run db:start
 
-# Wipe and restart dev-db, also applies current db schema
-npm run db:restart
-
-# Create and deploy a new db migration (after the db schema has been changed), will also seed the db (applying sample data)
-npx prisma migrate dev
+# Reset db without applying seed (e.g., after db is in inconsistent state but seed not needed)
+npx prisma push db --force-reset
 
 # Apply sample data (without clearing existing data)
 npx prisma db seed
 
-# Clear data and seed
-npx prisma migrate reset
+# Clear data and seed (e.g., after db is in inconsistent state and seed data is expected for local tests)
+npm run db:redeploy
+
+# Create and deploy a new db migration (after the db schema has been changed), will also seed the db (applying sample data)
+npx prisma migrate dev
 
 # Run the web-based client to browse and manipulate the dev-db
 npx prisma studio
@@ -64,12 +64,12 @@ npm run test:cov
 
 ## Used Packages / Frameworks
 
-- [Nest](https://github.com/nestjs/nest): Server-side backend
-- [Prisma](https://www.prisma.io): ORM / database access
-- class-validator, class-transformer: For validating requests
-- argon2: Hashing passwords and Tokens
-- [@nestjs/passport, passport, @nestjs/jwt passport-jwt, @types/passport-jwt](https://docs.nestjs.com/security/authentication): For authentication
-- [swagger](https://swagger.io/): REST API documentation
+-   [Nest](https://github.com/nestjs/nest): Server-side backend
+-   [Prisma](https://www.prisma.io): ORM / database access
+-   class-validator, class-transformer: For validating requests
+-   argon2: Hashing passwords and Tokens
+-   [@nestjs/passport, passport, @nestjs/jwt passport-jwt, @types/passport-jwt](https://docs.nestjs.com/security/authentication): For authentication
+-   [swagger](https://swagger.io/): REST API documentation
 
 ## Docker
 
