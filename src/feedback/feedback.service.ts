@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
-import { PrismaService } from "src/prisma/prisma.service";
+import { PrismaService } from "../prisma/prisma.service";
 import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
