@@ -4,7 +4,7 @@ import { FeedbackService } from "./feedback.service";
 import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
 
 @ApiTags("Feedback")
-@Controller("feedback")
+@Controller("feedbacks")
 export class FeedbackController {
     constructor(private feedbackService: FeedbackService) {}
 
@@ -12,7 +12,7 @@ export class FeedbackController {
      * Lists all available feedback.   
      * @returns List of all feedback.
      */
-    @Get("showAllFeedback")
+    @Get("")
     listFeedback() {
         return this.feedbackService.loadAllFeedback();
     }
@@ -34,7 +34,7 @@ export class FeedbackController {
      * @param dto The feedback description
      * @returns The created feedback.
      */
-    @Post("add_feedback")
+    @Post("")
     addFeedback(@Body() dto: FeedbackCreationDto) {
         return this.feedbackService.createFeedback(dto);
     }
