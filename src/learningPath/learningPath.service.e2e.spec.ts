@@ -6,8 +6,16 @@ import { validate } from "class-validator";
 import { ConfigModule } from "@nestjs/config";
 import { PrismaModule } from "../prisma/prisma.module";
 import { LearningPathModule } from "./learningPath.module";
-import { CreateEmptyPathRequestDto, LearningPathDto, LearningPathListDto } from "./dto";
-import { LIFECYCLE } from "@prisma/client";
+import {
+    CreateEmptyPathRequestDto,
+    LearningPathDto,
+    LearningPathListDto,
+    UpdatePathRequestDto,
+} from "./dto";
+import { LIFECYCLE, Skill, SkillMap, LearningUnit as PrismaLearningUnit } from "@prisma/client";
+import { LearningPathMgmtService } from "./learningPath.service";
+import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
+
 describe("Learning-Path Controller E2E-Tests", () => {
     let app: INestApplication;
     const dbUtils = DbTestUtils.getInstance();
@@ -186,6 +194,316 @@ describe("Learning-Path Controller E2E-Tests", () => {
             // Test: Create one empty path
             return request(app.getHttpServer())
                 .get("/learning-paths?owner=test-orga")
+                .expect(200)
+                .expect((res) => {
+                    const result = res.body as LearningPathDto;
+                    expect(result).toMatchObject(expectedResult);
+                });
+        });
+    });
+
+    describe("PATCH:/pathId", () => {
+        // Test data
+        let skillMap: SkillMap;
+        let skill1: Skill;
+        let skill2: Skill;
+        let unit1: PrismaLearningUnit;
+        let unit2: PrismaLearningUnit;
+
+        beforeEach(async () => {
+            await dbUtils.wipeDb();
+            skillMap = await dbUtils.createSkillMap("New Owner", "Skill Map");
+            skill1 = await dbUtils.createSkill(skillMap, "Skill1");
+            skill2 = await dbUtils.createSkill(skillMap, "Skill2");
+            unit1 = await dbUtils.createLearningUnit("Unit1", [skill1], []);
+            unit2 = await dbUtils.createLearningUnit("Unit2", [skill2], [skill1]);
+        });
+
+        it("Update non-existent path -> 404", async () => {
+            await dbUtils.createLearningPath("test-orga");
+
+            // Update path
+            const update: UpdatePathRequestDto = {
+                owner: "New Owner",
+            };
+
+            return request(app.getHttpServer())
+                .patch("/learning-paths/any-non-existent-ID")
+                .send(update)
+                .expect(404);
+        });
+
+        it("Fully update empty path -> 200", async () => {
+            // Test object
+            const initialPath = await dbUtils.createLearningPath("test-orga");
+
+            // Input
+            const update: UpdatePathRequestDto = {
+                owner: "New Owner",
+                title: "A new title",
+                targetAudience: "A new target audience",
+                description: "A new description",
+                lifecycle: LIFECYCLE.POOL,
+                requirements: [skill1.id],
+                pathGoals: [skill2.id],
+                recommendedUnitSequence: [unit1.id, unit2.id],
+            };
+
+            // Expected Result
+            const expectedResult: LearningPathDto = {
+                id: initialPath.id,
+                owner: update.owner!,
+                title: update.title!,
+                targetAudience: update.targetAudience!,
+                lifecycle: update.lifecycle!,
+                requirements: update.requirements!,
+                goals: update.pathGoals!,
+                recommendedUnitSequence: update.recommendedUnitSequence!,
+            };
+
+            // Test: Update initialPath
+            return request(app.getHttpServer())
+                .patch(`/learning-paths/${initialPath.id}`)
+                .send(update)
+                .expect(200)
+                .expect((res) => {
+                    const result = res.body as LearningPathDto;
+                    expect(result).toMatchObject(expectedResult);
+                });
+        });
+
+        describe("Partial Update", () => {
+            it("Update title -> 200", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    title: "A new title",
+                };
+
+                // Expected Result
+                const expectedResult: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: initialPath.owner,
+                    title: update.title!,
+                    lifecycle: initialPath.lifecycle,
+                    requirements: [],
+                    goals: [],
+                    recommendedUnitSequence: [],
+                };
+
+                // Test: Update of initialPath
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(200)
+                    .expect((res) => {
+                        const result = res.body as LearningPathDto;
+                        expect(result).toMatchObject(expectedResult);
+                    });
+            });
+
+            it("Update targetAudience -> 200", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    targetAudience: "A new target audience",
+                };
+
+                // Expected Result
+                const expectedResult: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: initialPath.owner,
+                    targetAudience: update.targetAudience!,
+                    title: initialPath.title ?? "",
+                    lifecycle: initialPath.lifecycle,
+                    requirements: [],
+                    goals: [],
+                    recommendedUnitSequence: [],
+                };
+
+                // Test: Update of initialPath
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(200)
+                    .expect((res) => {
+                        const result = res.body as LearningPathDto;
+                        expect(result).toMatchObject(expectedResult);
+                    });
+            });
+
+            it("Update requirements -> 200", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    requirements: [skill1.id],
+                };
+
+                // Expected Result
+                const expectedResult: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: initialPath.owner,
+                    title: initialPath.title ?? "",
+                    lifecycle: initialPath.lifecycle,
+                    requirements: update.requirements!,
+                    goals: [],
+                    recommendedUnitSequence: [],
+                };
+
+                // Test: Update of initialPath
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(200)
+                    .expect((res) => {
+                        const result = res.body as LearningPathDto;
+                        expect(result).toMatchObject(expectedResult);
+                    });
+            });
+
+            it("Update goals -> 200", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    pathGoals: [skill2.id],
+                };
+
+                // Expected Result
+                const expectedResult: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: initialPath.owner,
+                    title: initialPath.title ?? "",
+                    lifecycle: initialPath.lifecycle,
+                    requirements: [],
+                    goals: update.pathGoals!,
+                    recommendedUnitSequence: [],
+                };
+
+                // Test: Update of initialPath
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(200)
+                    .expect((res) => {
+                        const result = res.body as LearningPathDto;
+                        expect(result).toMatchObject(expectedResult);
+                    });
+            });
+
+            it("Update recommendedUnitSequence -> 200", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    recommendedUnitSequence: [unit1.id, unit2.id],
+                };
+
+                // Expected Result
+                const expectedResult: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: initialPath.owner,
+                    title: initialPath.title ?? "",
+                    lifecycle: initialPath.lifecycle,
+                    requirements: [],
+                    goals: [],
+                    recommendedUnitSequence: update.recommendedUnitSequence!,
+                };
+
+                // Test: Update of initialPath
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(200)
+                    .expect((res) => {
+                        const result = res.body as LearningPathDto;
+                        expect(result).toMatchObject(expectedResult);
+                    });
+            });
+        });
+    });
+
+    describe("GET:/pathId", () => {
+        it("Request non-existent path -> 404", async () => {
+            await dbUtils.createLearningPath("test-orga");
+
+            // Test: Create one empty path
+            return request(app.getHttpServer())
+                .get("/learning-paths/any-non-existent-ID")
+                .expect(404);
+        });
+
+        it("Request empty path -> 200", async () => {
+            const createdPath = await dbUtils.createLearningPath("test-orga");
+
+            // Expected Result
+            const expectedResult: LearningPathDto = {
+                id: createdPath.id,
+                owner: createdPath.owner,
+                title: createdPath.title ?? "",
+                lifecycle: LIFECYCLE.DRAFT,
+                requirements: [],
+                goals: [],
+                recommendedUnitSequence: [],
+            };
+
+            // Test: Create one empty path
+            return request(app.getHttpServer())
+                .get(`/learning-paths/${createdPath.id}`)
+                .expect(200)
+                .expect((res) => {
+                    const result = res.body as LearningPathDto;
+                    expect(result).toMatchObject(expectedResult);
+                });
+        });
+
+        it("Request fully configured path -> 200", async () => {
+            const createdPath = await dbUtils.createLearningPath("test-orga");
+            const skillMap = await dbUtils.createSkillMap("New Owner", "Skill Map");
+            const skill1 = await dbUtils.createSkill(skillMap, "Skill1");
+            const skill2 = await dbUtils.createSkill(skillMap, "Skill2");
+            const unit1 = await dbUtils.createLearningUnit("Unit1", [skill1], []);
+            const unit2 = await dbUtils.createLearningUnit("Unit2", [skill2], [skill1]);
+
+            // Update path
+            const update: UpdatePathRequestDto = {
+                owner: "New Owner",
+                title: "A new title",
+                targetAudience: "A new target audience",
+                description: "A new description",
+                lifecycle: LIFECYCLE.POOL,
+                requirements: [skill1.id],
+                pathGoals: [skill2.id],
+                recommendedUnitSequence: [unit1.id, unit2.id],
+            };
+            const lpService = new LearningPathMgmtService(
+                dbUtils.getDb(),
+                new LearningUnitFactory(dbUtils.getDb()),
+            );
+            await lpService.updateLearningPath(createdPath.id, update);
+
+            // Expected Result
+            const expectedResult: LearningPathDto = {
+                id: createdPath.id,
+                owner: update.owner!,
+                title: update.title!,
+                lifecycle: update.lifecycle!,
+                requirements: update.requirements!,
+                goals: update.pathGoals!,
+                recommendedUnitSequence: update.recommendedUnitSequence!,
+            };
+
+            // Test: Create one empty path
+            return request(app.getHttpServer())
+                .get(`/learning-paths/${createdPath.id}`)
                 .expect(200)
                 .expect((res) => {
                     const result = res.body as LearningPathDto;

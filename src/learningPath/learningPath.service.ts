@@ -12,6 +12,7 @@ import { LearningUnit, computeSuggestedSkills } from "../../nm-skill-lib/src";
 import { PrismaService } from "../prisma/prisma.service";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { Prisma } from "@prisma/client";
+import { th } from "@faker-js/faker";
 
 /**
  * Service that manages the creation/update/deletion
@@ -71,32 +72,44 @@ export class LearningPathMgmtService {
                 ? []
                 : dto.recommendedUnitSequence?.map((unit) => ({ id: unit }));
 
-        const result = await this.db.learningPath.update({
-            where: {
-                id: learningPathId,
-            },
-            data: {
-                owner: dto.owner,
-                title: dto.title,
-                description: dto.description,
-                targetAudience: dto.targetAudience,
-                lifecycle: dto.lifecycle,
-                requirements: {
-                    set: requirements,
+        const result = await this.db.learningPath
+            .update({
+                where: {
+                    id: learningPathId,
                 },
-                pathTeachingGoals: {
-                    set: pathTeachingGoals,
+                data: {
+                    owner: dto.owner,
+                    title: dto.title,
+                    description: dto.description,
+                    targetAudience: dto.targetAudience,
+                    lifecycle: dto.lifecycle,
+                    requirements: {
+                        set: requirements,
+                    },
+                    pathTeachingGoals: {
+                        set: pathTeachingGoals,
+                    },
+                    recommendedUnitSequence: {
+                        set: unitOrder,
+                    },
                 },
-                recommendedUnitSequence: {
-                    set: unitOrder,
+                include: {
+                    requirements: true,
+                    pathTeachingGoals: true,
+                    recommendedUnitSequence: true,
                 },
-            },
-            include: {
-                requirements: true,
-                pathTeachingGoals: true,
-                recommendedUnitSequence: true,
-            },
-        });
+            })
+            .catch((error) => {
+                if (error instanceof PrismaClientKnownRequestError) {
+                    // Specified Learning not found
+                    if (error.code === "P2025") {
+                        throw new NotFoundException(
+                            `LearningPath with id ${learningPathId} not found`,
+                        );
+                    }
+                }
+                throw error;
+            });
 
         if (dto.recommendedUnitSequence) {
             // Define / Update preferred path
@@ -114,6 +127,9 @@ export class LearningPathMgmtService {
         }
 
         return LearningPathDto.createFromDao(result);
+        // if (!result) {
+        //     throw new NotFoundException(`Can not find learningPath with id ${learningPathId}`);
+        // }
     }
 
     public async loadLearningPathList(where?: Prisma.LearningPathWhereInput) {
