@@ -31,38 +31,38 @@ enum ACCESS_RIGHTS {
   PUBLIC
   COMPANY
 }
+
 enum LIFECYCLE {
   DRAFT
   POOL
   ARCHIVED
 }
 
-
 model Skill {
-  id                String              @id @default(cuid())
-  name              String
-  level             Int
-  description       String?
+  id          String  @id @default(cuid())
+  name        String
+  level       Int
+  description String?
 
   repositoryId      String
-  repository        SkillMap            @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  parentSkills      Skill[]             @relation("parentSkills")
-  nestedSkills      Skill[]             @relation("parentSkills")
-  pathTeachingGoals LearningPath[]      @relation("pathGoals")
-  requirements      LearningPath[]      @relation("pathRequirements")
+  repository        SkillMap       @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  parentSkills      Skill[]        @relation("parentSkills")
+  nestedSkills      Skill[]        @relation("parentSkills")
+  pathTeachingGoals LearningPath[] @relation("pathGoals")
+  requirements      LearningPath[] @relation("pathRequirements")
 
-  selfReported      CareerProfile[]     @relation("selfReportedSkill")
-  verified          CareerProfile[]     @relation("verifiedSkill")
+  selfReported CareerProfile[] @relation("selfReportedSkill")
+  verified     CareerProfile[] @relation("verifiedSkill")
 
   // Use in Learning Objects
   goalsOf        LearningUnit[]      @relation("teachingGoals")
   requirementsOf LearningUnit[]      @relation("requirements")
   suggestedBy    PreferredOrdering[] @relation("suggestedSkills")
 
-  learnedBy         LearningProgress[]  @relation("learnedBy")
+  learnedBy LearningProgress[] @relation("learnedBy")
 
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([repositoryId, name])
   @@map("skills")
@@ -139,11 +139,12 @@ model LearningUnit {
   consumed          ConsumedUnitData[] @relation("consumedLU")
   LearningHistory   LearningHistory?   @relation(fields: [learningHistoryId], references: [id])
   learningHistoryId String?
-  orga_id String @default("")
+  orga_id           String             @default("")
 
   usedInRecommendations LearningPath[] @relation("recommendedUnitsOfLEarningPath")
-  
-  lifecycle LIFECYCLE  @default(DRAFT)
+
+  lifecycle LIFECYCLE @default(DRAFT)
+
   @@unique([id])
 }
 
@@ -169,8 +170,8 @@ model Company {
 
   // User UserProfile[]        // clarify this
   // Job  Job[]                // clarify this
-  users        UserProfile[]
-  jobs         Job[]
+  users UserProfile[]
+  jobs  Job[]
 }
 
 // ######## Einf�gen der MLS-Id  ########
@@ -293,19 +294,18 @@ model Job {
 }
 
 model Feedback {
-  id                       String   @id @default(cuid())
-  userId                   String   @default("TestUserId1")
-  learningUnitId           String   @default("TestLUId1")
+  id                String @id @default(cuid())
+  userId            String @default("TestUserId1") //To discuss: Save this or make it anonymous?
+  learningUnitId    String @default("TestLUId1")
   //user                  UserProfile  @relation(fields: [userId], references: [id])
   //userId                String  @unique 
   //learningUnit    LearningUnit  @relation(fields: [learningUnitId], references: [id])
   //learningUnitId  String  @unique 
-  comprehensivenessStars   Int      @default(1)
-  comprehensivenessComment String   @default("")
-  presentationStars        Int      @default(1)
-  presentationComment      String   @default("")
-  learningValueStars       Int      @default(1)
-  learningValueComment     String   @default("")
-  otherComment             String   @default("")
-  createdAt                DateTime @default(now())
+  learningValue     Int    @default(1) //How much did the user learn?
+  presentation      Int    @default(1) //How well was the content presented?
+  comprehensiveness Int    @default(1) //How easily understandable was the content?
+  structure         Int    @default(1) //How well was the content structured (including length)?
+  overallRating     Int    @default(1) //How is the overall rating for the learning unit/task?
+  optionalTextComment String   @default("") //Optional textual comment, e.g., what could be better, what was great?
+  createdAt           DateTime @default(now())
 }

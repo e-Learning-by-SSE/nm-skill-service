@@ -64,13 +64,12 @@ export class FeedbackService {
                 data: {
                     userId: dto.userID,
                     learningUnitId: dto.learningUnitID,
-                    comprehensivenessStars: dto.comprehensivenessStars,
-                    comprehensivenessComment: dto.comprehensivenessComment,
-                    presentationStars: dto.presentationStars,
-                    presentationComment: dto.presentationComment,
-                    learningValueStars: dto.learningValueStars,
-                    learningValueComment: dto.learningValueComment,
-                    otherComment: dto.otherComment,
+                    learningValue: dto.learningValue,
+                    presentation: dto.presentation,
+                    comprehensiveness: dto.comprehensiveness,
+                    structure: dto.structure,
+                    overallRating: dto.overallRating,
+                    optionalTextComment: dto.optionalTextComment,
                 },
             });
 
