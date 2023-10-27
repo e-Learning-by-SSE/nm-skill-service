@@ -15,7 +15,7 @@
         "start:debug": "nest start --debug --watch",
         "start:prod": "node dist/main",
         "db:start": "docker compose up dev-db -d",
-        "db:redeploy": "npx prisma push db --force-reset && npx prisma db seed",
+        "db:redeploy": "npx prisma db push --force-reset && npx prisma db seed",
         "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
         "lint:ci": "eslint src test --ext .ts,.tsx --format checkstyle --output-file output/eslint/eslint.xml || exit 0",
         "test": "jest --runInBand",

@@ -21,7 +21,7 @@ The service can be configured via the `.env` file placed in the root of this rep
 npm run db:start
 
 # Reset db without applying seed (e.g., after db is in inconsistent state but seed not needed)
-npx prisma push db --force-reset
+npx prisma db push --force-reset
 
 # Apply sample data (without clearing existing data)
 npx prisma db seed
