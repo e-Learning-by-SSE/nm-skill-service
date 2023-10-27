@@ -46,10 +46,6 @@ export class DbTestUtils {
         await this.db.feedback.deleteMany();
     }
 
-    public getDb() {
-        return this.db;
-    }
-
     async createSkill(
         skillMap: SkillMap,
         name: string,
