@@ -19,6 +19,8 @@ import { LearningUnitFilterDto } from "./dto/search/learningUnit-filter.dto";
  */
 @Injectable()
 export class LearningUnitMgmtService {
+    constructor(private luService: LearningUnitFactory) {}
+
     getLearningUnitByFilter(filter: LearningUnitFilterDto) {
       throw new Error("Method not implemented.");
     }

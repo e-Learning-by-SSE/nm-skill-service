@@ -19,6 +19,23 @@ import { LearningUnit } from "../../nm-skill-lib/src";
  */
 @Injectable()
 export class LearningUnitFactory {
+    public async patchLearningUnit(learningUnitId: string, dto: SearchLearningUnitCreationDto) {
+        try {
+            const existingLearningUnit = await this.loadLearningUnit(learningUnitId);
+
+            if (!existingLearningUnit) {
+                throw new NotFoundException(`Learning Unit not found: ${learningUnitId}`);
+            }
+
+            const updatedLearningUnit = await this.db.learningUnit.update({
+                where: { id: learningUnitId },
+                data: {},
+            });
+            return updatedLearningUnit;
+        } catch (error) {
+            throw error;
+        }
+    }
     constructor(private db: PrismaService) {}
 
     public async deleteLearningUnit(learningUnitId: string) {
