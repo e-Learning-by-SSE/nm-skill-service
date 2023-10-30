@@ -36,14 +36,11 @@ export class FeedbackService {
 
     /**
      * Returns a List containing all existing feedback objects.
-     * @returns A list with all feedback objects.
+     * @returns A (possibly empty) list with all feedback objects.
      */
     public async loadAllFeedback() {
+        //If no feedbacks are found, this returns an empty array
         const feedbackFromDB = await this.db.feedback.findMany();
-
-        if (!feedbackFromDB) {
-            throw new NotFoundException("Can not find any feedback");
-        }
 
         const feedbackList = new FeedbackListDto();
         feedbackList.feedback = feedbackFromDB.map((feedback) => FeedbackDto.createFromDao(feedback));
