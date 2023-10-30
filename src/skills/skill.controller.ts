@@ -18,8 +18,8 @@ import { Prisma } from "@prisma/client";
 export class SkillMgmtController {
     constructor(private skillService: SkillMgmtService) {}
 
-    @Get("/skill/")
-    listUsers(@Param("repositoryId") dto: SkillSearchDto) {
+    @Get("/getAllSkills/")
+    getAllSkills() {
         return this.skillService.loadAllSkills();
     }
 
