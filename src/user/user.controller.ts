@@ -1,11 +1,15 @@
 import { Controller, Get, Post, Body, Param, Delete } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import {
     UserCreationDto,
     CompanyCreationDto,
     LearningProfileCreationDto,
     CreateLearningProgressDto,
     CareerProfileCreationDto,
+    JobCreationDto,
+    LearningHistoryCreationDto,
+    
+    
 } from "./dto";
 import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { UserMgmtService } from "./user.service";
@@ -30,27 +34,47 @@ export class UserMgmtController {
      * @param dto The user description
      * @returns The created user.
      */
+    
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_user")
     addUser(@Body() dto: UserCreationDto) {
         return this.userService.createUser(dto);
     }
 
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_company")
     addCompany(@Body() dto: CompanyCreationDto) {
         return this.userService.createComp(dto);
     }
 
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_learningProfile")
     addLearningProfile(@Body() dto: LearningProfileCreationDto) {
         return this.userService.createLP(dto);
     }
-    @Post("add_skillProfile")
+
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Post("add_CareerProfile")
     addSkillProfile(@Body() dto: CareerProfileCreationDto) {
         return this.userService.createCP(dto);
     }
+
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_Qualification")
     addQualification(@Body() dto: QualificationCreationDto) {
         return this.userService.createQualification(dto);
+    }
+
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Post("add_Job")
+    addJob(@Body() dto: JobCreationDto) {
+        return this.userService.createJob(dto);
+    }
+
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Post("add_LearningHistory")
+    addLearningHistory(@Body() dto: LearningHistoryCreationDto) {
+        return this.userService.createLH(dto);
     }
     /**
      * Returns the specified user.
@@ -67,6 +91,7 @@ export class UserMgmtController {
         return this.userService.getUser(userId2);
     }
 
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get(":id/learning-progress")
     async getUserLearningProgress(@Param("id") id: string) {
         // Fetch a user's learning progress by user ID
