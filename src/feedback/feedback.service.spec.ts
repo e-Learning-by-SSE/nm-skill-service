@@ -3,6 +3,7 @@ import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 import { FeedbackService } from "./feedback.service";
 import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
+import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 
 describe("Feedback Service", () => {
     const config = new ConfigService();
@@ -13,7 +14,7 @@ describe("Feedback Service", () => {
     const feedbackService = new FeedbackService(db);
 
     // Wipe DB before test (only once, DB is reused between tests)
-    beforeAll(async () => {    
+    beforeAll(async () => {
         await dbUtils.wipeDb();
     });
 
@@ -22,8 +23,8 @@ describe("Feedback Service", () => {
         await dbUtils.wipeDb();
     });
 
-    describe("createAndRetrieveFeedbackForLearningUnit", () => {
-        it("should create a feedback entry and retrieve it (single and as list)", async () => {
+    describe("createRetrieveDeleteFeedbackForLearningUnit", () => {
+        it("should create a feedback entry, retrieve it (single and as list), and delete it", async () => {
             // Arrange: Define test data
             const userId = "testUserId"; //Currently only a placeholder string
             const learningUnitId = "testLUId"; //Currently only a placeholder string
@@ -39,16 +40,16 @@ describe("Feedback Service", () => {
             );
 
             // Act: Call the createFeedback method
-            const createdEntry = await feedbackService.createFeedback(feedbackCreationDto);           
+            const createdEntry = await feedbackService.createFeedback(feedbackCreationDto);
 
             // Assert: Check that the createdEntry is valid and matches the expected data
             expect(createdEntry.feedbackID).toBeDefined();
 
-            // Arrange: Get the actual feedback id set in the db   
-            const feedbackId = createdEntry.feedbackID; 
+            // Arrange: Get the actual feedback id set in the db
+            const feedbackId = createdEntry.feedbackID;
 
             // Act: Call the getFeedback method
-            const retrievedEntry = await feedbackService.getFeedback(feedbackId); 
+            const retrievedEntry = await feedbackService.getFeedback(feedbackId);
 
             // Assert: Check that we retrieved the correct feedback
             expect(retrievedEntry.id).toEqual(feedbackId);
@@ -58,6 +59,27 @@ describe("Feedback Service", () => {
 
             // Assert: Check that the list contains exactly one item
             expect(retrievedEntryList.length).toEqual(1);
+
+            // Act: Delete the existing feedback
+            const retrievedAnswer = await feedbackService.deleteFeedbackById(feedbackId);
+
+            // Assert: Check if the deletion was successful
+            expect(retrievedAnswer).toEqual(true);
+        });
+
+        it("should throw errors when retrieving or deleting non existent feedback", async () => {
+            // Act and assert: Call the getFeedback method with a non-existing id and expect an error
+            await expect(feedbackService.getFeedback("nonExistentId"))
+            .rejects
+            .toThrow(NotFoundException);
+
+            // Act and assert: Call the feedback deletion method with a non-existing id and expect an error
+            await expect(feedbackService.deleteFeedbackById("nonExistentId"))
+            .rejects
+            .toThrow(NotFoundException);
+
+            // Act and assert: Call the loadAllFeedback method with no existing feedbacks
+            expect((await feedbackService.loadAllFeedback()).length).toEqual(0);
         });
     });
 });
