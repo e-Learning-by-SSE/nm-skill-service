@@ -84,4 +84,19 @@ export class FeedbackService {
             throw error;
         }
     }
+
+    /**
+     * Deletes the specified feedback from the database
+     * @param id The unique database id of the feedback to be deleted
+     * @returns True if deletion was successful, false otherwise
+     */
+    public async deleteFeedbackById(id: string) {
+        try {
+            await this.db.feedback.delete({ where: { id: id } });
+            return true;
+        } catch (error) {
+            throw new NotFoundException(`Feedback to be deleted not found in database: ${id}`);
+            return false;
+        }      
+    }
 }

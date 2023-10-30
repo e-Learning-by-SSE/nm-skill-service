@@ -39,4 +39,14 @@ export class FeedbackController {
         return this.feedbackService.createFeedback(dto);
     }
 
+    /**
+     * Deletes the specified feedback from the database
+     * @param feedbackId The unique database id of the feedback to be deleted
+     * @returns True if deletion was successful, false otherwise
+     */
+    @Delete(":feedbackId")
+    deleteFeedback(@Param("feedbackId") feedbackId: string) {
+        return this.feedbackService.deleteFeedbackById(feedbackId);
+    }
+
 }
