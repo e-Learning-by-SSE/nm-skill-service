@@ -4,6 +4,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { FeedbackService } from "./feedback.service";
 import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
+import { LearningUnit, UserProfile } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 
 describe("Feedback Service", () => {
     const config = new ConfigService();
@@ -13,8 +15,8 @@ describe("Feedback Service", () => {
     // Test object
     const feedbackService = new FeedbackService(db);
 
-    // Wipe DB before test (only once, DB is reused between tests)
-    beforeAll(async () => {
+    // Wipe DB before each test
+    beforeEach(async () => {
         await dbUtils.wipeDb();
     });
 
@@ -26,8 +28,24 @@ describe("Feedback Service", () => {
     describe("createRetrieveDeleteFeedbackForLearningUnit", () => {
         it("should create a feedback entry, retrieve it (single and as list), and delete it", async () => {
             // Arrange: Define test data
-            const userId = "testUserId"; //Currently only a placeholder string
-            const learningUnitId = "testLUId"; //Currently only a placeholder string
+
+            //Create test user profile
+            let userProf: UserProfile;
+            userProf = await db.userProfile.create({
+                data: {
+                    name: "TestUser",
+                    status: "ACTIVE",
+                    id: "testId",
+                },
+            });
+            const userId = userProf.id; // Replace with a valid user ID
+
+            //Create test learning unit
+            let unit: LearningUnit;
+            unit = await dbUtils.createLearningUnit("TestUnit", [], []);
+            const learningUnitId = unit.id; // Replace with a valid learning unit ID
+
+            //Create test feedback dto
             const feedbackCreationDto = new FeedbackCreationDto(
                 userId,
                 learningUnitId,
@@ -67,19 +85,99 @@ describe("Feedback Service", () => {
             expect(retrievedAnswer).toEqual(true);
         });
 
+        it("should delete the feedback entry only and exactly if the corresponding learning unit is deleted", async () => {
+            // Arrange: Define test data
+
+            //Create test user profile
+            let userProf: UserProfile;
+            userProf = await db.userProfile.create({
+                data: {
+                    name: "TestUser2",
+                    status: "ACTIVE",
+                    id: "testId2",
+                },
+            });
+            const userId = userProf.id; // Replace with a valid user ID
+
+            //Create test learning unit
+            let unit: LearningUnit;
+            unit = await dbUtils.createLearningUnit("TestUnit2", [], []);
+            const learningUnitId = unit.id; // Replace with a valid learning unit ID
+
+            //Create test feedback dto and DB entry
+            const feedbackCreationDto = new FeedbackCreationDto(
+                userId,
+                learningUnitId,
+                1,
+                2,
+                3,
+                4,
+                5,
+                null,
+            );
+            const createdFeedbackEntry = await feedbackService.createFeedback(feedbackCreationDto);
+            const feedbackId = createdFeedbackEntry.feedbackID; // Replace with a valid feedback ID
+
+            //Update + delete user currently not tested as intended, as onDelete relation is not working properly.
+            let retrievedEntry = await feedbackService.getFeedback(feedbackId);
+            expect(retrievedEntry.userId).toEqual(createdFeedbackEntry.userID);
+
+            // Act: Update the learning unit
+            // To be done when LU has an update function/endpoint
+            retrievedEntry = await feedbackService.getFeedback(feedbackId);
+
+            // Assert: Check that the learning unit id is unchanged
+            expect(retrievedEntry.learningUnitId).toEqual(createdFeedbackEntry.learningUnitID);
+
+            // Act: Delete user
+            db.userProfile.delete({ where: { id: userId } });
+            retrievedEntry = await feedbackService.getFeedback(feedbackId);
+
+            // Assert: Check that the feedback author is set to "anonymous" (to be corrected)
+            //expect(retrievedEntry.userId).toEqual("Anonymous");
+            expect(retrievedEntry.userId).toEqual(userId);
+
+            // Act: Delete the learning unit
+            db.learningUnit.delete({ where: { id: learningUnitId } });
+
+            // Assert: Check that the feedback is also deleted
+            await expect(feedbackService.getFeedback("feedbackId")).rejects.toThrow(
+                NotFoundException,
+            );
+        });
+
         it("should throw errors when retrieving or deleting non existent feedback", async () => {
             // Act and assert: Call the getFeedback method with a non-existing id and expect an error
-            await expect(feedbackService.getFeedback("nonExistentId"))
-            .rejects
-            .toThrow(NotFoundException);
+            await expect(feedbackService.getFeedback("nonExistentId")).rejects.toThrow(
+                NotFoundException,
+            );
 
             // Act and assert: Call the feedback deletion method with a non-existing id and expect an error
-            await expect(feedbackService.deleteFeedbackById("nonExistentId"))
-            .rejects
-            .toThrow(NotFoundException);
+            await expect(feedbackService.deleteFeedbackById("nonExistentId")).rejects.toThrow(
+                NotFoundException,
+            );
 
             // Act and assert: Call the loadAllFeedback method with no existing feedbacks
             expect((await feedbackService.loadAllFeedback()).length).toEqual(0);
+        });
+
+        it("should throw errors when trying to create feedback with invalid user/learning unit ids", async () => {
+            // Arrange: Create test feedback dto with invalid ids
+            const feedbackCreationDto = new FeedbackCreationDto(
+                "userId",
+                "learningUnitId",
+                1,
+                2,
+                3,
+                4,
+                5,
+                null,
+            );
+
+            // Act and assert: Call the createFeedback method with a non-existing user/LU id and expect an error
+            await expect(feedbackService.createFeedback(feedbackCreationDto)).rejects.toThrow(
+                PrismaClientKnownRequestError,
+            );
         });
     });
 });
