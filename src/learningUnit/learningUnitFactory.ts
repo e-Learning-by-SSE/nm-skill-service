@@ -61,7 +61,6 @@ export class LearningUnitFactory {
                     teachingGoals: true,
                 },
             });
-            console.log('test')
             return updatedLearningUnit;
         } catch (error) {
             throw error;
