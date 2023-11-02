@@ -19,7 +19,7 @@ export class LearningUnitMgmtService {
     constructor(private luService: LearningUnitFactory) {}
 
     getLearningUnitByFilter(filter: LearningUnitFilterDto) {
-        throw new Error("Method not implemented.");
+      return this.luService.getLearningUnitByFilter(filter);
     }
     checkLearningUnit(learningUnitId: string) {
         throw new Error("Method not implemented.");
