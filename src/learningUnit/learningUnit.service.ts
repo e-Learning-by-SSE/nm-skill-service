@@ -1,15 +1,12 @@
 import { Injectable } from "@nestjs/common";
 
-import { SearchLearningUnitCreationDto } from "./dto";
+import { SearchLearningUnitCreationDto, SearchLearningUnitDto } from "./dto";
 import { LearningUnitFactory } from "./learningUnitFactory";
 import { MLSEvent } from "../events/dtos/mls-event.dto";
 import { MlsActionEntity } from "../events/dtos/mls-actionEntity.dto";
 import { MlsActionType } from "../events/dtos/mls-actionType.dto";
 import { MLSClient } from "../clients/clientService/mlsClient.service";
 import { LearningUnitFilterDto } from "./dto/search/learningUnit-filter.dto";
-
-
-
 
 /**
  * Service that manages the creation/update/deletion of learning units.
@@ -22,12 +19,12 @@ export class LearningUnitMgmtService {
     constructor(private luService: LearningUnitFactory) {}
 
     getLearningUnitByFilter(filter: LearningUnitFilterDto) {
-      throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.");
     }
     checkLearningUnit(learningUnitId: string) {
-      throw new Error('Method not implemented.');
+        throw new Error("Method not implemented.");
     }
-    
+
     async getEvent(dto: MLSEvent) {
         if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.POST) {
             let locDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(
@@ -50,11 +47,14 @@ export class LearningUnitMgmtService {
             );
             return this.createLearningUnit(locDto);
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.PUT) {
-          let client = new MLSClient()
-       
-          return client.getLearningUnitForId(dto.id);
+            let client = new MLSClient();
+
+            let learningUnit = await client.getLearningUnitForId(dto.id);
+            let b = await this.patchLearningUnit(dto.id, learningUnit);
+
+            return b;
         } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.DELETE) {
-          return this.deleteLearningUnit(dto.id)
+            return this.deleteLearningUnit(dto.id);
         } else {
             return "error";
         }
@@ -82,6 +82,5 @@ export class LearningUnitMgmtService {
     }
     public async patchLearningUnit(learningUnitId: string, dto: SearchLearningUnitCreationDto) {
         return this.luService.patchLearningUnit(learningUnitId, dto);
-      }
-
+    }
 }

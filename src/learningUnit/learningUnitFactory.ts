@@ -28,9 +28,40 @@ export class LearningUnitFactory {
             }
 
             const updatedLearningUnit = await this.db.learningUnit.update({
-                where: { id: learningUnitId },
-                data: {},
+                where: { id: ''+dto.id },
+                data: {
+                    id: ''+dto.id,
+                    title: dto.title ?? "",
+                    orga_id: dto.orga_id ?? "",
+                    lifecycle: dto.lifecycle,
+                    description: dto.description ?? "",
+                    language: dto.language ?? "",
+
+                    processingTime: dto.processingTime,
+                    rating: dto.rating,
+                    contentCreator: dto.contentCreator,
+                    targetAudience: dto.targetAudience,
+                    semanticDensity: dto.semanticDensity,
+                    semanticGravity: dto.semanticGravity,
+                    contentTags: dto.contentTags,
+                    contextTags: dto.contextTags,
+                    linkToHelpMaterial: dto.linkToHelpMaterial,
+
+                    requirements: {
+                        connect: dto.requiredSkills?.map((skillId) => ({ id: skillId })) ?? [],
+                    },
+
+                    teachingGoals: {
+                        connect: dto.teachingGoals?.map((skillId) => ({ id: skillId })) ?? [],
+                    },
+                },
+                include: {
+                    requirements: true,
+
+                    teachingGoals: true,
+                },
             });
+            console.log('test')
             return updatedLearningUnit;
         } catch (error) {
             throw error;
