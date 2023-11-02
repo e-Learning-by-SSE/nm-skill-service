@@ -299,10 +299,10 @@ model Job {
 
 model Feedback {
   id                  String       @id @default(cuid())
-  //user                UserProfile?  @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: SetDefault)  //Set author to anonymous when user is deleted (this does not work)
+  //user                UserProfile?  @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: SetDefault)  //Set author to anonymous when user is deleted (requires user with id: Anonymous)
   userId              String       @default("Anonymous") //A feedback should have an author, but they can be anonymous (if author is deleted or we want anonymous feedback)
   learningUnit        LearningUnit @relation(fields: [learningUnitId], references: [id], onUpdate: NoAction, onDelete: Cascade) //Delete feedback if LU is deleted
-  learningUnitId      String       @unique //A feedback is always given for exactly one learing unit
+  learningUnitId      String //A feedback is always given for exactly one learing unit
   learningValue       Int          @default(1) //How much did the user learn?
   presentation        Int          @default(1) //How well was the content presented?
   comprehensiveness   Int          @default(1) //How easily understandable was the content?
