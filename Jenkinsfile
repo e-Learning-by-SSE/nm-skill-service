@@ -113,10 +113,7 @@ pipeline {
 
                 stage('Deploy') {
                     when {
-                        anyOf {
-                            branch 'dev'
-                            branch 'main'
-                        }
+                        branch 'main'
                     }
                     steps {
                         stagingDeploy env.REMOTE_UPDATE_SCRIPT
@@ -125,10 +122,7 @@ pipeline {
 
                 stage('Publish Swagger Clients') {
                     when {
-                        allOf {
-                            branch 'main'
-                            expression { packageJson.isNewVersion() }
-                        }
+                        buildingTag()
                     }
                     options {
                         timeout(time: 200, unit: 'SECONDS')
