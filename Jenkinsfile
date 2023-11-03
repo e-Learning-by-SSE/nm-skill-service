@@ -70,7 +70,7 @@ pipeline {
                                   sh 'touch testfile.txt'
                                 }
                             } catch(err) {
-                                if (env.BRANCH_NAME == 'master') {
+                                if (env.BRANCH_NAME == 'main') {
                                     error('Stopping build on master branch due to test failures.')
                                 } else {
                                     unstable('Tests failed, but continuing build on development branches.')
