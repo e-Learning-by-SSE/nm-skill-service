@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_TARGET = 'e-learning-by-sse/nm-skill-service:unstable'
+        DOCKER_TARGET_PREFIX = 'e-learning-by-sse/nm-skill-service'
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
         NPMRC = 'e-learning-by-sse'
 
@@ -93,64 +93,60 @@ pipeline {
                     }
                 }
 
-                stage('Docker Build') {
-                    steps {
-                        ssedocker {
-                            create {
-                                target "${env.DOCKER_TARGET}"
-                            }
-                            publish {}
-                        }
+            }
+        }
+        stage('Build Docker Unstable') {
+            when {
+                branch 'main'
+            }
+            steps {
+                ssedocker {
+                    create {
+                        target "${env.DOCKER_TARGET_PREFIX}:unstable"
                     }
+                    publish {}
+                }
+            }
+            post {
+                success {
+                    staging02ssh "bash /opt/update-compose-project.sh selflearn-staging"
                 }
             }
         }
-
-        stage('Starting Post Build Actions') {
-            parallel {
-                stage('Deploy Staging') {
-                    when {
-                        branch 'main'
+    
+        stage('Create Release (Swagger and Docker)') {
+            when {
+                buildingTag()
+            }
+            options {
+                timeout(time: 200, unit: 'SECONDS')
+            }
+            environment {
+                APP_URL = "http://localhost:3000/api-json"
+                DOCKER_TARGET = "${env.DOCKER_TARGET_PREFIX}:latest"
+            }
+            steps {
+                ssedocker {
+                    create {
+                        target "${env.DOCKER_TARGET}"
                     }
-                    steps {
-                        staging01ssh env.REMOTE_UPDATE_SCRIPT
+                    publish {
+                        tag "${env.API_VERSION}"
                     }
                 }
+                script {
+                    sh 'rm -f competence_repository*.zip'
+                    docker.image(env.DOCKER_TARGET).withRun("-e EXTENSION=\"SEARCH\" -p 3000:3000") {
+                        // Wait for the application to be ready (after container was started)  
+                        sleep(time:30, unit:"SECONDS")
+        
+                        generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "competence_repository_search_api", ['python'])
 
-                stage('Create Release (Swagger and Docker)') {
-                    when {
-                        buildingTag()
-                    }
-                    options {
-                        timeout(time: 200, unit: 'SECONDS')
-                    }
-                    environment {
-                        APP_URL = "http://localhost:3000/api-json"
-                    }
-                    steps {
-                        ssedocker {
-                            create {
-                                target "${env.TARGET_PREFIX}:latest"
-                            }
-                            publish {
-                                tag "${env.API_VERSION}"
-                            }
-                        }
-                        script {
-                            sh 'rm -f competence_repository*.zip'
-                            docker.image(env.DOCKER_TARGET).withRun("-e EXTENSION=\"SEARCH\" -p 3000:3000") {
-                                // Wait for the application to be ready (after container was started)  
-                                sleep(time:30, unit:"SECONDS")
-                
-                                generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "competence_repository_search_api", ['python'])
-
-                                generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "competence_repository_search_api", ['typescript-axios']) {
-                                    docker.image('node').inside('-v $HOME/.npm:/.npm') {
-                                        dir('target/generated-sources/openapi') {
-                                            sh 'npm install'
-                                            npmPublish("${NPMRC}")
-                                        }
-                                    }
+                        generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "competence_repository_search_api", ['typescript-axios']) {
+                            docker.image('node').inside('-v $HOME/.npm:/.npm') {
+                                dir('target/generated-sources/openapi') {
+                                    sh 'npm install'
+                                    npmPublish("${NPMRC}")
                                 }
                             }
                         }
