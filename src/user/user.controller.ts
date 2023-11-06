@@ -103,6 +103,8 @@ export class UserMgmtController {
         return this.userService.deleteUser(userId);
     }
 
+
+
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Get(":id/learning-progress")
     async getUserLearningProgress(@Param("id") id: string) {
