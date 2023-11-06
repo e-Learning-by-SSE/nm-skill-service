@@ -91,7 +91,6 @@ export class UserMgmtController {
     getuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUser(userId);
     }
-
     /**
      * Deletes the specified user-profile.
      * @param userId The ID of the user, that shall be returned
@@ -102,8 +101,6 @@ export class UserMgmtController {
     deleteuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.deleteUser(userId);
     }
-
-
 
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Get(":id/learning-progress")
