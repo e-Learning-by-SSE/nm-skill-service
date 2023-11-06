@@ -31,12 +31,12 @@ enum ACCESS_RIGHTS {
   PUBLIC
   COMPANY
 }
+
 enum LIFECYCLE {
   DRAFT
   POOL
   ARCHIVED
 }
-
 
 model Skill {
   id          String  @id @default(cuid())
@@ -45,54 +45,42 @@ model Skill {
   description String?
 
   repositoryId      String
-  repository        SkillMap   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  parentSkills      Skill[]    @relation("parentSkills")
-  nestedSkills      Skill[]    @relation("parentSkills")
-  pathTeachingGoals PathGoal[] @relation("pathTeachingGoal")
-  requirements      PathGoal[] @relation("requirements")
+  repository        SkillMap       @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  parentSkills      Skill[]        @relation("parentSkills")
+  nestedSkills      Skill[]        @relation("parentSkills")
+  pathTeachingGoals LearningPath[] @relation("pathGoals")
+  requirements      LearningPath[] @relation("pathRequirements")
 
   selfReported CareerProfile[] @relation("selfReportedSkill")
   verified     CareerProfile[] @relation("verifiedSkill")
 
   // Use in Learning Objects
-  goalsOf           LearningUnit[]      @relation("teachingGoals")
-  requirementsOf    LearningUnit[]      @relation("requirements")
-  suggestedBy       PreferredOrdering[] @relation("suggestedSkills")
+  goalsOf        LearningUnit[]      @relation("teachingGoals")
+  requirementsOf LearningUnit[]      @relation("requirements")
+  suggestedBy    PreferredOrdering[] @relation("suggestedSkills")
 
   learnedBy LearningProgress[] @relation("learnedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  // da gibts noch mehr Datenbankfefehle mit @@ - nochmal nachsehen -> "@@" ausl�sen von Datenbankbefehlen "heissen: Blockattributes"
 
-  @@unique([repositoryId, name]) // @@unique: Kombination aus repository und name muss eindeutig sein 
-  @@map("skills") // @@map:  Mappen der "Skill" Tabelle auf ""skills" im Typescript code
-}
-
-model PathGoal {
-  id                String         @id @default(cuid())
-  title             String
-  targetAudience    String?
-  description       String?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-  pathTeachingGoals Skill[]        @relation("pathTeachingGoal")
-  requirements      Skill[]        @relation("requirements")
-  paths             LearningPath[] @relation("pathGoals")
-
-  @@map("path_goals")
+  @@unique([repositoryId, name])
+  @@map("skills")
 }
 
 model LearningPath {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  version     String     @default("")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  goals       PathGoal[] @relation("pathGoals")
+  id                      String         @id @default(cuid())
+  owner                   String
+  title                   String?
+  targetAudience          String?
+  description             String?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  pathTeachingGoals       Skill[]        @relation("pathGoals")
+  requirements            Skill[]        @relation("pathRequirements")
+  recommendedUnitSequence LearningUnit[] @relation("recommendedUnitsOfLEarningPath")
+  lifecycle               LIFECYCLE      @default(DRAFT)
 
-  @@unique([title, version])
   @@map("paths")
 }
 
@@ -131,10 +119,10 @@ model LearningUnit {
   completedBy LearningHistory[] @relation("completedBy")
   startedBy   LearningHistory[] @relation("startedBy")
 
-  requirements   Skill[] @relation("requirements")
-  teachingGoals  Skill[] @relation("teachingGoals")
+  requirements  Skill[]             @relation("requirements")
+  teachingGoals Skill[]             @relation("teachingGoals")
   // Softconstraints (Ordering)
-  orderings      PreferredOrdering[]
+  orderings     PreferredOrdering[]
 
   // Search-specific meta data
   processingTime     String   @default("")
@@ -151,15 +139,20 @@ model LearningUnit {
   consumed          ConsumedUnitData[] @relation("consumedLU")
   LearningHistory   LearningHistory?   @relation(fields: [learningHistoryId], references: [id])
   learningHistoryId String?
-  orga_id String @default("")
-  
-  lifecycle LIFECYCLE  @default(DRAFT)
+  orga_id           String             @default("")
+
+  usedInRecommendations LearningPath[] @relation("recommendedUnitsOfLEarningPath")
+
+  lifecycle LIFECYCLE @default(DRAFT)
+
+  feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
+
   @@unique([id])
 }
 
 // Softconstraints per LearningUnit & Path to support orderings defined by content creators 
 model PreferredOrdering {
-  id              String        @id @default(cuid())
+  id String @id @default(cuid())
 
   // TODO SE: Currently without weight, check if we need some (supported by algorithm)
   suggestedSkills Skill[]       @relation("suggestedSkills")
@@ -179,8 +172,8 @@ model Company {
 
   // User UserProfile[]        // clarify this
   // Job  Job[]                // clarify this
-  users        UserProfile[]
-  jobs         Job[]
+  users UserProfile[]
+  jobs  Job[]
 }
 
 // ######## Einf�gen der MLS-Id  ########
@@ -201,6 +194,8 @@ model UserProfile {
 
   Qualification Qualification[]
   Job           Job?
+
+  //feedbacks Feedback[] //Feedbacks given by the user, one to many relation (not implemented as onDelete relation is not working properly)
 
   @@unique([companyId, name]) // unique Schluessel noch bearebeiten
   @@map("user")
@@ -300,4 +295,19 @@ model Job {
   userId    String          @unique // relation scalar field
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
   // userCareerProfileId String          @unique // relation scalar field   
+}
+
+model Feedback {
+  id                  String       @id @default(cuid())
+  //user                UserProfile?  @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: SetDefault)  //Set author to anonymous when user is deleted (requires user with id: Anonymous)
+  userId              String       @default("Anonymous") //A feedback should have an author, but they can be anonymous (if author is deleted or we want anonymous feedback)
+  learningUnit        LearningUnit @relation(fields: [learningUnitId], references: [id], onUpdate: NoAction, onDelete: Cascade) //Delete feedback if LU is deleted
+  learningUnitId      String //A feedback is always given for exactly one learing unit
+  learningValue       Int          @default(1) //How much did the user learn?
+  presentation        Int          @default(1) //How well was the content presented?
+  comprehensiveness   Int          @default(1) //How easily understandable was the content?
+  structure           Int          @default(1) //How well was the content structured (including length)?
+  overallRating       Int          @default(1) //How is the overall rating for the learning unit/task?
+  optionalTextComment String?      @default("") //Optional textual comment, e.g., what could be better, what was great?
+  createdAt           DateTime     @default(now())
 }

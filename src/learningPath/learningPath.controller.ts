@@ -1,11 +1,9 @@
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { LearningPathCreationDto, PreferredPathDto } from "./dto";
+import { CreateEmptyPathRequestDto, UpdatePathRequestDto } from "./dto";
 
 import { LearningPathMgmtService } from "./learningPath.service";
-import { PreferredOrdering } from "@prisma/client";
-import { deprecate } from "util";
 
 @ApiTags("LearningPath")
 @Controller("learning-paths")
@@ -13,57 +11,68 @@ export class LearningPathMgmtController {
     constructor(private learningpathService: LearningPathMgmtService) {}
 
     /**
-   * Lists all learning paths.
-   
-   * @returns List of all learning paths.
-   */
-    @Get("showAllLearningPaths")
-    listLearningPaths() {
-        return this.learningpathService.loadAllLearningPaths();
-    }
-
-    /**
-     * Creates a new learningpath at the specified repository and returns the created learningpath.
-     * @param userId The owner of the repository
-     * @param repositoryId The repository at which the learningpath shall be added to.
-     * @param dto The learningpath description
-     * @returns The created learningpath.
+     * Creates a new empty learning path for the specified owner (orga-id).
+     * @param dto Specifies the owner (orga-id)of the new learning path.
+     * @returns The newly created learning path specification.
      */
-    @Post("add_learningpath")
-    addLearningpath(@Body() dto: LearningPathCreationDto) {
-        return this.learningpathService.createLearningPath(dto);
+    @Post()
+    createEmptyLearningPath(@Body() dto: CreateEmptyPathRequestDto) {
+        return this.learningpathService.createEmptyLearningPath(dto);
     }
 
     /**
-     * Returns the specified learningpath.
-     * @param learningpathId The ID of the learningpath, that shall be returned
-     * @returns The specified learningpath.
+     * Returns all LearningPaths of the specified owner (orga-id).
+     * @param owner An orga-id.
+     * @returns All LearningPaths of the specified owner, may be empty.
      */
-    @Get(":learningpathId")
-    getLearningPath(@Param("learningpathId") learningpathId: string) {
-        return this.learningpathService.getLearningPath(learningpathId);
+    @Get()
+    getLearningPathsOfOwner(@Query("owner") owner: string) {
+        return this.learningpathService.loadLearningPathList({ owner: owner });
     }
 
     /**
-     * Specifies a preferred ordering of the learning units (for a learning path).
-     * @param learningPathId The ID of the learning path for which the ordering should be defined. Re-using the same ID will overwrite the previous ordering.
-     * @param dto The ordering of the learning units, which shall be defined.
-     * @returns 200 if the operation was successful or 404 if some of the specified learning units do not exist.
+     * Partially updates a LearningPath. This function considers a tristate logic:
+     * - null: The field shall be deleted (reset to default), this is supported only by optional fields
+     * - undefined: The field shall not be changed
+     * - value: The field shall be updated to the given value
      *
+     * To specify a suggested ordering you need to pass the affected learning unit IDs in the array "recommendedUnitSequence" in the desired order.
+     * The old order will always be completely overwritten if a "recommendedUnitSequence" is defined, i.e., the recommendation of unspecified units will be deleted for this LearningPath.
+     * The old order will be kept if "recommendedUnitSequence" is undefined/not passed as parameter.
      * @example
      * Default ordering of first 5 units of the first DigiMedia chapter:
      * ```json
      * {
-     *   "learningUnits": ["2001", "2002", "2005", "2003", "2004"]
+     *   "recommendedUnitSequence": ["2001", "2002", "2005", "2003", "2004"]
      * }
      * ```
+     *
+     * @param pathId A learning path ID (should be created before via the POST method)
+     * @param dto The new values to change for the LearningPath.
+     * @returns The updated LearningPath.
      */
-    @ApiOperation({ summary: "Experimental (WIP)" })
-    @Put(":learningPathId/unit-sequence")
-    definePreferredPath(
-        @Param("learningPathId") learningPathId: string,
-        @Body() dto: PreferredPathDto,
-    ) {
-        return this.learningpathService.definePreferredPath(dto, learningPathId);
+    @Patch(":pathId")
+    updateLearningPath(@Param("pathId") pathId: string, @Body() dto: UpdatePathRequestDto) {
+        return this.learningpathService.updateLearningPath(pathId, dto);
+    }
+
+    // /**
+    //  * Lists all learning paths.
+    //  * @returns List of all learning paths.
+    //  */
+    // @ApiOperation({ deprecated: true })
+    // @Get("showAllLearningPaths")
+    // listLearningPaths() {
+    //     return this.learningpathService.loadLearningPathList();
+    // }
+
+    /**
+     * Returns the specified learningpath.
+     * @param pathId The ID of the learningpath, that shall be returned
+     * @returns The specified learningpath.
+     */
+    @Get(":pathId")
+    async getLearningPath(@Param("pathId") pathId: string) {
+        return this.learningpathService.getLearningPath(pathId);
     }
 }

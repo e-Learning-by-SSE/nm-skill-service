@@ -2,34 +2,99 @@ import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 import { LearningPathMgmtService } from "./learningPath.service";
-import { ForbiddenException, NotFoundException } from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 import {
-    LearningPathCreationDto,
+    CreateEmptyPathRequestDto,
     LearningPathDto,
-    PathGoalCreationDto,
-    PathGoalDto,
+    LearningPathListDto,
     PreferredPathDto,
+    UpdatePathRequestDto,
 } from "./dto";
-import { LearningUnit, LearningUnitProvider, getPath } from "../../nm-skill-lib/src";
+import { LearningUnit, getPath } from "../../nm-skill-lib/src";
 import { SkillDto } from "../skills/dto";
+import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
+import { LIFECYCLE, Skill, SkillMap, LearningUnit as PrismaLearningUnit } from "@prisma/client";
+import "jest-expect-message";
 
 describe("LearningPath Service", () => {
     // Auxillary objects
     const config = new ConfigService();
     const db = new PrismaService(config);
+    const luFactory = new LearningUnitFactory(db);
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
-    const learningPathService = new LearningPathMgmtService(db);
+    const learningPathService = new LearningPathMgmtService(db, luFactory);
 
     beforeEach(async () => {
         // Wipe DB before test
         await dbUtils.wipeDb();
     });
 
-    describe("loadAllLearningPaths", () => {
+    describe("createLearningPath", () => {
+        it("Create empty Path on empty DB-> LearningPath created", async () => {
+            // Data to be created
+            const creationDto: CreateEmptyPathRequestDto = {
+                owner: "TestUser",
+            };
+
+            // Pre-Condition: Expected element does not exist
+            await expect(
+                learningPathService.loadLearningPaths({ owner: creationDto.owner }),
+            ).resolves.toMatchObject([]);
+
+            // Post-Condition: Element was created and DTO is returned
+            const expected: Partial<LearningPathDto> = {
+                id: expect.anything(),
+                owner: creationDto.owner,
+                goals: [],
+            };
+            await expect(
+                learningPathService.createEmptyLearningPath(creationDto),
+            ).resolves.toMatchObject(expect.objectContaining(expected));
+        });
+
+        it("Create multiple Paths for same organization-> 2 LearningPaths with different IDs created", async () => {
+            // Data to be created (will be used twice)
+            const creationDto: CreateEmptyPathRequestDto = {
+                owner: "TestOrganization",
+            };
+
+            // Pre-Condition: Expected element does not exist
+            await expect(
+                learningPathService.loadLearningPaths({ owner: creationDto.owner }),
+            ).resolves.toMatchObject([]);
+
+            // Post-Condition: Element was created and DTO is returned
+            const expected: Partial<LearningPathDto> = {
+                id: expect.anything(),
+                owner: creationDto.owner,
+                goals: [],
+            };
+
+            // Test 1: Create first element -> Should be accepted
+            await expect(
+                learningPathService.createEmptyLearningPath(creationDto),
+            ).resolves.toMatchObject(expect.objectContaining(expected));
+            // Test 2: Create second element -> Should be accepted, too
+            await expect(
+                learningPathService.createEmptyLearningPath(creationDto),
+            ).resolves.toMatchObject(expect.objectContaining(expected));
+            // There should be 2 Paths defined for the same organization
+            await expect(
+                learningPathService.loadLearningPaths({ owner: creationDto.owner }),
+            ).resolves.toMatchObject(
+                expect.arrayContaining([
+                    expect.objectContaining(expected),
+                    expect.objectContaining(expected),
+                ]),
+            );
+        });
+    });
+
+    describe("loadLearningPathList", () => {
         it("Empty DB -> Empty Result List", async () => {
-            await expect(learningPathService.loadAllLearningPaths()).resolves.toEqual({
+            await expect(learningPathService.loadLearningPathList()).resolves.toEqual({
                 learningPaths: [],
             });
         });
@@ -38,36 +103,404 @@ describe("LearningPath Service", () => {
             // Precondition: 1 element exist (do not rely on Service for its creation)
             const creationResult = await db.learningPath.create({
                 data: {
-                    title: "Test",
+                    owner: "Test-Orga-1",
                 },
             });
 
+            // Expected result
+            const expected: LearningPathListDto = {
+                learningPaths: [
+                    {
+                        id: creationResult.id,
+                        owner: creationResult.owner,
+                        title: "",
+                        lifecycle: LIFECYCLE.DRAFT,
+                        requirements: [],
+                        goals: [],
+                        recommendedUnitSequence: [],
+                    },
+                ],
+            };
+
             // Test: Exactly one element with specified title found
-            await expect(learningPathService.loadAllLearningPaths()).resolves.toMatchObject({
-                learningPaths: [expect.objectContaining({ title: creationResult.title })],
-            });
+            await expect(learningPathService.loadLearningPathList()).resolves.toMatchObject(
+                expected,
+            );
         });
 
-        it("Select by Title -> Not all elements returned", async () => {
-            // Precondition: 2 elements exist (do not rely on Service for its creation)
-            const creationResult1 = await db.learningPath.create({
+        it("All Paths of a specific organization", async () => {
+            // Precondition: Create 2 paths of an user and 1 paths of a different user
+            const path1 = await db.learningPath.create({
                 data: {
-                    title: "Test",
+                    owner: "Test-Orga-1",
+                },
+            });
+            const path2 = await db.learningPath.create({
+                data: {
+                    owner: "Test-Orga-1",
                 },
             });
             await db.learningPath.create({
                 data: {
-                    title: "Test2",
+                    owner: "Test-Orga-2",
                 },
             });
 
-            // Test: Only first element found
+            // Expected result
+            const expected: LearningPathListDto = {
+                learningPaths: expect.arrayContaining([
+                    {
+                        id: path1.id,
+                        owner: path1.owner,
+                        title: "",
+                        lifecycle: LIFECYCLE.DRAFT,
+                        description: undefined,
+                        requirements: [],
+                        goals: [],
+                        recommendedUnitSequence: [],
+                    },
+                    {
+                        id: path2.id,
+                        owner: path2.owner,
+                        title: "",
+                        lifecycle: LIFECYCLE.DRAFT,
+                        description: undefined,
+                        requirements: [],
+                        goals: [],
+                        recommendedUnitSequence: [],
+                    },
+                ]),
+            };
+
             await expect(
-                learningPathService.loadAllLearningPaths({
-                    where: { title: creationResult1.title },
-                }),
-            ).resolves.toMatchObject({
-                learningPaths: [expect.objectContaining({ title: creationResult1.title })],
+                learningPathService.loadLearningPathList({ owner: path1.owner }),
+            ).resolves.toMatchObject(expected);
+        });
+    });
+
+    describe("updateLearningPath", () => {
+        // Test data
+        let skillMap: SkillMap;
+        let skill1: Skill;
+        let skill2: Skill;
+        let skill3: Skill;
+        let unit1: PrismaLearningUnit;
+        let unit2: PrismaLearningUnit;
+        let unit3: PrismaLearningUnit;
+
+        beforeEach(async () => {
+            await dbUtils.wipeDb();
+            skillMap = await dbUtils.createSkillMap("New Owner", "Skill Map");
+            skill1 = await dbUtils.createSkill(skillMap, "Skill1");
+            skill2 = await dbUtils.createSkill(skillMap, "Skill2");
+            skill3 = await dbUtils.createSkill(skillMap, "Skill3");
+            unit1 = await dbUtils.createLearningUnit("Unit1", [skill1], []);
+            unit2 = await dbUtils.createLearningUnit("Unit2", [skill2], [skill1]);
+            unit3 = await dbUtils.createLearningUnit("Unit3", [skill3], [skill1]);
+        });
+
+        it("Full Update", async () => {
+            // Test object, which shall be altered
+            const initialPath = await dbUtils.createLearningPath("TestUser");
+
+            // Test input
+            const updateDto: UpdatePathRequestDto = {
+                owner: "New Owner",
+                title: "New Title",
+                description: "New Description",
+                targetAudience: "New Audience",
+                lifecycle: LIFECYCLE.POOL,
+                requirements: [skill1.id],
+                pathGoals: [skill2.id],
+                recommendedUnitSequence: [unit1.id, unit2.id],
+            };
+
+            // Precondition: initialPath does not share any properties with updateDto
+            expect(initialPath.title).not.toEqual(updateDto.title);
+            expect(initialPath.owner).not.toEqual(updateDto.owner);
+            expect(initialPath.description).not.toEqual(updateDto.description);
+            expect(initialPath.targetAudience).not.toEqual(updateDto.targetAudience);
+            expect(initialPath.lifecycle).not.toEqual(updateDto.lifecycle);
+            expect(initialPath.requirements).toEqual([]);
+            expect(initialPath.pathTeachingGoals).toEqual([]);
+            expect(initialPath.recommendedUnitSequence).toEqual([]);
+
+            // Expected result
+            // Non-Null Assertion (! operator, may cause runtime errors) used, because:
+            // * UpdatePathRequestDto allows null values
+            // * Manually ensured that all values are set
+            // * Used only in test
+            const expected: LearningPathDto = {
+                id: initialPath.id,
+                owner: updateDto.owner!,
+                title: updateDto.title!,
+                description: updateDto.description!,
+                lifecycle: LIFECYCLE.POOL,
+                requirements: updateDto.requirements!,
+                goals: updateDto.pathGoals!,
+                recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+            };
+
+            // Test: Update element
+            await expect(
+                learningPathService.updateLearningPath(initialPath.id, updateDto),
+            ).resolves.toMatchObject(expected);
+        });
+
+        describe("Partial Update", () => {
+            let initialPath: LearningPathDto;
+
+            beforeEach(async () => {
+                // Test object, which shall be altered
+                const emptyPath = await dbUtils.createLearningPath("TestUser");
+                const updateDto: UpdatePathRequestDto = {
+                    owner: "TestUser",
+                    title: "A Title",
+                    description: "A Description",
+                    targetAudience: "An Audience",
+                    lifecycle: LIFECYCLE.DRAFT,
+                    requirements: [skill1.id],
+                    pathGoals: [skill2.id],
+                    recommendedUnitSequence: [unit1.id, unit2.id],
+                };
+                initialPath = await learningPathService.updateLearningPath(emptyPath.id, updateDto);
+
+                const expected: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: updateDto.owner!,
+                    title: updateDto.title!,
+                    description: updateDto.description!,
+                    targetAudience: updateDto.targetAudience!,
+                    lifecycle: LIFECYCLE.DRAFT,
+                    requirements: updateDto.requirements!,
+                    goals: updateDto.pathGoals!,
+                    recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                };
+
+                expect(initialPath, "beforeAll() failed: Could not configure test object", {
+                    showPrefix: false,
+                }).toMatchObject(expected);
+            });
+
+            it("owner", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    owner: "New Owner",
+                };
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    owner: updateDto.owner!,
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("title", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    title: "New Title",
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    title: updateDto.title!,
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("description", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    description: "New Description",
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    description: updateDto.description!,
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("targetAudience", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    targetAudience: "New Audience",
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    targetAudience: updateDto.targetAudience!,
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("lifecycle", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    lifecycle: LIFECYCLE.POOL,
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    lifecycle: updateDto.lifecycle!,
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("requirements", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    requirements: [skill3.id],
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    requirements: [skill3.id],
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("pathGoals", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    pathGoals: [skill3.id],
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    goals: [skill3.id],
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("recommendedUnitSequence", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    recommendedUnitSequence: [unit1.id, unit2.id, unit3.id],
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    recommendedUnitSequence: [unit1.id, unit2.id, unit3.id],
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+        });
+
+        describe("Partial Delete", () => {
+            let initialPath: LearningPathDto;
+
+            beforeEach(async () => {
+                // Test object, which shall be altered
+                const emptyPath = await dbUtils.createLearningPath("TestUser");
+                const updateDto: UpdatePathRequestDto = {
+                    owner: "TestUser",
+                    title: "A Title",
+                    description: "A Description",
+                    targetAudience: "An Audience",
+                    lifecycle: LIFECYCLE.DRAFT,
+                    requirements: [skill1.id],
+                    pathGoals: [skill2.id],
+                    recommendedUnitSequence: [unit1.id, unit2.id],
+                };
+                initialPath = await learningPathService.updateLearningPath(emptyPath.id, updateDto);
+
+                const expected: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: updateDto.owner!,
+                    title: updateDto.title!,
+                    description: updateDto.description!,
+                    targetAudience: updateDto.targetAudience!,
+                    lifecycle: LIFECYCLE.DRAFT,
+                    requirements: updateDto.requirements!,
+                    goals: updateDto.pathGoals!,
+                    recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                };
+
+                expect(initialPath, "beforeAll() failed: Could not configure test object", {
+                    showPrefix: false,
+                }).toMatchObject(expected);
+            });
+
+            it("description", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    description: null,
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    description: undefined,
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("targetAudience", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    targetAudience: null,
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    targetAudience: undefined,
+                };
+
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("requirements", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    requirements: null,
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    requirements: [],
+                };
+
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("pathGoals", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    pathGoals: null,
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    goals: [],
+                };
+
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("recommendedUnitSequence", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    recommendedUnitSequence: null,
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    recommendedUnitSequence: [],
+                };
+
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
             });
         });
     });
@@ -83,13 +516,13 @@ describe("LearningPath Service", () => {
             // Precondition: 1 element exist (do not rely on Service for its creation)
             const creationResult = await db.learningPath.create({
                 data: {
-                    title: "Test",
+                    owner: "TestUser",
                 },
             });
 
             const expectedResult: Partial<LearningPathDto> = {
                 id: creationResult.id,
-                title: creationResult.title,
+                owner: creationResult.owner,
             };
             await expect(
                 learningPathService.getLearningPath(creationResult.id),
@@ -100,7 +533,7 @@ describe("LearningPath Service", () => {
             // Precondition: 1 element exist (do not rely on Service for its creation)
             const creationResult = await db.learningPath.create({
                 data: {
-                    title: "Test",
+                    owner: "TestUser",
                 },
             });
 
@@ -108,84 +541,6 @@ describe("LearningPath Service", () => {
                 learningPathService.getLearningPath(creationResult.id + "_wrongID"),
             ).rejects.toThrow(NotFoundException);
         });
-    });
-
-    describe("createLearningPath", () => {
-        it("Create empty Path on empty DB-> LearningPath created", async () => {
-            // Data to be created
-            const creationDto: LearningPathCreationDto = {
-                title: "Test",
-                goals: [],
-            };
-
-            // Pre-Condition: Expected element does not exist
-            await expect(
-                learningPathService.loadAllLearningPaths({ where: { title: creationDto.title } }),
-            ).resolves.toMatchObject({
-                learningPaths: [],
-            });
-
-            // Post-Condition: Element was created and DTO is returned
-            const expected: Partial<LearningPathDto> = {
-                id: expect.anything(),
-                title: creationDto.title,
-                goals: [],
-            };
-            await expect(
-                learningPathService.createLearningPath(creationDto),
-            ).resolves.toMatchObject(expect.objectContaining(expected));
-        });
-
-        it("Duplicate Title -> Error", async () => {
-            // Data to be created
-            const creationDto: LearningPathCreationDto = {
-                title: "Test",
-                goals: [],
-            };
-
-            // Pre-Condition: Element with specified title already exists
-            await db.learningPath.create({
-                data: {
-                    title: creationDto.title,
-                },
-            });
-
-            // Post-Condition: No element created -> Error thrown
-            await expect(learningPathService.createLearningPath(creationDto)).rejects.toThrow(
-                ForbiddenException,
-            );
-        });
-    });
-
-    it("Create Path including a Goal-Spec -> LearningPath created", async () => {
-        // Data to be created
-        const goal1 = new PathGoalCreationDto("Test Goal", null, "Test Description", [], []);
-
-        const creationDto: LearningPathCreationDto = {
-            title: "Test",
-            goals: [goal1],
-        };
-
-        // Pre-Condition: Expected element does not exist
-        await expect(
-            learningPathService.loadAllLearningPaths({ where: { title: creationDto.title } }),
-        ).resolves.toMatchObject({
-            learningPaths: [],
-        });
-
-        // Post-Condition: Element was created and DTO is returned
-        const expectedGoal: Partial<PathGoalDto> = {
-            title: goal1.title,
-            description: goal1.description,
-        };
-        const expected: Partial<LearningPathDto> = {
-            id: expect.anything(),
-            title: creationDto.title,
-            goals: [expect.objectContaining(expectedGoal)],
-        };
-        await expect(learningPathService.createLearningPath(creationDto)).resolves.toMatchObject(
-            expected,
-        );
     });
 
     describe("definePreferredPath", () => {
@@ -214,7 +569,7 @@ describe("LearningPath Service", () => {
             // Pre-condition: Determine default path produced by the algorithm
             const path = await getPath({
                 skills: [skill1Dto, skill2Dto, skill3Dto],
-                luProvider: new LuProvider(db),
+                learningUnits: await findAll(db),
                 desiredSkills: [skill3Dto],
                 ownedSkill: [],
                 optimalSolution: true,
@@ -230,7 +585,7 @@ describe("LearningPath Service", () => {
             // Post-condition: Check that the path is now different (according to spec of unitOrdering)
             const newPath = await getPath({
                 skills: [skill1Dto, skill2Dto, skill3Dto],
-                luProvider: new LuProvider(db),
+                learningUnits: await findAll(db),
                 desiredSkills: [skill3Dto],
                 ownedSkill: [],
                 optimalSolution: true,
@@ -241,63 +596,49 @@ describe("LearningPath Service", () => {
     });
 });
 
-class LuProvider implements LearningUnitProvider<LearningUnit> {
-    constructor(private db: PrismaService) {}
-
-    async getLearningUnitsBySkillIds(skillIds: string[]): Promise<LearningUnit[]> {
-        const learningUnits = await this.db.learningUnit.findMany({
-            where: {
-                OR: {
-                    teachingGoals: {
-                        some: {
-                            id: {
-                                in: skillIds,
-                            },
+async function findAll_internal(db: PrismaService) {
+    return await db.learningUnit.findMany({
+        include: {
+            requirements: {
+                include: {
+                    nestedSkills: true,
+                },
+            },
+            teachingGoals: {
+                include: {
+                    nestedSkills: true,
+                },
+            },
+            orderings: {
+                include: {
+                    suggestedSkills: {
+                        include: {
+                            nestedSkills: true,
                         },
                     },
                 },
             },
-            include: {
-                requirements: {
-                    include: {
-                        nestedSkills: true,
-                    },
-                },
-                teachingGoals: {
-                    include: {
-                        nestedSkills: true,
-                    },
-                },
-                orderings: {
-                    include: {
-                        suggestedSkills: {
-                            include: {
-                                nestedSkills: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
+        },
+    });
+}
 
-        const results: LearningUnit[] = learningUnits.map((lu) => ({
-            id: lu.id,
-            requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
-            teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
-            suggestedSkills: lu.orderings
-                .flatMap((ordering) => ordering.suggestedSkills)
-                // Avoid duplicates which would increase the weight of the skill
-                .filter(
-                    (skill, index, array) =>
-                        index === array.findIndex((elem) => elem.id === skill.id),
-                )
-                .map((skill) => SkillDto.createFromDao(skill))
-                .map((skill) => ({
-                    weight: 0.1,
-                    skill: skill,
-                })),
-        }));
+async function findAll(db: PrismaService) {
+    const results: LearningUnit[] = (await findAll_internal(db)).map((lu) => ({
+        id: lu.id,
+        requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
+        teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
+        suggestedSkills: lu.orderings
+            .flatMap((ordering) => ordering.suggestedSkills)
+            // Avoid duplicates which would increase the weight of the skill
+            .filter(
+                (skill, index, array) => index === array.findIndex((elem) => elem.id === skill.id),
+            )
+            .map((skill) => SkillDto.createFromDao(skill))
+            .map((skill) => ({
+                weight: 0.1,
+                skill: skill,
+            })),
+    }));
 
-        return results;
-    }
+    return results;
 }

@@ -18,8 +18,8 @@ import { Prisma } from "@prisma/client";
 export class SkillMgmtController {
     constructor(private skillService: SkillMgmtService) {}
 
-    @Get("/skill/")
-    listUsers(@Param("repositoryId") dto: SkillSearchDto) {
+    @Get("/getAllSkills/")
+    getAllSkills() {
         return this.skillService.loadAllSkills();
     }
 
@@ -174,17 +174,17 @@ export class SkillMgmtController {
      * @param dto The skill description
      * @returns The created skill.
      */
-    @Put(":repositoryId/skill/adapt_skill")
+    @Put("/skill/adapt_skill")
     adaptSkill(@Body() dto: SkillDto) {
         return this.skillService.adaptSkill(dto);
     }
     @Delete("/skill/deleteWithoutCheck/:skillId")
-    delteSkillWithoutCheck(@Param("skillId") skillId: string) {
+    deleteSkillWithoutCheck(@Param("skillId") skillId: string) {
         return this.skillService.deleteSkillWithoutCheck(skillId);
     }
 
     @Delete("/skill/deleteWithCheck/:skillId")
-    delteSkillWithCheck(@Param("skillId") skillId: string) {
+    deleteSkillWithCheck(@Param("skillId") skillId: string) {
         return this.skillService.deleteSkillWithCheck(skillId);
     }
 }

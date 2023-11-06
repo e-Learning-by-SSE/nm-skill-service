@@ -1,29 +1,75 @@
-import { IsDefined, IsNotEmpty } from 'class-validator';
+import { IsDefined, IsNotEmpty } from "class-validator";
 
-import { LearningPath, PathGoal } from '@prisma/client';
+import { LearningPath, LearningUnit, Skill, LIFECYCLE } from "@prisma/client";
 
-import { LearningPathCreationDto } from './learningPath-creation.dto';
-import { OmitType } from '@nestjs/swagger';
-import { PathGoalDto } from '.';
+export class LearningPathDto {
+    @IsNotEmpty()
+    id: string;
 
-export class LearningPathDto extends OmitType(LearningPathCreationDto, ['goals']) {
-  @IsNotEmpty()
-  id: string;
+    @IsDefined()
+    title: string;
 
-  @IsDefined()
-  goals: PathGoalDto[];
+    @IsNotEmpty()
+    owner: string;
 
-  constructor(id: string, title: string, description: string | null, goals: PathGoalDto[]) {
-    super();
-    this.id = id;
-    this.title = title;
-    this.description = description ?? undefined;
-    this.goals = goals;
-  }
+    description?: string;
 
-  static createFromDao(lp: LearningPath & { goals: PathGoal[] | null }): LearningPathDto {
-    const goals: PathGoalDto[] = lp.goals?.map((goal) => PathGoalDto.createFromDao(goal)) ?? [];
+    @IsDefined()
+    lifecycle: LIFECYCLE;
 
-    return new LearningPathDto(lp.id, lp.title, lp.description, goals);
-  }
+    @IsDefined()
+    goals: string[];
+
+    @IsDefined()
+    requirements: string[];
+
+    @IsDefined()
+    recommendedUnitSequence: string[];
+
+    targetAudience?: string;
+
+    constructor(
+        id: string,
+        owner: string,
+        title: string,
+        description: string | null,
+        targetAudience: string | null,
+        lifecycle: LIFECYCLE,
+        requirements: string[],
+        goals: string[],
+        recommendedUnitSequence: string[],
+    ) {
+        this.id = id;
+        this.owner = owner;
+        this.title = title;
+        this.description = description ?? undefined;
+        this.targetAudience = targetAudience ?? undefined;
+        this.lifecycle = lifecycle;
+        this.requirements = requirements;
+        this.goals = goals;
+        this.recommendedUnitSequence = recommendedUnitSequence;
+    }
+
+    static createFromDao(
+        lp: LearningPath & {
+            requirements: Skill[];
+            pathTeachingGoals: Skill[];
+            recommendedUnitSequence: LearningUnit[];
+        },
+    ): LearningPathDto {
+        const requirements = lp.requirements.map((requirement) => requirement.id);
+        const goals = lp.pathTeachingGoals.map((goal) => goal.id);
+        const recommendedUnitSequence = lp.recommendedUnitSequence.map((unit) => unit.id);
+        return new LearningPathDto(
+            lp.id,
+            lp.owner,
+            lp.title ?? "",
+            lp.description,
+            lp.targetAudience,
+            lp.lifecycle,
+            requirements,
+            goals,
+            recommendedUnitSequence,
+        );
+    }
 }
