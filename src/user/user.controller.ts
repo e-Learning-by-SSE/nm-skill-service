@@ -55,7 +55,7 @@ export class UserMgmtController {
 
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_CareerProfile")
-    addSkillProfile(@Body() dto: CareerProfileCreationDto) {
+    addCareerProfile(@Body() dto: CareerProfileCreationDto) {
         return this.userService.createCP(dto);
     }
 
