@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiTags , ApiOperation} from "@nestjs/swagger";
 
 import {
     SkillCreationDto,
@@ -86,6 +86,7 @@ export class SkillMgmtController {
      * Skills and their relations are resolved at the server.
      * @returns The repositories of the specified user.
      */
+    @ApiOperation({deprecated: true})
     @Get("resolve/:repositoryId")
     async loadResolvedRepository(@Param("repositoryId") repositoryId: string) {
         return this.skillService.loadResolvedSkillRepository(repositoryId);
@@ -96,6 +97,7 @@ export class SkillMgmtController {
    
    * @returns List of all skills.
    */
+    @ApiOperation({deprecated: true})
     @Post("resolve/findSkills")
     findSkillsResolved(@Body() dto: SkillSearchDto) {
         // Return also repositories that contain the specified name
@@ -164,6 +166,7 @@ export class SkillMgmtController {
      * @param skillId The ID of the skill, that shall be returned
      * @returns The specified skill.
      */
+    @ApiOperation({deprecated: true})
     @Get("resolve/skill/:skillId")
     getResolvedSkill(@Param("skillId") skillId: string) {
         return this.skillService.getResolvedSkill(skillId);
@@ -178,6 +181,7 @@ export class SkillMgmtController {
     adaptSkill(@Body() dto: SkillDto) {
         return this.skillService.adaptSkill(dto);
     }
+    @ApiOperation({deprecated: true})
     @Delete("/skill/deleteWithoutCheck/:skillId")
     deleteSkillWithoutCheck(@Param("skillId") skillId: string) {
         return this.skillService.deleteSkillWithoutCheck(skillId);
