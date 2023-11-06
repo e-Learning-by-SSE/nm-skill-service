@@ -10,6 +10,7 @@ import { validate } from './config/env.validation';
 import { PathFinderModule } from './pathFinder/pathFinder.module';
 import { UserModule } from './user/user.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { FeedbackModule } from './feedback/feedback.module';
     LearningUnitModule,
     PathFinderModule,
     UserModule,
-    FeedbackModule
+    FeedbackModule, 
+    EventsModule
   ],
 })
 export class AppModule {}

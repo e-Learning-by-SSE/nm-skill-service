@@ -120,11 +120,6 @@ export class SearchLearningUnitController {
     
     }
 
-    @Post("events/")
-    getEvents(@Body() dto: MLSEvent) {
-        return this.learningUnitService.getEvent(dto);
-    }
-
     /**
      * Returns the specified learningUnit.
      * @param learningUnitId The ID of the learningUnit, that shall be returned

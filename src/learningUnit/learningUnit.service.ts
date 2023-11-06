@@ -25,41 +25,6 @@ export class LearningUnitMgmtService {
         throw new Error("Method not implemented.");
     }
 
-    async getEvent(dto: MLSEvent) {
-        if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.POST) {
-            let locDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(
-                dto.id,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-            );
-            return this.createLearningUnit(locDto);
-        } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.PUT) {
-            let client = new MLSClient();
-
-            let learningUnit = await client.getLearningUnitForId(dto.id);
-            let b = await this.patchLearningUnit(dto.id, learningUnit);
-
-            return b;
-        } else if (dto.entityType === MlsActionEntity.Task && dto.method === MlsActionType.DELETE) {
-            return this.deleteLearningUnit(dto.id);
-        } else {
-            return "error";
-        }
-    }
-
     /**
    * Adds a new LearningUnit
    * @param dto Specifies the learningUnit to be created
