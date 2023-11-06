@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_TARGET = 'e-learning-by-sse/nm-skill-service:latest'
+        DOCKER_TARGET = 'e-learning-by-sse/nm-skill-service:unstable'
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
         NPMRC = 'e-learning-by-sse'
 
@@ -70,7 +70,7 @@ pipeline {
                                   sh 'touch testfile.txt'
                                 }
                             } catch(err) {
-                                if (env.BRANCH_NAME == 'master') {
+                                if (env.BRANCH_NAME == 'main') {
                                     error('Stopping build on master branch due to test failures.')
                                 } else {
                                     unstable('Tests failed, but continuing build on development branches.')
@@ -99,9 +99,7 @@ pipeline {
                             create {
                                 target "${env.DOCKER_TARGET}"
                             }
-                            publish {
-                                tag "${env.API_VERSION}"
-                            }
+                            publish {}
                         }
                     }
                 }
@@ -110,25 +108,18 @@ pipeline {
 
         stage('Starting Post Build Actions') {
             parallel {
-
-                stage('Deploy') {
+                stage('Deploy Staging') {
                     when {
-                        anyOf {
-                            branch 'dev'
-                            branch 'main'
-                        }
+                        branch 'main'
                     }
                     steps {
-                        stagingDeploy env.REMOTE_UPDATE_SCRIPT
+                        staging01 env.REMOTE_UPDATE_SCRIPT
                     }
                 }
 
-                stage('Publish Swagger Clients') {
+                stage('Create Release (Swagger and Docker)') {
                     when {
-                        allOf {
-                            branch 'main'
-                            expression { packageJson.isNewVersion() }
-                        }
+                        buildingTag()
                     }
                     options {
                         timeout(time: 200, unit: 'SECONDS')
@@ -137,6 +128,14 @@ pipeline {
                         APP_URL = "http://localhost:3000/api-json"
                     }
                     steps {
+                        ssedocker {
+                            create {
+                                target "${env.TARGET_PREFIX}:latest"
+                            }
+                            publish {
+                                tag "${env.API_VERSION}"
+                            }
+                        }
                         script {
                             sh 'rm -f competence_repository*.zip'
                             docker.image(env.DOCKER_TARGET).withRun("-e EXTENSION=\"SEARCH\" -p 3000:3000") {
