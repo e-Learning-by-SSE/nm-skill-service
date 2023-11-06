@@ -113,7 +113,7 @@ pipeline {
                         branch 'main'
                     }
                     steps {
-                        staging01 env.REMOTE_UPDATE_SCRIPT
+                        staging01ssh env.REMOTE_UPDATE_SCRIPT
                     }
                 }
 
