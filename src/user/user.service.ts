@@ -20,6 +20,7 @@ import {
     UserListDto,
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -27,6 +28,9 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
  */
 @Injectable()
 export class UserMgmtService {
+    getUserByFilter(filter: CareerProfileFilterDto) {
+        throw new Error("Method not implemented.");
+    }
     deleteUser(userId: string) {
         throw new Error("Method not implemented.");
     }

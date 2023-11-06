@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, Put } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Controller, Get, Post, Body, Param, Delete, Patch, Put, Query } from "@nestjs/common";
+import { ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import {
     UserCreationDto,
     CompanyCreationDto,
@@ -8,11 +8,10 @@ import {
     CareerProfileCreationDto,
     JobCreationDto,
     LearningHistoryCreationDto,
-    
-    
 } from "./dto";
 import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { UserMgmtService } from "./user.service";
+import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 
 @ApiTags("User")
 @Controller("")
@@ -34,7 +33,7 @@ export class UserMgmtController {
      * @param dto The user description
      * @returns The created user.
      */
-    
+
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_user")
     addUser(@Body() dto: UserCreationDto) {
@@ -77,21 +76,25 @@ export class UserMgmtController {
         return this.userService.createLH(dto);
     }
     /**
-     * Returns the specified user.
+     * Returns the specified user-profile.
      * @param userId The ID of the user, that shall be returned
-     * @returns The specified user.
+     * @returns The specified user-profile.
      */
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("/user-profiles/:user_profile_id")
     getuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUser(userId);
     }
-
+    /**
+     * Deletes the specified user-profile.
+     * @param userId The ID of the user, that shall be returned
+     * @returns Deleted specified user-profile.
+     */
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete("/user-profiles/:user_profile_id")
     deleteuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.deleteUser(userId);
     }
-
-
 
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Get(":id/learning-progress")
@@ -99,7 +102,8 @@ export class UserMgmtController {
         // Fetch a user's learning progress by user ID
         return this.userService.findProgressForUserId(id);
     }
-
+    
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post(":id/learning-progress")
     async createLearningProgress(
         @Param("id") userId: string,
@@ -109,17 +113,34 @@ export class UserMgmtController {
         return this.userService.createProgressForUserId(userId, createLearningProgressDto);
     }
 
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete(":id/learning-progress")
     async deleteLearningProgress(@Param("id") progressId: string) {
         return this.userService.deleteProgressForId(progressId);
     }
 
-    /*  @Put(':id/learning-progress')
-  async updateLearningProfile(
-    @Param('id') userId: string,
-    @Body() updateLearningProgressDto: UpdateLearningProgressDto,
-  ) {
-    // Update a user's learning profile
-    return this.userService.updateLearningProgress(userId, updateLearningProgressDto);
-  }*/
+    // Filter: Includes careerProfile.dto.ts 
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Get("/career-profiles/")
+    @ApiQuery({
+        name: "userId",
+        required: false,
+        type: String,
+        description: "Filter by userId",
+    })
+    getLearningUnitSearchWithFilter(@Query() filter: CareerProfileFilterDto) {
+        return this.userService.getUserByFilter(filter);
+    }
 }
+
+
+/**
+*@Put(':id/learning-progress')
+*  async updateLearningProfile(
+*    @Param('id') userId: string,
+*    @Body() updateLearningProgressDto: UpdateLearningProgressDto,
+*  ) {
+*    // Update a user's learning profile
+*    return this.userService.updateLearningProgress(userId, updateLearningProgressDto);
+*  }
+*/
