@@ -45,3 +45,4 @@ prisma/migrations/20230927081511_/migration.sql
 prisma/migrations/20230929100146_/migration.sql
 prisma/migrations/20231017074325_/migration.sql
 /.vs
+/src/coverage
