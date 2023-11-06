@@ -82,7 +82,6 @@ export class UserMgmtController {
      * @param userId The ID of the user, that shall be returned
      * @returns The specified user-profile.
      */
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("/user-profiles/:user_profile_id")
     getuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUser(userId);
@@ -98,6 +97,8 @@ export class UserMgmtController {
     deleteuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.deleteUser(userId);
     }
+
+
 
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Get(":id/learning-progress")
