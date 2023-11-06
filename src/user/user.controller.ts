@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete, Patch, Put } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import {
     UserCreationDto,
@@ -15,7 +15,7 @@ import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { UserMgmtService } from "./user.service";
 
 @ApiTags("User")
-@Controller("users")
+@Controller("")
 export class UserMgmtController {
     constructor(private userService: UserMgmtService) {}
 
@@ -81,15 +81,17 @@ export class UserMgmtController {
      * @param userId The ID of the user, that shall be returned
      * @returns The specified user.
      */
-    @Get(":userId")
-    getUser(@Param("userId") userId: string) {
+    @Get("/user-profiles/:user_profile_id")
+    getuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUser(userId);
     }
 
-    @Get(":userId2")
-    getUser2(@Param("userId2") userId2: string) {
-        return this.userService.getUser(userId2);
+    @Delete("/user-profiles/:user_profile_id")
+    deleteuserProfiles(@Param("user_profile_id") userId: string) {
+        return this.userService.deleteUser(userId);
     }
+
+
 
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Get(":id/learning-progress")

@@ -27,6 +27,9 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
  */
 @Injectable()
 export class UserMgmtService {
+    deleteUser(userId: string) {
+        throw new Error("Method not implemented.");
+    }
     constructor(private db: PrismaService) {}
 
     async deleteProgressForId(id: string) {
