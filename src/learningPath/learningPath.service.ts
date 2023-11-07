@@ -53,6 +53,47 @@ export class LearningPathMgmtService {
         }
     }
 
+    async precheckOfUpdateLearningPath(learningPathId: string, dto: UpdatePathRequestDto) {
+        const oldLearningPath = await this.db.learningPath.findUnique({
+            where: {
+                id: learningPathId,
+            },
+        });
+
+        if (!oldLearningPath) {
+            throw new NotFoundException(`Can not find learningPath with id ${learningPathId}`);
+        }
+
+        // If in DRAFT mode, all changes are allowed
+        if (oldLearningPath.lifecycle === "DRAFT") {
+            return;
+        }
+
+        // If in POOLED mode, only description may be altered and the lifecycle may be changed to ARCHIVED
+        if (oldLearningPath.lifecycle === "POOL") {
+            // Check if any other values than description and lifecycle are defined in the dto
+            const dtoKeys = Object.keys(dto);
+            if (dtoKeys.includes("description")) {
+                dtoKeys.splice(dtoKeys.indexOf("description"), 1);
+            }
+            if (dto["lifecycle"] === "ARCHIVED") {
+                dtoKeys.splice(dtoKeys.indexOf("lifecycle"), 1);
+            }
+
+            if (dtoKeys.length > 0) {
+                const forbiddenProperties = dtoKeys.join(", ");
+                throw new ForbiddenException(
+                    `Tried to alter write-protected properties of POOLED path: ${forbiddenProperties}`,
+                );
+            }
+        }
+
+        // If in ARCHIVED mode, no changes are allowed
+        if (oldLearningPath.lifecycle === "ARCHIVED") {
+            throw new ForbiddenException("Archived Learning-Paths may not be altered");
+        }
+    }
+
     /**
      * Partially updates a LearningPath. This function considers a tristate logic:
      * - null: The field shall be deleted (reset to default), this is supported only by optional fields
@@ -63,6 +104,8 @@ export class LearningPathMgmtService {
      * @returns The updated LearningPath.
      */
     async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto) {
+        await this.precheckOfUpdateLearningPath(learningPathId, dto);
+
         const requirements =
             dto.requirements === null ? [] : dto.requirements?.map((req) => ({ id: req }));
         const pathTeachingGoals =
@@ -127,9 +170,31 @@ export class LearningPathMgmtService {
         }
 
         return LearningPathDto.createFromDao(result);
-        // if (!result) {
-        //     throw new NotFoundException(`Can not find learningPath with id ${learningPathId}`);
-        // }
+    }
+
+    async deleteLearningPath(learningPathId: string) {
+        const oldLearningPath = await this.db.learningPath.findUnique({
+            where: {
+                id: learningPathId,
+            },
+        });
+
+        if (!oldLearningPath) {
+            throw new NotFoundException(`Can not find learningPath with id ${learningPathId}`);
+        }
+
+        if (oldLearningPath.lifecycle !== "DRAFT") {
+            throw new ForbiddenException(
+                `Only drafted LearningPaths may be deleted, but this is ${oldLearningPath.lifecycle}`,
+            );
+        }
+
+        // Perform deletion
+        await this.db.learningPath.delete({
+            where: {
+                id: learningPathId,
+            },
+        });
     }
 
     public async loadLearningPathList(where?: Prisma.LearningPathWhereInput) {

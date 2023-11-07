@@ -2,7 +2,7 @@ import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 import { LearningPathMgmtService } from "./learningPath.service";
-import { NotFoundException } from "@nestjs/common";
+import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import {
     CreateEmptyPathRequestDto,
     LearningPathDto,
@@ -501,6 +501,148 @@ describe("LearningPath Service", () => {
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
                 ).resolves.toMatchObject(expected);
+            });
+        });
+
+        describe("Update of POOLED Learning-Path", () => {
+            let initialPath: LearningPathDto;
+
+            beforeEach(async () => {
+                // Test object, which shall be altered
+                const emptyPath = await dbUtils.createLearningPath("TestUser");
+                const updateDto: UpdatePathRequestDto = {
+                    owner: "TestUser",
+                    title: "A Title",
+                    description: "A Description",
+                    targetAudience: "An Audience",
+                    lifecycle: LIFECYCLE.POOL,
+                    requirements: [skill1.id],
+                    pathGoals: [skill2.id],
+                    recommendedUnitSequence: [unit1.id, unit2.id],
+                };
+                initialPath = await learningPathService.updateLearningPath(emptyPath.id, updateDto);
+
+                const expected: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: updateDto.owner!,
+                    title: updateDto.title!,
+                    description: updateDto.description!,
+                    targetAudience: updateDto.targetAudience!,
+                    lifecycle: LIFECYCLE.POOL,
+                    requirements: updateDto.requirements!,
+                    goals: updateDto.pathGoals!,
+                    recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                };
+
+                expect(initialPath, "beforeAll() failed: Could not configure test object", {
+                    showPrefix: false,
+                }).toMatchObject(expected);
+            });
+
+            it("description", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    description: "A new description",
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    description: updateDto.description!,
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("lifecycle: ARCHIVED -> success", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    lifecycle: LIFECYCLE.ARCHIVED,
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    lifecycle: updateDto.lifecycle!,
+                };
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).resolves.toMatchObject(expected);
+            });
+
+            it("lifecycle: DRAFT -> Forbidden", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    lifecycle: LIFECYCLE.DRAFT,
+                };
+
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).rejects.toThrow(ForbiddenException);
+            });
+
+            it("Forbidden Properties", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    owner: "A new owner",
+                    title: "A new title",
+                    targetAudience: "A new audience",
+                    requirements: [skill3.id],
+                    pathGoals: [skill1.id],
+                };
+
+                try {
+                    await learningPathService.updateLearningPath(initialPath.id, updateDto);
+                    fail("Expected ForbiddenException");
+                } catch (e) {
+                    expect(e).toBeInstanceOf(ForbiddenException);
+                    const msg = (e as ForbiddenException).message;
+                    const expectedWarnings = Object.keys(updateDto);
+                    for (const warning of expectedWarnings) {
+                        expect(msg).toContain(warning);
+                    }
+                }
+            });
+        });
+
+        describe("Update of ARCHIVED Learning-Path", () => {
+            let initialPath: LearningPathDto;
+
+            beforeEach(async () => {
+                // Test object, which shall be altered
+                const emptyPath = await dbUtils.createLearningPath("TestUser");
+                const updateDto: UpdatePathRequestDto = {
+                    owner: "TestUser",
+                    title: "A Title",
+                    description: "A Description",
+                    targetAudience: "An Audience",
+                    lifecycle: LIFECYCLE.ARCHIVED,
+                    requirements: [skill1.id],
+                    pathGoals: [skill2.id],
+                    recommendedUnitSequence: [unit1.id, unit2.id],
+                };
+                initialPath = await learningPathService.updateLearningPath(emptyPath.id, updateDto);
+
+                const expected: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: updateDto.owner!,
+                    title: updateDto.title!,
+                    description: updateDto.description!,
+                    targetAudience: updateDto.targetAudience!,
+                    lifecycle: LIFECYCLE.ARCHIVED,
+                    requirements: updateDto.requirements!,
+                    goals: updateDto.pathGoals!,
+                    recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                };
+
+                expect(initialPath, "beforeAll() failed: Could not configure test object", {
+                    showPrefix: false,
+                }).toMatchObject(expected);
+            });
+
+            it("Any change forbidden", async () => {
+                const updateDto: UpdatePathRequestDto = {
+                    description: "A new Description",
+                };
+
+                await expect(
+                    learningPathService.updateLearningPath(initialPath.id, updateDto),
+                ).rejects.toThrow(ForbiddenException);
             });
         });
     });

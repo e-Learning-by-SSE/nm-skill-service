@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CreateEmptyPathRequestDto, UpdatePathRequestDto } from "./dto";
@@ -56,15 +56,15 @@ export class LearningPathMgmtController {
         return this.learningpathService.updateLearningPath(pathId, dto);
     }
 
-    // /**
-    //  * Lists all learning paths.
-    //  * @returns List of all learning paths.
-    //  */
-    // @ApiOperation({ deprecated: true })
-    // @Get("showAllLearningPaths")
-    // listLearningPaths() {
-    //     return this.learningpathService.loadLearningPathList();
-    // }
+    /**
+     * Deletes a drafted Learning-Path or returns a 403 error.
+     * @param pathId The ID of the path to be deleted.
+     */
+    @Delete(":pathId")
+    async deleteLearningPath(@Param("pathId") pathId: string) {
+        // Need to wait for the result (e.g., exception) to ensure correct status code
+        await this.learningpathService.deleteLearningPath(pathId);
+    }
 
     /**
      * Returns the specified learningpath.

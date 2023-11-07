@@ -511,4 +511,57 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 });
         });
     });
+
+    describe("DELETE:/pathId", () => {
+        beforeEach(async () => {
+            await dbUtils.wipeDb();
+        });
+
+        it("Delete DRAFT -> 200", async () => {
+            const createdPath = await dbUtils.createLearningPath("test-orga");
+
+            // Test: Delete drafted path
+            return request(app.getHttpServer())
+                .delete(`/learning-paths/${createdPath.id}`)
+                .expect(200);
+        });
+
+        it("Delete POOLED -> 403", async () => {
+            const createdPath = await dbUtils.createLearningPath("test-orga");
+
+            // Update path
+            const update: UpdatePathRequestDto = {
+                lifecycle: LIFECYCLE.POOL,
+            };
+            const lpService = new LearningPathMgmtService(
+                dbUtils.getDb(),
+                new LearningUnitFactory(dbUtils.getDb()),
+            );
+            await lpService.updateLearningPath(createdPath.id, update);
+
+            // Test: Delete pooled path
+            return request(app.getHttpServer())
+                .delete(`/learning-paths/${createdPath.id}`)
+                .expect(403);
+        });
+
+        it("Delete ARCHIVED -> 403", async () => {
+            const createdPath = await dbUtils.createLearningPath("test-orga");
+
+            // Update path
+            const update: UpdatePathRequestDto = {
+                lifecycle: LIFECYCLE.ARCHIVED,
+            };
+            const lpService = new LearningPathMgmtService(
+                dbUtils.getDb(),
+                new LearningUnitFactory(dbUtils.getDb()),
+            );
+            await lpService.updateLearningPath(createdPath.id, update);
+
+            // Test: Delete archived path
+            return request(app.getHttpServer())
+                .delete(`/learning-paths/${createdPath.id}`)
+                .expect(403);
+        });
+    });
 });
