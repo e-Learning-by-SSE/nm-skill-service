@@ -52,11 +52,7 @@ export class UserMgmtController {
         return this.userService.createLP(dto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
-    @Post("add_CareerProfile")
-    addCareerProfile(@Body() dto: CareerProfileCreationDto) {
-        return this.userService.createCP(dto);
-    }
+
 
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_Qualification")
@@ -75,6 +71,16 @@ export class UserMgmtController {
     addLearningHistory(@Body() dto: LearningHistoryCreationDto) {
         return this.userService.createLH(dto);
     }
+
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Post("add_CareerProfile")
+    addCareerProfile(@Body() dto: CareerProfileCreationDto) {
+        return this.userService.createCP(dto);
+    }
+
+
+
+    
     /**
      * Returns the specified user-profile.
      * @param userId The ID of the user, that shall be returned
@@ -85,6 +91,7 @@ export class UserMgmtController {
     getuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUser(userId);
     }
+
     /**
      * Deletes the specified user-profile.
      * @param userId The ID of the user, that shall be returned

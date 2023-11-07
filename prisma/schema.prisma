@@ -164,17 +164,6 @@ model PreferredOrdering {
   @@map("orderings")
 }
 
-model Company {
-  id         String          @id @default(cuid())
-  name       String          @default("")
-  workedAt   CareerProfile[] @relation("workedAt")
-  workingNow CareerProfile[] @relation("workingNow")
-
-  // User UserProfile[]        // clarify this
-  // Job  Job[]                // clarify this
-  users UserProfile[]
-  jobs  Job[]
-}
 
 // ######## Einf�gen der MLS-Id  ########
 
@@ -189,15 +178,13 @@ model UserProfile {
   learningBehavior LearningBehaviorData?
   learningProgress LearningProgress[]
   LearningHistory  LearningHistory?
-
   status String // (active, inactive)  setzen des Values bei User-Events (create / delete)
-
   Qualification Qualification[]
   Job           Job?
 
   //feedbacks Feedback[] //Feedbacks given by the user, one to many relation (not implemented as onDelete relation is not working properly)
 
-  @@unique([companyId, name]) // unique Schluessel noch bearebeiten
+  @@unique([companyId, name]) // unique Schluessel noch bearbeiten
   @@map("user")
 }
 
@@ -241,14 +228,11 @@ model CareerProfile {
   jobHistory            Job[]           @relation("pastJobs")
   professionalInterests String          @default("")
   qualifications        Qualification[] @relation("currentQualifications")
-
   selfReportedSkills Skill[] @relation("selfReportedSkill")
   verifiedSkills     Skill[] @relation("verifiedSkill")
-
   pastCompanies    Company[] @relation("workedAt")
   currentCompany   Company   @relation("workingNow", fields: [currentCompanyId], references: [id])
   currentCompanyId String
-
   user   UserProfile @relation(fields: [userId], references: [id])
   userId String      @unique // relation scalar field 
 }
@@ -276,7 +260,6 @@ model Qualification {
   year   Int
   user   UserProfile @relation(fields: [userId], references: [id])
   userId String
-
   userQualifications CareerProfile[] @relation("currentQualifications")
 
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
@@ -295,6 +278,15 @@ model Job {
   userId    String          @unique // relation scalar field
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
   // userCareerProfileId String          @unique // relation scalar field   
+}
+
+model Company {
+  id         String          @id @default(cuid())
+  name       String          @default("")
+  workedAt   CareerProfile[] @relation("workedAt")
+  workingNow CareerProfile[] @relation("workingNow")
+  users UserProfile[]
+  jobs  Job[]
 }
 
 model Feedback {
