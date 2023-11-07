@@ -28,7 +28,7 @@ pipeline {
         stage("Starting NodeJS Build") {
             agent {
                 docker {
-                    image 'node:18-bullseye'
+                    image 'node:20-bullseye'
                     reuseNode true
                     label 'docker'
                     args '--tmpfs /.cache -u root -v /var/run/docker.sock:/var/run/docker.sock '
@@ -62,7 +62,7 @@ pipeline {
                     steps {
                         script {
                             try {
-                                withPostgres([ dbUser: env.POSTGRES_USER,  dbPassword: env.POSTGRES_PASSWORD,  dbName: env.POSTGRES_DB ]).insideSidecar('node:18-bullseye') {
+                                withPostgres([ dbUser: env.POSTGRES_USER,  dbPassword: env.POSTGRES_PASSWORD,  dbName: env.POSTGRES_DB ]).insideSidecar('node:20-bullseye') {
                                   sh 'mv .env env-settings.backup' // only use jenkins .env
                                   sh 'npx prisma db push'
                                   sh 'npm run test:jenkins'

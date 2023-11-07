@@ -1,5 +1,5 @@
 # Base image
-FROM node:18-alpine as build
+FROM node:20-alpine as build
 
 # Required:
 # * openssl1.1-compat: Prisma Client to work in container
@@ -34,7 +34,7 @@ RUN rm -rf src/ Jenkinsfile README.md docker/ docker-compose.yml tsconfig.build.
 
 
 # Multistage build: Keep only result instead of all intermediate layers
-FROM node:18-alpine
+FROM node:20-alpine
 COPY --from=build /usr/src/app /usr/src/app
 
 # Required:
