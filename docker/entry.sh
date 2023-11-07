@@ -1,4 +1,6 @@
 #!/bin/bash
+printf "${ACTION}"
+printf "${DB_HOST}"
 
 # Wait until DB is running (only if a host was specified)
 if [[ ! -z "${DB_HOST}" ]]; then
@@ -10,19 +12,34 @@ if [[ ! -z "${DB_HOST}" ]]; then
     printf " done.\n"
 fi
 
-# Applies DB schema on first boot only,
-# based on: https://stackoverflow.com/a/50638207
-if [ ! -e /home/node/db_initialized ]; then
-    cd /usr/src/app/
-   
-    # Create database and apply sample data on first boot
-    npx prisma db push --accept-data-loss
-    npx prisma db seed
+# Check the value of the ACTION variable
+case "${ACTION}" in
+    "DEMO_SEED")
+        # Initialize the database and apply sample data
+        if [ ! -e /home/node/db_initialized ]; then
+            printf "Initializing the database and applying sample data...\n"
+            cd /usr/src/app/
+            npx prisma db push --accept-data-loss
+            npx prisma db seed
+            touch /home/node/db_initialized
+            cd -
+            printf "Database initialization completed.\n"
+        fi
+        ;;
 
-    touch /home/node/db_initialized
+    "INIT")
+        # Start the NestJS application
+        cd /usr/src/app/
+        node /usr/src/app/dist/src/main.js
+        ;;
     
-    cd -
-fi
+    "MIGRATE")
+        # Start the NestJS application
+        cd /usr/src/app/
+        node /usr/src/app/dist/src/main.js
+        ;;
 
-# Start NestJS
-node /usr/src/app/dist/src/main.js
+    *)
+        echo "Unknown or no ACTION provided."
+        ;;
+esac

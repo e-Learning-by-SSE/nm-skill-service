@@ -14,7 +14,7 @@ docker build . -f docker/Dockerfile
 You may optionally specify a name
 
 ```bash
-docker build . -f docker/Dockerfile -t <image_name>
+docker build . -f Dockerfile -t <competence-repository>
 ```
 
 The image exposes port 3000.
@@ -44,3 +44,6 @@ The following example demonstrates how to run a detached container (`name=compet
 ```bash
 docker run -d -p 80:3000 -e DATABASE_URL="postgresql://postgres:admin@192.168.1.1:5431/competence-repository-db?schema=public" -t competence-repository
 ```
+
+The following example demonstrates how to run a detached container (`name=competence-repository`) on port 80 with a database (`ip=192.168.1.1`) and default postgres credentials and adding a environment variable called ACTION to control initialization of DB 
+docker run -d -p 80:3000 -e DATABASE_URL="postgresql://postgres:admin@192.168.1.1:5431/competence-repository-db?schema=public" -e ACTION="DEMO_SEED" -t competence-repository1 
