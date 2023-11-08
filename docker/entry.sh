@@ -34,6 +34,9 @@ case "${DB_ACTION}" in
          printf "Initializing the database and fills these with administrative values\n"
         cd /usr/src/app/
         node /usr/src/app/dist/src/main.js
+        npx prisma db push
+        cd /usr/src/app/
+        node /usr/src/app/dist/src/main.js
         ;;
     
     "MIGRATE")
