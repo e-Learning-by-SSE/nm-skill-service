@@ -177,10 +177,10 @@ model UserProfile {
   companyId        String?
   learningBehavior LearningBehaviorData?
   learningProgress LearningProgress[]
-  LearningHistory  LearningHistory?
-  status String // (active, inactive)  setzen des Values bei User-Events (create / delete)
-  Qualification Qualification[]
-  Job           Job?
+  learningHistory  LearningHistory?
+  status String @default("active")   // (active, inactive)  setzen des Values bei User-Events (create / delete)
+  qualification Qualification[]
+  job           Job?
 
   //feedbacks Feedback[] //Feedbacks given by the user, one to many relation (not implemented as onDelete relation is not working properly)
 
