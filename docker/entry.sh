@@ -38,7 +38,7 @@ case "${DB_ACTION}" in
     
     "MIGRATE")
         # Start the NestJS application
-        printf "Initializing the database and applying sample data...\n"
+        printf "Migrate the database \n"
         cd /usr/src/app/
         npx prisma db push --accept-data-loss
         npx prisma migrate deploy
