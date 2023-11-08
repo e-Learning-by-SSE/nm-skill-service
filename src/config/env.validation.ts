@@ -7,6 +7,13 @@ import { IsEnum, IsNotEmpty, IsNumber, validateSync } from 'class-validator';
  * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
  * @author Carsten Wenzel  <wenzel@sse.uni-hildesheim.de>
  */
+
+export enum DB_ACTION {
+  DEMO_SEED = 'DEMO_SEED',
+  INIT = 'INIT',
+  MIGRATE = 'MIGRATE'
+}
+
 export class EnvironmentVariables {
   // App Configuration
   @IsNotEmpty()
@@ -39,8 +46,10 @@ export class EnvironmentVariables {
   @IsNotEmpty()
   DB_URL: string = 'postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?schema=public';
   
+
+  @IsEnum(DB_ACTION)
   @IsNotEmpty()
-  DB_ACTION :string;
+  DB_ACTION :DB_ACTION;
 }
 
 export function validate(config: Record<string, unknown>) {
