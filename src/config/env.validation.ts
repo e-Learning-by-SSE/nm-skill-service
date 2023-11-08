@@ -38,6 +38,9 @@ export class EnvironmentVariables {
 
   @IsNotEmpty()
   DB_URL: string = 'postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?schema=public';
+  
+  @IsNotEmpty()
+  DB_ACTION :string;
 }
 
 export function validate(config: Record<string, unknown>) {
