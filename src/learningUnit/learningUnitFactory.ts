@@ -290,32 +290,12 @@ export class LearningUnitFactory {
 
             const query: Prisma.LearningUnitFindManyArgs = {};
 
-            if (filter.contentCreator || filter.contentProvider || filter.language|| filter.lifecycle) {
-                let locLifecycle = undefined;
-                switch (filter.lifecycle) {
-                    case 'DRAFT':
-                      locLifecycle = LIFECYCLE.DRAFT
-                      break;
-                  
-                    case 'POOL':
-                        locLifecycle = LIFECYCLE.POOL
-                      break;
-                  
-                      case 'ARCHIVED':
-                        locLifecycle = LIFECYCLE.ARCHIVED
-                      break;
-                  
-                    default:
-                        locLifecycle = undefined;
-                  }
+        
 
                 query.where = {
-                  contentCreator: filter.contentCreator || undefined,
-                  contentProvider : filter.contentProvider  || undefined,
-                  language: filter.language || undefined,
-                  lifecycle: locLifecycle ,
+                
                 };
-              } 
+              
           
               let a  = await this.db.learningUnit.findMany(query);
            

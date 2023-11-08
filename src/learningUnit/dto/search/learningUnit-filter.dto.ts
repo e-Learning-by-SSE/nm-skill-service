@@ -1,57 +1,22 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, IsNumber, IsArray } from 'class-validator';
 
 
 export class LearningUnitFilterDto {
+ 
+  @ApiProperty({ required: false, type: [String], description: 'Filter by required skills' })
   @IsOptional()
-  @IsString()
-  processingTime?: string;
-
-  @IsOptional()
-  @IsString()
-  rating?: string;
-
-  @IsOptional()
-  @IsString()
-  contentCreator?: string;
-
-  @IsOptional()
-  @IsString()
-  contentProvider?: string;
-
-  @IsOptional()
-  @IsString()
-  targetAudience?: string;
-
-  @IsOptional()
-  @IsString()
-  semanticDensity?: string;
-
-  @IsOptional()
-  @IsString()
-  semanticGravity?: string;
-  
-  @IsOptional()
-  @IsArray()
-  contentTags?: string[];
-
-  @IsOptional()
-  @IsArray()
-  contextTags?: string[];
-
-
-  @IsOptional()
-  @IsString()
-  linkToHelpMaterial?: string;
-  
-  @IsOptional()
-  @IsString()
-  lifecycle?: string;
-
-  @IsOptional()
-  @IsString()
-  language?: string;
-
-  @IsOptional()
-  @IsArray()
+  @IsString({ each: true })
   requiredSkills?: string[];
+
+  @ApiProperty({ required: false, type: [String], description: 'Filter by required teachingGoals' })
+  @IsOptional()
+  @IsString({ each: true })
+  teachingGoals?: string[];
+
+  @ApiProperty({ required: false, type: [String], description: 'Filter by owners' })
+  @IsOptional()
+  @IsString({ each: true })
+  owners?: string[];
+
 }
