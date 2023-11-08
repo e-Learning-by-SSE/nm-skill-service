@@ -53,8 +53,8 @@ export class UserDto extends UserCreationDto {
             user.learningHistory,
             user.status,
             user.qualification,
-            user.job
-            
+            user.job,
+        );
     }
 }
 
