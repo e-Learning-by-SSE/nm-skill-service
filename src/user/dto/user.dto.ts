@@ -1,6 +1,6 @@
 import { IsNotEmpty } from "class-validator";
 
-import { UserProfile } from "@prisma/client";
+import { CareerProfile, Company, Job, LearningBehaviorData, LearningHistory, LearningProfile, LearningProgress, Qualification, UserProfile } from "@prisma/client";
 
 import { UserCreationDto } from "./user-creation.dto";
 
@@ -39,21 +39,28 @@ export class UserDto extends UserCreationDto {
             );
         //this.id = id;
     }
-
-    static createFromDao(user: UserProfile): UserDto {
+    static createFromDao(user: UserProfile,learningProfile?:LearningProfile,  careerProfile?: CareerProfile, company?: Company, learningBehavior?:LearningBehaviorData, learningProgress?: LearningProgress[], learningHistory?: LearningHistory, qualification?:Qualification[], job?: Job): UserDto {
+        const learningProgressAsArrayOfIds = learningProgress?.map((element) => element.id) || [];
+        const qualificationAsArrayOfIds = qualification?.map((element) => element.id) || [];
+        const learningProfileId = learningProfile?.id || '';
+        const careerProfileId = careerProfile?.id || '';
+        const companyName = company?.id || '';
+        const learningBehaviorId = learningBehavior?.id || '';
+        const learningHistoryId = learningHistory?.id || '';
+        const jobId = job?.id || '';
         return new UserDto(
             user.id, 
             user.name, 
-            user.learningProfile,
-            user.careerProfile, 
-            user.company, 
+            learningProfileId,
+            careerProfileId, 
+            companyName, 
             user.companyId, 
-            user.learningBehavior,
-            user.learningProgress,
-            user.learningHistory,
+            learningBehaviorId,
+            learningProgressAsArrayOfIds,
+            learningHistoryId,
             user.status,
-            user.qualification,
-            user.job,
+            qualificationAsArrayOfIds,
+            jobId,
         );
     }
 }

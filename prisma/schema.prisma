@@ -165,8 +165,6 @@ model PreferredOrdering {
 }
 
 
-// ######## Einf�gen der MLS-Id  ########
-
 model UserProfile {
   id               String                @id @default(cuid())
   // mlsUserId	   String                 // ersetzen wir hier "unsere" Id oder erg�nzen um die mlsUserId ?
