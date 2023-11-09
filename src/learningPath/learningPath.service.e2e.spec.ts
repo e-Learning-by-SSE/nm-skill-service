@@ -1,4 +1,4 @@
-import { INestApplication } from "@nestjs/common";
+import { ConflictException, INestApplication } from "@nestjs/common";
 import { DbTestUtils } from "../DbTestUtils";
 import * as request from "supertest";
 import { Test } from "@nestjs/testing";
@@ -426,6 +426,49 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     .expect((res) => {
                         const result = res.body as LearningPathDto;
                         expect(result).toMatchObject(expectedResult);
+                    });
+            });
+
+            it("Update recommendedUnitSequence with cycle -> 409 (Conflict)", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    recommendedUnitSequence: [unit2.id, unit1.id],
+                };
+
+                // Test: Update of initialPath -> Should contain a circle
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(409)
+                    .expect((res) => {
+                        const errorMsg = (res.body as ConflictException).message;
+                        expect(errorMsg).toContain("The given learning path contains cycles");
+                        expect(errorMsg).toContain(`${unit1.id} ->`);
+                        expect(errorMsg).toContain(`${unit2.id} ->`);
+                    });
+            });
+
+            it("Update with no valid path -> 409 (Conflict)", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+                const skill3 = await dbUtils.createSkill(skillMap, "Skill3");
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    pathGoals: [skill3.id],
+                };
+
+                // Test: Update of initialPath -> Should contain a circle
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(409)
+                    .expect((res) => {
+                        const errorMsg = (res.body as ConflictException).message;
+                        expect(errorMsg).toContain(`Cannot compute a path from ∅ to ${skill3.id}`);
                     });
             });
         });

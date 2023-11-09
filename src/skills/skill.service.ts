@@ -20,7 +20,6 @@ import {
     ResolvedSkillListDto,
 } from "./dto";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
-import { el, sk } from "@faker-js/faker";
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -262,7 +261,7 @@ export class SkillMgmtService {
             include: { skills: true },
         });
         if (!dao) {
-            throw new NotFoundException(`Specified repositroy not found: ${dto.id}`);
+            throw new NotFoundException(`Specified repository not found: ${dto.id}`);
         }
 
         const result: UnresolvedSkillRepositoryDto = {
