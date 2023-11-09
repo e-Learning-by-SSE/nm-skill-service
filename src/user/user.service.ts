@@ -28,13 +28,48 @@ import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
  */
 @Injectable()
 export class UserMgmtService {
-    getUserByFilter(filter: CareerProfileFilterDto) {
+    patchCompPathAiaLearningProfileByID(learningProfileId: string, dto: LearningHistoryDto) {
         throw new Error("Method not implemented.");
     }
-    deleteUser(userId: string) {
+    delCompPathAiaLearningProfileByID(learningProfileId: string, compPathId: string) {
+        throw new Error("Method not implemented.");
+    }
+    getCompPathAiaLearningProfileByID(learningProfileId: string, compPathId: string) {
+        throw new Error("Method not implemented.");
+    }
+    patchCompPathViaLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
+        throw new Error("Method not implemented.");
+    }
+    
+    createLearningHistory(historyId: string, createLearningHistoryDto: LearningHistoryCreationDto) {
+        throw new Error("Method not implemented.");
+    }
+    getLearningHistoryById(historyId: string) {
         throw new Error("Method not implemented.");
     }
     constructor(private db: PrismaService) {}
+
+    async getLearningProfileByID(learningProfileId: string) {
+        throw new Error("Method not implemented.");
+    }
+    async deleteLearningProfileByID(learningProfileId: string) {
+        throw new Error("Method not implemented.");
+    }
+    async patchLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
+        throw new Error("Method not implemented.");
+    }
+    async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileCreationDto) {
+        throw new Error("Method not implemented.");
+    }
+    async getCareerProfileByID(careerProfileId: string) {
+        throw new Error("Method not implemented.");
+    }
+    async getUserByFilter(filter: CareerProfileFilterDto) {
+        throw new Error("Method not implemented.");
+    }
+    async deleteUser(userId: string) {
+        throw new Error("Method not implemented.");
+    }
 
     async deleteProgressForId(id: string) {
         const recordToDelete = await this.db.learningProgress.findUnique({
