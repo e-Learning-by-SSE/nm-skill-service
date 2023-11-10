@@ -165,11 +165,11 @@ export class PathFinderService {
      * @returns The computed path or a NotFoundException if no path could be computed for the specified goal
      */
     public async computePath(dto: PathRequestDto) {
-        const goals = await this.loadSkills(dto.goal);
+        const goal = await this.loadSkills(dto.goal);
 
         // Find all skills that are in the same repository as the goals (most likely to find a solution for them)
         // Could be revised in future if algorithm detects relevant skills
-        const repositories = [...new Set(goals.map((goal) => goal.repositoryId))];
+        const repositories = [...new Set(goal.map((goal) => goal.repositoryId))];
         const skills = await this.loadAllSkillsOfRepositories(repositories);
 
         let knowledge: Skill[] | undefined;
@@ -189,8 +189,8 @@ export class PathFinderService {
         const path = await getPath({
             skills: skills,
             learningUnits: await this.luFactory.getLearningUnits(),
-            desiredSkills: goals,
-            ownedSkill: knowledge,
+            goal,
+            knowledge,
             optimalSolution: dto.optimalSolution,
         });
 

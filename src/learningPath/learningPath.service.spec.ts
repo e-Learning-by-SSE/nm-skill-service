@@ -712,8 +712,8 @@ describe("LearningPath Service", () => {
             const path = await getPath({
                 skills: [skill1Dto, skill2Dto, skill3Dto],
                 learningUnits: await findAll(db),
-                desiredSkills: [skill3Dto],
-                ownedSkill: [],
+                goal: [skill3Dto],
+                knowledge: [],
                 optimalSolution: true,
             });
             expect(path).not.toBeNull();
@@ -728,8 +728,8 @@ describe("LearningPath Service", () => {
             const newPath = await getPath({
                 skills: [skill1Dto, skill2Dto, skill3Dto],
                 learningUnits: await findAll(db),
-                desiredSkills: [skill3Dto],
-                ownedSkill: [],
+                goal: [skill3Dto],
+                knowledge: [],
                 optimalSolution: true,
             });
             expect(newPath).not.toBeNull();

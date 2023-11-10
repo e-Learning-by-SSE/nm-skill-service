@@ -254,7 +254,7 @@ export class LearningPathMgmtService {
                 nestedSkills: true,
             },
         });
-        const desiredSkills = goalSkills.map((skill) => ({
+        const goal = goalSkills.map((skill) => ({
             id: skill.id,
             repositoryId: skill.repositoryId,
             nestedSkills: skill.nestedSkills.map((skill) => skill.id),
@@ -269,23 +269,21 @@ export class LearningPathMgmtService {
                 nestedSkills: true,
             },
         });
-        const ownedSkill = knownSkills.map((skill) => ({
+        const knowledge = knownSkills.map((skill) => ({
             id: skill.id,
             repositoryId: skill.repositoryId,
             nestedSkills: skill.nestedSkills.map((skill) => skill.id),
         }));
         const computedPath = await getPath({
             skills,
-            desiredSkills,
-            ownedSkill,
+            goal,
+            knowledge,
             learningUnits: allUnits,
             optimalSolution: false,
         });
         if (computedPath === null) {
-            const from =
-                ownedSkill.length > 0 ? ownedSkill.map((skill) => skill.id).join(", ") : "∅";
-            const to =
-                desiredSkills.length > 0 ? desiredSkills.map((skill) => skill.id).join(", ") : "∅";
+            const from = knowledge.length > 0 ? knowledge.map((skill) => skill.id).join(", ") : "∅";
+            const to = goal.length > 0 ? goal.map((skill) => skill.id).join(", ") : "∅";
 
             throw new ConflictException(`Cannot compute a path from ${from} to ${to}`);
         }
