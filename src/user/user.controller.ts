@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Param, Delete } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Controller, Get, Post, Body, Param, Delete, Patch, Put, Query } from "@nestjs/common";
+import { ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import {
     UserCreationDto,
     CompanyCreationDto,
@@ -8,14 +8,14 @@ import {
     CareerProfileCreationDto,
     JobCreationDto,
     LearningHistoryCreationDto,
-    
-    
+    LearningProfileDto,
 } from "./dto";
 import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { UserMgmtService } from "./user.service";
+import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 
 @ApiTags("User")
-@Controller("users")
+@Controller("")
 export class UserMgmtController {
     constructor(private userService: UserMgmtService) {}
 
@@ -34,9 +34,9 @@ export class UserMgmtController {
      * @param dto The user description
      * @returns The created user.
      */
-    
+
     @ApiOperation({ summary: "Experimental (WIP)" })
-    @Post("add_user")
+    @Post("/users/")
     addUser(@Body() dto: UserCreationDto) {
         return this.userService.createUser(dto);
     }
@@ -51,12 +51,6 @@ export class UserMgmtController {
     @Post("add_learningProfile")
     addLearningProfile(@Body() dto: LearningProfileCreationDto) {
         return this.userService.createLP(dto);
-    }
-
-    @ApiOperation({ summary: "Experimental (WIP)" })
-    @Post("add_CareerProfile")
-    addCareerProfile(@Body() dto: CareerProfileCreationDto) {
-        return this.userService.createCP(dto);
     }
 
     @ApiOperation({ summary: "Experimental (WIP)" })
@@ -76,19 +70,33 @@ export class UserMgmtController {
     addLearningHistory(@Body() dto: LearningHistoryCreationDto) {
         return this.userService.createLH(dto);
     }
+
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Post("add_CareerProfile")
+    addCareerProfile(@Body() dto: CareerProfileCreationDto) {
+        return this.userService.createCP(dto);
+    }
+
     /**
-     * Returns the specified user.
+     * Returns the specified user-profile.
      * @param userId The ID of the user, that shall be returned
-     * @returns The specified user.
+     * @returns The specified user-profile.
      */
-    @Get(":userId")
-    getUser(@Param("userId") userId: string) {
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Get("/user-profiles/:user_profile_id")
+    getuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUser(userId);
     }
 
-    @Get(":userId2")
-    getUser2(@Param("userId2") userId2: string) {
-        return this.userService.getUser(userId2);
+    /**
+     * Deletes the specified user-profile.
+     * @param userId The ID of the user, that shall be returned
+     * @returns Deleted specified user-profile.
+     */
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Delete("/user-profiles/:user_profile_id")
+    deleteuserProfiles(@Param("user_profile_id") userId: string) {
+        return this.userService.deleteUser(userId);
     }
 
     @ApiOperation({ summary: "Experimental (WIP)" })
@@ -97,7 +105,7 @@ export class UserMgmtController {
         // Fetch a user's learning progress by user ID
         return this.userService.findProgressForUserId(id);
     }
-
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post(":id/learning-progress")
     async createLearningProgress(
         @Param("id") userId: string,
@@ -107,17 +115,122 @@ export class UserMgmtController {
         return this.userService.createProgressForUserId(userId, createLearningProgressDto);
     }
 
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete(":id/learning-progress")
     async deleteLearningProgress(@Param("id") progressId: string) {
         return this.userService.deleteProgressForId(progressId);
     }
 
-    /*  @Put(':id/learning-progress')
-  async updateLearningProfile(
-    @Param('id') userId: string,
-    @Body() updateLearningProgressDto: UpdateLearningProgressDto,
-  ) {
-    // Update a user's learning profile
-    return this.userService.updateLearningProgress(userId, updateLearningProgressDto);
-  }*/
+    // Filter: Includes careerProfile.dto.ts
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Get("/career-profiles/")
+    @ApiQuery({
+        name: "userId",
+        required: false,
+        type: String,
+        description: "Filter by userId",
+    })
+    getLearningUnitSearchWithFilter(@Query() filter: CareerProfileFilterDto) {
+        return this.userService.getUserByFilter(filter);
+    }
+  
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Get("/career-profiles/:career_profile_id")
+    getCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
+        return this.userService.getCareerProfileByID(careerProfileId);
+    }
+
+  
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Delete("/career-profiles/:career_profile_id")
+    delCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
+        return this.userService.getCareerProfileByID(careerProfileId);
+    }
+
+   
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Patch("/career-profiles/:career_profile_id")
+    patchCareerProfileByID(
+        @Param("career_profile_id") careerProfileId: string,
+        @Body() dto: CareerProfileCreationDto,
+    ) {
+        return this.userService.patchCareerProfileByID(careerProfileId, dto);
+    }
+
+   
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Get("/learning-profiles/:learning_profile_id")
+    getLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
+        return this.userService.getLearningProfileByID(learningProfileId);
+    }
+
+   
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Delete("/learning-profiles/:learning_profile_id")
+    delLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
+        return this.userService.deleteLearningProfileByID(learningProfileId);
+    }
+
+   
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Patch("/learning-profiles/:learning_profile_id")
+    patchLearningProfileByID(
+        @Param("learning_profile_id") learningProfileId: string,
+        @Body() dto: LearningProfileDto,
+    ) {
+        return this.userService.patchLearningProfileByID(learningProfileId, dto);
+    }
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Get("learning-history/:history_id")
+    async getLearningHistoryById(@Param("history_id") historyId: string) {
+        // Fetch a user's learning progress by user ID
+        return this.userService.getLearningHistoryById(historyId);
+    }
+
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Post("learning-history/:history_id")
+    async createLearningHistory(
+        @Param("history_id") historyId: string,
+        @Body() createLearningHistoryDto: LearningHistoryCreationDto,
+    ) {
+        // Create a new learning progress entry for a user
+        return this.userService.createLearningHistory(historyId, createLearningHistoryDto);
+    }
+
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Get("/learning-history/:history_id/:comp_path_id")
+    getCompPathByID(@Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string) {
+        return this.userService.getCompPathByID(historyId, compPathId);
+    }
+
+   
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Delete("/learning-history/:history_id/:comp_path_id")
+    delCompPathByID(@Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string) {
+        return this.userService.delCompPathByID(historyId, compPathId);
+    }
+
+   
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Patch("/learning-history/:history_id/:comp_path_id")
+    patchCompPathByID(
+        @Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string,
+        @Body() dto: LearningProfileDto,
+    ) {
+        return this.userService.patchCompPathByID(historyId, compPathId, dto);
+    }
+
 }
+
+/**
+ *
+ *
+ *@Put(':id/learning-progress')
+ *  async updateLearningProfile(
+ *    @Param('id') userId: string,
+ *    @Body() updateLearningProgressDto: UpdateLearningProgressDto,
+ *  ) {
+ *    // Update a user's learning profile
+ *    return this.userService.updateLearningProgress(userId, updateLearningProgressDto);
+ *  }
+ */
