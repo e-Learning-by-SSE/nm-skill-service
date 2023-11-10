@@ -247,19 +247,30 @@ export class SkillMgmtService {
     }
 
     async adaptRepository(dto: SkillRepositoryDto) {
-        const dao = await this.db.skillMap.update({
-            where: {
-                id: dto.id,
-            },
-            data: {
-                access_rights: dto.access_rights,
-                description: dto.description,
-                name: dto.name,
-                taxonomy: dto.taxonomy,
-                version: dto.version,
-            },
-            include: { skills: true },
-        });
+        const dao = await this.db.skillMap
+            .update({
+                where: {
+                    id: dto.id,
+                },
+                data: {
+                    access_rights: dto.access_rights,
+                    description: dto.description,
+                    name: dto.name,
+                    taxonomy: dto.taxonomy,
+                    version: dto.version,
+                },
+                include: { skills: true },
+            })
+            .catch((error) => {
+                if (error instanceof PrismaClientKnownRequestError) {
+                    // Specified Repository not found
+                    if (error.code === "P2025") {
+                        throw new NotFoundException(`Specified repository not found: ${dto.id}`);
+                    }
+                }
+                throw error;
+            });
+
         if (!dao) {
             throw new NotFoundException(`Specified repository not found: ${dto.id}`);
         }
