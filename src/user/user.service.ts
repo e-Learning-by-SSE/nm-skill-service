@@ -40,15 +40,7 @@ export class UserMgmtService {
     async getCompPathByID(historyId: string, compPathId: string) {
         throw new Error("Method not implemented.");
     }
-    async patchCompPathAiaLearningProfileByID(learningProfileId: string, dto: LearningHistoryDto) {
-        throw new Error("Method not implemented.");
-    }
-    async delCompPathAiaLearningProfileByID(learningProfileId: string, compPathId: string) {
-        throw new Error("Method not implemented.");
-    }
-    async getCompPathAiaLearningProfileByID(learningProfileId: string, compPathId: string) {
-        throw new Error("Method not implemented.");
-    }
+    
     async patchCompPathViaLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
         throw new Error("Method not implemented.");
     }
