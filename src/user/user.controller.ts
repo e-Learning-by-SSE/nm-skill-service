@@ -36,7 +36,7 @@ export class UserMgmtController {
      */
 
     @ApiOperation({ summary: "Experimental (WIP)" })
-    @Post("add_user")
+    @Post("/users/")
     addUser(@Body() dto: UserCreationDto) {
         return this.userService.createUser(dto);
     }
