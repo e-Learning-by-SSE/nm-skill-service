@@ -197,6 +197,28 @@ export class UserMgmtController {
         return this.userService.createLearningHistory(historyId, createLearningHistoryDto);
     }
 
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Get("/learning-history/:history_id/:comp_path_id")
+    getCompPathByID(@Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string) {
+        return this.userService.getCompPathByID(historyId, compPathId);
+    }
+
+   
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Delete("/learning-history/:history_id/:comp_path_id")
+    delCompPathByID(@Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string) {
+        return this.userService.delCompPathByID(historyId, compPathId);
+    }
+
+   
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Patch("/learning-history/:history_id/:comp_path_id")
+    patchCompPathByID(
+        @Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string,
+        @Body() dto: LearningProfileDto,
+    ) {
+        return this.userService.patchCompPathByID(historyId, compPathId, dto);
+    }
 
 }
 

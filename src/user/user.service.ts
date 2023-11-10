@@ -28,6 +28,15 @@ import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
  */
 @Injectable()
 export class UserMgmtService {
+    patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
+        throw new Error("Method not implemented.");
+    }
+    delCompPathByID(historyId: string, compPathId: string) {
+        throw new Error("Method not implemented.");
+    }
+    getCompPathByID(historyId: string, compPathId: string) {
+        throw new Error("Method not implemented.");
+    }
     patchCompPathAiaLearningProfileByID(learningProfileId: string, dto: LearningHistoryDto) {
         throw new Error("Method not implemented.");
     }
