@@ -28,35 +28,38 @@ import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
  */
 @Injectable()
 export class UserMgmtService {
-    patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
+
+    constructor(private db: PrismaService) {}
+
+    async patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
         throw new Error("Method not implemented.");
     }
-    delCompPathByID(historyId: string, compPathId: string) {
+    async delCompPathByID(historyId: string, compPathId: string) {
         throw new Error("Method not implemented.");
     }
-    getCompPathByID(historyId: string, compPathId: string) {
+    async getCompPathByID(historyId: string, compPathId: string) {
         throw new Error("Method not implemented.");
     }
-    patchCompPathAiaLearningProfileByID(learningProfileId: string, dto: LearningHistoryDto) {
+    async patchCompPathAiaLearningProfileByID(learningProfileId: string, dto: LearningHistoryDto) {
         throw new Error("Method not implemented.");
     }
-    delCompPathAiaLearningProfileByID(learningProfileId: string, compPathId: string) {
+    async delCompPathAiaLearningProfileByID(learningProfileId: string, compPathId: string) {
         throw new Error("Method not implemented.");
     }
-    getCompPathAiaLearningProfileByID(learningProfileId: string, compPathId: string) {
+    async getCompPathAiaLearningProfileByID(learningProfileId: string, compPathId: string) {
         throw new Error("Method not implemented.");
     }
-    patchCompPathViaLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
+    async patchCompPathViaLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
         throw new Error("Method not implemented.");
     }
     
-    createLearningHistory(historyId: string, createLearningHistoryDto: LearningHistoryCreationDto) {
+    async createLearningHistory(historyId: string, createLearningHistoryDto: LearningHistoryCreationDto) {
         throw new Error("Method not implemented.");
     }
-    getLearningHistoryById(historyId: string) {
+    async getLearningHistoryById(historyId: string) {
         throw new Error("Method not implemented.");
     }
-    constructor(private db: PrismaService) {}
+    
 
     async getLearningProfileByID(learningProfileId: string) {
         throw new Error("Method not implemented.");
