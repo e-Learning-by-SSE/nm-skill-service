@@ -18,7 +18,7 @@ export class LearningPathDto {
     lifecycle: LIFECYCLE;
 
     @IsDefined()
-    goals: string[];
+    pathGoals: string[];
 
     @IsDefined()
     requirements: string[];
@@ -36,7 +36,7 @@ export class LearningPathDto {
         targetAudience: string | null,
         lifecycle: LIFECYCLE,
         requirements: string[],
-        goals: string[],
+        pathGoals: string[],
         recommendedUnitSequence: string[],
     ) {
         this.id = id;
@@ -46,7 +46,7 @@ export class LearningPathDto {
         this.targetAudience = targetAudience ?? undefined;
         this.lifecycle = lifecycle;
         this.requirements = requirements;
-        this.goals = goals;
+        this.pathGoals = pathGoals;
         this.recommendedUnitSequence = recommendedUnitSequence;
     }
 

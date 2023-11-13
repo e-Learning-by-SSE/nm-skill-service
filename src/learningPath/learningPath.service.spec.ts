@@ -7,7 +7,6 @@ import {
     CreateEmptyPathRequestDto,
     LearningPathDto,
     LearningPathListDto,
-    PreferredPathDto,
     UpdatePathRequestDto,
 } from "./dto";
 import { LearningUnit, getPath } from "../../nm-skill-lib/src";
@@ -47,7 +46,7 @@ describe("LearningPath Service", () => {
             const expected: Partial<LearningPathDto> = {
                 id: expect.anything(),
                 owner: creationDto.owner,
-                goals: [],
+                pathGoals: [],
             };
             await expect(
                 learningPathService.createEmptyLearningPath(creationDto),
@@ -69,7 +68,7 @@ describe("LearningPath Service", () => {
             const expected: Partial<LearningPathDto> = {
                 id: expect.anything(),
                 owner: creationDto.owner,
-                goals: [],
+                pathGoals: [],
             };
 
             // Test 1: Create first element -> Should be accepted
@@ -116,7 +115,7 @@ describe("LearningPath Service", () => {
                         title: "",
                         lifecycle: LIFECYCLE.DRAFT,
                         requirements: [],
-                        goals: [],
+                        pathGoals: [],
                         recommendedUnitSequence: [],
                     },
                 ],
@@ -156,7 +155,7 @@ describe("LearningPath Service", () => {
                         lifecycle: LIFECYCLE.DRAFT,
                         description: undefined,
                         requirements: [],
-                        goals: [],
+                        pathGoals: [],
                         recommendedUnitSequence: [],
                     },
                     {
@@ -166,7 +165,7 @@ describe("LearningPath Service", () => {
                         lifecycle: LIFECYCLE.DRAFT,
                         description: undefined,
                         requirements: [],
-                        goals: [],
+                        pathGoals: [],
                         recommendedUnitSequence: [],
                     },
                 ]),
@@ -237,7 +236,7 @@ describe("LearningPath Service", () => {
                 description: updateDto.description!,
                 lifecycle: LIFECYCLE.POOL,
                 requirements: updateDto.requirements!,
-                goals: updateDto.pathGoals!,
+                pathGoals: updateDto.pathGoals!,
                 recommendedUnitSequence: updateDto.recommendedUnitSequence!,
             };
 
@@ -273,7 +272,7 @@ describe("LearningPath Service", () => {
                     targetAudience: updateDto.targetAudience!,
                     lifecycle: LIFECYCLE.DRAFT,
                     requirements: updateDto.requirements!,
-                    goals: updateDto.pathGoals!,
+                    pathGoals: updateDto.pathGoals!,
                     recommendedUnitSequence: updateDto.recommendedUnitSequence!,
                 };
 
@@ -372,7 +371,7 @@ describe("LearningPath Service", () => {
 
                 const expected: LearningPathDto = {
                     ...initialPath,
-                    goals: [skill3.id],
+                    pathGoals: [skill3.id],
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -420,7 +419,7 @@ describe("LearningPath Service", () => {
                     targetAudience: updateDto.targetAudience!,
                     lifecycle: LIFECYCLE.DRAFT,
                     requirements: updateDto.requirements!,
-                    goals: updateDto.pathGoals!,
+                    pathGoals: updateDto.pathGoals!,
                     recommendedUnitSequence: updateDto.recommendedUnitSequence!,
                 };
 
@@ -480,7 +479,7 @@ describe("LearningPath Service", () => {
 
                 const expected: LearningPathDto = {
                     ...initialPath,
-                    goals: [],
+                    pathGoals: [],
                 };
 
                 await expect(
@@ -530,7 +529,7 @@ describe("LearningPath Service", () => {
                     targetAudience: updateDto.targetAudience!,
                     lifecycle: LIFECYCLE.POOL,
                     requirements: updateDto.requirements!,
-                    goals: updateDto.pathGoals!,
+                    pathGoals: updateDto.pathGoals!,
                     recommendedUnitSequence: updateDto.recommendedUnitSequence!,
                 };
 
@@ -626,7 +625,7 @@ describe("LearningPath Service", () => {
                     targetAudience: updateDto.targetAudience!,
                     lifecycle: LIFECYCLE.ARCHIVED,
                     requirements: updateDto.requirements!,
-                    goals: updateDto.pathGoals!,
+                    pathGoals: updateDto.pathGoals!,
                     recommendedUnitSequence: updateDto.recommendedUnitSequence!,
                 };
 
@@ -688,10 +687,7 @@ describe("LearningPath Service", () => {
     describe("definePreferredPath", () => {
         it("Non existent Learning Unit specified -> NotFoundException", async () => {
             await expect(
-                learningPathService.definePreferredPath(
-                    { learningUnits: ["non existent unit ID"] },
-                    "anyID",
-                ),
+                learningPathService.definePreferredPath(["non existent unit ID"], "anyID"),
             ).rejects.toThrow(NotFoundException);
         });
 
@@ -721,8 +717,7 @@ describe("LearningPath Service", () => {
             // Test: Exchange first and second unit
             const unitOrdering = path!.path.map((unit) => unit.id);
             [unitOrdering[0], unitOrdering[1]] = [unitOrdering[1], unitOrdering[0]];
-            const request: PreferredPathDto = { learningUnits: unitOrdering };
-            await learningPathService.definePreferredPath(request, "anyID");
+            await learningPathService.definePreferredPath(unitOrdering, "anyID");
 
             // Post-condition: Check that the path is now different (according to spec of unitOrdering)
             const newPath = await getPath({

@@ -9,7 +9,6 @@ import {
     CreateEmptyPathRequestDto,
     LearningPathDto,
     LearningPathListDto,
-    PreferredPathDto,
     UpdatePathRequestDto,
 } from "./dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
@@ -166,10 +165,7 @@ export class LearningPathMgmtService {
 
         if (dto.recommendedUnitSequence) {
             // Define / Update preferred path
-            await this.definePreferredPath(
-                { learningUnits: dto.recommendedUnitSequence },
-                learningPathId,
-            );
+            await this.definePreferredPath(dto.recommendedUnitSequence, learningPathId);
         } else if (dto.recommendedUnitSequence === null) {
             // Delete preferred path
             await this.db.preferredOrdering.deleteMany({
@@ -247,7 +243,7 @@ export class LearningPathMgmtService {
         const goalSkills = await this.db.skill.findMany({
             where: {
                 id: {
-                    in: path.goals,
+                    in: path.pathGoals,
                 },
             },
             include: {
@@ -362,17 +358,17 @@ export class LearningPathMgmtService {
      * @param learningPathId The ID of the learning path for which the ordering should be defined. Re-using the same ID will overwrite the previous ordering.
      * @param dto The ordering of the learning units, which shall be defined.
      */
-    public async definePreferredPath(dto: PreferredPathDto, preferredPathId: string) {
+    public async definePreferredPath(recommendedUnitSequence: string[], preferredPathId: string) {
         const learningUnits = await this.luFactory.getLearningUnits({
             id: {
-                in: dto.learningUnits,
+                in: recommendedUnitSequence,
             },
         });
 
         if (!learningUnits) {
             throw new NotFoundException("Can not find any learningUnits");
-        } else if (learningUnits.length !== dto.learningUnits.length) {
-            const missingIds = dto.learningUnits.filter(
+        } else if (learningUnits.length !== recommendedUnitSequence.length) {
+            const missingIds = recommendedUnitSequence.filter(
                 (requestedId) =>
                     !learningUnits.some((learningUnit) => learningUnit.id === requestedId),
             );
@@ -381,7 +377,7 @@ export class LearningPathMgmtService {
 
         // Order learningUnits by the given ID list
         learningUnits.sort((a, b) => {
-            return dto.learningUnits.indexOf(a.id) - dto.learningUnits.indexOf(b.id);
+            return recommendedUnitSequence.indexOf(a.id) - recommendedUnitSequence.indexOf(b.id);
         });
 
         await computeSuggestedSkills(

@@ -58,7 +58,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 title: "",
                 lifecycle: LIFECYCLE.DRAFT,
                 requirements: [],
-                goals: [],
+                pathGoals: [],
                 recommendedUnitSequence: [],
             };
 
@@ -86,7 +86,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 title: "",
                 lifecycle: LIFECYCLE.DRAFT,
                 requirements: [],
-                goals: [],
+                pathGoals: [],
                 recommendedUnitSequence: [],
             };
 
@@ -147,7 +147,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         title: "",
                         lifecycle: LIFECYCLE.DRAFT,
                         requirements: [],
-                        goals: [],
+                        pathGoals: [],
                         recommendedUnitSequence: [],
                     },
                 ],
@@ -176,7 +176,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         title: "",
                         lifecycle: LIFECYCLE.DRAFT,
                         requirements: [],
-                        goals: [],
+                        pathGoals: [],
                         recommendedUnitSequence: [],
                     },
                     {
@@ -185,7 +185,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         title: "",
                         lifecycle: LIFECYCLE.DRAFT,
                         requirements: [],
-                        goals: [],
+                        pathGoals: [],
                         recommendedUnitSequence: [],
                     },
                 ]),
@@ -257,7 +257,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 targetAudience: update.targetAudience!,
                 lifecycle: update.lifecycle!,
                 requirements: update.requirements!,
-                goals: update.pathGoals!,
+                pathGoals: update.pathGoals!,
                 recommendedUnitSequence: update.recommendedUnitSequence!,
             };
 
@@ -289,7 +289,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: update.title!,
                     lifecycle: initialPath.lifecycle,
                     requirements: [],
-                    goals: [],
+                    pathGoals: [],
                     recommendedUnitSequence: [],
                 };
 
@@ -321,7 +321,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: initialPath.title ?? "",
                     lifecycle: initialPath.lifecycle,
                     requirements: [],
-                    goals: [],
+                    pathGoals: [],
                     recommendedUnitSequence: [],
                 };
 
@@ -352,7 +352,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: initialPath.title ?? "",
                     lifecycle: initialPath.lifecycle,
                     requirements: update.requirements!,
-                    goals: [],
+                    pathGoals: [],
                     recommendedUnitSequence: [],
                 };
 
@@ -383,7 +383,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: initialPath.title ?? "",
                     lifecycle: initialPath.lifecycle,
                     requirements: [],
-                    goals: update.pathGoals!,
+                    pathGoals: update.pathGoals!,
                     recommendedUnitSequence: [],
                 };
 
@@ -414,7 +414,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: initialPath.title ?? "",
                     lifecycle: initialPath.lifecycle,
                     requirements: [],
-                    goals: [],
+                    pathGoals: [],
                     recommendedUnitSequence: update.recommendedUnitSequence!,
                 };
 
@@ -494,7 +494,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 title: createdPath.title ?? "",
                 lifecycle: LIFECYCLE.DRAFT,
                 requirements: [],
-                goals: [],
+                pathGoals: [],
                 recommendedUnitSequence: [],
             };
 
@@ -540,7 +540,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 title: update.title!,
                 lifecycle: update.lifecycle!,
                 requirements: update.requirements!,
-                goals: update.pathGoals!,
+                pathGoals: update.pathGoals!,
                 recommendedUnitSequence: update.recommendedUnitSequence!,
             };
 
