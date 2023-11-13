@@ -1,5 +1,4 @@
-import { IsOptional } from "class-validator";
-import { LearningUnitCreationDto } from "./learning-unit-creation.dto";
+import { IsDefined, IsNotEmpty, IsOptional } from "class-validator";
 import { LIFECYCLE } from "@prisma/client";
 
 /**
@@ -7,7 +6,28 @@ import { LIFECYCLE } from "@prisma/client";
  * @author Sascha El-Sharkawy <elscha@sse.uni-hildesheim.de>
  * @author Wenzel
  */
-export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
+export class SearchLearningUnitCreationDto {
+    /**
+     * Must be a referenced ID of a TASK in MLS.
+     */
+    @IsNotEmpty()
+    id: string;
+
+    @IsOptional()
+    title?: string;
+
+    @IsOptional()
+    language?: string;
+
+    @IsOptional()
+    description?: string;
+
+    @IsDefined()
+    teachingGoals: string[] = [];
+
+    @IsDefined()
+    requiredSkills: string[] = [];
+
     @IsOptional()
     processingTime?: string;
 
@@ -63,7 +83,10 @@ export class SearchLearningUnitCreationDto extends LearningUnitCreationDto {
         lifecycle: LIFECYCLE | null,
         orga_id: string | null,
     ) {
-        super(id, title, language, description);
+        this.id = id;
+        this.title = title ?? undefined;
+        this.language = language ?? undefined;
+        this.description = description ?? undefined;
         this.processingTime = processingTime ?? undefined;
         this.rating = rating ?? undefined;
         this.contentCreator = contentCreator ?? undefined;
