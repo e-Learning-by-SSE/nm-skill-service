@@ -444,6 +444,8 @@ describe("Skill Controller Tests", () => {
                 nestedSkills: [],
                 parentSkills: [],
                 repositoryId: skillMap1.id,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Create Skill
