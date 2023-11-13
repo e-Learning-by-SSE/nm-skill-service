@@ -1,11 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { ApiTags, ApiQuery } from "@nestjs/swagger"; // Import ApiQuery decorator
 
-import { SearchLearningUnitCreationDto } from "./dto/search";
+import { SearchLearningUnitCreationDto, LearningUnitFilterDto } from "./dto";
 
 import { LearningUnitMgmtService } from "./learningUnit.service";
-import { MLSEvent } from "../events/dtos/mls-event.dto";
-import { LearningUnitFilterDto } from "./dto/search/learningUnit-filter.dto";
 import { LIFECYCLE } from "@prisma/client";
 
 @ApiTags("Learning-units")
@@ -116,8 +114,7 @@ export class SearchLearningUnitController {
         description: "Filter by required skills",
     })
     getLearningUnitSearchWithFilter(@Query() filter: LearningUnitFilterDto) {
-      return this.learningUnitService.getLearningUnitByFilter(filter);
-    
+        return this.learningUnitService.getLearningUnitByFilter(filter);
     }
 
     /**
