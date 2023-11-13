@@ -60,6 +60,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 requirements: [],
                 pathGoals: [],
                 recommendedUnitSequence: [],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Create one empty path
@@ -88,6 +90,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 requirements: [],
                 pathGoals: [],
                 recommendedUnitSequence: [],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Create 2 paths; second path should have different ID
@@ -149,6 +153,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         requirements: [],
                         pathGoals: [],
                         recommendedUnitSequence: [],
+                        createdAt: expect.any(String),
+                        updatedAt: expect.any(String),
                     },
                 ],
             };
@@ -178,6 +184,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         requirements: [],
                         pathGoals: [],
                         recommendedUnitSequence: [],
+                        createdAt: expect.any(String),
+                        updatedAt: expect.any(String),
                     },
                     {
                         id: path2.id,
@@ -187,6 +195,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         requirements: [],
                         pathGoals: [],
                         recommendedUnitSequence: [],
+                        createdAt: expect.any(String),
+                        updatedAt: expect.any(String),
                     },
                 ]),
             };
@@ -259,6 +269,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 requirements: update.requirements!,
                 pathGoals: update.pathGoals!,
                 recommendedUnitSequence: update.recommendedUnitSequence!,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Update initialPath
@@ -291,6 +303,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     requirements: [],
                     pathGoals: [],
                     recommendedUnitSequence: [],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -323,6 +337,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     requirements: [],
                     pathGoals: [],
                     recommendedUnitSequence: [],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -354,6 +370,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     requirements: update.requirements!,
                     pathGoals: [],
                     recommendedUnitSequence: [],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -385,6 +403,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     requirements: [],
                     pathGoals: update.pathGoals!,
                     recommendedUnitSequence: [],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -416,6 +436,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     requirements: [],
                     pathGoals: [],
                     recommendedUnitSequence: update.recommendedUnitSequence!,
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -496,6 +518,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 requirements: [],
                 pathGoals: [],
                 recommendedUnitSequence: [],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Create one empty path
@@ -542,6 +566,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 requirements: update.requirements!,
                 pathGoals: update.pathGoals!,
                 recommendedUnitSequence: update.recommendedUnitSequence!,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Create one empty path

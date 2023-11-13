@@ -117,6 +117,8 @@ describe("LearningPath Service", () => {
                         requirements: [],
                         pathGoals: [],
                         recommendedUnitSequence: [],
+                        createdAt: expect.any(String),
+                        updatedAt: expect.any(String),
                     },
                 ],
             };
@@ -157,6 +159,8 @@ describe("LearningPath Service", () => {
                         requirements: [],
                         pathGoals: [],
                         recommendedUnitSequence: [],
+                        createdAt: expect.any(String),
+                        updatedAt: expect.any(String),
                     },
                     {
                         id: path2.id,
@@ -167,6 +171,8 @@ describe("LearningPath Service", () => {
                         requirements: [],
                         pathGoals: [],
                         recommendedUnitSequence: [],
+                        createdAt: expect.any(String),
+                        updatedAt: expect.any(String),
                     },
                 ]),
             };
@@ -238,6 +244,8 @@ describe("LearningPath Service", () => {
                 requirements: updateDto.requirements!,
                 pathGoals: updateDto.pathGoals!,
                 recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Update element
@@ -274,6 +282,8 @@ describe("LearningPath Service", () => {
                     requirements: updateDto.requirements!,
                     pathGoals: updateDto.pathGoals!,
                     recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 expect(initialPath, "beforeAll() failed: Could not configure test object", {
@@ -288,6 +298,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     owner: updateDto.owner!,
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -302,6 +313,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     title: updateDto.title!,
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -316,6 +328,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     description: updateDto.description!,
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -330,6 +343,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     targetAudience: updateDto.targetAudience!,
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -344,6 +358,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     lifecycle: updateDto.lifecycle!,
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -421,6 +436,8 @@ describe("LearningPath Service", () => {
                     requirements: updateDto.requirements!,
                     pathGoals: updateDto.pathGoals!,
                     recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 expect(initialPath, "beforeAll() failed: Could not configure test object", {
@@ -436,6 +453,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     description: undefined,
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -450,6 +468,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     targetAudience: undefined,
+                    updatedAt: expect.any(String),
                 };
 
                 await expect(
@@ -465,6 +484,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     requirements: [],
+                    updatedAt: expect.any(String),
                 };
 
                 await expect(
@@ -531,6 +551,8 @@ describe("LearningPath Service", () => {
                     requirements: updateDto.requirements!,
                     pathGoals: updateDto.pathGoals!,
                     recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 expect(initialPath, "beforeAll() failed: Could not configure test object", {
@@ -546,6 +568,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     description: updateDto.description!,
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -560,6 +583,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     lifecycle: updateDto.lifecycle!,
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -627,6 +651,8 @@ describe("LearningPath Service", () => {
                     requirements: updateDto.requirements!,
                     pathGoals: updateDto.pathGoals!,
                     recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 expect(initialPath, "beforeAll() failed: Could not configure test object", {

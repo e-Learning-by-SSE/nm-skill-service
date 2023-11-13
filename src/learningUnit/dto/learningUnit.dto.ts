@@ -1,7 +1,14 @@
+import { IsDate } from "class-validator";
 import { SearchLearningUnitCreationDto } from "./learningUnit-creation.dto";
 import { LIFECYCLE, LearningUnit } from "@prisma/client";
 
 export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
+    @IsDate()
+    createdAt: string;
+
+    @IsDate()
+    updatedAt: string;
+
     constructor(
         id: string,
         title: string,
@@ -20,6 +27,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
         linkToHelpMaterial: string | null,
         lifecycle: LIFECYCLE,
         orga_id: string | null,
+        createdAt: Date,
+        updatedAt: Date,
     ) {
         super(
             id,
@@ -40,6 +49,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
             lifecycle,
             orga_id,
         );
+        this.createdAt = createdAt.toISOString();
+        this.updatedAt = updatedAt.toISOString();
     }
 
     static createFromDao(unit: LearningUnit): SearchLearningUnitDto {
@@ -60,6 +71,8 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
             unit.linkToHelpMaterial,
             unit.lifecycle,
             unit.orga_id,
+            unit.createdAt,
+            unit.updatedAt,
         );
     }
 }

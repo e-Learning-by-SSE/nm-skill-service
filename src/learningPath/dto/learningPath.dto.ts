@@ -1,4 +1,4 @@
-import { IsDefined, IsNotEmpty } from "class-validator";
+import { IsDate, IsDefined, IsNotEmpty } from "class-validator";
 
 import { LearningPath, LearningUnit, Skill, LIFECYCLE } from "@prisma/client";
 
@@ -28,6 +28,12 @@ export class LearningPathDto {
 
     targetAudience?: string;
 
+    @IsDate()
+    createdAt: string;
+
+    @IsDate()
+    updatedAt: string;
+
     constructor(
         id: string,
         owner: string,
@@ -38,6 +44,8 @@ export class LearningPathDto {
         requirements: string[],
         pathGoals: string[],
         recommendedUnitSequence: string[],
+        createdAt: Date,
+        updatedAt: Date,
     ) {
         this.id = id;
         this.owner = owner;
@@ -48,6 +56,8 @@ export class LearningPathDto {
         this.requirements = requirements;
         this.pathGoals = pathGoals;
         this.recommendedUnitSequence = recommendedUnitSequence;
+        this.createdAt = createdAt.toISOString();
+        this.updatedAt = updatedAt.toISOString();
     }
 
     static createFromDao(
@@ -70,6 +80,8 @@ export class LearningPathDto {
             requirements,
             goals,
             recommendedUnitSequence,
+            lp.createdAt,
+            lp.updatedAt,
         );
     }
 }
