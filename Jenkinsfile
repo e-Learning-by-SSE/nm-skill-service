@@ -136,7 +136,7 @@ pipeline {
                         }
                         script {
                             sh 'rm -f competence_repository*.zip'
-                            docker.image(env.DOCKER_TARGET).withRun(-p 3000:3000") {
+                            docker.image(env.DOCKER_TARGET).withRun("-p 3000:3000") {
                                 // Wait for the application to be ready (after container was started)  
                                 sleep(time:30, unit:"SECONDS")
                 
