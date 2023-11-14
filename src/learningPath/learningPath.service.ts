@@ -1,18 +1,28 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    ConflictException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 
 import {
     CreateEmptyPathRequestDto,
     LearningPathDto,
     LearningPathListDto,
-    PreferredPathDto,
     UpdatePathRequestDto,
 } from "./dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
-import { LearningUnit, computeSuggestedSkills } from "../../nm-skill-lib/src";
+import {
+    LearningUnit,
+    Skill,
+    computeSuggestedSkills,
+    findCycles,
+    getPath,
+} from "../../nm-skill-lib/src";
 import { PrismaService } from "../prisma/prisma.service";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { Prisma } from "@prisma/client";
-import { th } from "@faker-js/faker";
+import { SkillDto } from "../skills/dto";
 
 /**
  * Service that manages the creation/update/deletion
@@ -103,7 +113,7 @@ export class LearningPathMgmtService {
      * @param dto The new values for the LearningPath.
      * @returns The updated LearningPath.
      */
-    async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto) {
+    async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto, checkPath = true) {
         await this.precheckOfUpdateLearningPath(learningPathId, dto);
 
         const requirements =
@@ -115,7 +125,7 @@ export class LearningPathMgmtService {
                 ? []
                 : dto.recommendedUnitSequence?.map((unit) => ({ id: unit }));
 
-        const result = await this.db.learningPath
+        let result = await this.db.learningPath
             .update({
                 where: {
                     id: learningPathId,
@@ -125,7 +135,6 @@ export class LearningPathMgmtService {
                     title: dto.title,
                     description: dto.description,
                     targetAudience: dto.targetAudience,
-                    lifecycle: dto.lifecycle,
                     requirements: {
                         set: requirements,
                     },
@@ -156,10 +165,7 @@ export class LearningPathMgmtService {
 
         if (dto.recommendedUnitSequence) {
             // Define / Update preferred path
-            await this.definePreferredPath(
-                { learningUnits: dto.recommendedUnitSequence },
-                learningPathId,
-            );
+            await this.definePreferredPath(dto.recommendedUnitSequence, learningPathId);
         } else if (dto.recommendedUnitSequence === null) {
             // Delete preferred path
             await this.db.preferredOrdering.deleteMany({
@@ -169,7 +175,114 @@ export class LearningPathMgmtService {
             });
         }
 
+        if (checkPath) {
+            // Will throw an error and abort if path contains cycles or is incomplete
+            await this.checkPath(LearningPathDto.createFromDao(result));
+        }
+
+        // Alter lifecycle only if no errors were detected
+        if (dto.lifecycle) {
+            result = await this.db.learningPath.update({
+                where: {
+                    id: learningPathId,
+                },
+                data: {
+                    lifecycle: dto.lifecycle,
+                },
+                include: {
+                    requirements: true,
+                    pathTeachingGoals: true,
+                    recommendedUnitSequence: true,
+                },
+            });
+        }
+
         return LearningPathDto.createFromDao(result);
+    }
+
+    private async checkPath(path: LearningPathDto) {
+        // Check for cycles on minimal dataset to avoid incomprehensible error messages
+        const units = await this.luFactory.getLearningUnits({
+            id: {
+                in: path.recommendedUnitSequence,
+            },
+        });
+        const usedSkills = new Set<Skill>();
+        units.forEach((unit) => {
+            unit.teachingGoals.forEach((goal) => {
+                usedSkills.add(goal);
+            });
+            unit.requiredSkills.forEach((requirement) => {
+                usedSkills.add(requirement);
+            });
+            unit.suggestedSkills
+                .map((suggestion) => suggestion.skill)
+                .forEach((skill) => {
+                    usedSkills.add(skill);
+                });
+        });
+
+        const cycles = findCycles(Array.from(usedSkills), units);
+        if (cycles.length > 0) {
+            throw new ConflictException(
+                `The given learning path contains cycles: ${cycles
+                    .map((cycle) => cycle.map((skill) => skill.id).join(" -> "))
+                    .join(", ")}`,
+            );
+        }
+
+        // Check if there exist a path at all (full data set)
+        const allUnits = await this.luFactory.getLearningUnits();
+        const skills = (
+            await this.db.skill.findMany({
+                include: {
+                    nestedSkills: true,
+                },
+            })
+        ).map((skill) => SkillDto.createFromDao(skill));
+        const goalSkills = await this.db.skill.findMany({
+            where: {
+                id: {
+                    in: path.pathGoals,
+                },
+            },
+            include: {
+                nestedSkills: true,
+            },
+        });
+        const goal = goalSkills.map((skill) => ({
+            id: skill.id,
+            repositoryId: skill.repositoryId,
+            nestedSkills: skill.nestedSkills.map((skill) => skill.id),
+        }));
+        const knownSkills = await this.db.skill.findMany({
+            where: {
+                id: {
+                    in: path.requirements,
+                },
+            },
+            include: {
+                nestedSkills: true,
+            },
+        });
+        const knowledge = knownSkills.map((skill) => ({
+            id: skill.id,
+            repositoryId: skill.repositoryId,
+            nestedSkills: skill.nestedSkills.map((skill) => skill.id),
+        }));
+        const computedPath = await getPath({
+            skills,
+            goal,
+            knowledge,
+            learningUnits: allUnits,
+            optimalSolution: false,
+        });
+        if (computedPath === null) {
+            const from = knowledge.length > 0 ? knowledge.map((skill) => skill.id).join(", ") : "∅";
+            const to = goal.length > 0 ? goal.map((skill) => skill.id).join(", ") : "∅";
+
+            throw new ConflictException(`Cannot compute a path from ${from} to ${to}`);
+        }
     }
 
     async deleteLearningPath(learningPathId: string) {
@@ -245,17 +358,17 @@ export class LearningPathMgmtService {
      * @param learningPathId The ID of the learning path for which the ordering should be defined. Re-using the same ID will overwrite the previous ordering.
      * @param dto The ordering of the learning units, which shall be defined.
      */
-    public async definePreferredPath(dto: PreferredPathDto, preferredPathId: string) {
+    public async definePreferredPath(recommendedUnitSequence: string[], preferredPathId: string) {
         const learningUnits = await this.luFactory.getLearningUnits({
             id: {
-                in: dto.learningUnits,
+                in: recommendedUnitSequence,
             },
         });
 
         if (!learningUnits) {
             throw new NotFoundException("Can not find any learningUnits");
-        } else if (learningUnits.length !== dto.learningUnits.length) {
-            const missingIds = dto.learningUnits.filter(
+        } else if (learningUnits.length !== recommendedUnitSequence.length) {
+            const missingIds = recommendedUnitSequence.filter(
                 (requestedId) =>
                     !learningUnits.some((learningUnit) => learningUnit.id === requestedId),
             );
@@ -264,7 +377,7 @@ export class LearningPathMgmtService {
 
         // Order learningUnits by the given ID list
         learningUnits.sort((a, b) => {
-            return dto.learningUnits.indexOf(a.id) - dto.learningUnits.indexOf(b.id);
+            return recommendedUnitSequence.indexOf(a.id) - recommendedUnitSequence.indexOf(b.id);
         });
 
         await computeSuggestedSkills(

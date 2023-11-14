@@ -9,7 +9,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { LIFECYCLE, LearningUnit as PrismaLearningUnit, Prisma, Skill } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 import { LearningUnit } from "../../nm-skill-lib/src";
-import { LearningUnitFilterDto } from "./dto/search/learningUnit-filter.dto";
+import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";
 
 /**
  * This factory is responsible for database-based operations on Learning Units. It is used to:
@@ -29,9 +29,9 @@ export class LearningUnitFactory {
             }
 
             const updatedLearningUnit = await this.db.learningUnit.update({
-                where: { id: ''+dto.id },
+                where: { id: "" + dto.id },
                 data: {
-                    id: ''+dto.id,
+                    id: "" + dto.id,
                     title: dto.title ?? "",
                     orga_id: dto.orga_id ?? "",
                     lifecycle: dto.lifecycle,
@@ -332,4 +332,15 @@ export class LearningUnitFactory {
     
      
 
+        let a = await this.db.learningUnit.findMany(query);
+
+        return a;
+    }
+
+    private arrayContainsSubset(array: string[] | undefined, subset: string[] | undefined) {
+        if (!array || !subset) {
+            return true; // No subset to check or empty array, consider it a match
+        }
+        return subset.every((item) => array.includes(item));
+    }
 }

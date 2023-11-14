@@ -8,7 +8,7 @@ import {
     SearchLearningUnitDto,
     SearchLearningUnitListDto,
 } from "./dto";
-import { LIFECYCLE, LearningUnit, Skill, SkillMap } from "@prisma/client";
+import { LIFECYCLE, Skill, SkillMap } from "@prisma/client";
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 
 describe("LearningUnit Factory", () => {
@@ -60,11 +60,11 @@ describe("LearningUnit Factory", () => {
         it("With Parameter -> Only exact match should return", async () => {
             const creationDtoMatch = SearchLearningUnitCreationDto.createForTesting({
                 title: "Awesome Title",
-                id:"1"
+                id: "1",
             });
             const creationDtoNoMatch = SearchLearningUnitCreationDto.createForTesting({
                 title: "Awesome Title 2",
-                id:"2"
+                id: "2",
             });
             await factory.createLearningUnit(creationDtoMatch);
             await factory.createLearningUnit(creationDtoNoMatch);
@@ -102,7 +102,7 @@ describe("LearningUnit Factory", () => {
                 teachingGoals: [],
             };
             expect(result).toMatchObject(expected);
-           
+
             expect(result).toHaveProperty("id");
         });
 
@@ -156,7 +156,7 @@ describe("LearningUnit Factory", () => {
                 teachingGoals: creationDto.teachingGoals,
             };
             expect(result).toMatchObject(expected);
-             
+
             expect(result).toHaveProperty("id");
         });
     });
@@ -185,7 +185,6 @@ describe("LearningUnit Factory", () => {
                 },
             });
 
-            
             // Check that the result includes a success message
             await expect(
                 (

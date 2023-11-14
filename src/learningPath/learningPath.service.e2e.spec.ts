@@ -1,4 +1,4 @@
-import { INestApplication } from "@nestjs/common";
+import { ConflictException, INestApplication } from "@nestjs/common";
 import { DbTestUtils } from "../DbTestUtils";
 import * as request from "supertest";
 import { Test } from "@nestjs/testing";
@@ -58,8 +58,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 title: "",
                 lifecycle: LIFECYCLE.DRAFT,
                 requirements: [],
-                goals: [],
+                pathGoals: [],
                 recommendedUnitSequence: [],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Create one empty path
@@ -86,8 +88,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 title: "",
                 lifecycle: LIFECYCLE.DRAFT,
                 requirements: [],
-                goals: [],
+                pathGoals: [],
                 recommendedUnitSequence: [],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Create 2 paths; second path should have different ID
@@ -147,8 +151,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         title: "",
                         lifecycle: LIFECYCLE.DRAFT,
                         requirements: [],
-                        goals: [],
+                        pathGoals: [],
                         recommendedUnitSequence: [],
+                        createdAt: expect.any(String),
+                        updatedAt: expect.any(String),
                     },
                 ],
             };
@@ -176,8 +182,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         title: "",
                         lifecycle: LIFECYCLE.DRAFT,
                         requirements: [],
-                        goals: [],
+                        pathGoals: [],
                         recommendedUnitSequence: [],
+                        createdAt: expect.any(String),
+                        updatedAt: expect.any(String),
                     },
                     {
                         id: path2.id,
@@ -185,8 +193,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         title: "",
                         lifecycle: LIFECYCLE.DRAFT,
                         requirements: [],
-                        goals: [],
+                        pathGoals: [],
                         recommendedUnitSequence: [],
+                        createdAt: expect.any(String),
+                        updatedAt: expect.any(String),
                     },
                 ]),
             };
@@ -257,8 +267,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 targetAudience: update.targetAudience!,
                 lifecycle: update.lifecycle!,
                 requirements: update.requirements!,
-                goals: update.pathGoals!,
+                pathGoals: update.pathGoals!,
                 recommendedUnitSequence: update.recommendedUnitSequence!,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Update initialPath
@@ -289,8 +301,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: update.title!,
                     lifecycle: initialPath.lifecycle,
                     requirements: [],
-                    goals: [],
+                    pathGoals: [],
                     recommendedUnitSequence: [],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -321,8 +335,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: initialPath.title ?? "",
                     lifecycle: initialPath.lifecycle,
                     requirements: [],
-                    goals: [],
+                    pathGoals: [],
                     recommendedUnitSequence: [],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -352,8 +368,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: initialPath.title ?? "",
                     lifecycle: initialPath.lifecycle,
                     requirements: update.requirements!,
-                    goals: [],
+                    pathGoals: [],
                     recommendedUnitSequence: [],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -383,8 +401,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: initialPath.title ?? "",
                     lifecycle: initialPath.lifecycle,
                     requirements: [],
-                    goals: update.pathGoals!,
+                    pathGoals: update.pathGoals!,
                     recommendedUnitSequence: [],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -414,8 +434,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     title: initialPath.title ?? "",
                     lifecycle: initialPath.lifecycle,
                     requirements: [],
-                    goals: [],
+                    pathGoals: [],
                     recommendedUnitSequence: update.recommendedUnitSequence!,
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
                 };
 
                 // Test: Update of initialPath
@@ -426,6 +448,49 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     .expect((res) => {
                         const result = res.body as LearningPathDto;
                         expect(result).toMatchObject(expectedResult);
+                    });
+            });
+
+            it("Update recommendedUnitSequence with cycle -> 409 (Conflict)", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    recommendedUnitSequence: [unit2.id, unit1.id],
+                };
+
+                // Test: Update of initialPath -> Should contain a circle
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(409)
+                    .expect((res) => {
+                        const errorMsg = (res.body as ConflictException).message;
+                        expect(errorMsg).toContain("The given learning path contains cycles");
+                        expect(errorMsg).toContain(`${unit1.id} ->`);
+                        expect(errorMsg).toContain(`${unit2.id} ->`);
+                    });
+            });
+
+            it("Update with no valid path -> 409 (Conflict)", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+                const skill3 = await dbUtils.createSkill(skillMap, "Skill3");
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    pathGoals: [skill3.id],
+                };
+
+                // Test: Update of initialPath -> Should contain a circle
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(409)
+                    .expect((res) => {
+                        const errorMsg = (res.body as ConflictException).message;
+                        expect(errorMsg).toContain(`Cannot compute a path from ∅ to ${skill3.id}`);
                     });
             });
         });
@@ -451,8 +516,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 title: createdPath.title ?? "",
                 lifecycle: LIFECYCLE.DRAFT,
                 requirements: [],
-                goals: [],
+                pathGoals: [],
                 recommendedUnitSequence: [],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Create one empty path
@@ -497,8 +564,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 title: update.title!,
                 lifecycle: update.lifecycle!,
                 requirements: update.requirements!,
-                goals: update.pathGoals!,
+                pathGoals: update.pathGoals!,
                 recommendedUnitSequence: update.recommendedUnitSequence!,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
             };
 
             // Test: Create one empty path

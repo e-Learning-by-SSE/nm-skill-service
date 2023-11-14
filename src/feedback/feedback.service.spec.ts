@@ -5,7 +5,7 @@ import { FeedbackService } from "./feedback.service";
 import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { LearningUnit, UserProfile } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 
 describe("Feedback Service", () => {
     const config = new ConfigService();
@@ -72,8 +72,8 @@ describe("Feedback Service", () => {
             // Assert: Check that we retrieved the correct feedback
             expect(retrievedEntry.id).toEqual(feedbackId);
 
-            // Act: Finally, receive a list of all feedback objects
-            const retrievedEntryList = await feedbackService.loadAllFeedback();
+            // Act: Finally, receive a list of all feedback objects for the learning unit
+            const retrievedEntryList = await feedbackService.loadAllFeedback(learningUnitId);
 
             // Assert: Check that the list contains exactly one item
             expect(retrievedEntryList.length).toEqual(1);
@@ -157,8 +157,8 @@ describe("Feedback Service", () => {
                 NotFoundException,
             );
 
-            // Act and assert: Call the loadAllFeedback method with no existing feedbacks
-            expect((await feedbackService.loadAllFeedback()).length).toEqual(0);
+            // Act and assert: Call the loadAllFeedback method with no existing feedbacks (for a non existent learning unit)
+            expect((await feedbackService.loadAllFeedback("nonExistentId")).length).toEqual(0);
         });
 
         it("should throw errors when trying to create feedback with invalid user/learning unit ids", async () => {
@@ -176,7 +176,7 @@ describe("Feedback Service", () => {
 
             // Act and assert: Call the createFeedback method with a non-existing user/LU id and expect an error
             await expect(feedbackService.createFeedback(feedbackCreationDto)).rejects.toThrow(
-                PrismaClientKnownRequestError,
+                ForbiddenException,
             );
         });
     });

@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { SkillDto } from "../skills/dto";
-import { SkillMgmtService } from "../skills/skill.service";
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto, PathRequestDto } from "./dto";
 import {
     Skill,
@@ -18,11 +17,7 @@ import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
  */
 @Injectable()
 export class PathFinderService {
-    constructor(
-        private db: PrismaService,
-        private skillService: SkillMgmtService,
-        private luFactory: LearningUnitFactory,
-    ) {}
+    constructor(private db: PrismaService, private luFactory: LearningUnitFactory) {}
 
     async getSkillsByRepository(repositoryId: string): Promise<Skill[]> {
         const skills = await this.db.skill.findMany({
@@ -165,11 +160,11 @@ export class PathFinderService {
      * @returns The computed path or a NotFoundException if no path could be computed for the specified goal
      */
     public async computePath(dto: PathRequestDto) {
-        const goals = await this.loadSkills(dto.goal);
+        const goal = await this.loadSkills(dto.goal);
 
         // Find all skills that are in the same repository as the goals (most likely to find a solution for them)
         // Could be revised in future if algorithm detects relevant skills
-        const repositories = [...new Set(goals.map((goal) => goal.repositoryId))];
+        const repositories = [...new Set(goal.map((goal) => goal.repositoryId))];
         const skills = await this.loadAllSkillsOfRepositories(repositories);
 
         let knowledge: Skill[] | undefined;
@@ -189,8 +184,8 @@ export class PathFinderService {
         const path = await getPath({
             skills: skills,
             learningUnits: await this.luFactory.getLearningUnits(),
-            desiredSkills: goals,
-            ownedSkill: knowledge,
+            goal,
+            knowledge,
             optimalSolution: dto.optimalSolution,
         });
 
@@ -254,28 +249,5 @@ export class PathFinderService {
             repositoryId: skill.repositoryId,
             nestedSkills: skill.nestedSkills.map((skill) => skill.id),
         }));
-    }
-
-    public async allSkillsDone(repoId: string) {
-        const learningUnits = await this.findLuForRep(repoId);
-        const skillRepo = await this.skillService.loadSkillRepository(repoId);
-        const definedSkills = skillRepo.skills.map((skill) => skill);
-        // const locList: string[] = [];
-        // skillRepo.skills.forEach((element) => {
-        //   locList.push(element);
-        // });
-
-        const taughtSkills: string[] = learningUnits
-            .map((lu) => lu.teachingGoals.map((goal) => goal.id))
-            .flat();
-        // const locList2: string[] = [];
-        // learningUnits.forEach((element) => {
-        //   element.teachingGoals.forEach((element) => {
-        //     locList2.push(element.id);
-        //   });
-        // });
-        const untaughtSkills = definedSkills.filter((skill) => !taughtSkills.includes(skill));
-        // const missingElements = this.findMissingElements(locList, locList2);
-        return learningUnits;
     }
 }

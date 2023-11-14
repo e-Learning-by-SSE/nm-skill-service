@@ -890,7 +890,7 @@ describe("Skill Service", () => {
             expect(retrievedRepository.description).toEqual(updatedDto.description);
         });
 
-        it.skip("should throw NotFoundException when the repository is not found", async () => {
+        it("should throw NotFoundException when the repository is not found", async () => {
             // Arrange: Attempt to update a non-existent repository
             const nonExistentRepositoryDto: SkillRepositoryDto = {
                 owner: "any Owner",

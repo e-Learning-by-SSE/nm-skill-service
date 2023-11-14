@@ -20,6 +20,7 @@ import {
     UserListDto,
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -27,7 +28,52 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
  */
 @Injectable()
 export class UserMgmtService {
+
     constructor(private db: PrismaService) {}
+
+    async patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
+        throw new Error("Method not implemented.");
+    }
+    async delCompPathByID(historyId: string, compPathId: string) {
+        throw new Error("Method not implemented.");
+    }
+    async getCompPathByID(historyId: string, compPathId: string) {
+        throw new Error("Method not implemented.");
+    }
+    
+    async patchCompPathViaLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
+        throw new Error("Method not implemented.");
+    }
+    
+    async createLearningHistory(historyId: string, createLearningHistoryDto: LearningHistoryCreationDto) {
+        throw new Error("Method not implemented.");
+    }
+    async getLearningHistoryById(historyId: string) {
+        throw new Error("Method not implemented.");
+    }
+    
+
+    async getLearningProfileByID(learningProfileId: string) {
+        throw new Error("Method not implemented.");
+    }
+    async deleteLearningProfileByID(learningProfileId: string) {
+        throw new Error("Method not implemented.");
+    }
+    async patchLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
+        throw new Error("Method not implemented.");
+    }
+    async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileCreationDto) {
+        throw new Error("Method not implemented.");
+    }
+    async getCareerProfileByID(careerProfileId: string) {
+        throw new Error("Method not implemented.");
+    }
+    async getUserByFilter(filter: CareerProfileFilterDto) {
+        throw new Error("Method not implemented.");
+    }
+    async deleteUser(userId: string) {
+        throw new Error("Method not implemented.");
+    }
 
     async deleteProgressForId(id: string) {
         const recordToDelete = await this.db.learningProgress.findUnique({

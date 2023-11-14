@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { PathFinderService } from "./pathFinder.service";
 import { PathRequestDto } from "./dto";
@@ -9,11 +9,13 @@ import { PathRequestDto } from "./dto";
 export class PathFinderController {
     constructor(private pfService: PathFinderService) {}
 
+    @ApiOperation({ deprecated: true })
     @Get("getConnectedGraphForSkill/:skillId")
     getConnectedGraphForSkill(@Param("skillId") skillId: string) {
         return this.pfService.getConnectedGraphForSkill(skillId, true);
     }
 
+    @ApiOperation({ deprecated: true })
     @Get("getConnectedSkillGraphForSkill/:skillId")
     getConnectedSkillGraphForSkill(@Param("skillId") skillId: string) {
         return this.pfService.getConnectedGraphForSkill(skillId, false);
@@ -24,6 +26,7 @@ export class PathFinderController {
     //   return this.pfService.getConnectedGraphForSkillwithResolvedElements(skillId);
     // }
 
+    @ApiOperation({ deprecated: true })
     @Get("checkGraph/:skillId")
     checkGraph(@Param("skillId") skillId: string) {
         return this.pfService.isGraphForIdACycle(skillId);
@@ -59,11 +62,5 @@ export class PathFinderController {
     @Post("computePath/")
     computePath(@Body() dto: PathRequestDto) {
         return this.pfService.computePath(dto);
-    }
-
-    // TODO: wird alles unterrichtet
-    @Get("allSkillsDone/:repoId")
-    allSkillsDone(@Param("repoId") repoId: string) {
-        return this.pfService.allSkillsDone(repoId);
     }
 }
