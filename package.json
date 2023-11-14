@@ -90,6 +90,11 @@
         "collectCoverageFrom": [
             "**/*.(t|j)s"
         ],
+        "coverageReporters": [
+            "clover",
+            "cobertura",
+            "text"
+        ],
         "testEnvironment": "node",
         "setupFilesAfterEnv": [
             "jest-expect-message"
