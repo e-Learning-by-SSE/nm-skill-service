@@ -255,27 +255,4 @@ export class PathFinderService {
             nestedSkills: skill.nestedSkills.map((skill) => skill.id),
         }));
     }
-
-    public async allSkillsDone(repoId: string) {
-        const learningUnits = await this.findLuForRep(repoId);
-        const skillRepo = await this.skillService.loadSkillRepository(repoId);
-        const definedSkills = skillRepo.skills.map((skill) => skill);
-        // const locList: string[] = [];
-        // skillRepo.skills.forEach((element) => {
-        //   locList.push(element);
-        // });
-
-        const taughtSkills: string[] = learningUnits
-            .map((lu) => lu.teachingGoals.map((goal) => goal.id))
-            .flat();
-        // const locList2: string[] = [];
-        // learningUnits.forEach((element) => {
-        //   element.teachingGoals.forEach((element) => {
-        //     locList2.push(element.id);
-        //   });
-        // });
-        const untaughtSkills = definedSkills.filter((skill) => !taughtSkills.includes(skill));
-        // const missingElements = this.findMissingElements(locList, locList2);
-        return learningUnits;
-    }
 }

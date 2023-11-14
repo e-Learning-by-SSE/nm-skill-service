@@ -60,10 +60,4 @@ export class PathFinderController {
     computePath(@Body() dto: PathRequestDto) {
         return this.pfService.computePath(dto);
     }
-
-    // TODO: wird alles unterrichtet
-    @Get("allSkillsDone/:repoId")
-    allSkillsDone(@Param("repoId") repoId: string) {
-        return this.pfService.allSkillsDone(repoId);
-    }
 }
