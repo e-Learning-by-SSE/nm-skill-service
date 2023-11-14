@@ -330,17 +330,4 @@ export class LearningUnitFactory {
       
       }
     
-     
-
-        let a = await this.db.learningUnit.findMany(query);
-
-        return a;
-    }
-
-    private arrayContainsSubset(array: string[] | undefined, subset: string[] | undefined) {
-        if (!array || !subset) {
-            return true; // No subset to check or empty array, consider it a match
-        }
-        return subset.every((item) => array.includes(item));
-    }
 }

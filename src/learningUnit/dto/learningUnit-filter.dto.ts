@@ -1,55 +1,22 @@
-import { IsOptional, IsString, IsArray } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsString, IsNumber, IsArray } from 'class-validator';
+
 
 export class LearningUnitFilterDto {
-    @IsOptional()
-    @IsString()
-    processingTime?: string;
+ 
+  @ApiProperty({ required: false, type: [String], description: 'Filter by required skills' })
+  @IsOptional()
+  @IsString({ each: true })
+  requiredSkills?: string[];
 
-    @IsOptional()
-    @IsString()
-    rating?: string;
+  @ApiProperty({ required: false, type: [String], description: 'Filter by required teachingGoals' })
+  @IsOptional()
+  @IsString({ each: true })
+  teachingGoals?: string[];
 
-    @IsOptional()
-    @IsString()
-    contentCreator?: string;
+  @ApiProperty({ required: false, type: [String], description: 'Filter by owners' })
+  @IsOptional()
+  @IsString({ each: true })
+  owners?: string[];
 
-    @IsOptional()
-    @IsString()
-    contentProvider?: string;
-
-    @IsOptional()
-    @IsString()
-    targetAudience?: string;
-
-    @IsOptional()
-    @IsString()
-    semanticDensity?: string;
-
-    @IsOptional()
-    @IsString()
-    semanticGravity?: string;
-
-    @IsOptional()
-    @IsArray()
-    contentTags?: string[];
-
-    @IsOptional()
-    @IsArray()
-    contextTags?: string[];
-
-    @IsOptional()
-    @IsString()
-    linkToHelpMaterial?: string;
-
-    @IsOptional()
-    @IsString()
-    lifecycle?: string;
-
-    @IsOptional()
-    @IsString()
-    language?: string;
-
-    @IsOptional()
-    @IsArray()
-    requiredSkills?: string[];
 }
