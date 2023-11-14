@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { SkillDto } from "../skills/dto";
-import { SkillMgmtService } from "../skills/skill.service";
 import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto, PathRequestDto } from "./dto";
 import {
     Skill,
@@ -18,11 +17,7 @@ import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
  */
 @Injectable()
 export class PathFinderService {
-    constructor(
-        private db: PrismaService,
-        private skillService: SkillMgmtService,
-        private luFactory: LearningUnitFactory,
-    ) {}
+    constructor(private db: PrismaService, private luFactory: LearningUnitFactory) {}
 
     async getSkillsByRepository(repositoryId: string): Promise<Skill[]> {
         const skills = await this.db.skill.findMany({
