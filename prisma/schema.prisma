@@ -38,6 +38,13 @@ enum LIFECYCLE {
   ARCHIVED
 }
 
+enum STATUS {
+  STARTED
+  IN_PROGRESS
+  FINISHED
+  DELETED
+}
+
 model Skill {
   id          String  @id @default(cuid())
   name        String
@@ -145,7 +152,8 @@ model LearningUnit {
   lifecycle             LIFECYCLE              @default(DRAFT)
 
   feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
-  progress ProgressOfALearningPath []
+  progress  ProgressOfALearningPath[]
+
   @@unique([id])
 }
 
@@ -240,31 +248,30 @@ model ConsumedUnitData {
   consumedLUId        LearningUnit[]       @relation("consumedLU")
   lbData              LearningBehaviorData @relation(fields: [lbDataId], references: [id])
   lbDataId            String
-  status              String
+  status              STATUS                @default(STARTED)
   date                DateTime
   startedBy           LearningHistory[]    @relation("startedBy")
 }
 
 model ProposedLearningPath {
-  id                   String          @id @default(cuid())
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  pathTeachingGoals    Skill[]         @relation("proposedpathGoals")
-  proposedUnitSequence LearningUnit[]  @relation("proposedUnitsOfLearningPath")
-  userProfil           LearningHistory @relation(fields: [userProfilId], references: [id])
+  id                   String                   @id @default(cuid())
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  pathTeachingGoals    Skill[]                  @relation("proposedpathGoals")
+  proposedUnitSequence LearningUnit[]           @relation("proposedUnitsOfLearningPath")
+  userProfil           LearningHistory          @relation(fields: [userProfilId], references: [id])
   userProfilId         String
-  learningPath         LearningPath?   @relation(fields: [learningPathId], references: [id])
-  learningPathId       String          @unique
-  progress             ProgressOfALearningPath? 
- 
+  learningPath         LearningPath?            @relation(fields: [learningPathId], references: [id])
+  learningPathId       String                   @unique
+  progress             ProgressOfALearningPath?
 }
 
 model ProgressOfALearningPath {
-  id                      String     @id       @default(cuid())
-  proposedLearningPath    ProposedLearningPath    @relation(fields: [proposedLearningPathId], references: [id])
-  proposedLearningPathId  String  @unique
-  position                LearningUnit @relation(fields: [positionId], references: [id])
-  positionId              String @unique
+  id                     String               @id @default(cuid())
+  proposedLearningPath   ProposedLearningPath @relation(fields: [proposedLearningPathId], references: [id])
+  proposedLearningPathId String               @unique
+  position               LearningUnit         @relation(fields: [positionId], references: [id])
+  positionId             String               @unique
 }
 
 model LearningBehaviorData {
