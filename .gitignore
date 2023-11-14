@@ -47,3 +47,4 @@ prisma/migrations/20231017074325_/migration.sql
 /.vs
 /src/coverage
 .env
+.env
