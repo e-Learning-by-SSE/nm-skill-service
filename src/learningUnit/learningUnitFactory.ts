@@ -286,50 +286,28 @@ export class LearningUnitFactory {
     }
 
     async getLearningUnitByFilter(filter: LearningUnitFilterDto): Promise<PrismaLearningUnit[]> {
+            this.db.learningUnit.findMany();
+
+            const query: Prisma.LearningUnitFindManyArgs = {};
+
         
 
-        const query: Prisma.LearningUnitFindManyArgs = {};
-
-        if (filter.requiredSkills && filter.requiredSkills.length > 0) {
-          if (!query.where) {
-            query.where = {};
-          }
-          query.where.requirements = {
-            some: {
-              id: {
-                in: filter.requiredSkills,
-              },
-            },
-          };
-        }
-      
-        if (filter.teachingGoals && filter.teachingGoals.length > 0) {
-          if (!query.where) {
-            query.where = {};
-          }
-          query.where.teachingGoals = {
-            some: {
-              id: {
-                in: filter.teachingGoals,
-              },
-            },
-          };
-        }
-      
-        if (filter.owners && filter.owners.length > 0) {
-          if (!query.where) {
-            query.where = {};
-          }
-          query.where.orga_id = { 
-            in: filter.owners,
-          };
-        }
-      
-        const result = await this.db.learningUnit.findMany(query);
-        return result;
-      
+                query.where = {
+                
+                };
+              
+          
+              let a  = await this.db.learningUnit.findMany(query);
+           
+          return a;
+        
       }
     
-     
+      private arrayContainsSubset(array: string[] | undefined, subset: string[] | undefined) {
+        if (!array || !subset) {
+          return true; // No subset to check or empty array, consider it a match
+        }
+        return subset.every(item => array.includes(item));
+      }
 
 }
