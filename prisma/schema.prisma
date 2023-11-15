@@ -57,7 +57,7 @@ model Skill {
   nestedSkills              Skill[]                @relation("parentSkills")
   pathTeachingGoals         LearningPath[]         @relation("pathGoals")
   requirements              LearningPath[]         @relation("pathRequirements")
-  proposedpathTeachingGoals ProposedLearningPath[] @relation("proposedpathGoals")
+  proposedpathTeachingGoals PersonalizedLearningPath[] @relation("proposedpathGoals")
   selfReported              CareerProfile[]        @relation("selfReportedSkill")
   verified                  CareerProfile[]        @relation("verifiedSkill")
 
@@ -87,7 +87,7 @@ model LearningPath {
   requirements            Skill[]                @relation("pathRequirements")
   recommendedUnitSequence LearningUnit[]         @relation("recommendedUnitsOfLearningPath")
   lifecycle               LIFECYCLE              @default(DRAFT)
-  assignedProposedPath    ProposedLearningPath[]
+  assignedProposedPath    PersonalizedLearningPath[]
   assignedProposedPathId  String[]
 
   @@map("paths")
@@ -148,7 +148,7 @@ model LearningUnit {
   orga_id  String             @default("")
 
   usedInRecommendations LearningPath[]         @relation("recommendedUnitsOfLearningPath")
-  usedInProposed        ProposedLearningPath[] @relation("proposedUnitsOfLearningPath")
+  usedInProposed        PersonalizedLearningPath[] @relation("proposedUnitsOfLearningPath")
   lifecycle             LIFECYCLE              @default(DRAFT)
 
   feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
@@ -224,7 +224,7 @@ model LearningHistory {
   userId                String                 @unique // relation scalar field 
   LearningProfile       LearningProfile[]
   //LearningUnit           LearningUnit[]
-  proposedLearningPaths ProposedLearningPath[]
+  proposedLearningPaths PersonalizedLearningPath[]
 }
 
 model CareerProfile {
@@ -253,22 +253,24 @@ model ConsumedUnitData {
   startedBy           LearningHistory[]    @relation("startedBy")
 }
 
-model ProposedLearningPath {
+// Stores an individual learning path for a user
+model PersonalizedLearningPath {
   id                   String                   @id @default(cuid())
   createdAt            DateTime                 @default(now())
   updatedAt            DateTime                 @updatedAt
   pathTeachingGoals    Skill[]                  @relation("proposedpathGoals")
-  proposedUnitSequence LearningUnit[]           @relation("proposedUnitsOfLearningPath")
+  unitSequence         LearningUnit[]           @relation("proposedUnitsOfLearningPath")
   userProfil           LearningHistory          @relation(fields: [userProfilId], references: [id])
   userProfilId         String
   learningPath         LearningPath?            @relation(fields: [learningPathId], references: [id])
   learningPathId       String                   @unique
   progress             ProgressOfALearningPath?
+	@@map("personalPaths")
 }
 
 model ProgressOfALearningPath {
   id                     String               @id @default(cuid())
-  proposedLearningPath   ProposedLearningPath @relation(fields: [proposedLearningPathId], references: [id])
+  proposedLearningPath   PersonalizedLearningPath @relation(fields: [proposedLearningPathId], references: [id])
   proposedLearningPathId String               @unique
   position               LearningUnit         @relation(fields: [positionId], references: [id])
   positionId             String               @unique
