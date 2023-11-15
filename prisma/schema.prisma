@@ -245,7 +245,8 @@ model ConsumedUnitData {
   id                  String               @id @default(cuid())
   actualPocessingTime String
   testPerformance     Decimal              @db.Decimal(5, 2)
-  consumedLUId        LearningUnit[]       @relation("consumedLU")
+  consumedLU          LearningUnit        @relation("consumedLU", fields: [consumedLUId], references: [id])
+  consumedLUId        String                // relation scalar field 
   lbData              LearningBehaviorData @relation(fields: [lbDataId], references: [id])
   lbDataId            String
   status              STATUS                @default(STARTED)
@@ -263,7 +264,7 @@ model PersonalizedLearningPath {
   userProfil           LearningHistory          @relation(fields: [userProfilId], references: [id])
   userProfilId         String
   learningPath         LearningPath?            @relation(fields: [learningPathId], references: [id])
-  learningPathId       String                   @unique
+  learningPathId       String?                   @unique
   progress             ProgressOfALearningPath?
 	@@map("personalPaths")
 }
