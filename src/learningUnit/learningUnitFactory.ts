@@ -286,51 +286,48 @@ export class LearningUnitFactory {
     }
 
     async getLearningUnitByFilter(filter: LearningUnitFilterDto): Promise<PrismaLearningUnit[]> {
-        this.db.learningUnit.findMany();
+        
 
         const query: Prisma.LearningUnitFindManyArgs = {};
 
-        if (
-            filter.contentCreator ||
-            filter.contentProvider ||
-            filter.language ||
-            filter.lifecycle
-        ) {
-            let locLifecycle = undefined;
-            switch (filter.lifecycle) {
-                case "DRAFT":
-                    locLifecycle = LIFECYCLE.DRAFT;
-                    break;
-
-                case "POOL":
-                    locLifecycle = LIFECYCLE.POOL;
-                    break;
-
-                case "ARCHIVED":
-                    locLifecycle = LIFECYCLE.ARCHIVED;
-                    break;
-
-                default:
-                    locLifecycle = undefined;
-            }
-
-            query.where = {
-                contentCreator: filter.contentCreator || undefined,
-                contentProvider: filter.contentProvider || undefined,
-                language: filter.language || undefined,
-                lifecycle: locLifecycle,
-            };
+        if (filter.requiredSkills && filter.requiredSkills.length > 0) {
+          if (!query.where) {
+            query.where = {};
+          }
+          query.where.requirements = {
+            some: {
+              id: {
+                in: filter.requiredSkills,
+              },
+            },
+          };
         }
-
-        let a = await this.db.learningUnit.findMany(query);
-
-        return a;
-    }
-
-    private arrayContainsSubset(array: string[] | undefined, subset: string[] | undefined) {
-        if (!array || !subset) {
-            return true; // No subset to check or empty array, consider it a match
+      
+        if (filter.teachingGoals && filter.teachingGoals.length > 0) {
+          if (!query.where) {
+            query.where = {};
+          }
+          query.where.teachingGoals = {
+            some: {
+              id: {
+                in: filter.teachingGoals,
+              },
+            },
+          };
         }
-        return subset.every((item) => array.includes(item));
-    }
+      
+        if (filter.owners && filter.owners.length > 0) {
+          if (!query.where) {
+            query.where = {};
+          }
+          query.where.orga_id = { 
+            in: filter.owners,
+          };
+        }
+      
+        const result = await this.db.learningUnit.findMany(query);
+        return result;
+      
+      }
+    
 }
