@@ -1,8 +1,5 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 
-import { PrismaService } from "../prisma/prisma.service";
-
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
 import { MLSClient } from "../clients/clientService/mlsClient.service";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto";
@@ -16,11 +13,14 @@ import { UserMgmtService } from "../user/user.service";
  */
 @Injectable()
 export class EventMgmtService {
-    constructor(private learningUnitService: LearningUnitMgmtService, private userService : UserMgmtService) {}
+    constructor(
+        private learningUnitService: LearningUnitMgmtService,
+        private userService: UserMgmtService,
+    ) {}
 
     async getEvent(dto: MLSEvent) {
         switch (dto.entityType) {
-            case MlsActionEntity.Task:{
+            case MlsActionEntity.Task: {
                 if (dto.method === MlsActionType.POST) {
                     let locDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(
                         dto.id,
@@ -41,7 +41,6 @@ export class EventMgmtService {
                         null,
                     );
                     return this.learningUnitService.createLearningUnit(locDto);
-                    
                 } else if (dto.method === MlsActionType.PUT) {
                     let client = new MLSClient();
 
@@ -53,9 +52,10 @@ export class EventMgmtService {
                     return this.learningUnitService.deleteLearningUnit(dto.id);
                 } else {
                     return "error";
-                }}
-           
-            case MlsActionEntity.User:  {
+                }
+            }
+
+            case MlsActionEntity.User: {
                 if (dto.method === MlsActionType.POST) {
                     let locDto: UserCreationDto = new UserCreationDto(
                         dto.id,
@@ -69,14 +69,11 @@ export class EventMgmtService {
                         null,
                         null,
                         null,
-                        null, 
+                        null,
                     );
                     return this.userService.createUser(locDto);
-                    
                 } else if (dto.method === MlsActionType.PUT) {
                     let client = new MLSClient();
-
-                    
 
                     return new Error("Method not implemented.");
                 } else if (dto.method === MlsActionType.DELETE) {
@@ -85,7 +82,7 @@ export class EventMgmtService {
                     return new Error("Method not implemented.");
                 }
             }
-            case MlsActionEntity.TaskStep:  {
+            case MlsActionEntity.TaskStep: {
                 break;
             }
 

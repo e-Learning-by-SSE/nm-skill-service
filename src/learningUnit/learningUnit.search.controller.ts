@@ -1,12 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { ApiTags, ApiQuery } from "@nestjs/swagger"; // Import ApiQuery decorator
 
-import { SearchLearningUnitCreationDto } from "./dto/search";
+import { SearchLearningUnitCreationDto, LearningUnitFilterDto } from "./dto";
 
 import { LearningUnitMgmtService } from "./learningUnit.service";
-import { MLSEvent } from "../events/dtos/mls-event.dto";
-import { LearningUnitFilterDto } from "./dto/search/learningUnit-filter.dto";
 import { LIFECYCLE } from "@prisma/client";
+import { MLSEvent } from "../events/dtos";
 
 @ApiTags("Learning-units")
 @Controller("learning-units")
@@ -35,74 +34,14 @@ export class SearchLearningUnitController {
         return this.learningUnitService.createLearningUnit(dto);
     }
     @Get("/")
+   
     @ApiQuery({
-        name: "processingTime",
-        required: false,
-        type: String,
-        description: "Filter by processingTime",
-    })
-    @ApiQuery({ name: "rating", required: false, type: Number, description: "Filter by rating" })
-    @ApiQuery({
-        name: "contentCreator",
-        required: false,
-        type: Number,
-        description: "Filter by contentCreator",
-    })
-    @ApiQuery({
-        name: "contentProvider",
-        required: false,
-        type: Number,
-        description: "Filter by contentProvider",
-    })
-    @ApiQuery({
-        name: "targetAudience",
-        required: false,
-        type: Number,
-        description: "Filter by targetAudience",
-    })
-    @ApiQuery({
-        name: "semanticDensity",
-        required: false,
-        type: Number,
-        description: "Filter by semanticDensity",
-    })
-    @ApiQuery({
-        name: "semanticGravity",
-        required: false,
-        type: Number,
-        description: "Filter by semanticGravity",
-    })
-    @ApiQuery({
-        name: "contentTags",
+        name: "owners",
         required: false,
         type: [String],
-        description: "Filter by required contentTags",
+        description: "Filter by owners",
     })
-    @ApiQuery({
-        name: "contextTags",
-        required: false,
-        type: [String],
-        description: "Filter by required contextTags",
-    })
-    @ApiQuery({
-        name: "lifecycle",
-        enum: LIFECYCLE, // Use the enum for valid values
-        required: false,
-        type: "string",
-        description: "Filter by lifecycle",
-    })
-    @ApiQuery({
-        name: "orga_id",
-        required: false,
-        type: [String],
-        description: "Filter by required orga_id",
-    })
-    @ApiQuery({
-        name: "language",
-        required: false,
-        type: [String],
-        description: "Filter by required language",
-    })
+    
     @ApiQuery({
         name: "teachingGoals",
         required: false,
@@ -116,8 +55,7 @@ export class SearchLearningUnitController {
         description: "Filter by required skills",
     })
     getLearningUnitSearchWithFilter(@Query() filter: LearningUnitFilterDto) {
-      return this.learningUnitService.getLearningUnitByFilter(filter);
-    
+        return this.learningUnitService.getLearningUnitByFilter(filter);
     }
 
     /**

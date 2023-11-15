@@ -21,6 +21,7 @@ import {
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
+import { STATUS } from "@prisma/client";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -28,7 +29,6 @@ import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
  */
 @Injectable()
 export class UserMgmtService {
-
     constructor(private db: PrismaService) {}
 
     async patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
@@ -40,18 +40,20 @@ export class UserMgmtService {
     async getCompPathByID(historyId: string, compPathId: string) {
         throw new Error("Method not implemented.");
     }
-    
+
     async patchCompPathViaLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
         throw new Error("Method not implemented.");
     }
-    
-    async createLearningHistory(historyId: string, createLearningHistoryDto: LearningHistoryCreationDto) {
+
+    async createLearningHistory(
+        historyId: string,
+        createLearningHistoryDto: LearningHistoryCreationDto,
+    ) {
         throw new Error("Method not implemented.");
     }
     async getLearningHistoryById(historyId: string) {
         throw new Error("Method not implemented.");
     }
-    
 
     async getLearningProfileByID(learningProfileId: string) {
         throw new Error("Method not implemented.");
@@ -336,4 +338,98 @@ export class UserMgmtService {
             throw error;
         }
     }
+    async editStatusForAConsumedUnit(userID: string, consumedUnitId: string, status: STATUS) {
+        try {
+            // Find users with the given learning unit in their learning history
+            const user = await this.db.userProfile.findUnique({
+                where: {
+                    id: userID,
+                },
+            });
+
+            // Update the status for each user's learning unit
+            if(user){
+            await this.db.consumedUnitData.updateMany({
+                where: {
+                    id: user.id,
+                    consumedLUId: consumedUnitId,
+                },
+                data: {
+                    status: status,
+                },
+            });
+            return UserDto.createFromDao(user);
+        }   else{throw new NotFoundException("User not Found in DB ")}
+            
+            
+
+           
+        } catch (error) {
+            // Handle errors
+            throw new Error(`Error updating status for users with learning unit: ${error.message}`);
+        }
+    }
+
+    async createLearningPathForUser(
+        userID: string,
+        learningUnitsIds: string[],
+        pathTeachingGoalsIds: string[],
+    ) {
+        let existingUserProfile = await this.db.userProfile.findUnique({
+            where: { id: userID },
+        });
+
+        // If the UserProfile doesn't exist, create it
+        if (!existingUserProfile) {
+            existingUserProfile = await this.db.userProfile.create({
+                data: {
+                    id: userID,
+                },
+            });
+        }
+
+        let existingUserHistory = await this.db.learningHistory.findUnique({
+            where: { id: userID },
+        });
+        if (!existingUserHistory) {
+            existingUserHistory = await this.db.learningHistory.create({
+                data: {
+                    userId: userID,
+                    id: userID,
+                },
+            });
+        }
+
+        const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
+            data: {
+                userProfilId: userID,
+                unitSequence: {
+                    connect: learningUnitsIds.map((id) => ({ id })),
+                },
+                pathTeachingGoals: {
+                    connect: pathTeachingGoalsIds.map((id) => ({ id })),
+                },
+            },
+        });
+
+        return { createdPersonalizedLearningPath };
+    }
 }
+/*
+        // Create processing status for each learning unit
+        const processingStatusPromises = learningUnitsIds.map(async (learningUnit) => {
+          const processingStatus = await this.db.progressOfALearningPath.create({
+            data: {
+              // Add properties based on your processing status model
+              learningUnitId: learningUnit,
+              learningPathId: learningPath.id,
+              status: 'Pending', // Initial status, you can adjust this based on your workflow
+              // ... other properties
+            },
+          });
+      
+          return processingStatus;
+        });
+      
+        const processingStatuses = await Promise.all(processingStatusPromises);
+      */

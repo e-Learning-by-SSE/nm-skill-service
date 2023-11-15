@@ -4,17 +4,18 @@ import { FeedbackService } from "./feedback.service";
 import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
 
 @ApiTags("Feedback")
-@Controller("feedbacks")
+@Controller("learning-units/:learningUnitId/feedbacks")
 export class FeedbackController {
     constructor(private feedbackService: FeedbackService) {}
 
     /**
-     * Lists all available feedback.   
-     * @returns List of all feedback.
+     * Lists all available feedback for the respective learning unit.   
+     * @param learningUnitId The ID of the respective learning unit.
+     * @returns List of all feedback for the respective learning unit.
      */
     @Get("")
-    listFeedback() {
-        return this.feedbackService.loadAllFeedback();
+    listFeedback(@Param("learningUnitId") learningUnitId: string) {
+        return this.feedbackService.loadAllFeedback(learningUnitId);
     }
 
     /**
@@ -27,12 +28,10 @@ export class FeedbackController {
         return this.feedbackService.getFeedback(feedbackId);
     }
 
-//For testing: {"userID": "string", "learningUnitID": "string2", "comprehensivenessStars":3, "presentationStars":4,  "learningValueStars":3 }
-
     /**
-     * Creates a new feedback and returns it.
-     * @param dto The feedback description
-     * @returns The created feedback.
+     * Creates a new feedback and returns it for the respective learning unit.
+     * @param dto The feedback description (contains learning unit id)
+     * @returns The created feedback for the respective learning unit.
      */
     @Post("")
     addFeedback(@Body() dto: FeedbackCreationDto) {

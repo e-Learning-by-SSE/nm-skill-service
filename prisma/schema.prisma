@@ -38,21 +38,28 @@ enum LIFECYCLE {
   ARCHIVED
 }
 
+enum STATUS {
+  STARTED
+  IN_PROGRESS
+  FINISHED
+  DELETED
+}
+
 model Skill {
   id          String  @id @default(cuid())
   name        String
   level       Int
   description String?
 
-  repositoryId      String
-  repository        SkillMap       @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  parentSkills      Skill[]        @relation("parentSkills")
-  nestedSkills      Skill[]        @relation("parentSkills")
-  pathTeachingGoals LearningPath[] @relation("pathGoals")
-  requirements      LearningPath[] @relation("pathRequirements")
-
-  selfReported CareerProfile[] @relation("selfReportedSkill")
-  verified     CareerProfile[] @relation("verifiedSkill")
+  repositoryId              String
+  repository                SkillMap               @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  parentSkills              Skill[]                @relation("parentSkills")
+  nestedSkills              Skill[]                @relation("parentSkills")
+  pathTeachingGoals         LearningPath[]         @relation("pathGoals")
+  requirements              LearningPath[]         @relation("pathRequirements")
+  proposedpathTeachingGoals PersonalizedLearningPath[] @relation("proposedpathGoals")
+  selfReported              CareerProfile[]        @relation("selfReportedSkill")
+  verified                  CareerProfile[]        @relation("verifiedSkill")
 
   // Use in Learning Objects
   goalsOf        LearningUnit[]      @relation("teachingGoals")
@@ -69,17 +76,19 @@ model Skill {
 }
 
 model LearningPath {
-  id                      String         @id @default(cuid())
+  id                      String                 @id @default(cuid())
   owner                   String
   title                   String?
   targetAudience          String?
   description             String?
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
-  pathTeachingGoals       Skill[]        @relation("pathGoals")
-  requirements            Skill[]        @relation("pathRequirements")
-  recommendedUnitSequence LearningUnit[] @relation("recommendedUnitsOfLEarningPath")
-  lifecycle               LIFECYCLE      @default(DRAFT)
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  pathTeachingGoals       Skill[]                @relation("pathGoals")
+  requirements            Skill[]                @relation("pathRequirements")
+  recommendedUnitSequence LearningUnit[]         @relation("recommendedUnitsOfLearningPath")
+  lifecycle               LIFECYCLE              @default(DRAFT)
+  assignedProposedPath    PersonalizedLearningPath[]
+  assignedProposedPathId  String[]
 
   @@map("paths")
 }
@@ -116,9 +125,6 @@ model LearningUnit {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  completedBy LearningHistory[] @relation("completedBy")
-  startedBy   LearningHistory[] @relation("startedBy")
-
   requirements  Skill[]             @relation("requirements")
   teachingGoals Skill[]             @relation("teachingGoals")
   // Softconstraints (Ordering)
@@ -136,16 +142,17 @@ model LearningUnit {
   contextTags        String[]
   linkToHelpMaterial String?
 
-  consumed          ConsumedUnitData[] @relation("consumedLU")
-  LearningHistory   LearningHistory?   @relation(fields: [learningHistoryId], references: [id])
-  learningHistoryId String?
-  orga_id           String             @default("")
+  consumed ConsumedUnitData[] @relation("consumedLU")
+  // LearningHistory   LearningHistory?   @relation(fields: [learningHistoryId], references: [id])
+  // learningHistoryId String?
+  orga_id  String             @default("")
 
-  usedInRecommendations LearningPath[] @relation("recommendedUnitsOfLEarningPath")
-
-  lifecycle LIFECYCLE @default(DRAFT)
+  usedInRecommendations LearningPath[]         @relation("recommendedUnitsOfLearningPath")
+  usedInProposed        PersonalizedLearningPath[] @relation("proposedUnitsOfLearningPath")
+  lifecycle             LIFECYCLE              @default(DRAFT)
 
   feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
+  progress  ProgressOfALearningPath[]
 
   @@unique([id])
 }
@@ -164,7 +171,6 @@ model PreferredOrdering {
   @@map("orderings")
 }
 
-
 model UserProfile {
   id               String                @id @default(cuid())
   // mlsUserId	   String                 // ersetzen wir hier "unsere" Id oder erg�nzen um die mlsUserId ?
@@ -176,9 +182,9 @@ model UserProfile {
   learningBehavior LearningBehaviorData?
   learningProgress LearningProgress[]
   learningHistory  LearningHistory?
-  status String @default("active")   // (active, inactive)  setzen des Values bei User-Events (create / delete)
-  qualification Qualification[]
-  job           Job?
+  status           String                @default("active") // (active, inactive)  setzen des Values bei User-Events (create / delete)
+  qualification    Qualification[]
+  job              Job?
 
   //feedbacks Feedback[] //Feedbacks given by the user, one to many relation (not implemented as onDelete relation is not working properly)
 
@@ -211,14 +217,14 @@ model LearningProfile {
 }
 
 model LearningHistory {
-  id                     String             @id @default(cuid())
-  startedLearningUnits   LearningUnit[]     @relation("startedBy")
-  completedLearningUnits LearningUnit[]     @relation("completedBy")
-  learnedSkills          LearningProgress[]
-  user                   UserProfile        @relation(fields: [userId], references: [id])
-  userId                 String             @unique // relation scalar field 
-  LearningProfile        LearningProfile[]
-  LearningUnit           LearningUnit[]
+  id                    String                 @id @default(cuid())
+  startedLearningUnits  ConsumedUnitData[]     @relation("startedBy")
+  learnedSkills         LearningProgress[]
+  user                  UserProfile            @relation(fields: [userId], references: [id])
+  userId                String                 @unique // relation scalar field 
+  LearningProfile       LearningProfile[]
+  //LearningUnit           LearningUnit[]
+  proposedLearningPaths PersonalizedLearningPath[]
 }
 
 model CareerProfile {
@@ -226,22 +232,49 @@ model CareerProfile {
   jobHistory            Job[]           @relation("pastJobs")
   professionalInterests String          @default("")
   qualifications        Qualification[] @relation("currentQualifications")
-  selfReportedSkills Skill[] @relation("selfReportedSkill")
-  verifiedSkills     Skill[] @relation("verifiedSkill")
-  pastCompanies    Company[] @relation("workedAt")
-  currentCompany   Company   @relation("workingNow", fields: [currentCompanyId], references: [id])
-  currentCompanyId String
-  user   UserProfile @relation(fields: [userId], references: [id])
-  userId String      @unique // relation scalar field 
+  selfReportedSkills    Skill[]         @relation("selfReportedSkill")
+  verifiedSkills        Skill[]         @relation("verifiedSkill")
+  pastCompanies         Company[]       @relation("workedAt")
+  currentCompany        Company         @relation("workingNow", fields: [currentCompanyId], references: [id])
+  currentCompanyId      String
+  user                  UserProfile     @relation(fields: [userId], references: [id])
+  userId                String          @unique // relation scalar field 
 }
 
 model ConsumedUnitData {
   id                  String               @id @default(cuid())
   actualPocessingTime String
   testPerformance     Decimal              @db.Decimal(5, 2)
-  consumedLUId        LearningUnit[]       @relation("consumedLU")
+  consumedLU          LearningUnit        @relation("consumedLU", fields: [consumedLUId], references: [id])
+  consumedLUId        String                // relation scalar field 
   lbData              LearningBehaviorData @relation(fields: [lbDataId], references: [id])
   lbDataId            String
+  status              STATUS                @default(STARTED)
+  date                DateTime
+  startedBy           LearningHistory[]    @relation("startedBy")
+}
+
+// Stores an individual learning path for a user
+model PersonalizedLearningPath {
+  id                   String                   @id @default(cuid())
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  pathTeachingGoals    Skill[]                  @relation("proposedpathGoals")
+  unitSequence         LearningUnit[]           @relation("proposedUnitsOfLearningPath")
+  userProfil           LearningHistory          @relation(fields: [userProfilId], references: [id])
+  userProfilId         String
+  learningPath         LearningPath?            @relation(fields: [learningPathId], references: [id])
+  learningPathId       String?                   @unique
+  progress             ProgressOfALearningPath?
+	@@map("personalPaths")
+}
+
+model ProgressOfALearningPath {
+  id                     String               @id @default(cuid())
+  proposedLearningPath   PersonalizedLearningPath @relation(fields: [proposedLearningPathId], references: [id])
+  proposedLearningPathId String               @unique
+  position               LearningUnit         @relation(fields: [positionId], references: [id])
+  positionId             String               @unique
 }
 
 model LearningBehaviorData {
@@ -253,11 +286,11 @@ model LearningBehaviorData {
 }
 
 model Qualification {
-  id     String      @id @default(cuid())
-  name   String
-  year   Int
-  user   UserProfile @relation(fields: [userId], references: [id])
-  userId String
+  id                 String          @id @default(cuid())
+  name               String
+  year               Int
+  user               UserProfile     @relation(fields: [userId], references: [id])
+  userId             String
   userQualifications CareerProfile[] @relation("currentQualifications")
 
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
@@ -283,8 +316,8 @@ model Company {
   name       String          @default("")
   workedAt   CareerProfile[] @relation("workedAt")
   workingNow CareerProfile[] @relation("workingNow")
-  users UserProfile[]
-  jobs  Job[]
+  users      UserProfile[]
+  jobs       Job[]
 }
 
 model Feedback {

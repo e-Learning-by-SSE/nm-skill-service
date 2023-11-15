@@ -18,6 +18,69 @@ describe("User Service", () => {
         // Wipe DB before test
         await dbUtils.wipeDb();
     });
+    describe("createLearningPathForUser", () => {
+        let userProf: UserProfile;
+        let skillMap1: SkillMap;
+        let skill1: Skill;
+    
+        beforeEach(async () => {
+            await dbUtils.wipeDb();
+    
+            userProf = await db.userProfile.create({
+                data: {
+                    name: "TestUser",
+                    status: "ACTIVE",
+                    id: "testId",
+                },
+            });
+    
+            skillMap1 = await db.skillMap.create({
+                data: {
+                    name: "First Map",
+                    ownerId: "User-1",
+                },
+            });
+    
+            skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
+        });
+    
+        it("should create a personalized learning path for a user", async () => {
+            // Arrange: Define test data
+            const userId = userProf.id;
+            const learningUnitsIds:string [] = [];
+            const pathTeachingGoalsIds :string [] = [];
+    
+            // Act: Call the createLearningPathForUser method
+            const result = await userService.createLearningPathForUser(
+                userId,
+                learningUnitsIds,
+                pathTeachingGoalsIds,
+            );
+    
+            // Assert: Check that the result is defined and has the expected structure
+            expect(result.createdPersonalizedLearningPath).toBeDefined();
+            expect(result.createdPersonalizedLearningPath.id).toBeDefined();
+            expect(result.createdPersonalizedLearningPath.createdAt).toBeDefined();
+            expect(result.createdPersonalizedLearningPath.updatedAt).toBeDefined();
+    
+            // Assert: Check the database state after the test
+            const createdPathFromDb = await db.personalizedLearningPath.findUnique({
+                where: { id: result.createdPersonalizedLearningPath.id },
+                include: { unitSequence: true, pathTeachingGoals: true },
+            });
+    
+            // Check that the created path is in the database and has the expected associations
+            expect(createdPathFromDb).toBeDefined();
+            if (createdPathFromDb) {
+                expect(createdPathFromDb.unitSequence).toHaveLength(learningUnitsIds.length);
+                expect(createdPathFromDb.pathTeachingGoals).toHaveLength(pathTeachingGoalsIds.length);
+            }
+            
+        });
+    
+     
+    });
+
     describe("createProgressForUserId", () => {
         let userProf: UserProfile;
         let skillMap1: SkillMap;

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
 
+import { ApiTags , ApiOperation} from "@nestjs/swagger";
 import { NuggetCreationDto } from './dto';
 
 import { NuggetMgmtService } from './nugget.service';
@@ -15,6 +15,7 @@ export class NuggetMgmtController {
    
    * @returns List of all nuggets.
    */
+  @ApiOperation({deprecated: true})
   @Get('showAllNuggets')
   listNuggets() {
     return this.nuggetService.loadAllNuggets();
@@ -27,6 +28,7 @@ export class NuggetMgmtController {
    * @param dto The nugget description
    * @returns The created nugget.
    */
+  @ApiOperation({deprecated: true})
   @Post('add_nugget')
   addNugget(@Body() dto: NuggetCreationDto) {
     return this.nuggetService.createNugget(dto);
@@ -37,6 +39,7 @@ export class NuggetMgmtController {
    * @param nuggetId The ID of the nugget, that shall be returned
    * @returns The specified nugget.
    */
+  @ApiOperation({deprecated: true})
   @Get(':nuggetId')
   getNugget(@Param('nuggetId') nuggetId: string) {
     return this.nuggetService.getNugget(nuggetId);

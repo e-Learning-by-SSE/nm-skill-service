@@ -6,16 +6,14 @@ pipeline {
     }
 
     environment {
-        DOCKER_TARGET = 'e-learning-by-sse/nm-skill-service:unstable'
+        TARGET_PREFIX = 'e-learning-by-sse/nm-skill-service'
+        DOCKER_TARGET = "${TARGET_PREFIX}:unstable"
         REMOTE_UPDATE_SCRIPT = '/staging/update-compose-project.sh nm-competence-repository'
         NPMRC = 'e-learning-by-sse'
 
         POSTGRES_DB = 'competence-repository-db'
         POSTGRES_USER = 'postgres'
         POSTGRES_PASSWORD = 'admin'
-
-        JWT_SECRET = 'SEARCH_SECRET'
-        EXTENSION = 'SEARCH'
 
         API_VERSION = packageJson.getVersion()
     }
@@ -80,15 +78,11 @@ pipeline {
                     }
                     post {
                         success {
-                            step([
-                                $class: 'CloverPublisher',
-                                cloverReportDir: 'src/output/test/coverage/',
-                                cloverReportFileName: 'clover.xml',
-                                healthyTarget: [methodCoverage: 70, conditionalCoverage: 80, statementCoverage: 80],   // optional, default is: method=70, conditional=80, statement=80
-                                unhealthyTarget: [methodCoverage: 50, conditionalCoverage: 50, statementCoverage: 50], // optional, default is none
-                                failingTarget: [methodCoverage: 0, conditionalCoverage: 0, statementCoverage: 0]       // optional, default is none
-                            ])
+                            // Test Results
                             junit 'output/test/junit*.xml'
+
+                            // New Coverage Tool: Cobertura + Coverage Plugin
+                            recordCoverage qualityGates: [[metric: 'LINE', threshold: 40.0], [metric: 'BRANCH', threshold: 40.0]], tools: [[parser: 'COBERTURA', pattern: 'src/output/test/coverage/cobertura-coverage.xml']]
                         }
                     }
                 }
@@ -138,7 +132,7 @@ pipeline {
                         }
                         script {
                             sh 'rm -f competence_repository*.zip'
-                            docker.image(env.DOCKER_TARGET).withRun("-e EXTENSION=\"SEARCH\" -p 3000:3000") {
+                            docker.image(env.DOCKER_TARGET).withRun("-p 3000:3000") {
                                 // Wait for the application to be ready (after container was started)  
                                 sleep(time:30, unit:"SECONDS")
                 
