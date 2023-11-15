@@ -35,12 +35,14 @@ export class FeedbackService {
     }
 
     /**
-     * Returns a List containing all existing feedback objects.
-     * @returns A (possibly empty) list with all feedback objects.
+     * Returns a List containing all existing feedback objects for the respective learning unit.
+     * @returns A (possibly empty) list with all feedback objects for the respective learning unit.
      */
-    public async loadAllFeedback() {
+    public async loadAllFeedback(learningUnitId: string) {
         //If no feedbacks are found, this returns an empty array
-        const feedbackFromDB = await this.db.feedback.findMany();
+        const feedbackFromDB = await this.db.feedback.findMany({
+            where: { learningUnitId:learningUnitId},    //Filter feedback for respective learning unit
+          });
 
         const feedbackList = new FeedbackListDto();
         feedbackList.feedback = feedbackFromDB.map((feedback) => FeedbackDto.createFromDao(feedback));
@@ -77,6 +79,10 @@ export class FeedbackService {
                 if (error.code === "P2002") {
                     throw new ForbiddenException("Feedback already exists");
                 }
+                // Learning unit id (foreign key) does not exist
+                if (error.code === "P2003") {
+                    throw new ForbiddenException("No learning unit with this is exists");
+                }
             }
             throw error;
         }
@@ -87,12 +93,12 @@ export class FeedbackService {
      * @param id The unique database id of the feedback to be deleted
      * @returns True if deletion was successful, false otherwise
      */
-    public async deleteFeedbackById(id: string) {
+    public async deleteFeedbackById(feedbackId: string) {
         try {
-            await this.db.feedback.delete({ where: { id: id } });
+            await this.db.feedback.delete({ where: { id: feedbackId } });
             return true;
         } catch (error) {
-            throw new NotFoundException(`Feedback to be deleted not found in database: ${id}`);
+            throw new NotFoundException(`Feedback to be deleted not found in database: ${feedbackId}`);
             return false;
         }      
     }
