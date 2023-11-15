@@ -369,7 +369,12 @@ export class UserMgmtService {
         const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
             data: {
               userProfilId: userID, 
-           
+              unitSequence: {
+                connect: learningUnitsIds.map((id) => ({ id })),
+              },
+              pathTeachingGoals:{
+                connect: pathTeachingGoalsIds.map((id)=> ({ id }))
+              }
             },
           });
     
