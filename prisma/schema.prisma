@@ -263,7 +263,7 @@ model PersonalizedLearningPath {
   userProfil           LearningHistory          @relation(fields: [userProfilId], references: [id])
   userProfilId         String
   learningPath         LearningPath?            @relation(fields: [learningPathId], references: [id])
-  learningPathId       String                   @unique
+  learningPathId       String?                   @unique
   progress             ProgressOfALearningPath?
 	@@map("personalPaths")
 }

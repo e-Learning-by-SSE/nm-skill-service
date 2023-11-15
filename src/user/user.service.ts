@@ -336,4 +336,62 @@ export class UserMgmtService {
             throw error;
         }
     }
+
+    async createLearningPathForUser(userID: string, learningUnitsIds:string[], pathTeachingGoalsIds: string[]) {
+        
+
+        let existingUserProfile = await this.db.userProfile.findUnique({
+            where: { id: userID },
+          });
+          
+          // If the UserProfile doesn't exist, create it
+          if (!existingUserProfile) {
+            existingUserProfile =    await this.db.userProfile.create({
+              data: {
+                id: userID,
+              },
+            });
+          }
+        
+          let existingUserHistory = await this.db.learningHistory.findUnique({
+            where: { id: userID },
+          });
+          if (!existingUserHistory) {
+            existingUserHistory =    await this.db.learningHistory.create({
+              data: {
+                userId:userID, 
+                id:userID
+              },
+            });
+          }  
+
+
+        const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
+            data: {
+              userProfilId: userID, 
+           
+            },
+          });
+    
+        return { createdPersonalizedLearningPath };
+      }
+
 }
+  /*
+        // Create processing status for each learning unit
+        const processingStatusPromises = learningUnitsIds.map(async (learningUnit) => {
+          const processingStatus = await this.db.progressOfALearningPath.create({
+            data: {
+              // Add properties based on your processing status model
+              learningUnitId: learningUnit,
+              learningPathId: learningPath.id,
+              status: 'Pending', // Initial status, you can adjust this based on your workflow
+              // ... other properties
+            },
+          });
+      
+          return processingStatus;
+        });
+      
+        const processingStatuses = await Promise.all(processingStatusPromises);
+      */
