@@ -349,22 +349,23 @@ export class UserMgmtService {
 
             // Update the status for each user's learning unit
             if (user) {
-                await this.db.consumedUnitData.updateMany({
+               const consumed = await this.db.consumedUnitData.update({
                     where: {
-                        id: user.id,
-                        consumedLUId: consumedUnitId,
+                        id: consumedUnitId,
+                     
                     },
                     data: {
                         status: status,
                     },
                 });
-                return UserDto.createFromDao(user);
+                return consumed; 
             } else {
                 throw new NotFoundException("User not Found in DB ");
             }
         } catch (error) {
             // Handle errors
-            throw new Error(`Error updating status for users with learning unit: ${error.message}`);
+            
+            throw error;
         }
     }
 
