@@ -348,22 +348,20 @@ export class UserMgmtService {
             });
 
             // Update the status for each user's learning unit
-            if(user){
-            await this.db.consumedUnitData.updateMany({
-                where: {
-                    id: user.id,
-                    consumedLUId: consumedUnitId,
-                },
-                data: {
-                    status: status,
-                },
-            });
-            return UserDto.createFromDao(user);
-        }   else{throw new NotFoundException("User not Found in DB ")}
-            
-            
-
-           
+            if (user) {
+                await this.db.consumedUnitData.updateMany({
+                    where: {
+                        id: user.id,
+                        consumedLUId: consumedUnitId,
+                    },
+                    data: {
+                        status: status,
+                    },
+                });
+                return UserDto.createFromDao(user);
+            } else {
+                throw new NotFoundException("User not Found in DB ");
+            }
         } catch (error) {
             // Handle errors
             throw new Error(`Error updating status for users with learning unit: ${error.message}`);
@@ -379,7 +377,6 @@ export class UserMgmtService {
             where: { id: userID },
         });
 
-        // If the UserProfile doesn't exist, create it
         if (!existingUserProfile) {
             existingUserProfile = await this.db.userProfile.create({
                 data: {
@@ -414,22 +411,93 @@ export class UserMgmtService {
 
         return { createdPersonalizedLearningPath };
     }
+    async checkStatusForUnitsInPathOfLearningHistory(learningHistoryId: string) {
+        try {
+            // Find the learning path associated with the specified learning history
+            const learningPath = await this.db.personalizedLearningPath.findFirst({
+                where: {
+                    userProfilId: learningHistoryId,
+                },
+                include: {
+                    unitSequence: true,
+                },
+            });
+
+            if (!learningPath) {
+                throw new Error("Learning path not found for the given learning history.");
+            }
+
+            const unitSequence = learningPath.unitSequence;
+
+            const unitStatus = await Promise.all(
+                unitSequence.map(async (unit) => {
+                    const consumedUnit = await this.db.consumedUnitData.findFirst({
+                        where: {
+                            consumedLUId: unit.id,
+                            startedBy: {
+                                some: {
+                                    id: learningHistoryId,
+                                },
+                            },
+                        },
+                    });
+                    return {
+                        unitId: unit.id,
+                        status: consumedUnit ? consumedUnit.status : null,
+                    };
+                }),
+            );
+
+            return { unitStatus };
+        } catch (error) {
+            throw new Error(`Error checking status for units in the path: ${error.message}`);
+        }
+    }
+
+    async updateStatusForConsumedLearningUnit(learningUnitId: string, newStatus: STATUS) {
+        try {
+            const learningHistories = await this.db.learningHistory.findMany({
+                where: {
+                    learnedSkills: {
+                        some: {
+                            skillId: learningUnitId,
+                        },
+                    },
+                },
+            });
+            const updatedHistories = await Promise.all(
+                learningHistories.map(async (history) => {
+                    const consumedUnit = await this.db.consumedUnitData.findFirst({
+                        include: { startedBy: true },
+                        where: {
+                            consumedLUId: learningUnitId,
+                            startedBy: {
+                                some: {
+                                    id: history.id,
+                                },
+                            },
+                        },
+                    });
+
+                    if (consumedUnit) {
+                        await this.db.consumedUnitData.update({
+                            where: {
+                                id: consumedUnit.id,
+                            },
+                            data: {
+                                status: newStatus,
+                            },
+                        });
+                    }
+
+                    return history;
+                }),
+            );
+
+            return { updatedHistories };
+        } catch (error) {
+            // Handle errors
+            throw new Error(`Error updating status for users with learning unit: ${error.message}`);
+        }
+    }
 }
-/*
-        // Create processing status for each learning unit
-        const processingStatusPromises = learningUnitsIds.map(async (learningUnit) => {
-          const processingStatus = await this.db.progressOfALearningPath.create({
-            data: {
-              // Add properties based on your processing status model
-              learningUnitId: learningUnit,
-              learningPathId: learningPath.id,
-              status: 'Pending', // Initial status, you can adjust this based on your workflow
-              // ... other properties
-            },
-          });
-      
-          return processingStatus;
-        });
-      
-        const processingStatuses = await Promise.all(processingStatusPromises);
-      */
