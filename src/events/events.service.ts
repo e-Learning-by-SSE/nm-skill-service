@@ -18,12 +18,12 @@ export class EventMgmtService {
         private userService: UserMgmtService,
     ) {}
 
-    async getEvent(dto: MLSEvent) {
-        switch (dto.entityType) {
+    async getEvent(mlsEvent: MLSEvent) {
+        switch (mlsEvent.entityType) {
             case MlsActionEntity.Task: {
-                if (dto.method === MlsActionType.POST) {
+                if (mlsEvent.method === MlsActionType.POST) {
                     let locDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(
-                        dto.id,
+                        mlsEvent.id,
                         null,
                         null,
                         null,
@@ -41,24 +41,24 @@ export class EventMgmtService {
                         null,
                     );
                     return this.learningUnitService.createLearningUnit(locDto);
-                } else if (dto.method === MlsActionType.PUT) {
+                } else if (mlsEvent.method === MlsActionType.PUT) {
                     let client = new MLSClient();
 
-                    let learningUnit = await client.getLearningUnitForId(dto.id);
-                    let b = await this.learningUnitService.patchLearningUnit(dto.id, learningUnit);
+                    let learningUnitDto = await client.getLearningUnitForId(mlsEvent.id);
+                    let learningUnit = await this.learningUnitService.patchLearningUnit(mlsEvent.id, learningUnitDto);
 
-                    return b;
-                } else if (dto.method === MlsActionType.DELETE) {
-                    return this.learningUnitService.deleteLearningUnit(dto.id);
+                    return learningUnit;
+                } else if (mlsEvent.method === MlsActionType.DELETE) {
+                    return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
                 } else {
                     return "error";
                 }
             }
 
             case MlsActionEntity.User: {
-                if (dto.method === MlsActionType.POST) {
-                    let locDto: UserCreationDto = new UserCreationDto(
-                        dto.id,
+                if (mlsEvent.method === MlsActionType.POST) {
+                    let userDto: UserCreationDto = new UserCreationDto(
+                        mlsEvent.id,
                         null,
                         null,
                         null,
@@ -69,15 +69,24 @@ export class EventMgmtService {
                         null,
                         null,
                     );
-                    return this.userService.createUser(locDto);
-                } else if (dto.method === MlsActionType.PUT) {
+                    return this.userService.createUser(userDto);
+
+                } else if (mlsEvent.method === MlsActionType.PUT) {
                     let client = new MLSClient();
 
-                    return new Error("Method not implemented.");
-                } else if (dto.method === MlsActionType.DELETE) {
-                    return new Error("Method not implemented.");
+                    // ToDo? Create a user DTO based on the data from MLS (currently only state attribute)
+
+                    // Get the new user state from MLS
+                    let userState = await client.getUserStateForId(mlsEvent.id);
+                    // Change the state and return the updated user
+                    let user = await this.userService.patchUserState(mlsEvent.id, userState);
+
+                    return user;
+                //This is the same as PUT state to "inactive"    
+                } else if (mlsEvent.method === MlsActionType.DELETE) {
+                    return this.userService.patchUserState(mlsEvent.id, false);
                 } else {
-                    return new Error("Method not implemented.");
+                    return new Error("Method for this action type not implemented.");
                 }
             }
             case MlsActionEntity.TaskStep: {
