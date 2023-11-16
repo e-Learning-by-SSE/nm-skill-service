@@ -2,10 +2,12 @@ import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserMgmtService } from "./user.service";
-import { LearningProgress, SkillMap, UserProfile } from "@prisma/client";
+import { ConsumedUnitData, LearningProgress, LearningUnit, STATUS, SkillMap, UserProfile } from "@prisma/client";
 import { Skill } from "@prisma/client";
 import { NotFoundException } from "@nestjs/common";
 import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
+import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
+import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 describe("User Service", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
@@ -18,6 +20,85 @@ describe("User Service", () => {
         // Wipe DB before test
         await dbUtils.wipeDb();
     });
+    describe("editStatusForAConsumedUnit", () => {
+        let userProf: UserProfile;
+        let consumedUnit: ConsumedUnitData;
+        let lu : LearningUnit;
+        let factory: LearningUnitFactory;
+        beforeEach(async () => {
+            await dbUtils.wipeDb();
+            factory = new LearningUnitFactory(db);
+            userProf = await db.userProfile.create({
+                data: {
+                    name: "TestUser",
+                    status: "ACTIVE",
+                    id: "testId",
+                },
+            });
+            const creationDto = SearchLearningUnitCreationDto.createForTesting({
+                title: "Awesome Title",
+            });
+            const result = await factory.createLearningUnit(creationDto);
+            
+            const learningBehaviorData = await db.learningBehaviorData.create({
+                data: {
+                  userId: userProf.id,
+                  // other fields...
+                },
+              });
+
+            consumedUnit = await db.consumedUnitData.create({
+                data: {
+                    actualPocessingTime: "2 hours",
+                    testPerformance: 0.85,
+                    consumedLUId: result.id, 
+                    lbDataId: learningBehaviorData.id, 
+                    status: "STARTED",
+                    date: new Date(),
+                   
+                },
+            });
+        });
+
+
+
+        it("should edit the status for a consumed unit", async () => {
+            // Arrange: Define test data
+            const userId = userProf.id;
+            const consumedUnitId = consumedUnit.id;
+            const newStatus:STATUS = STATUS.FINISHED; // Replace with the desired status
+
+            // Act: Call the editStatusForAConsumedUnit method
+            const result = await userService.editStatusForAConsumedUnit(userId, consumedUnitId, newStatus);
+
+            // Assert: Check that the result is defined and has the expected structure
+            expect(result).toBeDefined();
+            expect(result.id).toEqual(consumedUnitId);
+            expect(result.status).toEqual(newStatus);
+
+            // Assert: Check the database state after the test
+            const updatedConsumedUnit = await db.consumedUnitData.findUnique({
+                where: { id: consumedUnitId },
+            });
+
+            // Check that the consumed unit in the database has the updated status
+            expect(updatedConsumedUnit).toBeDefined();
+            expect(updatedConsumedUnit?.status).toEqual(newStatus);
+        });
+
+        it("should handle errors when editing the status for a consumed unit", async () => {
+            // Arrange: Define test data that may cause an error
+            const invalidUserId = "non-existent-user"; // An invalid user ID
+            const invalidConsumedUnitId = "non-existent-consumed-unit"; // An invalid consumed unit ID
+            const newStatus:STATUS = STATUS.FINISHED;
+
+            // Act and Assert: Call the editStatusForAConsumedUnit method and expect it to throw an error
+            await expect(
+                userService.editStatusForAConsumedUnit(invalidUserId, invalidConsumedUnitId, newStatus),
+            ).rejects.toThrowError(NotFoundException);
+        });
+    });
+
     describe("createLearningPathForUser", () => {
         let userProf: UserProfile;
         let skillMap1: SkillMap;

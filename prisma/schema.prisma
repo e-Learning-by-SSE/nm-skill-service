@@ -36,9 +36,14 @@ enum LIFECYCLE {
   DRAFT
   POOL
   ARCHIVED
+  IN_PROGRESS
+  FINISHED
+  DELETED
+  CREATED
 }
 
 enum STATUS {
+  OPEN
   STARTED
   IN_PROGRESS
   FINISHED
@@ -266,6 +271,7 @@ model PersonalizedLearningPath {
   learningPath         LearningPath?            @relation(fields: [learningPathId], references: [id])
   learningPathId       String?                   @unique
   progress             ProgressOfALearningPath?
+  lifecycle            LIFECYCLE                @default(CREATED)
 	@@map("personalPaths")
 }
 

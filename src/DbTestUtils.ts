@@ -29,7 +29,9 @@ export class DbTestUtils {
         // User Profiles
         await this.db.learningProgress.deleteMany();
         await this.db.personalizedLearningPath.deleteMany();
-        await this.db.learningHistory.deleteMany()
+        await this.db.consumedUnitData.deleteMany();
+        await this.db.learningHistory.deleteMany();
+        await this.db.learningBehaviorData.deleteMany();
         await this.db.userProfile.deleteMany();
 
         // Learning Paths
