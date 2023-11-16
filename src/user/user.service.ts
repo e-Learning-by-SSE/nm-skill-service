@@ -935,55 +935,30 @@ export class UserMgmtService {
         }
     }
 
-    async updateStatusForConsumedLearningUnit(
-        userId: string,
-        learningUnitId: string,
-        newStatus: STATUS,
-    ) {
+    /**
+     * Changes the user state. Triggered by an MLS event (PUT or DELETE).
+     * @param userId The ID of the user to be changed.
+     * @param userState The new user state. True: Active, False: Inactive.
+     * @returns updatedUser The user with userID and the new state userState.
+     */
+    async patchUserState(userId: string, userState: boolean) {
         try {
-            const learningHistories = await this.db.learningHistory.findMany({
-                where: {
-                    userId: userId,
-                    learnedSkills: {
-                        some: {
-                            skillId: learningUnitId,
-                        },
-                    },
+            const existingUser = await this.loadUser(userId);
+
+            if (!existingUser) {
+                throw new NotFoundException(`User not found: ${userId}`);
+            }
+
+            const updatedUser = await this.db.userProfile.update({
+                where: { id: "" + userId },
+                data: {
+                    status: "" + userState,     //Only change the state
                 },
+
             });
-            const updatedHistories = await Promise.all(
-                learningHistories.map(async (history) => {
-                    const consumedUnit = await this.db.consumedUnitData.findFirst({
-                        include: { startedBy: true },
-                        where: {
-                            consumedLUId: learningUnitId,
-                            startedBy: {
-                                some: {
-                                    id: history.id,
-                                },
-                            },
-                        },
-                    });
-
-                    if (consumedUnit) {
-                        await this.db.consumedUnitData.update({
-                            where: {
-                                id: consumedUnit.id,
-                            },
-                            data: {
-                                status: newStatus,
-                            },
-                        });
-                    }
-
-                    return history;
-                }),
-            );
-
-            return { updatedHistories };
+            return updatedUser;
         } catch (error) {
-            // Handle errors
-            throw new Error(`Error updating status for users with learning unit: ${error.message}`);
+            throw error;
         }
     }
 }
