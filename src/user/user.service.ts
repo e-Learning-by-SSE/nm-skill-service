@@ -28,7 +28,6 @@ import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
  */
 @Injectable()
 export class UserMgmtService {
-
     constructor(private db: PrismaService) {}
 
     async patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
@@ -333,6 +332,33 @@ export class UserMgmtService {
                     throw new ForbiddenException("Qualification could not be created");
                 }
             }
+            throw error;
+        }
+    }
+
+    /**
+     * Changes the user state. Triggered by an MLS event (PUT or DELETE).
+     * @param userId The ID of the user to be changed.
+     * @param userState The new user state. True: Active, False: Inactive.
+     * @returns updatedUser The user with userID and the new state userState.
+     */
+    async patchUserState(userId: string, userState: boolean) {
+        try {
+            const existingUser = await this.loadUser(userId);
+
+            if (!existingUser) {
+                throw new NotFoundException(`User not found: ${userId}`);
+            }
+
+            const updatedUser = await this.db.userProfile.update({
+                where: { id: "" + userId },
+                data: {
+                    status: "" + userState,     //Only change the state
+                },
+
+            });
+            return updatedUser;
+        } catch (error) {
             throw error;
         }
     }

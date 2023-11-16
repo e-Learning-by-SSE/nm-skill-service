@@ -1,5 +1,6 @@
 import axios from "axios";
 import { SearchLearningUnitCreationDto } from "../../learningUnit/dto";
+import { UserCreationDto } from "../../user/dto";
 
 export class MLSClient {
     private BASE_URL: string;
@@ -97,6 +98,40 @@ export class MLSClient {
             );
 
             return a;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getUserStateForId(id: string) {
+        try {
+            // Login
+            let { access_token, refresh_token } = await this.login();
+            // Get data from MLS as JSON token
+            let tasksResponse = await axios.get(`${this.BASE_URL}/mls-api/users/` + id, {
+                responseType: "json",
+                headers: {
+                    Authorization: `Bearer ${access_token}`,
+                },
+            });
+
+            // Create a user DTO with required information (currently only the state) from MLS
+//            let userDto: UserCreationDto= new UserCreationDto(
+//                tasksResponse.data.id,
+//                null,
+//                null,
+//                null,
+//                null,
+//                null,
+//                null,
+//                null,
+//                null,
+//                tasksResponse.data.state,
+//                null,
+//                null,
+//            );
+
+            return tasksResponse.data.state;
         } catch (error) {
             throw error;
         }
