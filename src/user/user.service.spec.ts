@@ -30,7 +30,7 @@ describe("User Service", () => {
             factory = new LearningUnitFactory(db);
             userProf = await db.userProfile.create({
                 data: {
-                    name: "TestUser",
+                    name: "TestUser1",
                     status: "ACTIVE",
                     id: "testId",
                 },
