@@ -1,6 +1,7 @@
 import axios from "axios";
 import { SearchLearningUnitCreationDto } from "../../learningUnit/dto";
 import { UserCreationDto } from "../../user/dto";
+import { NotFoundException } from "@nestjs/common";
 
 export class MLSClient {
     private BASE_URL: string;
@@ -133,7 +134,7 @@ export class MLSClient {
 
             return tasksResponse.data.state;
         } catch (error) {
-            throw error;
+            throw new NotFoundException("(MLS Request) Could not get user state for user id:"+id);
         }
     }
 }
