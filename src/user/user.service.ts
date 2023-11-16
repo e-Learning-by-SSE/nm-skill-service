@@ -415,6 +415,7 @@ export class UserMgmtService {
         try {
             const user = await this.db.userProfile.create({
                 data: {
+                    id: dto.id,
                     name: dto.name,
                     status: USERSTATUS.ACTIVE,
                     id: dto.id,
@@ -446,7 +447,7 @@ export class UserMgmtService {
                     throw new ForbiddenException("User already exists");
                 }
             }
-            throw error;
+            throw new ForbiddenException("User could not be created");
         }
     }
 
@@ -943,12 +944,6 @@ export class UserMgmtService {
      */
     async patchUserState(userId: string, userState: boolean) {
         try {
-            const existingUser = await this.loadUser(userId);
-
-            if (!existingUser) {
-                throw new NotFoundException(`User not found: ${userId}`);
-            }
-
             const updatedUser = await this.db.userProfile.update({
                 where: { id: "" + userId },
                 data: {
@@ -958,7 +953,7 @@ export class UserMgmtService {
             });
             return updatedUser;
         } catch (error) {
-            throw error;
+            throw new ForbiddenException("User could not be updated (non-existing user)");
         }
     }
 }
