@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, USERSTATUS } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -26,7 +26,7 @@ export async function createProfiles() {
                             data: profile.skills.map((skill) => ({ skillId: skill })),
                         },
                     },
-                    status: "active",
+                    status: USERSTATUS.ACTIVE,
                 },
             });
         }),

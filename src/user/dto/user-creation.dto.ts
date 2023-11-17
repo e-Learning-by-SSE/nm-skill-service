@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { USERSTATUS } from '@prisma/client';
 import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 
 /**
@@ -27,7 +28,7 @@ export class UserCreationDto {
   @IsOptional()
   learningHistory?: string;
   @IsOptional()
-  status?: string;     // (active, inactive)  value set by User-Events (create / delete), default value is "active"
+  status?: USERSTATUS;     // (active, inactive)  value set by User-Events (create / delete), default value is "active"
   @IsOptional()
   qualification?: string[];
   @IsOptional()
@@ -58,7 +59,7 @@ export class UserCreationDto {
     learningBehavior: string | null,
     learningProgress: string[] | null,
     learningHistory: string | null,
-    status: string | null, 
+    status: USERSTATUS | null, 
     qualification: string[] | null,
     job: string | null,
 

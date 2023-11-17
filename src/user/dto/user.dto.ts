@@ -1,13 +1,13 @@
 import { IsNotEmpty } from "class-validator";
 
-import { CareerProfile, Company, Job, LearningBehaviorData, LearningHistory, LearningProfile, LearningProgress, Qualification, UserProfile } from "@prisma/client";
+import { CareerProfile, Company, Job, LearningBehaviorData, LearningHistory, LearningProfile, LearningProgress, Qualification, USERSTATUS, UserProfile } from "@prisma/client";
 
 import { UserCreationDto } from "./user-creation.dto";
 
 export class UserDto extends UserCreationDto {
     @IsNotEmpty()
     id: string;
-
+    
     constructor(
         id:string,
         name: string | null,
@@ -18,7 +18,7 @@ export class UserDto extends UserCreationDto {
         learningBehavior: string | null,
         learningProgress: string[] | null,
         learningHistory: string | null,
-        status: string | null, 
+        status: USERSTATUS | null, 
         qualification: string[] | null,
         job: string | null,
         ) 
@@ -48,6 +48,7 @@ export class UserDto extends UserCreationDto {
         const learningBehaviorId = learningBehavior?.id || '';
         const learningHistoryId = learningHistory?.id || '';
         const jobId = job?.id || '';
+
         return new UserDto(
             user.id, 
             user.name, 

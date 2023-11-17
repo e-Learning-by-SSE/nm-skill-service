@@ -96,7 +96,7 @@ export class UserMgmtController {
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete("/user-profiles/:user_profile_id")
     deleteuserProfiles(@Param("user_profile_id") userId: string) {
-        return this.userService.deleteUser(userId);
+        return this.userService.setProfileToInactive(userId);
     }
 
     @ApiOperation({ summary: "Experimental (WIP)" })

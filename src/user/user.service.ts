@@ -21,7 +21,7 @@ import {
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
-import { STATUS } from "@prisma/client";
+import { STATUS, USERSTATUS } from "@prisma/client";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -29,6 +29,25 @@ import { STATUS } from "@prisma/client";
  */
 @Injectable()
 export class UserMgmtService {
+    async setProfileToInactive(userId: string) {
+        try {
+            const user = await this.db.userProfile.update({where:{
+                id:userId
+            },data:{status:USERSTATUS.INACTIVE}
+            });
+
+            return UserDto.createFromDao(user);
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                
+                // unique field already exists
+                if (error.code === "P2025") {
+                    throw new ForbiddenException("User not exists in System");
+                }
+            }
+            throw error;
+        }
+    }
     constructor(private db: PrismaService) {}
 
     async patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
@@ -162,7 +181,7 @@ export class UserMgmtService {
                 data: {
                     name: dto.name,
                     companyId: dto.companyId,
-                    status: "active",
+                    status: USERSTATUS.ACTIVE,
                 },
             });
 
