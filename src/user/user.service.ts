@@ -338,17 +338,10 @@ export class UserMgmtService {
             throw error;
         }
     }
-    async editStatusForAConsumedUnit(userID: string, consumedUnitId: string, status: STATUS) {
+    async editStatusForAConsumedUnitById(consumedUnitId: string, status: STATUS) {
         try {
             // Find users with the given learning unit in their learning history
-            const user = await this.db.userProfile.findUnique({
-                where: {
-                    id: userID,
-                },
-            });
-
-            // Update the status for each user's learning unit
-            if (user) {
+          
                const consumed = await this.db.consumedUnitData.update({
                     where: {
                         id: consumedUnitId,
@@ -359,13 +352,11 @@ export class UserMgmtService {
                     },
                 });
                 return consumed; 
-            } else {
-                throw new NotFoundException("User not Found in DB ");
-            }
+           
         } catch (error) {
             // Handle errors
             
-            throw error;
+            throw new NotFoundException("Unit not Found in DB ");;
         }
     }
 
@@ -425,7 +416,7 @@ export class UserMgmtService {
             });
 
             if (!learningPath) {
-                throw new Error("Learning path not found for the given learning history.");
+                throw new NotFoundException("Learning path not found for the given learning history.");
             }
 
             const unitSequence = learningPath.unitSequence;
@@ -451,14 +442,16 @@ export class UserMgmtService {
 
             return { unitStatus };
         } catch (error) {
-            throw new Error(`Error checking status for units in the path: ${error.message}`);
+            throw error
         }
     }
 
-    async updateStatusForConsumedLearningUnit(learningUnitId: string, newStatus: STATUS) {
+    async updateStatusForConsumedLearningUnit(userId:string, learningUnitId: string, newStatus: STATUS) {
         try {
             const learningHistories = await this.db.learningHistory.findMany({
                 where: {
+                    
+                    userId:userId,
                     learnedSkills: {
                         some: {
                             skillId: learningUnitId,
