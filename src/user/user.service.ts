@@ -74,7 +74,23 @@ export class UserMgmtService {
         throw new Error("Method not implemented.");
     }
     async deleteUser(userId: string) {
-        throw new Error("Method not implemented.");
+        try {
+            const user = await this.db.userProfile.delete({where:{
+                id:userId
+            }
+            });
+
+            return UserDto.createFromDao(user);
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                
+                // unique field already exists
+                if (error.code === "P2025") {
+                    throw new ForbiddenException("User not exists in System");
+                }
+            }
+            throw error;
+        }
     }
 
     async deleteProgressForId(id: string) {
