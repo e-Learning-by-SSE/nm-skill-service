@@ -22,6 +22,7 @@ import {
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 import { STATUS, USERSTATUS } from "@prisma/client";
+import { connect } from "http2";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -31,15 +32,16 @@ import { STATUS, USERSTATUS } from "@prisma/client";
 export class UserMgmtService {
     async setProfileToInactive(userId: string) {
         try {
-            const user = await this.db.userProfile.update({where:{
-                id:userId
-            },data:{status:USERSTATUS.INACTIVE}
+            const user = await this.db.userProfile.update({
+                where: {
+                    id: userId,
+                },
+                data: { status: USERSTATUS.INACTIVE },
             });
 
             return UserDto.createFromDao(user);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
-                
                 // unique field already exists
                 if (error.code === "P2025") {
                     throw new ForbiddenException("User not exists in System");
@@ -94,15 +96,15 @@ export class UserMgmtService {
     }
     async deleteUser(userId: string) {
         try {
-            const user = await this.db.userProfile.delete({where:{
-                id:userId
-            }
+            const user = await this.db.userProfile.delete({
+                where: {
+                    id: userId,
+                },
             });
 
             return UserDto.createFromDao(user);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
-                
                 // unique field already exists
                 if (error.code === "P2025") {
                     throw new ForbiddenException("User not exists in System");
@@ -180,12 +182,19 @@ export class UserMgmtService {
             const user = await this.db.userProfile.create({
                 data: {
                     name: dto.name,
-                    companyId: dto.companyId,
                     status: USERSTATUS.ACTIVE,
+                    id: dto.id,
+                    company: {
+                        connect: { id: dto.companyId },
+                    },
                 },
+                include: { company: true },
             });
-
-            return UserDto.createFromDao(user);
+            if (user.company) {
+                return UserDto.createFromDao(user, undefined, undefined, user.company);
+            } else {
+                return UserDto.createFromDao(user);
+            }
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 // unique field already exists
@@ -384,22 +393,21 @@ export class UserMgmtService {
 
             // Update the status for each user's learning unit
             if (user) {
-               const consumed = await this.db.consumedUnitData.update({
+                const consumed = await this.db.consumedUnitData.update({
                     where: {
                         id: consumedUnitId,
-                     
                     },
                     data: {
                         status: status,
                     },
                 });
-                return consumed; 
+                return consumed;
             } else {
                 throw new NotFoundException("User not Found in DB ");
             }
         } catch (error) {
             // Handle errors
-            
+
             throw error;
         }
     }
