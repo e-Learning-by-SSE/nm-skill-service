@@ -130,8 +130,8 @@ export class UserMgmtController {
         type: String,
         description: "Filter by userId",
     })
-    getLearningUnitSearchWithFilter(@Query() filter: CareerProfileFilterDto) {
-        return this.userService.getUserByFilter(filter);
+    getCareerProfileByFilter(@Query() filter: CareerProfileFilterDto) {
+        return this.userService.getCareerProfileByFilter(filter);
     }
   
     @ApiOperation({ summary: "Experimental (WIP)" })

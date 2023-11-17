@@ -21,7 +21,7 @@ import {
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
-import { STATUS, USERSTATUS } from "@prisma/client";
+import { STATUS, USERSTATUS, UserProfile } from "@prisma/client";
 import { connect } from "http2";
 
 /**
@@ -91,8 +91,37 @@ export class UserMgmtService {
     async getCareerProfileByID(careerProfileId: string) {
         throw new Error("Method not implemented.");
     }
-    async getUserByFilter(filter: CareerProfileFilterDto) {
-        throw new Error("Method not implemented.");
+    async getCareerProfileByFilter(filter: CareerProfileFilterDto): Promise<any> {
+        try {
+            
+            if(filter.userId && filter.userId.length != 0){
+            // Use Prisma's findUnique method to retrieve a user based on the provided filter
+            const career = await this.db.careerProfile.findUnique({
+                where: {
+                    // Only include the filter property if it is provided in the DTO
+                   userId:filter.userId
+                },
+            });
+
+            if (!career) {
+                throw new NotFoundException("User not found.");
+            }
+
+            return career;
+        }else{
+            
+            const career = await this.db.careerProfile.findMany();
+
+            if (!career) {
+                throw new NotFoundException("User not found.");
+            }
+
+            return career;
+        }
+        } catch (error) {
+            // Handle errors appropriately, you can log or rethrow the error
+            throw new Error(`Error getting user by filter: ${error.message}`);
+        }
     }
     async deleteUser(userId: string) {
         try {
@@ -340,14 +369,25 @@ export class UserMgmtService {
     }
 
     async createCP(dto: CareerProfileCreationDto) {
+        console.log(dto.currentCompanyId)
         try {
+            
             const cp = await this.db.careerProfile.create({
                 data: {
                     professionalInterests: dto.professionalInterests,
-                    userId: dto.userId,
-                    currentCompanyId: dto.currentCompanyId,
+                
+                    user: {
+                        connect: {
+                          id: dto.userId 
+                        },
+                      },
+                      currentCompany: {
+                        connect: {
+                          id: dto.currentCompanyId
+                        },
+                    },
                 },
-            });
+              });
 
             return CareerProfileDto.createFromDao(cp);
         } catch (error) {
