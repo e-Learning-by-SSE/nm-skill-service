@@ -88,8 +88,38 @@ export class UserMgmtService {
     async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileCreationDto) {
         throw new Error("Method not implemented.");
     }
+    async deleteCareerProfileByID(careerProfileId: string) {
+        try {
+            const profile = await this.db.careerProfile.delete({
+                where: { id: careerProfileId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No careerProfile found.");
+            }
+
+            return profile;
+        } catch (error) {
+            
+            throw error;
+        }
+    }
+
     async getCareerProfileByID(careerProfileId: string) {
-        throw new Error("Method not implemented.");
+        try {
+            const profile = await this.db.careerProfile.findUnique({
+                where: { id: careerProfileId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No careerProfile found.");
+            }
+
+            return profile;
+        } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw error;
+        }
     }
     async getCareerProfileByFilter(filter: CareerProfileFilterDto): Promise<any> {
         try {

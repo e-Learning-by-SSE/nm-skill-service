@@ -144,7 +144,7 @@ export class UserMgmtController {
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete("/career-profiles/:career_profile_id")
     delCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
-        return this.userService.getCareerProfileByID(careerProfileId);
+        return this.userService.deleteCareerProfileByID(careerProfileId);
     }
 
    
