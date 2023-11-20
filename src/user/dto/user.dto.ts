@@ -28,9 +28,7 @@ export class UserDto extends UserCreationDto {
             name, 
             learningProfile,
             careerProfile, 
-            company, 
             companyId, 
-            
             status,
             qualification,
             job,

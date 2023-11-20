@@ -17,8 +17,7 @@ export class UserCreationDto {
   learningProfile?: string;
   @IsOptional()
   careerProfile?: string;    
-  @IsOptional()
-  company?: string;             
+          
   @IsOptional()
   companyId?: string;
 
@@ -46,7 +45,7 @@ export class UserCreationDto {
     name: string | null,
     learningProfile: string | null,
     careerProfile: string | null,
-    company: string | null,    
+       
     companyId: string | null,
     status: USERSTATUS | null, 
     qualification: string[] | null,
@@ -57,7 +56,7 @@ export class UserCreationDto {
     this.name = name ?? undefined;
     this.learningProfile = learningProfile ?? undefined;
     this.careerProfile = careerProfile ?? undefined;
-    this.company = company ?? undefined;
+   
     this.companyId = companyId ?? undefined;
   
     this.status = status ?? undefined;

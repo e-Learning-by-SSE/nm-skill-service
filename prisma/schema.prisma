@@ -224,6 +224,7 @@ model LearningProfile {
   user                  UserProfile      @relation(fields: [userId], references: [id])
   userId                String           @unique // relation scalar field 
   learningHistoryId     String?
+  preferredDidacticMethod String?
 }
 
 model LearningHistory {

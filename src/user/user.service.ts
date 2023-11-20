@@ -92,19 +92,18 @@ export class UserMgmtService {
             throw error;
         }
     }
-    async deleteLearningProfileByID(learningProfileId: string){
+    async deleteLearningProfileByID(learningProfileId: string) {
         try {
             const profile = await this.db.learningProfile.delete({
                 where: { id: learningProfileId },
             });
 
             if (!profile) {
-                throw new NotFoundException("No learning profile found : "  + learningProfileId);
+                throw new NotFoundException("No learning profile found : " + learningProfileId);
             }
 
             return profile;
         } catch (error) {
-            
             throw error;
         }
     }
@@ -113,24 +112,30 @@ export class UserMgmtService {
             const existingLearningProfile = await this.db.learningProfile.findUnique({
                 where: { id: learningProfileId },
             });
-    
+
             if (!existingLearningProfile) {
                 throw new NotFoundException("Learning profile not found.");
             }
             const updatedLearningProfile = await this.db.learningProfile.update({
                 where: { id: learningProfileId },
                 data: {
-                    semanticDensity: dto.semanticDensity !== undefined ? Number(dto.semanticDensity) : existingLearningProfile.semanticDensity,
-                    semanticGravity: dto.semanticGravity !== undefined ? Number(dto.semanticGravity) : existingLearningProfile.semanticGravity,
+                    semanticDensity:
+                        dto.semanticDensity !== undefined
+                            ? Number(dto.semanticDensity)
+                            : existingLearningProfile.semanticDensity,
+                    semanticGravity:
+                        dto.semanticGravity !== undefined
+                            ? Number(dto.semanticGravity)
+                            : existingLearningProfile.semanticGravity,
                     mediaType: dto.mediaType || existingLearningProfile.mediaType,
                     language: dto.language || existingLearningProfile.language,
-                    processingTimePerUnit: dto.processingTimePerUnit || existingLearningProfile.processingTimePerUnit,
+                    processingTimePerUnit:
+                        dto.processingTimePerUnit || existingLearningProfile.processingTimePerUnit,
                 },
             });
-    
+
             return LearningProfileDto.createFromDao(updatedLearningProfile);
         } catch (error) {
-           
             throw error;
         }
     }
@@ -149,7 +154,6 @@ export class UserMgmtService {
 
             return profile;
         } catch (error) {
-            
             throw error;
         }
     }
@@ -172,31 +176,29 @@ export class UserMgmtService {
     }
     async getCareerProfileByFilter(filter: CareerProfileFilterDto): Promise<any> {
         try {
-            
-            if(filter.userId && filter.userId.length != 0){
-            // Use Prisma's findUnique method to retrieve a user based on the provided filter
-            const career = await this.db.careerProfile.findUnique({
-                where: {
-                    // Only include the filter property if it is provided in the DTO
-                   userId:filter.userId
-                },
-            });
+            if (filter.userId && filter.userId.length != 0) {
+                // Use Prisma's findUnique method to retrieve a user based on the provided filter
+                const career = await this.db.careerProfile.findUnique({
+                    where: {
+                        // Only include the filter property if it is provided in the DTO
+                        userId: filter.userId,
+                    },
+                });
 
-            if (!career) {
-                throw new NotFoundException("User not found.");
+                if (!career) {
+                    throw new NotFoundException("User not found.");
+                }
+
+                return career;
+            } else {
+                const career = await this.db.careerProfile.findMany();
+
+                if (!career) {
+                    throw new NotFoundException("User not found.");
+                }
+
+                return career;
             }
-
-            return career;
-        }else{
-            
-            const career = await this.db.careerProfile.findMany();
-
-            if (!career) {
-                throw new NotFoundException("User not found.");
-            }
-
-            return career;
-        }
         } catch (error) {
             // Handle errors appropriately, you can log or rethrow the error
             throw new Error(`Error getting user by filter: ${error.message}`);
@@ -295,6 +297,14 @@ export class UserMgmtService {
                     company: {
                         connect: { id: dto.companyId },
                     },
+                    learningHistory: {
+                        create: { id: dto.id },
+                    },
+                    learningBehavior: {
+                        create: { id: dto.id },
+                    },
+
+                    
                 },
                 include: { company: true },
             });
@@ -432,6 +442,9 @@ export class UserMgmtService {
                     mediaType: dto.mediaType,
                     language: dto.language,
                     userId: dto.userId,
+                    processingTimePerUnit: dto.processingTimePerUnit,
+                    preferredDidacticMethod: dto.preferredDidacticMethod,
+                    id: dto.userId,
                 },
             });
 
@@ -448,25 +461,24 @@ export class UserMgmtService {
     }
 
     async createCP(dto: CareerProfileCreationDto) {
-        console.log(dto.currentCompanyId)
+        console.log(dto.currentCompanyId);
         try {
-            
             const cp = await this.db.careerProfile.create({
                 data: {
                     professionalInterests: dto.professionalInterests,
-                
+
                     user: {
                         connect: {
-                          id: dto.userId 
+                            id: dto.userId,
                         },
-                      },
-                      currentCompany: {
+                    },
+                    currentCompany: {
                         connect: {
-                          id: dto.currentCompanyId
+                            id: dto.currentCompanyId,
                         },
                     },
                 },
-              });
+            });
 
             return CareerProfileDto.createFromDao(cp);
         } catch (error) {

@@ -25,6 +25,9 @@ export class LearningProfileCreationDto {
   @IsOptional()
   learningHistoryId?: string;
 
+  @IsOptional()
+  preferredDidacticMethod? :string
+
   @IsDefined()
   userId: string;
 
