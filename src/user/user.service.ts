@@ -67,11 +67,21 @@ export class UserMgmtService {
         throw new Error("Method not implemented.");
     }
 
-    async createLearningHistory(
-        historyId: string,
-        createLearningHistoryDto: LearningHistoryCreationDto,
-    ) {
-        throw new Error("Method not implemented.");
+    async createLearningHistory(historyId: string, dto: LearningHistoryCreationDto) {
+        try {
+            const learningHistory = await this.db.learningHistory.create({
+                data: {
+                    id: historyId,
+                    user: { connect: { id: dto.userId } }
+                   
+                },
+            });
+    
+            return LearningHistoryDto.createFromDao(learningHistory); // You might want to return a DTO or handle the response accordingly
+        } catch (error) {
+            // Handle errors appropriately, log or rethrow if needed
+            throw new Error(`Error creating learning history: ${error.message}`);
+        }
     }
     async getLearningHistoryById(historyId: string) {
         try {
