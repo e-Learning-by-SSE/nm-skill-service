@@ -13,7 +13,10 @@ import {
 import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { UserMgmtService } from "./user.service";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
-
+/**
+ * Controller for managing the Users and its entities 
+ * @author Wenzel
+ */
 @ApiTags("User")
 @Controller("")
 export class UserMgmtController {
