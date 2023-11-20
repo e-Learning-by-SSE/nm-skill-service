@@ -77,10 +77,36 @@ export class UserMgmtService {
     }
 
     async getLearningProfileByID(learningProfileId: string) {
-        throw new Error("Method not implemented.");
+        try {
+            const profile = await this.db.learningProfile.findUnique({
+                where: { id: learningProfileId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No learning profile found.");
+            }
+
+            return profile;
+        } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw error;
+        }
     }
-    async deleteLearningProfileByID(learningProfileId: string) {
-        throw new Error("Method not implemented.");
+    async deleteLearningProfileByID(learningProfileId: string){
+        try {
+            const profile = await this.db.learningProfile.delete({
+                where: { id: learningProfileId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No learning profile found : "  + learningProfileId);
+            }
+
+            return profile;
+        } catch (error) {
+            
+            throw error;
+        }
     }
     async patchLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
         throw new Error("Method not implemented.");
