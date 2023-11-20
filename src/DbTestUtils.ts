@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 
 import { PrismaService } from "./prisma/prisma.service";
-import { Prisma, Skill, SkillMap } from "@prisma/client";
+import { Prisma, Skill, SkillMap, USERSTATUS } from "@prisma/client";
 
 /**
  * Not a test suite, but functionality that supports writing test cases.
@@ -125,7 +125,7 @@ export class DbTestUtils {
         return this.db.userProfile.create({
             data: {
                 id: userId,
-                status: "active",
+                status: USERSTATUS.ACTIVE,
                 learningProgress: {
                     createMany: {
                         data: learningUnitIds.map((skill) => ({ skillId: skill })),

@@ -96,7 +96,7 @@ export class UserMgmtController {
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete("/user-profiles/:user_profile_id")
     deleteuserProfiles(@Param("user_profile_id") userId: string) {
-        return this.userService.deleteUser(userId);
+        return this.userService.setProfileToInactive(userId);
     }
 
     @ApiOperation({ summary: "Experimental (WIP)" })
@@ -130,8 +130,8 @@ export class UserMgmtController {
         type: String,
         description: "Filter by userId",
     })
-    getLearningUnitSearchWithFilter(@Query() filter: CareerProfileFilterDto) {
-        return this.userService.getUserByFilter(filter);
+    getCareerProfileByFilter(@Query() filter: CareerProfileFilterDto) {
+        return this.userService.getCareerProfileByFilter(filter);
     }
   
     @ApiOperation({ summary: "Experimental (WIP)" })
@@ -144,7 +144,7 @@ export class UserMgmtController {
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete("/career-profiles/:career_profile_id")
     delCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
-        return this.userService.getCareerProfileByID(careerProfileId);
+        return this.userService.deleteCareerProfileByID(careerProfileId);
     }
 
    
