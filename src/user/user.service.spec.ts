@@ -2,7 +2,15 @@ import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserMgmtService } from "./user.service";
-import { ConsumedUnitData, LearningProgress, LearningUnit, STATUS, SkillMap, UserProfile } from "@prisma/client";
+import {
+    ConsumedUnitData,
+    LearningProgress,
+    LearningUnit,
+    PersonalizedLearningPath,
+    STATUS,
+    SkillMap,
+    UserProfile,
+} from "@prisma/client";
 import { Skill } from "@prisma/client";
 import { NotFoundException } from "@nestjs/common";
 import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
@@ -23,7 +31,7 @@ describe("User Service", () => {
     describe("editStatusForAConsumedUnit", () => {
         let userProf: UserProfile;
         let consumedUnit: ConsumedUnitData;
-        let lu : LearningUnit;
+        let lu: LearningUnit;
         let factory: LearningUnitFactory;
         beforeEach(async () => {
             await dbUtils.wipeDb();
@@ -39,37 +47,36 @@ describe("User Service", () => {
                 title: "Awesome Title",
             });
             const result = await factory.createLearningUnit(creationDto);
-            
+
             const learningBehaviorData = await db.learningBehaviorData.create({
                 data: {
-                  userId: userProf.id,
-                  // other fields...
+                    userId: userProf.id,
+                    // other fields...
                 },
-              });
+            });
 
             consumedUnit = await db.consumedUnitData.create({
                 data: {
                     actualPocessingTime: "2 hours",
                     testPerformance: 0.85,
-                    consumedLUId: result.id, 
-                    lbDataId: learningBehaviorData.id, 
+                    consumedLUId: result.id,
+                    lbDataId: learningBehaviorData.id,
                     status: "STARTED",
                     date: new Date(),
-                   
                 },
             });
         });
 
-
-
         it("should edit the status for a consumed unit", async () => {
             // Arrange: Define test data
-            const userId = userProf.id;
             const consumedUnitId = consumedUnit.id;
-            const newStatus:STATUS = STATUS.FINISHED; // Replace with the desired status
+            const newStatus: STATUS = STATUS.FINISHED; // Replace with the desired status
 
             // Act: Call the editStatusForAConsumedUnit method
-            const result = await userService.editStatusForAConsumedUnit(userId, consumedUnitId, newStatus);
+            const result = await userService.editStatusForAConsumedUnitById(
+                consumedUnitId,
+                newStatus,
+            );
 
             // Assert: Check that the result is defined and has the expected structure
             expect(result).toBeDefined();
@@ -90,11 +97,11 @@ describe("User Service", () => {
             // Arrange: Define test data that may cause an error
             const invalidUserId = "non-existent-user"; // An invalid user ID
             const invalidConsumedUnitId = "non-existent-consumed-unit"; // An invalid consumed unit ID
-            const newStatus:STATUS = STATUS.FINISHED;
+            const newStatus: STATUS = STATUS.FINISHED;
 
             // Act and Assert: Call the editStatusForAConsumedUnit method and expect it to throw an error
             await expect(
-                userService.editStatusForAConsumedUnit(invalidUserId, invalidConsumedUnitId, newStatus),
+                userService.editStatusForAConsumedUnitById(invalidConsumedUnitId, newStatus),
             ).rejects.toThrowError(NotFoundException);
         });
     });
@@ -103,10 +110,10 @@ describe("User Service", () => {
         let userProf: UserProfile;
         let skillMap1: SkillMap;
         let skill1: Skill;
-    
+
         beforeEach(async () => {
             await dbUtils.wipeDb();
-    
+
             userProf = await db.userProfile.create({
                 data: {
                     name: "TestUser",
@@ -114,52 +121,51 @@ describe("User Service", () => {
                     id: "testId",
                 },
             });
-    
+
             skillMap1 = await db.skillMap.create({
                 data: {
                     name: "First Map",
                     ownerId: "User-1",
                 },
             });
-    
+
             skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
         });
-    
+
         it("should create a personalized learning path for a user", async () => {
             // Arrange: Define test data
             const userId = userProf.id;
-            const learningUnitsIds:string [] = [];
-            const pathTeachingGoalsIds :string [] = [];
-    
+            const learningUnitsIds: string[] = [];
+            const pathTeachingGoalsIds: string[] = [];
+
             // Act: Call the createLearningPathForUser method
             const result = await userService.createLearningPathForUser(
                 userId,
                 learningUnitsIds,
                 pathTeachingGoalsIds,
             );
-    
+
             // Assert: Check that the result is defined and has the expected structure
             expect(result.createdPersonalizedLearningPath).toBeDefined();
             expect(result.createdPersonalizedLearningPath.id).toBeDefined();
             expect(result.createdPersonalizedLearningPath.createdAt).toBeDefined();
             expect(result.createdPersonalizedLearningPath.updatedAt).toBeDefined();
-    
+
             // Assert: Check the database state after the test
             const createdPathFromDb = await db.personalizedLearningPath.findUnique({
                 where: { id: result.createdPersonalizedLearningPath.id },
                 include: { unitSequence: true, pathTeachingGoals: true },
             });
-    
+
             // Check that the created path is in the database and has the expected associations
             expect(createdPathFromDb).toBeDefined();
             if (createdPathFromDb) {
                 expect(createdPathFromDb.unitSequence).toHaveLength(learningUnitsIds.length);
-                expect(createdPathFromDb.pathTeachingGoals).toHaveLength(pathTeachingGoalsIds.length);
+                expect(createdPathFromDb.pathTeachingGoals).toHaveLength(
+                    pathTeachingGoalsIds.length,
+                );
             }
-            
         });
-    
-     
     });
 
     describe("createProgressForUserId", () => {
@@ -264,7 +270,77 @@ describe("User Service", () => {
             );
         });
     });
+    describe("checkStatusForUnitsInPathOfLearningHistory", () => {
+        beforeEach(async () => {
+            await dbUtils.wipeDb();})
+        it("should check status for units in the path", async () => {
+            // Arrange: Create test data
+            let factory: LearningUnitFactory;
+          
+            factory = new LearningUnitFactory(db);
+           const userProf = await db.userProfile.create({
+                data: {
+                    name: "TestUser",
+                    status: "ACTIVE",
+                    id: "123",
+                },
+            });
+            const userHistory = await db.learningHistory.create({
+                data: {
+                    userId: userProf.id,
+                    id: userProf.id,
+                },
+            });
+            const creationDto = SearchLearningUnitCreationDto.createForTesting({
+                title: "Awesome Title123",id:"123"
+            });
+            const creationDto1 = SearchLearningUnitCreationDto.createForTesting({
+                title: "Awesome Title1234",id:"1234"
+            });
+            const lu1 = await factory.createLearningUnit(creationDto);
+            const lu = await factory.createLearningUnit(creationDto1);
+            const learningPath: PersonalizedLearningPath = await db.personalizedLearningPath.create({
+                data: {
+                  userProfilId: userHistory.id,
+                  unitSequence: {
+                    connect: [{ id: lu.id }, { id: lu1.id }], // Connect learning units
+                  }
+                },
+              });
+              
+            const learningPathFromDB =
+                await db.personalizedLearningPath.findUnique({
+                    where: {
+                        id: learningPath.id,
+                    },
+                    include: { unitSequence: true },
+                });
+            // Act: Call the checkStatusForUnitsInPathOfLearningHistory method
+            const result = await userService.checkStatusForUnitsInPathOfLearningHistory(
+                userProf.id,
+            );
+                if(learningPathFromDB){
+            // Assert: Check the result and database state
+            expect(result.unitStatus).toHaveLength(learningPathFromDB.unitSequence.length);
+        }
+            result.unitStatus.forEach((unitStatus) => {
+                expect(unitStatus).toHaveProperty("unitId");
+                expect(unitStatus).toHaveProperty("status");
+            });
+        });
 
+        it("should handle errors when learning path is not found", async () => {
+            // Arrange: Use an invalid learning history ID
+            const invalidLearningHistoryId = "non-existent-learning-history-id";
+
+            // Act and Assert: Call the method and expect it to throw NotFoundException
+            await expect(
+                userService.checkStatusForUnitsInPathOfLearningHistory(invalidLearningHistoryId),
+            ).rejects.toThrowError(NotFoundException);
+        });
+
+        // Add more test cases as needed
+    });
     describe("deleteLearningProgress", () => {
         let userProf: UserProfile;
         let skillMap1: SkillMap;
