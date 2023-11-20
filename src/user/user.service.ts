@@ -30,7 +30,6 @@ import { connect } from "http2";
  */
 @Injectable()
 export class UserMgmtService {
-
     constructor(private db: PrismaService) {}
 
     async setProfileToInactive(userId: string) {
@@ -75,7 +74,7 @@ export class UserMgmtService {
         throw new Error("Method not implemented.");
     }
     async getLearningHistoryById(historyId: string) {
-           try {
+        try {
             const profile = await this.db.learningHistory.findUnique({
                 where: { id: historyId },
             });
@@ -89,7 +88,6 @@ export class UserMgmtService {
             // Handle any other errors or rethrow them as needed
             throw error;
         }
-    
     }
 
     async getLearningProfileByID(learningProfileId: string) {
@@ -156,7 +154,41 @@ export class UserMgmtService {
         }
     }
     async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileCreationDto) {
-        throw new Error("Method not implemented.");
+        try {
+            const existingCareerProfile = await this.db.careerProfile.findUnique({
+                where: {
+                    id: careerProfileId,
+                },
+            });
+
+            if (!existingCareerProfile) {
+                throw new NotFoundException("Career profile not found.");
+            }
+
+            const updatedCareerProfile = await this.db.careerProfile.update({
+                where: {
+                    id: careerProfileId,
+                },
+                data: {
+                    professionalInterests:
+                        dto.professionalInterests || existingCareerProfile.professionalInterests,
+                    ...(dto.currentCompanyId
+                        ? {
+                              currentCompany: {
+                                  connect: { id: dto.currentCompanyId },
+                              },
+                          }
+                        : {}),
+                    ...(dto.userId ? { user: { connect: { id: dto.userId } } } : {}),
+                },
+            });
+            const careerProfileDto = CareerProfileDto.createFromDao(updatedCareerProfile);
+
+            return careerProfileDto;
+        } catch (error) {
+            
+            throw new Error(`Error patching career profile by ID: ${error.message}`);
+        }
     }
     async deleteCareerProfileByID(careerProfileId: string) {
         try {
@@ -348,7 +380,8 @@ export class UserMgmtService {
                 learningProfile: true,
                 careerProfile: true,
                 learningProgress: true,
-                //   LearningHistory  LearningHistory?
+                learningHistory: true,
+                learningBehavior: true,
             },
         });
 
