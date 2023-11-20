@@ -30,6 +30,9 @@ import { connect } from "http2";
  */
 @Injectable()
 export class UserMgmtService {
+
+    constructor(private db: PrismaService) {}
+
     async setProfileToInactive(userId: string) {
         try {
             const user = await this.db.userProfile.update({
@@ -50,7 +53,6 @@ export class UserMgmtService {
             throw error;
         }
     }
-    constructor(private db: PrismaService) {}
 
     async patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
         throw new Error("Method not implemented.");
@@ -73,7 +75,21 @@ export class UserMgmtService {
         throw new Error("Method not implemented.");
     }
     async getLearningHistoryById(historyId: string) {
-        throw new Error("Method not implemented.");
+           try {
+            const profile = await this.db.learningHistory.findUnique({
+                where: { id: historyId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No learning History found.");
+            }
+
+            return profile;
+        } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw error;
+        }
+    
     }
 
     async getLearningProfileByID(learningProfileId: string) {
@@ -303,8 +319,6 @@ export class UserMgmtService {
                     learningBehavior: {
                         create: { id: dto.id },
                     },
-
-                    
                 },
                 include: { company: true },
             });
