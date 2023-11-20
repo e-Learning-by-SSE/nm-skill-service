@@ -69,20 +69,29 @@ export class UserMgmtService {
 
     async createLearningHistory(historyId: string, dto: LearningHistoryCreationDto) {
         try {
+
+            const existingLearningHistory = await this.db.learningHistory.findUnique({
+                where: { id: historyId },
+            });
+    
+            if (existingLearningHistory) {
+                
+                throw new ForbiddenException("Learning history already exists for the given ID");
+            }
+    
+          
             const learningHistory = await this.db.learningHistory.create({
                 data: {
                     id: historyId,
-                    user: { connect: { id: dto.userId } }
-                   
+                    user: { connect: { id: dto.userId } },
                 },
             });
     
-            return LearningHistoryDto.createFromDao(learningHistory); // You might want to return a DTO or handle the response accordingly
+            return LearningHistoryDto.createFromDao(learningHistory);
         } catch (error) {
             // Handle errors appropriately, log or rethrow if needed
-            throw new Error(`Error creating learning history: ${error.message}`);
-        }
-    }
+            throw error;
+        }}
     async getLearningHistoryById(historyId: string) {
         try {
             const profile = await this.db.learningHistory.findUnique({
@@ -352,9 +361,7 @@ export class UserMgmtService {
                     name: dto.name,
                     status: USERSTATUS.ACTIVE,
                     id: dto.id,
-                    company: {
-                        connect: { id: dto.companyId },
-                    },
+                    ...(dto.companyId && { company: { connect: { id: dto.companyId } } }),
                     learningHistory: {
                         create: { id: dto.id },
                     },

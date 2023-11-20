@@ -15,6 +15,19 @@ const learningProgressProfiles = [
     },
 ];
 
+const learningProgressProfilesWithoutSkills = [
+
+    {
+        id: "1001",
+      
+    },
+
+    {
+        id: "2001",
+      
+    },
+];
+
 export async function createProfiles() {
     await Promise.all(
         learningProgressProfiles.map(async (profile) => {
@@ -26,6 +39,20 @@ export async function createProfiles() {
                             data: profile.skills.map((skill) => ({ skillId: skill })),
                         },
                     },
+                    status: USERSTATUS.ACTIVE,
+                },
+            });
+        }),
+    );
+}
+export async function createProfilesWithoutSkills() {
+    await Promise.all(
+        learningProgressProfilesWithoutSkills.map(async (profile) => {
+            await prisma.userProfile.create({
+                data: {
+                    id: profile.id,
+                   
+                    
                     status: USERSTATUS.ACTIVE,
                 },
             });
