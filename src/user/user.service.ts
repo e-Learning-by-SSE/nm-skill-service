@@ -109,7 +109,30 @@ export class UserMgmtService {
         }
     }
     async patchLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
-        throw new Error("Method not implemented.");
+        try {
+            const existingLearningProfile = await this.db.learningProfile.findUnique({
+                where: { id: learningProfileId },
+            });
+    
+            if (!existingLearningProfile) {
+                throw new NotFoundException("Learning profile not found.");
+            }
+            const updatedLearningProfile = await this.db.learningProfile.update({
+                where: { id: learningProfileId },
+                data: {
+                    semanticDensity: dto.semanticDensity !== undefined ? Number(dto.semanticDensity) : existingLearningProfile.semanticDensity,
+                    semanticGravity: dto.semanticGravity !== undefined ? Number(dto.semanticGravity) : existingLearningProfile.semanticGravity,
+                    mediaType: dto.mediaType || existingLearningProfile.mediaType,
+                    language: dto.language || existingLearningProfile.language,
+                    processingTimePerUnit: dto.processingTimePerUnit || existingLearningProfile.processingTimePerUnit,
+                },
+            });
+    
+            return LearningProfileDto.createFromDao(updatedLearningProfile);
+        } catch (error) {
+           
+            throw error;
+        }
     }
     async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileCreationDto) {
         throw new Error("Method not implemented.");
