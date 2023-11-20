@@ -34,18 +34,14 @@ describe("User Service", () => {
     describe('createLearningHistory', () => {
         it('should create learning history', async () => {
           // Arrange: Prepare test data
-          const userId = '1001'; // Replace with a valid user ID
-          const historyId = '1001'; // Replace with a valid history ID
+          const userId = '1001'; 
+          const historyId = '1001'; 
           const userDto: UserCreationDto = {
-            // Replace with the necessary fields for creation
             id: userId,
-            // ... other fields
           };
           
           const dto: LearningHistoryCreationDto = {
-            // Replace with the necessary fields for creation
             userId,
-            // ... other fields
           };
           const createdUser = await userService.createUser(userDto);
           await db.learningHistory.delete(
@@ -57,15 +53,13 @@ describe("User Service", () => {
           // Assert: Check the result and database state
           expect(createdLearningHistory).toBeInstanceOf(LearningHistoryDto);
           expect(createdLearningHistory.userId).toEqual(userId);
-          // Add more assertions based on your DTO and data structure
-    
-          // Optional: Check the database state using Prisma
+         
           const learningHistoryFromDB = await db.learningHistory.findUnique({
             where: { id: historyId },
           });
     
           expect(learningHistoryFromDB).toBeDefined();
-          // Add more assertions based on your database schema
+         
         });
     
         it('should handle errors when creating learning history', async () => {
