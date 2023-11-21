@@ -97,6 +97,10 @@ pipeline {
                         }
                     }
                 }
+
+                stage('Publish ER Diagram') {
+                    archiveArtifacts allowEmptyArchive: true, artifacts: 'prisma/ERD.*', followSymlinks: false, onlyIfSuccessful: true
+                }
             }
         }
 

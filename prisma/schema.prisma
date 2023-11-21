@@ -353,3 +353,9 @@ generator erd_pdf {
   output = "./ERD.pdf"
   theme = "default"
 }
+
+generator erd_png {
+  provider = "prisma-erd-generator"
+  output = "./ERD.png"
+  theme = "default"
+}
