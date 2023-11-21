@@ -342,20 +342,17 @@ model Feedback {
 }
 
 // ERD generator based on: https://github.com/keonik/prisma-erd-generator
+// Won't run inside docker
 generator erd_svg {
   provider = "prisma-erd-generator"
   output = "./ERD.svg"
   theme = "default"
+  disabled = true
 }
 
 generator erd_pdf {
   provider = "prisma-erd-generator"
   output = "./ERD.pdf"
   theme = "default"
-}
-
-generator erd_png {
-  provider = "prisma-erd-generator"
-  output = "ERD.png"
-  theme = "default"
+  disabled = true
 }
