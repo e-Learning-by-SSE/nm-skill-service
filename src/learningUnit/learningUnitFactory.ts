@@ -323,8 +323,13 @@ export class LearningUnitFactory {
           query.where.orga_id = { 
             in: filter.owners,
           };
+          
         }
-      
+        query.include = {
+            teachingGoals: true,
+            requirements: true,
+            
+          };
         const result = await this.db.learningUnit.findMany(query);
         return result;
       
