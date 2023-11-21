@@ -272,13 +272,14 @@ describe("User Service", () => {
     });
     describe("checkStatusForUnitsInPathOfLearningHistory", () => {
         beforeEach(async () => {
-            await dbUtils.wipeDb();})
+            await dbUtils.wipeDb();
+        });
         it("should check status for units in the path", async () => {
             // Arrange: Create test data
             let factory: LearningUnitFactory;
-          
+
             factory = new LearningUnitFactory(db);
-           const userProf = await db.userProfile.create({
+            const userProf = await db.userProfile.create({
                 data: {
                     name: "TestUser",
                     status: "ACTIVE",
@@ -292,37 +293,40 @@ describe("User Service", () => {
                 },
             });
             const creationDto = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title123",id:"123"
+                title: "Awesome Title123",
+                id: "123",
             });
             const creationDto1 = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title1234",id:"1234"
+                title: "Awesome Title1234",
+                id: "1234",
             });
             const lu1 = await factory.createLearningUnit(creationDto);
             const lu = await factory.createLearningUnit(creationDto1);
-            const learningPath: PersonalizedLearningPath = await db.personalizedLearningPath.create({
-                data: {
-                  userProfilId: userHistory.id,
-                  unitSequence: {
-                    connect: [{ id: lu.id }, { id: lu1.id }], // Connect learning units
-                  }
-                },
-              });
-              
-            const learningPathFromDB =
-                await db.personalizedLearningPath.findUnique({
-                    where: {
-                        id: learningPath.id,
+            const learningPath: PersonalizedLearningPath = await db.personalizedLearningPath.create(
+                {
+                    data: {
+                        userProfileId: userHistory.id,
+                        unitSequence: {
+                            connect: [{ id: lu.id }, { id: lu1.id }], // Connect learning units
+                        },
                     },
-                    include: { unitSequence: true },
-                });
+                },
+            );
+
+            const learningPathFromDB = await db.personalizedLearningPath.findUnique({
+                where: {
+                    id: learningPath.id,
+                },
+                include: { unitSequence: true },
+            });
             // Act: Call the checkStatusForUnitsInPathOfLearningHistory method
             const result = await userService.checkStatusForUnitsInPathOfLearningHistory(
                 userProf.id,
             );
-                if(learningPathFromDB){
-            // Assert: Check the result and database state
-            expect(result.unitStatus).toHaveLength(learningPathFromDB.unitSequence.length);
-        }
+            if (learningPathFromDB) {
+                // Assert: Check the result and database state
+                expect(result.unitStatus).toHaveLength(learningPathFromDB.unitSequence.length);
+            }
             result.unitStatus.forEach((unitStatus) => {
                 expect(unitStatus).toHaveProperty("unitId");
                 expect(unitStatus).toHaveProperty("status");

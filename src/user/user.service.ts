@@ -134,11 +134,10 @@ export class UserMgmtService {
     }
 
     /**
-   * Adds a new user
-   * @param dto Specifies the user to be created
-   * @returns The newly created user
-
-   */
+     * Adds a new user
+     * @param dto Specifies the user to be created
+     * @returns The newly created user
+     */
     async createUser(dto: UserCreationDto) {
         // Create and return user
         try {
@@ -341,22 +340,20 @@ export class UserMgmtService {
     async editStatusForAConsumedUnitById(consumedUnitId: string, status: STATUS) {
         try {
             // Find users with the given learning unit in their learning history
-          
-               const consumed = await this.db.consumedUnitData.update({
-                    where: {
-                        id: consumedUnitId,
-                     
-                    },
-                    data: {
-                        status: status,
-                    },
-                });
-                return consumed; 
-           
+
+            const consumed = await this.db.consumedUnitData.update({
+                where: {
+                    id: consumedUnitId,
+                },
+                data: {
+                    status: status,
+                },
+            });
+            return consumed;
         } catch (error) {
             // Handle errors
-            
-            throw new NotFoundException("Unit not Found in DB ");;
+
+            throw new NotFoundException("Unit not Found in DB ");
         }
     }
 
@@ -391,7 +388,7 @@ export class UserMgmtService {
 
         const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
             data: {
-                userProfilId: userID,
+                userProfileId: userID,
                 unitSequence: {
                     connect: learningUnitsIds.map((id) => ({ id })),
                 },
@@ -408,7 +405,7 @@ export class UserMgmtService {
             // Find the learning path associated with the specified learning history
             const learningPath = await this.db.personalizedLearningPath.findFirst({
                 where: {
-                    userProfilId: learningHistoryId,
+                    userProfileId: learningHistoryId,
                 },
                 include: {
                     unitSequence: true,
@@ -416,7 +413,9 @@ export class UserMgmtService {
             });
 
             if (!learningPath) {
-                throw new NotFoundException("Learning path not found for the given learning history.");
+                throw new NotFoundException(
+                    "Learning path not found for the given learning history.",
+                );
             }
 
             const unitSequence = learningPath.unitSequence;
@@ -442,16 +441,19 @@ export class UserMgmtService {
 
             return { unitStatus };
         } catch (error) {
-            throw error
+            throw error;
         }
     }
 
-    async updateStatusForConsumedLearningUnit(userId:string, learningUnitId: string, newStatus: STATUS) {
+    async updateStatusForConsumedLearningUnit(
+        userId: string,
+        learningUnitId: string,
+        newStatus: STATUS,
+    ) {
         try {
             const learningHistories = await this.db.learningHistory.findMany({
                 where: {
-                    
-                    userId:userId,
+                    userId: userId,
                     learnedSkills: {
                         some: {
                             skillId: learningUnitId,

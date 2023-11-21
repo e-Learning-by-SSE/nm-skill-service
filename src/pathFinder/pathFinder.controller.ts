@@ -1,8 +1,8 @@
-import { Body, Controller, Post } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Param, Post } from "@nestjs/common";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { PathFinderService } from "./pathFinder.service";
-import { PathRequestDto } from "./dto";
+import { PathRequestDto, PathStorageRequestDto } from "./dto";
 
 @ApiTags("PathFinder")
 @Controller("PathFinder")
@@ -57,5 +57,11 @@ export class PathFinderController {
     @Post("computePath/")
     computePath(@Body() dto: PathRequestDto) {
         return this.pfService.computePath(dto);
+    }
+
+    @ApiOperation({ summary: "Experimental (WIP)" })
+    @Post(":userId")
+    storePersonalizedPath(@Param("userId") userId: string, @Body() dto: PathStorageRequestDto) {
+        return this.pfService.storePersonalizedPath(userId, dto);
     }
 }
