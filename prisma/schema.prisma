@@ -340,3 +340,16 @@ model Feedback {
   optionalTextComment String?      @default("") //Optional textual comment, e.g., what could be better, what was great?
   createdAt           DateTime     @default(now())
 }
+
+// ERD generator based on: https://github.com/keonik/prisma-erd-generator
+generator erd_svg {
+  provider = "prisma-erd-generator"
+  output = "./ERD.svg"
+  theme = "default"
+}
+
+generator erd_pdf {
+  provider = "prisma-erd-generator"
+  output = "./ERD.pdf"
+  theme = "default"
+}

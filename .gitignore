@@ -48,3 +48,4 @@ prisma/migrations/20231017074325_/migration.sql
 /src/coverage
 .env
 .env
+/prisma/ERD.*
