@@ -264,7 +264,7 @@ export class PathFinderService {
             user = await this.db.userProfile.create({
                 data: {
                     id: userId,
-                    status: "active",
+                    status: "ACTIVE",
                 },
             });
         }

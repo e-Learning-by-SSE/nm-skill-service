@@ -16,6 +16,8 @@ import { NotFoundException } from "@nestjs/common";
 import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
+import { LearningHistoryCreationDto, LearningHistoryDto, UserCreationDto } from "./dto";
+import { createProfiles, createProfilesWithoutSkills } from "../../prisma/user_profiles_example_seed";
 describe("User Service", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
@@ -28,6 +30,54 @@ describe("User Service", () => {
         // Wipe DB before test
         await dbUtils.wipeDb();
     });
+
+    describe('createLearningHistory', () => {
+        it('should create learning history', async () => {
+          // Arrange: Prepare test data
+          const userId = '1001'; 
+          const historyId = '1001'; 
+          const userDto: UserCreationDto = {
+            id: userId,
+          };
+          
+          const dto: LearningHistoryCreationDto = {
+            userId,
+          };
+          const createdUser = await userService.createUser(userDto);
+          await db.learningHistory.delete(
+            {where:{id:userId}}
+          )
+          // Act: Call the createLearningHistory method
+          const createdLearningHistory = await userService.createLearningHistory(historyId, dto);
+    
+          // Assert: Check the result and database state
+          expect(createdLearningHistory).toBeInstanceOf(LearningHistoryDto);
+          expect(createdLearningHistory.userId).toEqual(userId);
+         
+          const learningHistoryFromDB = await db.learningHistory.findUnique({
+            where: { id: historyId },
+          });
+    
+          expect(learningHistoryFromDB).toBeDefined();
+         
+        });
+    
+        it('should handle errors when creating learning history', async () => {
+          // Arrange: Prepare invalid test data
+          const invalidUserId = 'non-existent-user'; // An invalid user ID
+          const invalidHistoryId = 'non-existent-history'; // An invalid history ID
+          const invalidDto: LearningHistoryCreationDto = {
+            userId: invalidUserId,
+            // ... other invalid fields
+          };
+    
+          // Act and Assert: Call the createLearningHistory method and expect it to throw an error
+          await expect(userService.createLearningHistory(invalidHistoryId, invalidDto)).rejects.toThrowError(
+          );
+        });
+      });
+    
+
     describe("editStatusForAConsumedUnit", () => {
         let userProf: UserProfile;
         let consumedUnit: ConsumedUnitData;
