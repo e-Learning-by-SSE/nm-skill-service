@@ -5,7 +5,7 @@ import {
     SearchLearningUnitDto,
     SearchLearningUnitListDto,
 } from "./dto";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { LIFECYCLE, LearningUnit as PrismaLearningUnit, Prisma, Skill } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 import { LearningUnit } from "../../nm-skill-lib/src";
@@ -286,53 +286,47 @@ export class LearningUnitFactory {
     }
 
     async getLearningUnitByFilter(filter: LearningUnitFilterDto): Promise<PrismaLearningUnit[]> {
-        
-
         const query: Prisma.LearningUnitFindManyArgs = {};
 
         if (filter.requiredSkills && filter.requiredSkills.length > 0) {
-          if (!query.where) {
-            query.where = {};
-          }
-          query.where.requirements = {
-            some: {
-              id: {
-                in: filter.requiredSkills,
-              },
-            },
-          };
+            if (!query.where) {
+                query.where = {};
+            }
+            query.where.requirements = {
+                some: {
+                    id: {
+                        in: filter.requiredSkills,
+                    },
+                },
+            };
         }
-      
+
         if (filter.teachingGoals && filter.teachingGoals.length > 0) {
-          if (!query.where) {
-            query.where = {};
-          }
-          query.where.teachingGoals = {
-            some: {
-              id: {
-                in: filter.teachingGoals,
-              },
-            },
-          };
+            if (!query.where) {
+                query.where = {};
+            }
+            query.where.teachingGoals = {
+                some: {
+                    id: {
+                        in: filter.teachingGoals,
+                    },
+                },
+            };
         }
-      
+
         if (filter.owners && filter.owners.length > 0) {
-          if (!query.where) {
-            query.where = {};
-          }
-          query.where.orga_id = { 
-            in: filter.owners,
-          };
-          
+            if (!query.where) {
+                query.where = {};
+            }
+            query.where.orga_id = {
+                in: filter.owners,
+            };
         }
         query.include = {
             teachingGoals: true,
             requirements: true,
-            
-          };
+        };
         const result = await this.db.learningUnit.findMany(query);
         return result;
-      
-      }
-    
+    }
 }

@@ -20,7 +20,7 @@ import {
     getPath,
 } from "../../nm-skill-lib/src";
 import { PrismaService } from "../prisma/prisma.service";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 

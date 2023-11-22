@@ -1849,8 +1849,15 @@ async function createCompetencies() {
 async function createSkillGroups() {
     // Need to preserve ordering and wait to be finished before creating the next one!
     for (const skill of skillGroups) {
-        const nested = skill.nested?.map((i) => ({ id: i }));
+        const nested = skill.nested?.filter((id) => id != undefined).map((i) => ({ id: i }));
 
+        const data: Prisma.SkillUncheckedCreateInput = {
+            id: skill.id,
+            repositoryId: repository.id,
+            name: skill.name,
+            description: skill.description,
+            level: skill.level ?? 1,
+        };
         await prisma.skill.create({
             data: {
                 id: skill.id,

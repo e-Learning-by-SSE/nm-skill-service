@@ -19,7 +19,7 @@ import {
     UserDto,
     UserListDto,
 } from "./dto";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 import { STATUS, USERSTATUS, UserProfile } from "@prisma/client";
 import { connect } from "http2";
