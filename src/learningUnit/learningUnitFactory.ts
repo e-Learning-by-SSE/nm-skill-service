@@ -285,7 +285,7 @@ export class LearningUnitFactory {
         return results;
     }
 
-    async getLearningUnitByFilter(filter: LearningUnitFilterDto): Promise<PrismaLearningUnit[]> {
+    async getLearningUnitByFilter(filter: LearningUnitFilterDto): Promise<SearchLearningUnitListDto> {
         
 
         const query: Prisma.LearningUnitFindManyArgs = {};
@@ -331,7 +331,13 @@ export class LearningUnitFactory {
             
           };
         const result = await this.db.learningUnit.findMany(query);
-        return result;
+        const res :SearchLearningUnitListDto = new SearchLearningUnitListDto;
+        result.forEach(element => {
+            res.learningUnits.push (SearchLearningUnitDto.createFromDao(element))
+        });
+
+
+        return res;
       
       }
     
