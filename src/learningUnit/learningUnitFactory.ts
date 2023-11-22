@@ -293,6 +293,10 @@ export class LearningUnitFactory {
         const query: Prisma.LearningUnitFindManyArgs = {};
 
         if (filter.requiredSkills && filter.requiredSkills.length > 0) {
+            if (!Array.isArray(filter.requiredSkills)) {
+                // If filter.owners is not an array, convert it to an array
+                filter.owners = [filter.requiredSkills as string];
+            }
             if (!query.where) {
                 query.where = {};
             }
@@ -306,6 +310,10 @@ export class LearningUnitFactory {
         }
 
         if (filter.teachingGoals && filter.teachingGoals.length > 0) {
+            if (!Array.isArray(filter.teachingGoals)) {
+                // If filter.owners is not an array, convert it to an array
+                filter.owners = [filter.teachingGoals as string];
+            }
             if (!query.where) {
                 query.where = {};
             }
@@ -319,6 +327,10 @@ export class LearningUnitFactory {
         }
 
         if (filter.owners && filter.owners.length > 0) {
+            if (!Array.isArray(filter.owners)) {
+                // If filter.owners is not an array, convert it to an array
+                filter.owners = [filter.owners as string];
+            }
             if (!query.where) {
                 query.where = {};
             }
@@ -334,7 +346,7 @@ export class LearningUnitFactory {
 
         const res :SearchLearningUnitListDto = new SearchLearningUnitListDto;
         result.forEach(element => {
-            res.learningUnits.push (SearchLearningUnitDto.createFromDao(element))
+            res.learningUnits.push (this.createLearningUnitDto(element))
         });
 
 
