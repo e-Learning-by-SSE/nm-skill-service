@@ -21,7 +21,8 @@ import {
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
-import { STATUS } from "@prisma/client";
+import { STATUS, USERSTATUS, UserProfile } from "@prisma/client";
+import { connect } from "http2";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -30,6 +31,27 @@ import { STATUS } from "@prisma/client";
 @Injectable()
 export class UserMgmtService {
     constructor(private db: PrismaService) {}
+
+    async setProfileToInactive(userId: string) {
+        try {
+            const user = await this.db.userProfile.update({
+                where: {
+                    id: userId,
+                },
+                data: { status: USERSTATUS.INACTIVE },
+            });
+
+            return UserDto.createFromDao(user);
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                // unique field already exists
+                if (error.code === "P2025") {
+                    throw new ForbiddenException("User not exists in System");
+                }
+            }
+            throw error;
+        }
+    }
 
     async patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
         throw new Error("Method not implemented.");
@@ -45,36 +67,225 @@ export class UserMgmtService {
         throw new Error("Method not implemented.");
     }
 
-    async createLearningHistory(
-        historyId: string,
-        createLearningHistoryDto: LearningHistoryCreationDto,
-    ) {
-        throw new Error("Method not implemented.");
+    async createLearningHistory(historyId: string, dto: LearningHistoryCreationDto) {
+        try {
+            const existingLearningHistory = await this.db.learningHistory.findUnique({
+                where: { id: historyId },
+            });
+
+            if (existingLearningHistory) {
+                throw new ForbiddenException("Learning history already exists for the given ID");
+            }
+
+            const learningHistory = await this.db.learningHistory.create({
+                data: {
+                    id: historyId,
+                    user: { connect: { id: dto.userId } },
+                },
+            });
+
+            return LearningHistoryDto.createFromDao(learningHistory);
+        } catch (error) {
+            // Handle errors appropriately, log or rethrow if needed
+            throw error;
+        }
     }
     async getLearningHistoryById(historyId: string) {
-        throw new Error("Method not implemented.");
+        try {
+            const profile = await this.db.learningHistory.findUnique({
+                where: { id: historyId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No learning History found.");
+            }
+
+            return profile;
+        } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw error;
+        }
     }
 
     async getLearningProfileByID(learningProfileId: string) {
-        throw new Error("Method not implemented.");
+        try {
+            const profile = await this.db.learningProfile.findUnique({
+                where: { id: learningProfileId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No learning profile found.");
+            }
+
+            return profile;
+        } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw error;
+        }
     }
     async deleteLearningProfileByID(learningProfileId: string) {
-        throw new Error("Method not implemented.");
+        try {
+            const profile = await this.db.learningProfile.delete({
+                where: { id: learningProfileId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No learning profile found : " + learningProfileId);
+            }
+
+            return profile;
+        } catch (error) {
+            throw error;
+        }
     }
     async patchLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
-        throw new Error("Method not implemented.");
+        try {
+            const existingLearningProfile = await this.db.learningProfile.findUnique({
+                where: { id: learningProfileId },
+            });
+
+            if (!existingLearningProfile) {
+                throw new NotFoundException("Learning profile not found.");
+            }
+            const updatedLearningProfile = await this.db.learningProfile.update({
+                where: { id: learningProfileId },
+                data: {
+                    semanticDensity:
+                        dto.semanticDensity !== undefined
+                            ? Number(dto.semanticDensity)
+                            : existingLearningProfile.semanticDensity,
+                    semanticGravity:
+                        dto.semanticGravity !== undefined
+                            ? Number(dto.semanticGravity)
+                            : existingLearningProfile.semanticGravity,
+                    mediaType: dto.mediaType || existingLearningProfile.mediaType,
+                    language: dto.language || existingLearningProfile.language,
+                    processingTimePerUnit:
+                        dto.processingTimePerUnit || existingLearningProfile.processingTimePerUnit,
+                },
+            });
+
+            return LearningProfileDto.createFromDao(updatedLearningProfile);
+        } catch (error) {
+            throw error;
+        }
     }
     async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileCreationDto) {
-        throw new Error("Method not implemented.");
+        try {
+            const existingCareerProfile = await this.db.careerProfile.findUnique({
+                where: {
+                    id: careerProfileId,
+                },
+            });
+
+            if (!existingCareerProfile) {
+                throw new NotFoundException("Career profile not found.");
+            }
+
+            const updatedCareerProfile = await this.db.careerProfile.update({
+                where: {
+                    id: careerProfileId,
+                },
+                data: {
+                    professionalInterests:
+                        dto.professionalInterests || existingCareerProfile.professionalInterests,
+                    ...(dto.currentCompanyId
+                        ? {
+                              currentCompany: {
+                                  connect: { id: dto.currentCompanyId },
+                              },
+                          }
+                        : {}),
+                    ...(dto.userId ? { user: { connect: { id: dto.userId } } } : {}),
+                },
+            });
+            const careerProfileDto = CareerProfileDto.createFromDao(updatedCareerProfile);
+
+            return careerProfileDto;
+        } catch (error) {
+            throw new Error(`Error patching career profile by ID: ${error.message}`);
+        }
     }
+    async deleteCareerProfileByID(careerProfileId: string) {
+        try {
+            const profile = await this.db.careerProfile.delete({
+                where: { id: careerProfileId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No careerProfile found.");
+            }
+
+            return profile;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async getCareerProfileByID(careerProfileId: string) {
-        throw new Error("Method not implemented.");
+        try {
+            const profile = await this.db.careerProfile.findUnique({
+                where: { id: careerProfileId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No careerProfile found.");
+            }
+
+            return profile;
+        } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw error;
+        }
     }
-    async getUserByFilter(filter: CareerProfileFilterDto) {
-        throw new Error("Method not implemented.");
+    async getCareerProfileByFilter(filter: CareerProfileFilterDto): Promise<any> {
+        try {
+            if (filter.userId && filter.userId.length != 0) {
+                // Use Prisma's findUnique method to retrieve a user based on the provided filter
+                const career = await this.db.careerProfile.findUnique({
+                    where: {
+                        // Only include the filter property if it is provided in the DTO
+                        userId: filter.userId,
+                    },
+                });
+
+                if (!career) {
+                    throw new NotFoundException("User not found.");
+                }
+
+                return career;
+            } else {
+                const career = await this.db.careerProfile.findMany();
+
+                if (!career) {
+                    throw new NotFoundException("User not found.");
+                }
+
+                return career;
+            }
+        } catch (error) {
+            // Handle errors appropriately, you can log or rethrow the error
+            throw new Error(`Error getting user by filter: ${error.message}`);
+        }
     }
     async deleteUser(userId: string) {
-        throw new Error("Method not implemented.");
+        try {
+            const user = await this.db.userProfile.delete({
+                where: {
+                    id: userId,
+                },
+            });
+
+            return UserDto.createFromDao(user);
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                // unique field already exists
+                if (error.code === "P2025") {
+                    throw new ForbiddenException("User not exists in System");
+                }
+            }
+            throw error;
+        }
     }
 
     async deleteProgressForId(id: string) {
@@ -144,12 +355,23 @@ export class UserMgmtService {
             const user = await this.db.userProfile.create({
                 data: {
                     name: dto.name,
-                    companyId: dto.companyId,
-                    status: "active",
+                    status: USERSTATUS.ACTIVE,
+                    id: dto.id,
+                    ...(dto.companyId && { company: { connect: { id: dto.companyId } } }),
+                    learningHistory: {
+                        create: { id: dto.id },
+                    },
+                    learningBehavior: {
+                        create: { id: dto.id },
+                    },
                 },
+                include: { company: true },
             });
-
-            return UserDto.createFromDao(user);
+            if (user.company) {
+                return UserDto.createFromDao(user, undefined, undefined, user.company);
+            } else {
+                return UserDto.createFromDao(user);
+            }
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 // unique field already exists
@@ -171,7 +393,8 @@ export class UserMgmtService {
                 learningProfile: true,
                 careerProfile: true,
                 learningProgress: true,
-                //   LearningHistory  LearningHistory?
+                learningHistory: true,
+                learningBehavior: true,
             },
         });
 
@@ -279,6 +502,9 @@ export class UserMgmtService {
                     mediaType: dto.mediaType,
                     language: dto.language,
                     userId: dto.userId,
+                    processingTimePerUnit: dto.processingTimePerUnit,
+                    preferredDidacticMethod: dto.preferredDidacticMethod,
+                    id: dto.userId,
                 },
             });
 
@@ -295,12 +521,22 @@ export class UserMgmtService {
     }
 
     async createCP(dto: CareerProfileCreationDto) {
+        console.log(dto.currentCompanyId);
         try {
             const cp = await this.db.careerProfile.create({
                 data: {
                     professionalInterests: dto.professionalInterests,
-                    userId: dto.userId,
-                    currentCompanyId: dto.currentCompanyId,
+
+                    user: {
+                        connect: {
+                            id: dto.userId,
+                        },
+                    },
+                    currentCompany: {
+                        connect: {
+                            id: dto.currentCompanyId,
+                        },
+                    },
                 },
             });
 

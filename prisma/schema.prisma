@@ -50,6 +50,11 @@ enum STATUS {
   DELETED
 }
 
+enum USERSTATUS {
+  ACTIVE
+  INACTIVE
+}
+
 model Skill {
   id          String  @id @default(cuid())
   name        String
@@ -187,7 +192,7 @@ model UserProfile {
   learningBehavior LearningBehaviorData?
   learningProgress LearningProgress[]
   learningHistory  LearningHistory?
-  status           String                @default("active") // (active, inactive)  setzen des Values bei User-Events (create / delete)
+  status           USERSTATUS                @default(ACTIVE) // (active, inactive)  setzen des Values bei User-Events (create / delete)
   qualification    Qualification[]
   job              Job?
 
@@ -219,6 +224,7 @@ model LearningProfile {
   user                  UserProfile      @relation(fields: [userId], references: [id])
   userId                String           @unique // relation scalar field 
   learningHistoryId     String?
+  preferredDidacticMethod String?
 }
 
 model LearningHistory {

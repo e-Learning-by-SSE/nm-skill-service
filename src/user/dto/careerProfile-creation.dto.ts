@@ -10,7 +10,7 @@ export class CareerProfileCreationDto {
   /**
    * Used to validate that the user is the owner of the target repository.
    */
-
+  @IsDefined()
   currentCompanyId: string;
   professionalInterests: string;
 

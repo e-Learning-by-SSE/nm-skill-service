@@ -63,10 +63,8 @@ export class EventMgmtService {
                         null,
                         null,
                         null,
-                        null,
-                        null,
-                        null,
-                        null,
+                        
+                        
                         null,
                         null,
                         null,
