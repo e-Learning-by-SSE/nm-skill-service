@@ -105,6 +105,24 @@ export class LearningPathMgmtService {
     }
 
     /**
+     * Creates an update query, but considers:
+     * - null: The field shall be deleted (reset to default)
+     * - undefined: The field shall not be changed
+     * - value: The field shall be updated to the given value
+     * @param ids The list of IDs that shall be updated (or undefined if no update shall be performed)
+     * @returns The Prisma update query
+     */
+    private updateQuery(ids?: string[] | null) {
+        if (ids === null) {
+            return { set: [] };
+        } else if (ids === undefined) {
+            return undefined;
+        } else {
+            return { set: ids.map((item) => ({ id: item })) };
+        }
+    }
+
+    /**
      * Partially updates a LearningPath. This function considers a tristate logic:
      * - null: The field shall be deleted (reset to default), this is supported only by optional fields
      * - undefined: The field shall not be changed
@@ -116,15 +134,6 @@ export class LearningPathMgmtService {
     async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto, checkPath = true) {
         await this.precheckOfUpdateLearningPath(learningPathId, dto);
 
-        const requirements =
-            dto.requirements === null ? [] : dto.requirements?.map((req) => ({ id: req }));
-        const pathTeachingGoals =
-            dto.pathGoals === null ? [] : dto.pathGoals?.map((goal) => ({ id: goal }));
-        const unitOrder =
-            dto.recommendedUnitSequence === null
-                ? []
-                : dto.recommendedUnitSequence?.map((unit) => ({ id: unit }));
-
         let result = await this.db.learningPath
             .update({
                 where: {
@@ -135,15 +144,9 @@ export class LearningPathMgmtService {
                     title: dto.title,
                     description: dto.description,
                     targetAudience: dto.targetAudience,
-                    requirements: {
-                        set: requirements,
-                    },
-                    pathTeachingGoals: {
-                        set: pathTeachingGoals,
-                    },
-                    recommendedUnitSequence: {
-                        set: unitOrder,
-                    },
+                    requirements: this.updateQuery(dto.requirements),
+                    pathTeachingGoals: this.updateQuery(dto.pathGoals),
+                    recommendedUnitSequence: this.updateQuery(dto.recommendedUnitSequence),
                 },
                 include: {
                     requirements: true,
@@ -270,6 +273,7 @@ export class LearningPathMgmtService {
             repositoryId: skill.repositoryId,
             nestedSkills: skill.nestedSkills.map((skill) => skill.id),
         }));
+
         const computedPath = await getPath({
             skills,
             goal,

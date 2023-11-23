@@ -494,6 +494,45 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     });
             });
         });
+
+        describe("Update Validation Checks", () => {
+            it("External requirements; Provides Goal; recommended order of 1 -> 200", async () => {
+                // Test object
+                const initialPath = await dbUtils.createLearningPath("test-orga");
+                const unit = await dbUtils.createLearningUnit("Unit1", [skill1], [skill2]);
+
+                // Input
+                const update: UpdatePathRequestDto = {
+                    title: "A new title",
+                    requirements: [skill1.id],
+                    pathGoals: [skill2.id],
+                    recommendedUnitSequence: [unit.id],
+                };
+
+                // Expected Result
+                const expectedResult: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: initialPath.owner,
+                    title: update.title!,
+                    lifecycle: initialPath.lifecycle,
+                    requirements: [skill1.id],
+                    pathGoals: [skill2.id],
+                    recommendedUnitSequence: [unit.id],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
+                };
+
+                // Test: Update of initialPath
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(200)
+                    .expect((res) => {
+                        const result = res.body as LearningPathDto;
+                        expect(result).toMatchObject(expectedResult);
+                    });
+            });
+        });
     });
 
     describe("GET:/pathId", () => {
