@@ -18,7 +18,7 @@ describe("BerufeService", () => {
     });
 
     it("should make a successful API request", async () => {
-      await berufeService.getAllBerufe("Test").then((results) => {
+      await berufeService.getAllBerufe().then((results) => {
             console.log(results);
         });
     });
