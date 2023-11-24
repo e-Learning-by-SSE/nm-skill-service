@@ -11,6 +11,7 @@ import { PathFinderModule } from './pathFinder/pathFinder.module';
 import { UserModule } from './user/user.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { EventsModule } from './events/events.module';
+import { ClientModule } from './clients/clientService/client.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { EventsModule } from './events/events.module';
     PathFinderModule,
     UserModule,
     FeedbackModule, 
-    EventsModule
+    EventsModule, 
+    ClientModule
   ],
 })
 export class AppModule {}
