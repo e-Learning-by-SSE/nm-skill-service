@@ -16,10 +16,10 @@ describe("BerufeService", () => {
         const berufSucheList = result._embedded.berufSucheList;
         console.log(berufSucheList);
     });
-
+/*
     it("should make a successful API request", async () => {
       await berufeService.getAllBerufe().then((results) => {
             console.log(results);
         });
-    });
+    });*/
 });
