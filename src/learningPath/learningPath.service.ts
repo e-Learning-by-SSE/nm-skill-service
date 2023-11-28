@@ -7,6 +7,8 @@ import {
 
 import {
     CreateEmptyPathRequestDto,
+    ErrorSynopsisDto,
+    ErrorType,
     LearningPathDto,
     LearningPathListDto,
     UpdatePathRequestDto,
@@ -18,6 +20,8 @@ import {
     computeSuggestedSkills,
     findCycles,
     getPath,
+    isLearningUnit,
+    isSkill,
 } from "../../nm-skill-lib/src";
 import { PrismaService } from "../prisma/prisma.service";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -133,6 +137,9 @@ export class LearningPathMgmtService {
      */
     async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto, checkPath = true) {
         await this.precheckOfUpdateLearningPath(learningPathId, dto);
+        console.log(this.updateQuery(dto.requirements));
+        console.log(this.updateQuery(dto.pathGoals));
+        console.log(this.updateQuery(dto.recommendedUnitSequence));
 
         let result = await this.db.learningPath
             .update({
@@ -158,6 +165,7 @@ export class LearningPathMgmtService {
                 if (error instanceof PrismaClientKnownRequestError) {
                     // Specified Learning not found
                     if (error.code === "P2025") {
+                        console.log(error);
                         throw new NotFoundException(
                             `LearningPath with id ${learningPathId} not found`,
                         );
@@ -227,11 +235,15 @@ export class LearningPathMgmtService {
 
         const cycles = findCycles(Array.from(usedSkills), units);
         if (cycles.length > 0) {
-            throw new ConflictException(
-                `The given learning path contains cycles: ${cycles
-                    .map((cycle) => cycle.map((skill) => skill.id).join(" -> "))
-                    .join(", ")}`,
-            );
+            const errors: ErrorSynopsisDto[] = cycles.map((cycle) => ({
+                type: ErrorType.CYCLE_DETECTED,
+                cause: `The given learning path contains cycles: ${cycle
+                    .map((item) => item.id)
+                    .join(" -> ")}`,
+                affectedSkills: cycle.filter(isSkill).map((item) => item.id),
+                affectedLearningUnits: cycle.filter(isLearningUnit).map((item) => item.id),
+            }));
+            throw new ConflictException(errors, `${cycles.length} cycles detected`);
         }
 
         // Check if there exist a path at all (full data set)
@@ -285,7 +297,15 @@ export class LearningPathMgmtService {
             const from = knowledge.length > 0 ? knowledge.map((skill) => skill.id).join(", ") : "∅";
             const to = goal.length > 0 ? goal.map((skill) => skill.id).join(", ") : "∅";
 
-            throw new ConflictException(`Cannot compute a path from ${from} to ${to}`);
+            const errors: ErrorSynopsisDto[] = [
+                {
+                    type: ErrorType.PATH_NOT_FOUND,
+                    cause: `Cannot compute a path from ${from} to ${to}`,
+                    affectedSkills: [...knowledge, ...goal].map((skill) => skill.id),
+                    affectedLearningUnits: [],
+                },
+            ];
+            throw new ConflictException(errors, `Cannot compute a path from ${from} to ${to}`);
         }
     }
 

@@ -8,6 +8,8 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { LearningPathModule } from "./learningPath.module";
 import {
     CreateEmptyPathRequestDto,
+    ErrorSynopsisDto,
+    ErrorType,
     LearningPathDto,
     LearningPathListDto,
     UpdatePathRequestDto,
@@ -451,47 +453,75 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     });
             });
 
-            it("Update recommendedUnitSequence with cycle -> 409 (Conflict)", async () => {
-                // Test object
-                const initialPath = await dbUtils.createLearningPath("test-orga");
+            describe("Sanity Checks", () => {
+                it("Cycle Detection", async () => {
+                    // Test object
+                    const initialPath = await dbUtils.createLearningPath("test-orga");
 
-                // Input
-                const update: UpdatePathRequestDto = {
-                    recommendedUnitSequence: [unit2.id, unit1.id],
-                };
+                    // Input
+                    const update: UpdatePathRequestDto = {
+                        recommendedUnitSequence: [unit2.id, unit1.id],
+                    };
 
-                // Test: Update of initialPath -> Should contain a circle
-                return request(app.getHttpServer())
-                    .patch(`/learning-paths/${initialPath.id}`)
-                    .send(update)
-                    .expect(409)
-                    .expect((res) => {
-                        const errorMsg = (res.body as ConflictException).message;
-                        expect(errorMsg).toContain("The given learning path contains cycles");
-                        expect(errorMsg).toContain(`${unit1.id} ->`);
-                        expect(errorMsg).toContain(`${unit2.id} ->`);
-                    });
-            });
+                    // Test: Update of initialPath -> Should contain a circle
+                    return request(app.getHttpServer())
+                        .patch(`/learning-paths/${initialPath.id}`)
+                        .send(update)
+                        .expect(409)
+                        .expect((res) => {
+                            const exc = res.body as ConflictException;
 
-            it("Update with no valid path -> 409 (Conflict)", async () => {
-                // Test object
-                const initialPath = await dbUtils.createLearningPath("test-orga");
-                const skill3 = await dbUtils.createSkill(skillMap, "Skill3");
+                            // Message of ConflictException
+                            const errorMsg = (exc as unknown as { error: string }).error;
+                            expect(errorMsg).toContain("1 cycles detected");
 
-                // Input
-                const update: UpdatePathRequestDto = {
-                    pathGoals: [skill3.id],
-                };
+                            // Synopsis of the conflict
+                            expect(exc.message.length).toBe(1);
+                            const errorDesc = exc.message[0] as unknown as ErrorSynopsisDto;
 
-                // Test: Update of initialPath -> Should contain a circle
-                return request(app.getHttpServer())
-                    .patch(`/learning-paths/${initialPath.id}`)
-                    .send(update)
-                    .expect(409)
-                    .expect((res) => {
-                        const errorMsg = (res.body as ConflictException).message;
-                        expect(errorMsg).toContain(`Cannot compute a path from ∅ to ${skill3.id}`);
-                    });
+                            expect(errorDesc.type).toEqual(ErrorType.CYCLE_DETECTED);
+                            expect(errorDesc.affectedSkills.sort()).toEqual(
+                                [skill1.id, skill2.id].sort(),
+                            );
+                            expect(errorDesc.affectedLearningUnits.sort()).toEqual(
+                                [unit1.id, unit2.id].sort(),
+                            );
+                        });
+                });
+
+                it("Path Existence Check", async () => {
+                    // Test object
+                    const initialPath = await dbUtils.createLearningPath("test-orga");
+                    const skill3 = await dbUtils.createSkill(skillMap, "Skill3");
+
+                    // Input
+                    const update: UpdatePathRequestDto = {
+                        pathGoals: [skill3.id],
+                    };
+
+                    // Test: Update of initialPath -> Should contain a circle
+                    return request(app.getHttpServer())
+                        .patch(`/learning-paths/${initialPath.id}`)
+                        .send(update)
+                        .expect(409)
+                        .expect((res) => {
+                            const exc = res.body as ConflictException;
+
+                            // Message of ConflictException
+                            const errorMsg = (exc as unknown as { error: string }).error;
+                            expect(errorMsg).toContain(
+                                `Cannot compute a path from ∅ to ${skill3.id}`,
+                            );
+
+                            // Synopsis of the conflict
+                            expect(exc.message.length).toBe(1);
+                            const errorDesc = exc.message[0] as unknown as ErrorSynopsisDto;
+
+                            expect(errorDesc.type).toEqual(ErrorType.PATH_NOT_FOUND);
+                            expect(errorDesc.affectedSkills).toEqual([skill3.id]);
+                            expect(errorDesc.affectedLearningUnits).toEqual([]);
+                        });
+                });
             });
         });
 
