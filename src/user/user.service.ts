@@ -71,7 +71,7 @@ export class UserMgmtService {
     
         const comppathbyid = await this.db.personalizedLearningPath.findUnique({
         where: {
-        learningHistoryId: historyId,
+        userProfileId: historyId,
         id: compPathId
         }
       });

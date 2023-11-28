@@ -1,6 +1,6 @@
 import { IsDefined, IsNotEmpty } from 'class-validator';
 
-import { LearningProfile, Skill, LearningHistory, LearningUnit, LearningPath, ProgressOfALearningPath, LIFECYCLE } from '@prisma/client';
+import { Skill, LearningHistory, LearningUnit, LearningPath, LearningPathProgress, LIFECYCLE } from '@prisma/client';
 import { OmitType } from '@nestjs/swagger';
 import { CareerProfileCreationDto } from './careerProfile-creation.dto';
 import { LearningProfileCreationDto } from './learningProfile-creation.dto';
@@ -11,8 +11,8 @@ export class PersonalizedLearningPathDto extends PersonalizedLearningPathCreatio
   id: string;
 
   constructor(id: string, createdAt: Date | undefined, updatedAt: Date | undefined, pathTeachingGoals: Skill[] | undefined, 
-    unitSequence: LearningUnit[] | undefined, userProfil: LearningHistory | undefined, learningHistoryId: string | undefined, userProfilId: string | undefined,
-    learningPath: LearningPath | undefined, learningPathId: string | undefined, progress: ProgressOfALearningPath | undefined, lifecycle: LIFECYCLE | undefined,) {
+    unitSequence: LearningUnit[] | undefined, userProfil: LearningHistory | undefined, userProfilId: string | undefined,
+    learningPath: LearningPath | undefined, learningPathId: string | undefined, progress: LearningPathProgress | undefined, lifecycle: LIFECYCLE | undefined,) {
     
         super();
     
@@ -22,7 +22,6 @@ export class PersonalizedLearningPathDto extends PersonalizedLearningPathCreatio
     this.pathTeachingGoals =  pathTeachingGoals ?? undefined;
     this.unitSequence =  unitSequence ?? undefined;
     this.userProfil = userProfil  ?? undefined;
-    this.learningHistoryId = learningHistoryId ?? undefined;
     this.userProfilId =  userProfilId ?? undefined;
     this.learningPath = learningPath ?? undefined;
     this.learningPathId = learningPathId ?? undefined;
@@ -38,8 +37,7 @@ export class PersonalizedLearningPathDto extends PersonalizedLearningPathCreatio
         plp.updatedAt, 
         plp.pathTeachingGoals, 
         plp.unitSequence,
-        plp.userProfil, 
-        plp.learningHistoryId, 
+        plp.userProfil,  
         plp.userProfilId,
         plp.learningPath,
         plp.learningPathId,

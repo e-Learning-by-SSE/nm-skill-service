@@ -1,4 +1,4 @@
-import { Skill, LearningUnit,LearningHistory, LearningPath, ProgressOfALearningPath, LIFECYCLE } from '@prisma/client';
+import { Skill, LearningUnit,LearningHistory, LearningPath, LearningPathProgress, LIFECYCLE } from '@prisma/client';
 import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 
 /**
@@ -24,9 +24,6 @@ export class PersonalizedLearningPathCreationDto {
   userProfil?: LearningHistory;
   
   @IsOptional()
-  learningHistoryId?: string;
-
-  @IsOptional()
   userProfilId? :string
 
   @IsOptional()
@@ -36,7 +33,7 @@ export class PersonalizedLearningPathCreationDto {
   learningPathId? :string
 
   @IsOptional()
-  progress? :ProgressOfALearningPath
+  progress? :LearningPathProgress
 
   @IsOptional()
   lifecycle? :LIFECYCLE
