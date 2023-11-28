@@ -266,7 +266,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
-                    cost: 4.4,
+                    cost: 4.6,
                 };
 
                 // Input

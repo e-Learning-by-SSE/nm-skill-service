@@ -1,14 +1,16 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { SkillDto } from "../skills/dto";
-import { PathDto, CheckGraphDto, EdgeDto, GraphDto, NodeDto, PathRequestDto } from "./dto";
-import {
-    Skill,
-    isAcyclic,
-    getPath,
-    getConnectedGraphForLearningUnit,
-} from "../../nm-skill-lib/src";
+import { PathDto, PathRequestDto, PathStorageRequestDto, PathStorageResponseDto } from "./dto";
+import { Skill, getPath } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
+import {
+    LearningHistory,
+    LearningUnit,
+    PersonalizedLearningPath,
+    Skill as PrismaSkill,
+    UserProfile,
+} from "@prisma/client";
 
 /**
  * Service for Graph requests
@@ -249,5 +251,114 @@ export class PathFinderService {
             repositoryId: skill.repositoryId,
             nestedSkills: skill.nestedSkills.map((skill) => skill.id),
         }));
+    }
+
+    private async createOrLoadLearningHistory(userId: string) {
+        // Ensure that a user profile exists
+        let user = await this.db.userProfile.findUnique({
+            where: {
+                id: userId,
+            },
+        });
+        if (!user) {
+            user = await this.db.userProfile.create({
+                data: {
+                    id: userId,
+                    status: "ACTIVE",
+                },
+            });
+        }
+
+        // Create learning history
+        let learningHistory = await this.db.learningHistory.findUnique({
+            where: {
+                userId: userId,
+            },
+        });
+        if (!learningHistory) {
+            learningHistory = await this.db.learningHistory.create({
+                data: {
+                    userId: userId,
+                },
+            });
+        }
+
+        return learningHistory;
+    }
+
+    public async storePersonalizedPath(userId: string, dto: PathStorageRequestDto) {
+        let goals: string[] = [];
+
+        // Load Learning History
+        const learningHistory = await this.createOrLoadLearningHistory(userId);
+
+        // Load the source of the path (either a pre-defined path or a goal)
+        if (dto.originPathId) {
+            const path = await this.db.learningPath.findUnique({
+                where: {
+                    id: dto.originPathId,
+                },
+                include: {
+                    pathTeachingGoals: true,
+                },
+            });
+            if (!path) {
+                throw new NotFoundException(`Specified path not found: ${dto.originPathId}`);
+            }
+            goals = path.pathTeachingGoals.map((goal) => goal.id);
+        } else if (dto.goal) {
+            goals = dto.goal;
+        } else {
+            throw new ConflictException(`Either originPathId or goal must be specified: ${dto}`);
+        }
+
+        // Create the personalized path
+        let newPath: PersonalizedLearningPath & {
+            unitSequence: LearningUnit[];
+            pathTeachingGoals: PrismaSkill[];
+            userProfile: LearningHistory & { user: UserProfile };
+        };
+        try {
+            newPath = await this.db.personalizedLearningPath.create({
+                data: {
+                    userProfileId: learningHistory.id,
+                    learningPathId: dto.originPathId,
+                    pathTeachingGoals: {
+                        connect: goals.map((goal) => ({ id: goal })),
+                    },
+                    unitSequence: {
+                        connect: dto.units.map((unit) => ({ id: unit })),
+                    },
+                    lifecycle: "CREATED",
+                },
+                include: {
+                    unitSequence: true,
+                    pathTeachingGoals: true,
+                    userProfile: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            });
+        } catch (error) {
+            throw error;
+        }
+
+        if (!newPath) {
+            throw new NotFoundException(`Could not store path: ${dto}`);
+        }
+
+        // Create ordered path to track progress
+        for (let i = 0; i < dto.units.length; i++) {
+            this.db.learningPathProgress.create({
+                data: {
+                    personalPathId: newPath.id,
+                    unitId: dto.units[i],
+                },
+            });
+        }
+
+        return PathStorageResponseDto.createFromDao(newPath);
     }
 }

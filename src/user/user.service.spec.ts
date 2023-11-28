@@ -16,6 +16,8 @@ import { NotFoundException } from "@nestjs/common";
 import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
+import { LearningHistoryCreationDto, LearningHistoryDto, UserCreationDto } from "./dto";
+import { createProfiles, createProfilesWithoutSkills } from "../../prisma/user_profiles_example_seed";
 describe("User Service", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
@@ -28,6 +30,54 @@ describe("User Service", () => {
         // Wipe DB before test
         await dbUtils.wipeDb();
     });
+
+    describe('createLearningHistory', () => {
+        it('should create learning history', async () => {
+          // Arrange: Prepare test data
+          const userId = '1001'; 
+          const historyId = '1001'; 
+          const userDto: UserCreationDto = {
+            id: userId,
+          };
+          
+          const dto: LearningHistoryCreationDto = {
+            userId,
+          };
+          const createdUser = await userService.createUser(userDto);
+          await db.learningHistory.delete(
+            {where:{id:userId}}
+          )
+          // Act: Call the createLearningHistory method
+          const createdLearningHistory = await userService.createLearningHistory(historyId, dto);
+    
+          // Assert: Check the result and database state
+          expect(createdLearningHistory).toBeInstanceOf(LearningHistoryDto);
+          expect(createdLearningHistory.userId).toEqual(userId);
+         
+          const learningHistoryFromDB = await db.learningHistory.findUnique({
+            where: { id: historyId },
+          });
+    
+          expect(learningHistoryFromDB).toBeDefined();
+         
+        });
+    
+        it('should handle errors when creating learning history', async () => {
+          // Arrange: Prepare invalid test data
+          const invalidUserId = 'non-existent-user'; // An invalid user ID
+          const invalidHistoryId = 'non-existent-history'; // An invalid history ID
+          const invalidDto: LearningHistoryCreationDto = {
+            userId: invalidUserId,
+            // ... other invalid fields
+          };
+    
+          // Act and Assert: Call the createLearningHistory method and expect it to throw an error
+          await expect(userService.createLearningHistory(invalidHistoryId, invalidDto)).rejects.toThrowError(
+          );
+        });
+      });
+    
+
     describe("editStatusForAConsumedUnit", () => {
         let userProf: UserProfile;
         let consumedUnit: ConsumedUnitData;
@@ -272,13 +322,14 @@ describe("User Service", () => {
     });
     describe("checkStatusForUnitsInPathOfLearningHistory", () => {
         beforeEach(async () => {
-            await dbUtils.wipeDb();})
+            await dbUtils.wipeDb();
+        });
         it("should check status for units in the path", async () => {
             // Arrange: Create test data
             let factory: LearningUnitFactory;
-          
+
             factory = new LearningUnitFactory(db);
-           const userProf = await db.userProfile.create({
+            const userProf = await db.userProfile.create({
                 data: {
                     name: "TestUser",
                     status: "ACTIVE",
@@ -292,37 +343,40 @@ describe("User Service", () => {
                 },
             });
             const creationDto = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title123",id:"123"
+                title: "Awesome Title123",
+                id: "123",
             });
             const creationDto1 = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title1234",id:"1234"
+                title: "Awesome Title1234",
+                id: "1234",
             });
             const lu1 = await factory.createLearningUnit(creationDto);
             const lu = await factory.createLearningUnit(creationDto1);
-            const learningPath: PersonalizedLearningPath = await db.personalizedLearningPath.create({
-                data: {
-                  userProfilId: userHistory.id,
-                  unitSequence: {
-                    connect: [{ id: lu.id }, { id: lu1.id }], // Connect learning units
-                  }
-                },
-              });
-              
-            const learningPathFromDB =
-                await db.personalizedLearningPath.findUnique({
-                    where: {
-                        id: learningPath.id,
+            const learningPath: PersonalizedLearningPath = await db.personalizedLearningPath.create(
+                {
+                    data: {
+                        userProfileId: userHistory.id,
+                        unitSequence: {
+                            connect: [{ id: lu.id }, { id: lu1.id }], // Connect learning units
+                        },
                     },
-                    include: { unitSequence: true },
-                });
+                },
+            );
+
+            const learningPathFromDB = await db.personalizedLearningPath.findUnique({
+                where: {
+                    id: learningPath.id,
+                },
+                include: { unitSequence: true },
+            });
             // Act: Call the checkStatusForUnitsInPathOfLearningHistory method
             const result = await userService.checkStatusForUnitsInPathOfLearningHistory(
                 userProf.id,
             );
-                if(learningPathFromDB){
-            // Assert: Check the result and database state
-            expect(result.unitStatus).toHaveLength(learningPathFromDB.unitSequence.length);
-        }
+            if (learningPathFromDB) {
+                // Assert: Check the result and database state
+                expect(result.unitStatus).toHaveLength(learningPathFromDB.unitSequence.length);
+            }
             result.unitStatus.forEach((unitStatus) => {
                 expect(unitStatus).toHaveProperty("unitId");
                 expect(unitStatus).toHaveProperty("status");

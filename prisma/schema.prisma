@@ -85,6 +85,16 @@ model Skill {
   @@map("skills")
 }
 
+// Stores a pre-defined learning path (course) of a teacher,
+// with requirements (starting point / what needs a learner to know before starting the path)
+// and teaching goals (what is the goal of the path to learn)
+//
+// Requested by:
+// - Part of the core concept of the project proposal to provide comptency-based & individualizeable learning paths
+// - Requested in class diagram (Seafile\ConceptsAndDesigns\Diagram_08_2023)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/25
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/26
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/27
 model LearningPath {
   id                      String                 @id @default(cuid())
   owner                   String
@@ -162,7 +172,7 @@ model LearningUnit {
   lifecycle             LIFECYCLE              @default(DRAFT)
 
   feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
-  progress  ProgressOfALearningPath[]
+  progress  LearningPathProgress[]
 
   @@unique([id])
 }
@@ -234,8 +244,7 @@ model LearningHistory {
   user                  UserProfile            @relation(fields: [userId], references: [id])
   userId                String                 @unique // relation scalar field 
   LearningProfile       LearningProfile[]
-  //LearningUnit           LearningUnit[]
-  proposedLearningPaths PersonalizedLearningPath[]
+  personalPaths         PersonalizedLearningPath[]
 }
 
 model CareerProfile {
@@ -265,28 +274,34 @@ model ConsumedUnitData {
   startedBy           LearningHistory[]    @relation("startedBy")
 }
 
-// Stores an individual learning path for a user
+// Stores an individual learning path for a user,
+// this may origin by selecting (and indivdualizing) a pre-defined path (course) of a teacher
+// or by creating an individual path to learn specific skills (e.g., after searching for them)
+//
+// Requested by MLS:
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/43
 model PersonalizedLearningPath {
   id                   String                   @id @default(cuid())
   createdAt            DateTime                 @default(now())
   updatedAt            DateTime                 @updatedAt
   pathTeachingGoals    Skill[]                  @relation("proposedpathGoals")
   unitSequence         LearningUnit[]           @relation("proposedUnitsOfLearningPath")
-  userProfil           LearningHistory          @relation(fields: [userProfilId], references: [id])
-  userProfilId         String
+  userProfile          LearningHistory          @relation(fields: [userProfileId], references: [id])
+  userProfileId        String
   learningPath         LearningPath?            @relation(fields: [learningPathId], references: [id])
-  learningPathId       String?                   @unique
-  progress             ProgressOfALearningPath?
+  learningPathId       String?                  @unique
+  progress             LearningPathProgress?
   lifecycle            LIFECYCLE                @default(CREATED)
 	@@map("personalPaths")
 }
 
-model ProgressOfALearningPath {
-  id                     String               @id @default(cuid())
-  proposedLearningPath   PersonalizedLearningPath @relation(fields: [proposedLearningPathId], references: [id])
-  proposedLearningPathId String               @unique
-  position               LearningUnit         @relation(fields: [positionId], references: [id])
-  positionId             String               @unique
+model LearningPathProgress {
+  id                     String                    @id @default(cuid())
+  personalPath           PersonalizedLearningPath  @relation(fields: [personalPathId], references: [id])
+  personalPathId         String                    @unique
+  unit                   LearningUnit              @relation(fields: [unitId], references: [id])
+  unitId                 String                    @unique
+  @@map("pathProgress")
 }
 
 model LearningBehaviorData {

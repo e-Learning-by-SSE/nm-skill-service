@@ -10,7 +10,7 @@ import {
     SkillRepositoryDto,
     SkillRepositoryListDto,
 } from "./dto";
-import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { ACCESS_RIGHTS, Skill, SkillMap } from "@prisma/client";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
 
@@ -462,7 +462,8 @@ describe("Skill Service", () => {
     describe("createRepository", () => {
         it("Create First Repository -> Success", async () => {
             // Precondition: No Skill-Maps defined
-            expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 0 });
+            const nSkillMapsDefined = await db.skillMap.aggregate({ _count: true });
+            expect(nSkillMapsDefined).toEqual({ _count: 0 });
 
             // Test: Create first repository
             const creationDto: SkillRepositoryCreationDto = {

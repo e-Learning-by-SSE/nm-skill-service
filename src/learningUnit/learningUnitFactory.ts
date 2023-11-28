@@ -5,7 +5,7 @@ import {
     SearchLearningUnitDto,
     SearchLearningUnitListDto,
 } from "./dto";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { LIFECYCLE, LearningUnit as PrismaLearningUnit, Prisma, Skill } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 import { LearningUnit } from "../../nm-skill-lib/src";
@@ -285,49 +285,74 @@ export class LearningUnitFactory {
         return results;
     }
 
-    async getLearningUnitByFilter(filter: LearningUnitFilterDto): Promise<PrismaLearningUnit[]> {
+
+    async getLearningUnitByFilter(filter: LearningUnitFilterDto): Promise<SearchLearningUnitListDto> {
         
+
 
         const query: Prisma.LearningUnitFindManyArgs = {};
 
         if (filter.requiredSkills && filter.requiredSkills.length > 0) {
-          if (!query.where) {
-            query.where = {};
-          }
-          query.where.requirements = {
-            some: {
-              id: {
-                in: filter.requiredSkills,
-              },
-            },
-          };
+            if (!Array.isArray(filter.requiredSkills)) {
+                // If filter.owners is not an array, convert it to an array
+                filter.owners = [filter.requiredSkills as string];
+            }
+            if (!query.where) {
+                query.where = {};
+            }
+            query.where.requirements = {
+                some: {
+                    id: {
+                        in: filter.requiredSkills,
+                    },
+                },
+            };
         }
-      
+
         if (filter.teachingGoals && filter.teachingGoals.length > 0) {
-          if (!query.where) {
-            query.where = {};
-          }
-          query.where.teachingGoals = {
-            some: {
-              id: {
-                in: filter.teachingGoals,
-              },
-            },
-          };
+            if (!Array.isArray(filter.teachingGoals)) {
+                // If filter.owners is not an array, convert it to an array
+                filter.owners = [filter.teachingGoals as string];
+            }
+            if (!query.where) {
+                query.where = {};
+            }
+            query.where.teachingGoals = {
+                some: {
+                    id: {
+                        in: filter.teachingGoals,
+                    },
+                },
+            };
         }
-      
+
         if (filter.owners && filter.owners.length > 0) {
-          if (!query.where) {
-            query.where = {};
-          }
-          query.where.orga_id = { 
-            in: filter.owners,
-          };
+            if (!Array.isArray(filter.owners)) {
+                // If filter.owners is not an array, convert it to an array
+                filter.owners = [filter.owners as string];
+            }
+            if (!query.where) {
+                query.where = {};
+            }
+            query.where.orga_id = {
+                in: filter.owners,
+            };
         }
-      
+        query.include = {
+            teachingGoals: true,
+            requirements: true,
+        };
         const result = await this.db.learningUnit.findMany(query);
-        return result;
+
+        const res :SearchLearningUnitListDto = new SearchLearningUnitListDto;
+        result.forEach(element => {
+            res.learningUnits.push (this.createLearningUnitDto(element))
+        });
+
+
+        return res;
       
       }
     
+
 }

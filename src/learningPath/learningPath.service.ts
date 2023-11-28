@@ -7,6 +7,8 @@ import {
 
 import {
     CreateEmptyPathRequestDto,
+    ErrorSynopsisDto,
+    ErrorType,
     LearningPathDto,
     LearningPathListDto,
     UpdatePathRequestDto,
@@ -18,9 +20,11 @@ import {
     computeSuggestedSkills,
     findCycles,
     getPath,
+    isLearningUnit,
+    isSkill,
 } from "../../nm-skill-lib/src";
 import { PrismaService } from "../prisma/prisma.service";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 
@@ -105,6 +109,24 @@ export class LearningPathMgmtService {
     }
 
     /**
+     * Creates an update query, but considers:
+     * - null: The field shall be deleted (reset to default)
+     * - undefined: The field shall not be changed
+     * - value: The field shall be updated to the given value
+     * @param ids The list of IDs that shall be updated (or undefined if no update shall be performed)
+     * @returns The Prisma update query
+     */
+    private updateQuery(ids?: string[] | null) {
+        if (ids === null) {
+            return { set: [] };
+        } else if (ids === undefined) {
+            return undefined;
+        } else {
+            return { set: ids.map((item) => ({ id: item })) };
+        }
+    }
+
+    /**
      * Partially updates a LearningPath. This function considers a tristate logic:
      * - null: The field shall be deleted (reset to default), this is supported only by optional fields
      * - undefined: The field shall not be changed
@@ -115,15 +137,9 @@ export class LearningPathMgmtService {
      */
     async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto, checkPath = true) {
         await this.precheckOfUpdateLearningPath(learningPathId, dto);
-
-        const requirements =
-            dto.requirements === null ? [] : dto.requirements?.map((req) => ({ id: req }));
-        const pathTeachingGoals =
-            dto.pathGoals === null ? [] : dto.pathGoals?.map((goal) => ({ id: goal }));
-        const unitOrder =
-            dto.recommendedUnitSequence === null
-                ? []
-                : dto.recommendedUnitSequence?.map((unit) => ({ id: unit }));
+        console.log(this.updateQuery(dto.requirements));
+        console.log(this.updateQuery(dto.pathGoals));
+        console.log(this.updateQuery(dto.recommendedUnitSequence));
 
         let result = await this.db.learningPath
             .update({
@@ -135,15 +151,9 @@ export class LearningPathMgmtService {
                     title: dto.title,
                     description: dto.description,
                     targetAudience: dto.targetAudience,
-                    requirements: {
-                        set: requirements,
-                    },
-                    pathTeachingGoals: {
-                        set: pathTeachingGoals,
-                    },
-                    recommendedUnitSequence: {
-                        set: unitOrder,
-                    },
+                    requirements: this.updateQuery(dto.requirements),
+                    pathTeachingGoals: this.updateQuery(dto.pathGoals),
+                    recommendedUnitSequence: this.updateQuery(dto.recommendedUnitSequence),
                 },
                 include: {
                     requirements: true,
@@ -155,6 +165,7 @@ export class LearningPathMgmtService {
                 if (error instanceof PrismaClientKnownRequestError) {
                     // Specified Learning not found
                     if (error.code === "P2025") {
+                        console.log(error);
                         throw new NotFoundException(
                             `LearningPath with id ${learningPathId} not found`,
                         );
@@ -224,11 +235,15 @@ export class LearningPathMgmtService {
 
         const cycles = findCycles(Array.from(usedSkills), units);
         if (cycles.length > 0) {
-            throw new ConflictException(
-                `The given learning path contains cycles: ${cycles
-                    .map((cycle) => cycle.map((skill) => skill.id).join(" -> "))
-                    .join(", ")}`,
-            );
+            const errors: ErrorSynopsisDto[] = cycles.map((cycle) => ({
+                type: ErrorType.CYCLE_DETECTED,
+                cause: `The given learning path contains cycles: ${cycle
+                    .map((item) => item.id)
+                    .join(" -> ")}`,
+                affectedSkills: cycle.filter(isSkill).map((item) => item.id),
+                affectedLearningUnits: cycle.filter(isLearningUnit).map((item) => item.id),
+            }));
+            throw new ConflictException(errors, `${cycles.length} cycles detected`);
         }
 
         // Check if there exist a path at all (full data set)
@@ -270,6 +285,7 @@ export class LearningPathMgmtService {
             repositoryId: skill.repositoryId,
             nestedSkills: skill.nestedSkills.map((skill) => skill.id),
         }));
+
         const computedPath = await getPath({
             skills,
             goal,
@@ -281,7 +297,15 @@ export class LearningPathMgmtService {
             const from = knowledge.length > 0 ? knowledge.map((skill) => skill.id).join(", ") : "∅";
             const to = goal.length > 0 ? goal.map((skill) => skill.id).join(", ") : "∅";
 
-            throw new ConflictException(`Cannot compute a path from ${from} to ${to}`);
+            const errors: ErrorSynopsisDto[] = [
+                {
+                    type: ErrorType.PATH_NOT_FOUND,
+                    cause: `Cannot compute a path from ${from} to ${to}`,
+                    affectedSkills: [...knowledge, ...goal].map((skill) => skill.id),
+                    affectedLearningUnits: [],
+                },
+            ];
+            throw new ConflictException(errors, `Cannot compute a path from ${from} to ${to}`);
         }
     }
 
