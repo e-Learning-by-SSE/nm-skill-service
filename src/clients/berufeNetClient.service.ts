@@ -105,34 +105,7 @@ export class BerufeService {
         const pageMatch = lastHref.match(/page=(\d+)/);
         return pageMatch ? parseInt(pageMatch[1], 10) : 0;
     }
-    async getAllBerufe2(): Promise<any[]> {
-        try {
-            const firstPageResult = await this.getALLBerufeByPage("0");
-            const lastPage = this.extractLastPageNumber(firstPageResult);
-
-            // Create an array to hold promises for each page fetch
-            const fetchPromises: Promise<any>[] = [];
-
-            for (let currentPage = 0; currentPage <= lastPage; currentPage++) {
-                fetchPromises.push(this.getALLBerufeByPage(currentPage.toString()));
-            }
-
-            // Use Promise.all to wait for all promises to resolve
-            const results = await Promise.all(fetchPromises);
-
-            // Concatenate results
-            const allResults = results.reduce(
-                (accumulator, pageResult) =>
-                    accumulator.concat(pageResult._embedded.berufSucheList),
-                [],
-            );
-
-            return allResults;
-        } catch (error) {
-            console.error(error.message);
-            return [];
-        }
-    }
+   
     async getAllBerufe(): Promise<any[]> {
         try {
             let currentPage = 0;
@@ -140,7 +113,9 @@ export class BerufeService {
 
             const firstPageResult = await this.getALLBerufeByPage("0");
             const lastPage = this.extractLastPageNumber(firstPageResult);
-            console.log(lastPage); // Output: "178"
+       const del = await this.db.beruf.deleteMany();
+       await this.db.bkgr.deleteMany();
+       await this.db.typ.deleteMany();
             while (currentPage <= lastPage) {
                 console.log(`Fetching page ${currentPage}`);
 
@@ -159,42 +134,7 @@ export class BerufeService {
         }
     }
     private async storeBerufeInDatabase(berufeList: any[]): Promise<void> {
-        // Loop through each beruf in berufeList and store it in the database
-        /*     const test = {
-            "id": 134612,
-            "kurzBezeichnungNeutral": "3-D-Druck-Spezialist/in",
-            "bkgr": {
-              "id": 4910,
-              "typ": {
-                "id": "t"
-              }
-            }
-          };
-          
-          try {
-            console.log(test);
-            await this.db.beruf.create({
-              data: {
-                id: test.id.toString(),
-                kurzBezeichnungNeutral: test.kurzBezeichnungNeutral,
-                bkgr: {
-                  create: {
-                    id: test.bkgr.id.toString(),
-                    typ: {
-                      create: {
-                        id: test.bkgr.typ.id.toString()
-                      }
-                    }
-                  }
-                }
-              }
-            });
-          
-          } catch (error) {
-            console.error(`Error storing my beruf ${test.id}: ${error.message}`);
-            // Handle the error as needed (e.g., logging, retrying, skipping, etc.)
-          }
-          */
+     
         for (const berufData of berufeList) {
             // Map the API data to your Prisma data model
             const mappedBerufData = {
