@@ -28,4 +28,8 @@ export class BerufeNetController {
     getAllBerufe() {
         return this.berufeNetService.getAllBerufe();
     }
+    @Get('bypage')
+    getAllBerufeStartWith(@Query("page") page: string) {
+        return this.berufeNetService.getALLBerufeByPage(page);
+    }
 }
