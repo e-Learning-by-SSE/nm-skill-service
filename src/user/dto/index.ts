@@ -15,3 +15,5 @@ export * from "./job-creation.dto";
 export * from "./job.dto";
 export * from "./learningHistory-creation.dto";
 export * from "./learningHistory.dto";
+export * from "./personalizedLearningPath.dto";
+export * from "./personalizedLearningPath-creation.dto";
