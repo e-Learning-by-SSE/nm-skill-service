@@ -7,20 +7,20 @@ import { BerufeService } from "./berufeNetClient.service";
 @Controller("berufeNet")
 export class BerufeNetController {
     constructor(private berufeNetService: BerufeService) {
-        const apiKey = "d672172b-f3ef-4746-b659-227c39d95acf";
-        this.berufeNetService = new BerufeService(apiKey)
+       
+        
     }
 
     /**
      * Getting Job Description by search string .
-     * @param beruf The search string 
+     * @param beruf The search string
      * @returns job descritiopns.
      */
-    @Get('getBerufeBySearchString')
-    getBerufeBySearchString(@Query("Beruf") beruf: string) {
-        return this.berufeNetService.getAllBerufeBySearchString(beruf);
+    @Get("getBerufeBySearchString")
+    getBerufeBySearchString(@Query("searchString") searchString: string) {
+        return this.berufeNetService.getAllBerufeBySearchString(searchString);
     }
-    @Get('getBerufeByID')
+    @Get("getBerufeByID")
     getBerufeByI(@Query("BerufID") berufId: string) {
         return this.berufeNetService.getBerufeByID(berufId);
     }
@@ -28,7 +28,7 @@ export class BerufeNetController {
     getAllBerufe() {
         return this.berufeNetService.getAllBerufe();
     }
-    @Get('bypage')
+    @Get("bypage")
     getAllBerufeStartWith(@Query("page") page: string) {
         return this.berufeNetService.getALLBerufeByPage(page);
     }

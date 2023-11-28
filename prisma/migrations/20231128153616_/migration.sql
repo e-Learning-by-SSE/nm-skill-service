@@ -8,6 +8,9 @@ CREATE TYPE "LIFECYCLE" AS ENUM ('DRAFT', 'POOL', 'ARCHIVED', 'IN_PROGRESS', 'FI
 CREATE TYPE "STATUS" AS ENUM ('OPEN', 'STARTED', 'IN_PROGRESS', 'FINISHED', 'DELETED');
 
 -- CreateEnum
+CREATE TYPE "USERSTATUS" AS ENUM ('ACTIVE', 'INACTIVE');
+
+-- CreateEnum
 CREATE TYPE "NuggetCategory" AS ENUM ('ANALYZE', 'INTRODUCTION', 'CONTENT', 'EXAMPLE', 'EXERCISE', 'TEST');
 
 -- CreateTable
@@ -109,7 +112,7 @@ CREATE TABLE "user" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL DEFAULT '',
     "companyId" TEXT,
-    "status" TEXT NOT NULL DEFAULT 'active',
+    "status" "USERSTATUS" NOT NULL DEFAULT 'ACTIVE',
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
@@ -135,6 +138,7 @@ CREATE TABLE "LearningProfile" (
     "processingTimePerUnit" TEXT NOT NULL DEFAULT '',
     "userId" TEXT NOT NULL,
     "learningHistoryId" TEXT,
+    "preferredDidacticMethod" TEXT,
 
     CONSTRAINT "LearningProfile_pkey" PRIMARY KEY ("id")
 );
@@ -175,7 +179,7 @@ CREATE TABLE "personalPaths" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userProfilId" TEXT NOT NULL,
+    "userProfileId" TEXT NOT NULL,
     "learningPathId" TEXT,
     "lifecycle" "LIFECYCLE" NOT NULL DEFAULT 'CREATED',
 
@@ -183,12 +187,12 @@ CREATE TABLE "personalPaths" (
 );
 
 -- CreateTable
-CREATE TABLE "ProgressOfALearningPath" (
+CREATE TABLE "pathProgress" (
     "id" TEXT NOT NULL,
-    "proposedLearningPathId" TEXT NOT NULL,
-    "positionId" TEXT NOT NULL,
+    "personalPathId" TEXT NOT NULL,
+    "unitId" TEXT NOT NULL,
 
-    CONSTRAINT "ProgressOfALearningPath_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "pathProgress_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -244,6 +248,28 @@ CREATE TABLE "Feedback" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Feedback_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Bkgr" (
+    "id" TEXT NOT NULL,
+    "typId" TEXT NOT NULL,
+
+    CONSTRAINT "Bkgr_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Typ" (
+    "id" TEXT NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Beruf" (
+    "id" TEXT NOT NULL,
+    "kurzBezeichnungNeutral" TEXT NOT NULL,
+    "bkgrId" TEXT NOT NULL,
+
+    CONSTRAINT "Beruf_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -364,16 +390,19 @@ CREATE UNIQUE INDEX "CareerProfile_userId_key" ON "CareerProfile"("userId");
 CREATE UNIQUE INDEX "personalPaths_learningPathId_key" ON "personalPaths"("learningPathId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProgressOfALearningPath_proposedLearningPathId_key" ON "ProgressOfALearningPath"("proposedLearningPathId");
+CREATE UNIQUE INDEX "pathProgress_personalPathId_key" ON "pathProgress"("personalPathId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProgressOfALearningPath_positionId_key" ON "ProgressOfALearningPath"("positionId");
+CREATE UNIQUE INDEX "pathProgress_unitId_key" ON "pathProgress"("unitId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "LearningBehaviorData_userId_key" ON "LearningBehaviorData"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Job_userId_key" ON "Job"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Typ_id_key" ON "Typ"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_parentSkills_AB_unique" ON "_parentSkills"("A", "B");
@@ -505,16 +534,16 @@ ALTER TABLE "ConsumedUnitData" ADD CONSTRAINT "ConsumedUnitData_consumedLUId_fke
 ALTER TABLE "ConsumedUnitData" ADD CONSTRAINT "ConsumedUnitData_lbDataId_fkey" FOREIGN KEY ("lbDataId") REFERENCES "LearningBehaviorData"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "personalPaths" ADD CONSTRAINT "personalPaths_userProfilId_fkey" FOREIGN KEY ("userProfilId") REFERENCES "LearningHistory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "personalPaths" ADD CONSTRAINT "personalPaths_userProfileId_fkey" FOREIGN KEY ("userProfileId") REFERENCES "LearningHistory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "personalPaths" ADD CONSTRAINT "personalPaths_learningPathId_fkey" FOREIGN KEY ("learningPathId") REFERENCES "paths"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProgressOfALearningPath" ADD CONSTRAINT "ProgressOfALearningPath_proposedLearningPathId_fkey" FOREIGN KEY ("proposedLearningPathId") REFERENCES "personalPaths"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "pathProgress" ADD CONSTRAINT "pathProgress_personalPathId_fkey" FOREIGN KEY ("personalPathId") REFERENCES "personalPaths"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProgressOfALearningPath" ADD CONSTRAINT "ProgressOfALearningPath_positionId_fkey" FOREIGN KEY ("positionId") REFERENCES "LearningUnit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "pathProgress" ADD CONSTRAINT "pathProgress_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "LearningUnit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "LearningBehaviorData" ADD CONSTRAINT "LearningBehaviorData_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -530,6 +559,12 @@ ALTER TABLE "Job" ADD CONSTRAINT "Job_userId_fkey" FOREIGN KEY ("userId") REFERE
 
 -- AddForeignKey
 ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_learningUnitId_fkey" FOREIGN KEY ("learningUnitId") REFERENCES "LearningUnit"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "Bkgr" ADD CONSTRAINT "Bkgr_typId_fkey" FOREIGN KEY ("typId") REFERENCES "Typ"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Beruf" ADD CONSTRAINT "Beruf_bkgrId_fkey" FOREIGN KEY ("bkgrId") REFERENCES "Bkgr"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_parentSkills" ADD CONSTRAINT "_parentSkills_A_fkey" FOREIGN KEY ("A") REFERENCES "skills"("id") ON DELETE CASCADE ON UPDATE CASCADE;

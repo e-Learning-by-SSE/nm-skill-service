@@ -11,7 +11,7 @@ import { PathFinderModule } from './pathFinder/pathFinder.module';
 import { UserModule } from './user/user.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { EventsModule } from './events/events.module';
-import { ClientModule } from './clients/clientService/client.module';
+import { ClientModule } from './clients/client.module';
 
 @Module({
   imports: [
