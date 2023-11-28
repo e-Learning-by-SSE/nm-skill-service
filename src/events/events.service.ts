@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
 
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
-import { MLSClient } from "../clients/clientService/mlsClient.service";
+import { MLSClient } from "../clients/mlsClient.service";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto";
 import { LearningUnitMgmtService } from "../learningUnit/learningUnit.service";
 import { UserCreationDto } from "../user/dto";
