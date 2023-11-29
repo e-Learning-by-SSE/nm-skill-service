@@ -1,10 +1,10 @@
 import axios from "axios";
-import { BerufeService } from "./berufeNetClient.service"; // Adjust the path accordingly
+import { JobsService } from "./jobNetClient.service"; // Adjust the path accordingly
 import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 
-describe("BerufeService", () => {
+describe("JobsService", () => {
     const apiKey = "d672172b-f3ef-4746-b659-227c39d95acf";
     
     const config = new ConfigService();
@@ -12,22 +12,22 @@ describe("BerufeService", () => {
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
-    const berufeService = new BerufeService(db);
+    const jobService = new JobsService(db);
 
     beforeEach(() => {
         
     });
 
    it("should make a successful API request", async () => {
-        const result = await berufeService.getBerufeByPageAndSearchString("1", "Test");
+        const result = await jobService.getJobsByPageAndSearchString("1", "Test");
       
         // Access the parsed data
-        const berufSucheList = result._embedded.berufSucheList;
-        console.log(berufSucheList);
+        const jobSearchList = result._embedded.berufSucheList;
+        console.log(jobSearchList);
     });
 /*
     it("should make a successful API request", async () => {
-      await berufeService.getAllBerufe().then((results) => {
+      await jobService.getAllJobs().then((results) => {
             console.log(results);
         });
     });*/
