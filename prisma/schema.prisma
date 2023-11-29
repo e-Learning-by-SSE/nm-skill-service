@@ -243,7 +243,7 @@ model LearningHistory {
   learnedSkills         LearningProgress[]
   user                  UserProfile            @relation(fields: [userId], references: [id])
   userId                String                 @unique // relation scalar field 
-  LearningProfile       LearningProfile[]
+  learningProfile       LearningProfile[]
   personalPaths         PersonalizedLearningPath[]
 }
 

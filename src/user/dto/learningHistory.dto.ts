@@ -1,31 +1,48 @@
-import { IsDefined, IsNotEmpty } from 'class-validator';
+import { IsDefined, IsNotEmpty } from "class-validator";
+import {
+    ConsumedUnitData,
+    LearningProgress,
+    UserProfile,
+    LearningProfile,
+    LearningHistory,
+    // PersonalizedLearningPath,
+} from "@prisma/client";
 
-import { UserDto } from './user.dto';
-import { LearningHistory } from '@prisma/client';
-import { LearningHistoryCreationDto } from './learningHistory-creation.dto';
+import { LearningHistoryCreationDto } from "./learningHistory-creation.dto";
 
 export class LearningHistoryDto extends LearningHistoryCreationDto {
-  @IsNotEmpty()
-  id!: string;
-  @IsDefined()
-  userId :string;
+    @IsNotEmpty()
+    id: string;
 
-  // workedAt   CareerProfile[] @relation("workedAt")
-  // workingNow CareerProfile[] @relation("workingNow")
+    constructor(
+        id: string,
+        startedLearningUnits: ConsumedUnitData[] | undefined,
+        learnedSkills: LearningProgress[] | undefined,
+        user: UserProfile | undefined,
+        userId: string,
+        learningProfile: LearningProfile[] | undefined,
+        // personalPaths: PersonalizedLearningPath[] | undefined,
+    ) {
+        super();
 
-  constructor(
-    id: string,
-    userId: string,
-    
-  ) {
-    super(userId);
-    this.id = id;
-  }
+        this.id = id;
+        this.startedLearningUnits = startedLearningUnits ?? undefined;
+        this.learnedSkills = learnedSkills ?? undefined;
+        this.user = user ?? undefined;
+        this.userId = userId;
+        this.learningProfile = learningProfile ?? undefined;
+        // this.personalPaths = PersonalizedLearningPath ?? undefined;
+    }
 
-  static createFromDao(lh: LearningHistory): LearningHistoryCreationDto {
-    return new LearningHistoryDto(
-      lh.id,
-      lh.userId
-    );
-  }
+    static createFromDao(lh: LearningHistory): LearningHistoryCreationDto {
+        return new LearningHistoryDto(
+            lh.id,
+            lh.startedLearningUnits,
+            lh.learnedSkills,
+            lh.user,
+            lh.userId,
+            lh.learningProfile,
+            //  lh.personalPaths,
+        );
+    }
 }

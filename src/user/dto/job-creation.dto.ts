@@ -1,23 +1,35 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
-
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsOptional, IsUrl, IsDefined } from "class-validator";
+import { Company, CareerProfile, UserProfile } from "@prisma/client";
 /**
  * Creates a new Job
  */
 export class JobCreationDto {
-  @IsNotEmpty()
-  jobtitle: string;
-  starttime: Date;
-  endtime: Date;
-  companyId:string;
-  userId:string;
+    @IsDefined()
+    id: string;
+    @IsNotEmpty()
+    jobtitle: string;
+    starttime: Date;
+    endtime: Date;
+    @IsOptional()
+    company?: Company;
+    companyId: string;
+    @IsOptional()
+    userJobs?: CareerProfile[];
+    user: UserProfile;
+    userId: string;
 
-  constructor(jobtitle: string, starttime: Date, endtime: Date, companyId: string, userId: string) {
-    this.jobtitle = jobtitle;   
-    this.starttime = starttime;
-    this.endtime = endtime;
-    this.companyId = companyId;
-    this.userId = userId;
-  
-  }
+    constructor(
+        jobtitle: string,
+        starttime: Date,
+        endtime: Date,
+        companyId: string,
+        userId: string,
+    ) {
+        this.jobtitle = jobtitle;
+        this.starttime = starttime;
+        this.endtime = endtime;
+        this.companyId = companyId;
+        this.userId = userId;
+    }
 }

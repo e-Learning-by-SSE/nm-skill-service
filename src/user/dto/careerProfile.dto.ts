@@ -26,7 +26,7 @@ export class CareerProfileDto extends CareerProfileCreationDto {
    * @param skill The DB result which shall be converted to a DTO
    * @returns The corresponding DTO, but without parents/children
    */
-  static createFromDao(cp: CareerProfileDto): CareerProfileCreationDto {
+  static createFromDao(cp: CareerProfile): CareerProfileCreationDto {
     return new CareerProfileDto(cp.id, cp.professionalInterests, cp.currentCompanyId, cp.userId);
   }
 }

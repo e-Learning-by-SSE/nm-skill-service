@@ -200,7 +200,6 @@ export class UserMgmtController {
         return this.userService.createLearningHistory(historyId, createLearningHistoryDto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("/learning-history/:history_id/:comp_path_id")
     getCompPathByID(@Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string) {
         return this.userService.getCompPathByID(historyId, compPathId);

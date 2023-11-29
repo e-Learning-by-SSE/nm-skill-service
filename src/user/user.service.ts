@@ -20,7 +20,6 @@ import {
     UserListDto,
     PersonalizedLearningPathCreationDto,
     PersonalizedLearningPathDto,
-   
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
@@ -63,25 +62,23 @@ export class UserMgmtService {
         throw new Error("Method not implemented.");
     }
     async getCompPathByID(historyId: string, compPathId: string) {
-    // throw new Error("Method not implemented.");
-      //Find zero or one PersonalizedLearningPath that matches the filter.
-      // Get one PersonalizedLearningPath
-      
-      try{
-    
-        const comppathbyid = await this.db.personalizedLearningPath.findUnique({
-        where: {
-        userProfileId: historyId,
-        id: compPathId
-        }
-      });
-            if (!comppathbyid) {
+        // throw new Error("Method not implemented.");
+        //Find zero or one PersonalizedLearningPath that matches the filter.
+        // Get one PersonalizedLearningPath
+
+        try {
+            const compPathById = await this.db.personalizedLearningPath.findUnique({
+                where: {
+                    userProfileId: historyId,
+                    id: compPathId,
+                },
+            });
+            if (!compPathById) {
                 throw new NotFoundException("No learning path found.");
             }
 
-            return comppathbyid;
-    }
-            catch (error) {
+            return compPathById;
+        } catch (error) {
             // Handle any other errors or rethrow them as needed
             throw error;
         }
