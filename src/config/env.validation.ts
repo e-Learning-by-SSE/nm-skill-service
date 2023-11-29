@@ -44,6 +44,12 @@ export class EnvironmentVariables {
   CLIENT_SECRET: string;
 
   @IsNotEmpty()
+  BASEURL_BERUFENET: string;
+
+  @IsNotEmpty()
+  CLIENT_SECRET_BERUFENET: string;
+
+  @IsNotEmpty()
   DB_URL: string = 'postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?schema=public';
   
 
