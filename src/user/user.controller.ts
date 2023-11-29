@@ -38,43 +38,36 @@ export class UserMgmtController {
      * @returns The created user.
      */
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("/users/")
     addUser(@Body() dto: UserCreationDto) {
         return this.userService.createUser(dto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_company")
     addCompany(@Body() dto: CompanyCreationDto) {
         return this.userService.createComp(dto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_learningProfile")
     addLearningProfile(@Body() dto: LearningProfileCreationDto) {
         return this.userService.createLP(dto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_Qualification")
     addQualification(@Body() dto: QualificationCreationDto) {
         return this.userService.createQualification(dto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_Job")
     addJob(@Body() dto: JobCreationDto) {
         return this.userService.createJob(dto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_LearningHistory")
     addLearningHistory(@Body() dto: LearningHistoryCreationDto) {
         return this.userService.createLH(dto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("add_CareerProfile")
     addCareerProfile(@Body() dto: CareerProfileCreationDto) {
         return this.userService.createCP(dto);
@@ -85,7 +78,7 @@ export class UserMgmtController {
      * @param userId The ID of the user, that shall be returned
      * @returns The specified user-profile.
      */
-    @ApiOperation({ summary: "Experimental (WIP)" })
+  
     @Get("/user-profiles/:user_profile_id")
     getuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUser(userId);
@@ -96,19 +89,19 @@ export class UserMgmtController {
      * @param userId The ID of the user, that shall be returned
      * @returns Deleted specified user-profile.
      */
-    @ApiOperation({ summary: "Experimental (WIP)" })
+    
     @Delete("/user-profiles/:user_profile_id")
     deleteuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.setProfileToInactive(userId);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
+ 
     @Get(":id/learning-progress")
     async getUserLearningProgress(@Param("id") id: string) {
         // Fetch a user's learning progress by user ID
         return this.userService.findProgressForUserId(id);
     }
-    @ApiOperation({ summary: "Experimental (WIP)" })
+ 
     @Post(":id/learning-progress")
     async createLearningProgress(
         @Param("id") userId: string,
@@ -118,14 +111,13 @@ export class UserMgmtController {
         return this.userService.createProgressForUserId(userId, createLearningProgressDto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
+   
     @Delete(":id/learning-progress")
     async deleteLearningProgress(@Param("id") progressId: string) {
         return this.userService.deleteProgressForId(progressId);
     }
 
     // Filter: Includes careerProfile.dto.ts
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("/career-profiles/")
     @ApiQuery({
         name: "userId",
@@ -137,21 +129,16 @@ export class UserMgmtController {
         return this.userService.getCareerProfileByFilter(filter);
     }
   
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("/career-profiles/:career_profile_id")
     getCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
         return this.userService.getCareerProfileByID(careerProfileId);
     }
 
-  
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete("/career-profiles/:career_profile_id")
     delCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
         return this.userService.deleteCareerProfileByID(careerProfileId);
     }
-
-   
-    @ApiOperation({ summary: "Experimental (WIP)" })
+    
     @Patch("/career-profiles/:career_profile_id")
     patchCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
@@ -160,22 +147,16 @@ export class UserMgmtController {
         return this.userService.patchCareerProfileByID(careerProfileId, dto);
     }
 
-   
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("/learning-profiles/:learning_profile_id")
     getLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
         return this.userService.getLearningProfileByID(learningProfileId);
     }
 
-   
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete("/learning-profiles/:learning_profile_id")
     delLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
         return this.userService.deleteLearningProfileByID(learningProfileId);
     }
 
-   
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Patch("/learning-profiles/:learning_profile_id")
     patchLearningProfileByID(
         @Param("learning_profile_id") learningProfileId: string,
@@ -190,7 +171,6 @@ export class UserMgmtController {
         return this.userService.getLearningHistoryById(historyId);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("learning-history/:history_id")
     async createLearningHistory(
         @Param("history_id") historyId: string,
