@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 
 import { CreateEmptyPathRequestDto, UpdatePathRequestDto } from "./dto";
 
@@ -25,9 +25,27 @@ export class LearningPathMgmtController {
      * @param owner An orga-id.
      * @returns All LearningPaths of the specified owner, may be empty.
      */
+    @ApiQuery({
+        name: "owner",
+        required: false,
+        type: String,
+        description: "Filter by owner if value is given, otherwise return all",
+    })
+    @ApiQuery({
+        name: "page",
+        required: false,
+        type: String,
+        description: "Page number - set up value if pagination is needed",
+    })
+    @ApiQuery({
+        name: 'pageSize',
+        required: false,
+        type: Number,
+        description: 'Number of items per page - set up value if pagination is needed',
+    })
     @Get()
-    getLearningPathsOfOwner(@Query("owner") owner: string) {
-        return this.learningpathService.loadLearningPathList({ owner: owner });
+    getLearningPathsOfOwner(@Query("owner") owner: string, @Query("page") page?: string ,@Query("pageSize") pagesize?: string   ) {
+        return this.learningpathService.loadLearningPathList({ owner: owner }, page, pagesize);
     }
 
     /**
