@@ -257,6 +257,7 @@ model CareerProfile {
   pastCompanies         Company[]       @relation("workedAt")
   currentCompany        Company         @relation("workingNow", fields: [currentCompanyId], references: [id])
   currentCompanyId      String
+  currentJobIdAtBerufeNet String?
   user                  UserProfile     @relation(fields: [userId], references: [id])
   userId                String          @unique // relation scalar field 
 }
@@ -334,6 +335,7 @@ model Job {
   userJobs  CareerProfile[] @relation("pastJobs")
   user      UserProfile     @relation(fields: [userId], references: [id])
   userId    String          @unique // relation scalar field
+  jobIdAtBerufeNet String?
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
   // userCareerProfileId String          @unique // relation scalar field   
 }
