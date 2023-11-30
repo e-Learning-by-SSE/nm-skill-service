@@ -461,6 +461,11 @@ describe("Skill Service", () => {
     });
 
     describe("createRepository", () => {
+       
+        beforeEach(async () => {
+            // Wipe DB before test
+            await dbUtils.wipeDb()
+        });
         it("Create First Repository -> Success", async () => {
             // Precondition: No Skill-Maps defined
             const nSkillMapsDefined = await db.skillMap.aggregate({ _count: true });
