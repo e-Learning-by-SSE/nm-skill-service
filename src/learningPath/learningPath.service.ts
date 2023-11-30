@@ -334,13 +334,35 @@ export class LearningPathMgmtService {
         });
     }
 
-    public async loadLearningPathList(where?: Prisma.LearningPathWhereInput) {
+    public async loadLearningPathList(
+        where?: Prisma.LearningPathWhereInput,
+        page?: string,
+        pageSize?: string,
+    ) {
         const learningPathList = new LearningPathListDto();
-        learningPathList.learningPaths = await this.loadLearningPaths(where);
+
+        learningPathList.learningPaths = await this.loadLearningPaths(
+            where,
+            Number(page),
+            Number(pageSize),
+        );
         return learningPathList;
     }
-
-    public async loadLearningPaths(where?: Prisma.LearningPathWhereInput) {
+    public async loadLearningPaths(
+        where?: Prisma.LearningPathWhereInput,
+        page?: number,
+        pageSize?: number,
+    ) {
+        console.log(page, pageSize);
+        let skip;
+        let take;
+        if (page && pageSize) {
+            if (page !== null && page >= 0 && pageSize !== null && pageSize > 0) {
+                skip = (page - 1) * pageSize;
+                take = pageSize;
+            }
+        }
+        console.log(skip, take);
         const learningPaths = await this.db.learningPath.findMany({
             where,
             include: {
@@ -348,6 +370,8 @@ export class LearningPathMgmtService {
                 pathTeachingGoals: true,
                 recommendedUnitSequence: true,
             },
+            skip, // Skip the specified number of items
+            take, // Take the specified number of items
         });
 
         if (!learningPaths) {
