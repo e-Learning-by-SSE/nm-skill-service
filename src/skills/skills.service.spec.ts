@@ -31,6 +31,7 @@ describe("Skill Service", () => {
     describe("findSkillRepositories", () => {
         it("Empty DB -> Empty ResultList", async () => {
             // Precondition: No Skill-Maps defined
+            
             await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 0 });
 
             // Test: Empty result list
