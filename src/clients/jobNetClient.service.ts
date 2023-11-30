@@ -9,22 +9,30 @@ import {
 const { JSDOM } = require("jsdom");
 @Injectable()
 export class JobsService {
+    private CLIENT_SECRET_BERUFENET: string | undefined;
+    private BASEURL_BERUFENET: string | undefined;
+    private TIMEOUT_BERUFENET: number | 120000;
+    private axiosConfig : any;
     constructor(private db: PrismaService) {
         db = db;
-        
+        this.CLIENT_SECRET_BERUFENET = process.env.CLIENT_SECRET_BERUFENET;
+        this.BASEURL_BERUFENET = process.env.BASEURL_BERUFENET;
+        this.TIMEOUT_BERUFENET = Number(   process.env.TIMEOUT_BERUFENET);
+        this.axiosConfig = {
+            headers: {
+                "X-API-Key": this.CLIENT_SECRET_BERUFENET,
+            },
+            timeout: this.TIMEOUT_BERUFENET,
+        };
+      
     }
-    private readonly baseUrl = "https://rest.arbeitsagentur.de/infosysbub/bnet/pc/v1";
-    private apiKey: string = "d672172b-f3ef-4746-b659-227c39d95acf";
-    private axiosConfig = {
-        headers: {
-            "X-API-Key": this.apiKey,
-        },
-        timeout: 120000,
-    };
+   
 
     async getJobsByID(jobId: string) {
+        console.log(this.BASEURL_BERUFENET);
+        console.log(this.TIMEOUT_BERUFENET)
         try {
-            const response = await axios.get(`${this.baseUrl}/berufe/${jobId}`, this.axiosConfig);
+            const response = await axios.get(`${this.BASEURL_BERUFENET}/berufe/${jobId}`, this.axiosConfig);
 
             return response.data;
         } catch (error) {
@@ -34,7 +42,7 @@ export class JobsService {
 
     async getCompetenciesByJobID(jobId: string) {
         try {
-            const response = await axios.get(`${this.baseUrl}/berufe/${jobId}`, this.axiosConfig);
+            const response = await axios.get(`${this.BASEURL_BERUFENET}/berufe/${jobId}`, this.axiosConfig);
             const kompetenzenMatches: any = [];
             response.data.forEach((element: any) => {
                 element.infofelder.forEach((element: any) => {
@@ -66,7 +74,7 @@ export class JobsService {
 
     async getDigitalCompetenciesByJobID(jobId: string) {
         try {
-            const response = await axios.get(`${this.baseUrl}/berufe/${jobId}`, this.axiosConfig);
+            const response = await axios.get(`${this.BASEURL_BERUFENET}/berufe/${jobId}`, this.axiosConfig);
             let kompetenzenMatches: any = [];
             response.data.forEach((element: any) => {
                 element.infofelder.forEach((element: any) => {
@@ -123,7 +131,7 @@ export class JobsService {
         }
     }
     async getALLJobsByPage(page: string): Promise<any> {
-        const url = `${this.baseUrl}/berufe?suchwoerter=*&page=${page}`;
+        const url = `${this.BASEURL_BERUFENET}/berufe?suchwoerter=*&page=${page}`;
 
         try {
             const response = await axios.get(url, this.axiosConfig);
