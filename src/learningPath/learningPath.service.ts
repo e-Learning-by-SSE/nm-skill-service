@@ -137,9 +137,7 @@ export class LearningPathMgmtService {
      */
     async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto, checkPath = true) {
         await this.precheckOfUpdateLearningPath(learningPathId, dto);
-        console.log(this.updateQuery(dto.requirements));
-        console.log(this.updateQuery(dto.pathGoals));
-        console.log(this.updateQuery(dto.recommendedUnitSequence));
+   
 
         let result = await this.db.learningPath
             .update({
@@ -165,7 +163,7 @@ export class LearningPathMgmtService {
                 if (error instanceof PrismaClientKnownRequestError) {
                     // Specified Learning not found
                     if (error.code === "P2025") {
-                        console.log(error);
+                       
                         throw new NotFoundException(
                             `LearningPath with id ${learningPathId} not found`,
                         );
@@ -353,7 +351,7 @@ export class LearningPathMgmtService {
         page?: number,
         pageSize?: number,
     ) {
-        console.log(page, pageSize);
+      
         let skip;
         let take;
         if (page && pageSize) {
@@ -362,7 +360,7 @@ export class LearningPathMgmtService {
                 take = pageSize;
             }
         }
-        console.log(skip, take);
+        
         const learningPaths = await this.db.learningPath.findMany({
             where,
             include: {
