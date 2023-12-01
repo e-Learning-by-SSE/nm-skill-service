@@ -147,6 +147,15 @@ export class UserMgmtController {
         return this.userService.patchCareerProfileByID(careerProfileId, dto);
     }
 
+    @Patch("/career-profiles/:career_profile_id/:job_history_id")
+    patchJobHistoryAtCareerProfileByID(
+        @Param("career_profile_id") careerProfileId: string,
+        @Param("job_history_id") jobHisoryId: string,
+        @Body() dto: CareerProfileCreationDto,
+    ) {
+        return this.userService.patchJobHistoryAtCareerProfileByID(careerProfileId, jobHisoryId ,dto);
+    }
+
     @Get("/learning-profiles/:learning_profile_id")
     getLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
         return this.userService.getLearningProfileByID(learningProfileId);

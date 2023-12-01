@@ -30,6 +30,7 @@ import { connect } from "http2";
  */
 @Injectable()
 export class UserMgmtService {
+  
     constructor(private db: PrismaService) {}
 
     async setProfileToInactive(userId: string) {
@@ -181,7 +182,7 @@ export class UserMgmtService {
             if (!existingCareerProfile) {
                 throw new NotFoundException("Career profile not found.");
             }
-
+            console.log(dto.professionalInterests);
             const updatedCareerProfile = await this.db.careerProfile.update({
                 where: {
                     id: careerProfileId,
@@ -189,6 +190,9 @@ export class UserMgmtService {
                 data: {
                     professionalInterests:
                         dto.professionalInterests || existingCareerProfile.professionalInterests,
+                    currentJobIdAtBerufeNet:
+                        dto.currentJobIdAtBerufeNet ||
+                        existingCareerProfile.currentJobIdAtBerufeNet,
                     ...(dto.currentCompanyId
                         ? {
                               currentCompany: {
@@ -199,6 +203,7 @@ export class UserMgmtService {
                     ...(dto.userId ? { user: { connect: { id: dto.userId } } } : {}),
                 },
             });
+            console.log(updatedCareerProfile);
             const careerProfileDto = CareerProfileDto.createFromDao(updatedCareerProfile);
 
             return careerProfileDto;
@@ -206,6 +211,11 @@ export class UserMgmtService {
             throw new Error(`Error patching career profile by ID: ${error.message}`);
         }
     }
+
+    patchJobHistoryAtCareerProfileByID(careerProfileId: string,jobHisoryId:string, dto: CareerProfileCreationDto) {
+        throw new Error("Method not implemented.");
+    }
+
     async deleteCareerProfileByID(careerProfileId: string) {
         try {
             const profile = await this.db.careerProfile.delete({
@@ -223,7 +233,7 @@ export class UserMgmtService {
     }
 
     async getCareerProfileByID(careerProfileId: string) {
-        try {
+        try { 
             const profile = await this.db.careerProfile.findUnique({
                 where: { id: careerProfileId },
             });
@@ -363,6 +373,12 @@ export class UserMgmtService {
                     },
                     learningBehavior: {
                         create: { id: dto.id },
+                    },
+                    careerProfile: {
+                        create: { id: dto.id, currentCompanyId: dto.companyId },
+                    },
+                    learningProfile: {
+                        create: { id: dto.id, semanticDensity: 0, semanticGravity: 0 },
                     },
                 },
                 include: { company: true },

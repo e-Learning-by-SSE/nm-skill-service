@@ -61,4 +61,3 @@ export class UserDto extends UserCreationDto {
         );
     }
 }
-

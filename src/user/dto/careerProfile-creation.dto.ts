@@ -10,12 +10,18 @@ export class CareerProfileCreationDto {
   /**
    * Used to validate that the user is the owner of the target repository.
    */
+  @IsOptional()
+  currentCompanyId?: string;
+  @IsOptional()
+  currentJobIdAtBerufeNet?: string;
+
   @IsDefined()
-  currentCompanyId: string;
   professionalInterests: string;
 
   @IsDefined()
   userId: string;
+
+
 
 }
 

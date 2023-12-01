@@ -255,8 +255,8 @@ model CareerProfile {
   selfReportedSkills    Skill[]         @relation("selfReportedSkill")
   verifiedSkills        Skill[]         @relation("verifiedSkill")
   pastCompanies         Company[]       @relation("workedAt")
-  currentCompany        Company         @relation("workingNow", fields: [currentCompanyId], references: [id])
-  currentCompanyId      String
+  currentCompany        Company?         @relation("workingNow", fields: [currentCompanyId], references: [id])
+  currentCompanyId      String?
   currentJobIdAtBerufeNet String?
   user                  UserProfile     @relation(fields: [userId], references: [id])
   userId                String          @unique // relation scalar field 
