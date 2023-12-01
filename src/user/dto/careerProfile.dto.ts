@@ -1,6 +1,4 @@
-import { IsDefined, IsNotEmpty } from 'class-validator';
-
-import { LearningProfile, Skill, Job, Qualification } from '@prisma/client';
+import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
 import { OmitType } from '@nestjs/swagger';
 import { CareerProfileCreationDto } from './careerProfile-creation.dto';
 import { LearningProfileCreationDto } from './learningProfile-creation.dto';
@@ -10,14 +8,17 @@ export class CareerProfileDto extends CareerProfileCreationDto {
   @IsNotEmpty()
   id: string;
 
+  @IsOptional()
+  description?: string;
   
 
-  constructor(id: string, professionalInterests: string, currentCompanyId: string, userId: string) {
+  constructor(id: string, professionalInterests: string, userId: string, currentCompanyId?: string | null, currentJobIdAtBerufeNet?: string | null) {
     super();
     
     this.id = id;
     this.professionalInterests = professionalInterests;
-    this.currentCompanyId = currentCompanyId;
+    this.currentCompanyId = currentCompanyId ?? undefined;
+    this.currentJobIdAtBerufeNet = currentJobIdAtBerufeNet ?? undefined;
     this.userId = userId;
   }
 
@@ -26,7 +27,7 @@ export class CareerProfileDto extends CareerProfileCreationDto {
    * @param skill The DB result which shall be converted to a DTO
    * @returns The corresponding DTO, but without parents/children
    */
-  static createFromDao(cp: CareerProfileDto): CareerProfileCreationDto {
-    return new CareerProfileDto(cp.id, cp.professionalInterests, cp.currentCompanyId, cp.userId);
+  static createFromDao(cp: CareerProfile): CareerProfileDto {
+    return new CareerProfileDto(cp.id, cp.professionalInterests, cp.userId, cp.currentCompanyId, cp.currentJobIdAtBerufeNet);
   }
 }
