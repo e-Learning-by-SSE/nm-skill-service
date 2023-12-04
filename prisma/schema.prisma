@@ -321,7 +321,7 @@ model Qualification {
 
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
   // userCareerProfileId String          @unique // relation scalar field 
-  CareerProfile   CareerProfile? @relation(fields: [careerProfileId], references: [id])
+  careerProfile   CareerProfile? @relation(fields: [careerProfileId], references: [id])
   careerProfileId String?
 }
 
