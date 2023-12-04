@@ -4,27 +4,26 @@ import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 /**
  * Creates a new Job
  */
-export class JobCreationDto {
-  @IsNotEmpty()
+export class JobUpdateDto {
+ @IsOptional()
   jobtitle: string;
-  @IsNotEmpty()
-  starttime: Date;
-  @IsNotEmpty()
-  endtime: Date;
-  @IsNotEmpty()
-  companyId:string;
   @IsOptional()
-  userId:string;
+  starttime: Date;
+  @IsOptional()
+  endtime: Date;
+  @IsOptional()
+  companyId:string;
+  
 
   @IsOptional()
   jobIdAtBerufeNet? : string;
 
   constructor(jobtitle: string, starttime: Date, endtime: Date, companyId: string, userId: string, jobIdAtBerufeNet? :string) {
-    this.jobtitle = jobtitle;   
-    this.starttime = starttime;
-    this.endtime = endtime;
-    this.companyId = companyId;
-    this.userId = userId;
+    this.jobtitle = jobtitle ?? undefined;   
+    this.starttime = starttime ?? undefined;
+    this.endtime = endtime ?? undefined;
+    this.companyId = companyId   ?? undefined;
+    
     this.jobIdAtBerufeNet = jobIdAtBerufeNet ?? undefined;
   }
 }

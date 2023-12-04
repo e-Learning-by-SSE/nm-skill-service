@@ -13,6 +13,7 @@ import {
 import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { UserMgmtService } from "./user.service";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
+import { JobUpdateDto } from "./dto/job-update.dto";
 /**
  * Controller for managing the Users and its entities 
  * @author Wenzel
@@ -58,10 +59,7 @@ export class UserMgmtController {
         return this.userService.createQualification(dto);
     }
 
-    @Post("add_Job")
-    addJob(@Body() dto: JobCreationDto) {
-        return this.userService.createJob(dto);
-    }
+   
 
     @Post("add_LearningHistory")
     addLearningHistory(@Body() dto: LearningHistoryCreationDto) {
@@ -146,15 +144,28 @@ export class UserMgmtController {
     ) {
         return this.userService.patchCareerProfileByID(careerProfileId, dto);
     }
-
+    @Post("/career-profiles/:career_profile_id/job_history")
+    addJob(@Param("career_profile_id") careerProfileId: string,@Body() dto: JobCreationDto) {
+        return this.userService.createJob(careerProfileId, dto);
+    }
     @Patch("/career-profiles/:career_profile_id/:job_history_id")
     patchJobHistoryAtCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
         @Param("job_history_id") jobHisoryId: string,
-        @Body() dto: CareerProfileCreationDto,
-    ) {
+        @Body() dto: JobUpdateDto,
+    ) { 
         return this.userService.patchJobHistoryAtCareerProfileByID(careerProfileId, jobHisoryId ,dto);
     }
+    @Delete("/career-profiles/:career_profile_id/:job_history_id")
+    deleteJobHistoryAtCareerProfileByID(
+        @Param("career_profile_id") careerProfileId: string,
+        @Param("job_history_id") jobHisoryId: string,
+        
+    ) { 
+        return this.userService.deleteJobHistoryAtCareerProfileByID(careerProfileId, jobHisoryId );
+    }
+
+
 
     @Get("/learning-profiles/:learning_profile_id")
     getLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
