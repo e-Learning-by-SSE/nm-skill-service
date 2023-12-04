@@ -23,37 +23,44 @@ export class LearningUnitFactory {
     public async patchLearningUnit(learningUnitId: string, dto: SearchLearningUnitCreationDto) {
         try {
             const existingLearningUnit = await this.loadLearningUnit(learningUnitId);
-
+            
             if (!existingLearningUnit) {
                 throw new NotFoundException(`Learning Unit not found: ${learningUnitId}`);
             }
-
+            // Disconnect all existing requirements
+            await this.db.learningUnit.update({
+                where: { id: learningUnitId },
+                data: {
+                    requirements: { set: [] },
+                    teachingGoals: { set: [] },
+                },
+            });
             const updatedLearningUnit = await this.db.learningUnit.update({
                 where: { id: "" + dto.id },
                 data: {
-                    id: "" + dto.id,
-                    title: dto.title ?? "",
-                    orga_id: dto.orga_id ?? "",
-                    lifecycle: dto.lifecycle,
-                    description: dto.description ?? "",
-                    language: dto.language ?? "",
+                    id: "" + dto.id ?? existingLearningUnit.id,
+                    title: dto.title  ?? existingLearningUnit.title,
+                    orga_id: dto.orga_id ??  existingLearningUnit.orga_id,
+                    lifecycle: dto.lifecycle?? existingLearningUnit.lifecycle,
+                    description: dto.description ?? existingLearningUnit.description,
+                    language: dto.language ?? existingLearningUnit.language,
 
-                    processingTime: dto.processingTime,
-                    rating: dto.rating,
-                    contentCreator: dto.contentCreator,
-                    targetAudience: dto.targetAudience,
-                    semanticDensity: dto.semanticDensity,
-                    semanticGravity: dto.semanticGravity,
-                    contentTags: dto.contentTags,
-                    contextTags: dto.contextTags,
-                    linkToHelpMaterial: dto.linkToHelpMaterial,
+                    processingTime: dto.processingTime ?? existingLearningUnit.processingTime,
+                    rating: dto.rating ?? existingLearningUnit.rating,
+                    contentCreator: dto.contentCreator ?? existingLearningUnit.contentCreator,
+                    targetAudience: dto.targetAudience ?? existingLearningUnit.targetAudience,
+                    semanticDensity: dto.semanticDensity ?? existingLearningUnit.semanticDensity,
+                    semanticGravity: dto.semanticGravity?? existingLearningUnit.semanticGravity,
+                    contentTags: dto.contentTags ?? existingLearningUnit.contentTags,
+                    contextTags: dto.contextTags ?? existingLearningUnit.contextTags,
+                    linkToHelpMaterial: dto.linkToHelpMaterial ?? existingLearningUnit.linkToHelpMaterial,
 
                     requirements: {
-                        connect: dto.requiredSkills?.map((skillId) => ({ id: skillId })) ?? [],
+                        connect: dto.requiredSkills?.map((skillId) => ({ id: skillId })) ?? existingLearningUnit.requirements.map((r) => ({ id: r.id })),
                     },
-
+    
                     teachingGoals: {
-                        connect: dto.teachingGoals?.map((skillId) => ({ id: skillId })) ?? [],
+                        connect: dto.teachingGoals?.map((skillId) => ({ id: skillId })) ?? existingLearningUnit.teachingGoals.map((tg) => ({ id: tg.id })),
                     },
                 },
                 include: {
@@ -62,7 +69,7 @@ export class LearningUnitFactory {
                     teachingGoals: true,
                 },
             });
-            return updatedLearningUnit;
+            return this.createLearningUnitDto(updatedLearningUnit);
         } catch (error) {
             throw error;
         }
@@ -101,7 +108,7 @@ export class LearningUnitFactory {
         }
     }
 
-    public async loadLearningUnit(learningUnitId: string): Promise<PrismaLearningUnit> {
+    public async loadLearningUnit(learningUnitId: string) {
         const learningUnit = await this.db.learningUnit.findUnique({
             where: { id: learningUnitId },
             include: {
@@ -285,11 +292,9 @@ export class LearningUnitFactory {
         return results;
     }
 
-
-    async getLearningUnitByFilter(filter: LearningUnitFilterDto): Promise<SearchLearningUnitListDto> {
-        
-
-
+    async getLearningUnitByFilter(
+        filter: LearningUnitFilterDto,
+    ): Promise<SearchLearningUnitListDto> {
         const query: Prisma.LearningUnitFindManyArgs = {};
 
         if (filter.requiredSkills && filter.requiredSkills.length > 0) {
@@ -344,15 +349,11 @@ export class LearningUnitFactory {
         };
         const result = await this.db.learningUnit.findMany(query);
 
-        const res :SearchLearningUnitListDto = new SearchLearningUnitListDto;
-        result.forEach(element => {
-            res.learningUnits.push (this.createLearningUnitDto(element))
+        const res: SearchLearningUnitListDto = new SearchLearningUnitListDto();
+        result.forEach((element) => {
+            res.learningUnits.push(this.createLearningUnitDto(element));
         });
 
-
         return res;
-      
-      }
-    
-
+    }
 }
