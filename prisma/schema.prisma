@@ -247,18 +247,18 @@ model LearningHistory {
 }
 
 model CareerProfile {
-  id                    String          @id @default(cuid())
-  jobHistory            Job[]           @relation("pastJobs")
-  professionalInterests String          @default("")
-  qualifications        Qualification[] @relation("currentQualifications")
-  selfReportedSkills    Skill[]         @relation("selfReportedSkill")
-  verifiedSkills        Skill[]         @relation("verifiedSkill")
-  pastCompanies         Company[]       @relation("workedAt")
-  currentCompany        Company?         @relation("workingNow", fields: [currentCompanyId], references: [id])
-  currentCompanyId      String?
+  id                      String          @id @default(cuid())
+  jobHistory              Job[]           @relation("pastJobs")
+  professionalInterests   String          @default("")
+  qualifications          Qualification[]
+  selfReportedSkills      Skill[]         @relation("selfReportedSkill")
+  verifiedSkills          Skill[]         @relation("verifiedSkill")
+  pastCompanies           Company[]       @relation("workedAt")
+  currentCompany          Company?        @relation("workingNow", fields: [currentCompanyId], references: [id])
+  currentCompanyId        String?
   currentJobIdAtBerufeNet String?
-  user                  UserProfile     @relation(fields: [userId], references: [id])
-  userId                String          @unique // relation scalar field 
+  user                    UserProfile     @relation(fields: [userId], references: [id])
+  userId                  String          @unique // relation scalar field 
 }
 
 model ConsumedUnitData {
@@ -315,24 +315,26 @@ model LearningBehaviorData {
 }
 
 model Qualification {
-  id                 String          @id @default(cuid())
-  name               String
-  year               Int
-  userQualifications CareerProfile[] @relation("currentQualifications")
+  id   String @id @default(cuid())
+  name String
+  year Int
+
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
   // userCareerProfileId String          @unique // relation scalar field 
+  CareerProfile   CareerProfile? @relation(fields: [careerProfileId], references: [id])
+  careerProfileId String?
 }
 
 model Job {
-  id        String          @id @default(cuid())
-  jobtitle  String
-  starttime DateTime
-  endtime   DateTime // Year the job was ended, if the job is still on-going set this to NULL
-  company   Company         @relation(fields: [companyId], references: [id]) //company at which the job was/is
-  companyId String
-  userJobs  CareerProfile[] @relation("pastJobs")
-  user      UserProfile     @relation(fields: [userId], references: [id])
-  userId    String          @unique // relation scalar field
+  id               String          @id @default(cuid())
+  jobtitle         String
+  starttime        DateTime
+  endtime          DateTime // Year the job was ended, if the job is still on-going set this to NULL
+  company          Company         @relation(fields: [companyId], references: [id]) //company at which the job was/is
+  companyId        String
+  userJobs         CareerProfile[] @relation("pastJobs")
+  user             UserProfile     @relation(fields: [userId], references: [id])
+  userId           String          @unique // relation scalar field
   jobIdAtBerufeNet String?
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
   // userCareerProfileId String          @unique // relation scalar field   
