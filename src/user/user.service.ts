@@ -23,6 +23,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 import { STATUS, USERSTATUS, UserProfile } from "@prisma/client";
 import { connect } from "http2";
+import { JobUpdateDto } from "./dto/job-update.dto";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -30,7 +31,7 @@ import { connect } from "http2";
  */
 @Injectable()
 export class UserMgmtService {
-  
+   
     constructor(private db: PrismaService) {}
 
     async setProfileToInactive(userId: string) {
@@ -212,10 +213,6 @@ export class UserMgmtService {
         }
     }
 
-    patchJobHistoryAtCareerProfileByID(careerProfileId: string,jobHisoryId:string, dto: CareerProfileCreationDto) {
-        throw new Error("Method not implemented.");
-    }
-
     async deleteCareerProfileByID(careerProfileId: string) {
         try {
             const profile = await this.db.careerProfile.delete({
@@ -233,7 +230,7 @@ export class UserMgmtService {
     }
 
     async getCareerProfileByID(careerProfileId: string) {
-        try { 
+        try {
             const profile = await this.db.careerProfile.findUnique({
                 where: { id: careerProfileId },
             });
@@ -464,7 +461,77 @@ export class UserMgmtService {
         }
     }
 
-    async createJob(dto: JobCreationDto) {
+    async deleteJobHistoryAtCareerProfileByID(
+        careerProfileId: string,
+        jobHistoryId: string,
+      ) {
+        try {
+          const careerProfile = await this.db.careerProfile.findUnique({
+            where: { id: careerProfileId },
+          });
+    
+          if (!careerProfile) {
+            throw new NotFoundException('Career profile not found');
+          }
+          const jobHistory = await this.db.job.findUnique({
+            where: { id: jobHistoryId },
+          });
+    
+          if (!jobHistory) {
+            throw new NotFoundException('Job history entry not found');
+          }
+
+          await this.db.job.delete({
+            where: { id: jobHistoryId },
+          });
+    
+          return { success: true, message: 'Job history entry deleted successfully' };
+        } catch (error) {
+          if (error instanceof PrismaClientKnownRequestError) {
+      
+          }
+          throw error;
+        }
+      }
+    async patchJobHistoryAtCareerProfileByID(
+        careerProfileId: string,
+        jobHistoryId: string,
+        dto: JobUpdateDto,
+    ) {
+        try {
+            const careerProfile = await this.db.careerProfile.findUnique({
+                where: { id: careerProfileId },
+            });
+
+            if (!careerProfile) {
+                throw new NotFoundException("Career profile not found");
+            }
+
+            const jobHistory = await this.db.job.findUnique({
+                where: { id: jobHistoryId },
+            });
+
+            if (!jobHistory) {
+                throw new NotFoundException("Job history entry not found");
+            }
+
+            const updatedJobHistory = await this.db.job.update({
+                where: { id: jobHistoryId },
+                data: {
+                    endtime: dto.endtime || jobHistory.endtime,
+                    starttime: dto.starttime || jobHistory.starttime,
+                    jobtitle: dto.jobtitle || jobHistory.jobtitle,
+                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet || jobHistory.jobIdAtBerufeNet,
+                },
+            });
+
+            return updatedJobHistory;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async createJob(id: string, dto: JobCreationDto) {
         // Create and return a Job
         try {
             const jb = await this.db.job.create({
@@ -473,7 +540,8 @@ export class UserMgmtService {
                     starttime: dto.starttime,
                     endtime: dto.endtime,
                     companyId: dto.companyId,
-                    userId: dto.userId,
+                    userId: id,
+                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet,
                 },
             });
 
