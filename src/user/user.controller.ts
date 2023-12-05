@@ -15,7 +15,7 @@ import { UserMgmtService } from "./user.service";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 import { JobUpdateDto } from "./dto/job-update.dto";
 /**
- * Controller for managing the Users and its entities 
+ * Controller for managing the Users and its entities
  * @author Wenzel
  */
 @ApiTags("User")
@@ -54,13 +54,6 @@ export class UserMgmtController {
         return this.userService.createLP(dto);
     }
 
-    @Post("add_Qualification")
-    addQualification(@Body() dto: QualificationCreationDto) {
-        return this.userService.createQualification(dto);
-    }
-
-   
-
     @Post("add_LearningHistory")
     addLearningHistory(@Body() dto: LearningHistoryCreationDto) {
         return this.userService.createLH(dto);
@@ -76,7 +69,7 @@ export class UserMgmtController {
      * @param userId The ID of the user, that shall be returned
      * @returns The specified user-profile.
      */
-  
+
     @Get("/user-profiles/:user_profile_id")
     getuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUser(userId);
@@ -87,19 +80,18 @@ export class UserMgmtController {
      * @param userId The ID of the user, that shall be returned
      * @returns Deleted specified user-profile.
      */
-    
+
     @Delete("/user-profiles/:user_profile_id")
     deleteuserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.setProfileToInactive(userId);
     }
 
- 
     @Get(":id/learning-progress")
     async getUserLearningProgress(@Param("id") id: string) {
         // Fetch a user's learning progress by user ID
         return this.userService.findProgressForUserId(id);
     }
- 
+
     @Post(":id/learning-progress")
     async createLearningProgress(
         @Param("id") userId: string,
@@ -109,7 +101,6 @@ export class UserMgmtController {
         return this.userService.createProgressForUserId(userId, createLearningProgressDto);
     }
 
-   
     @Delete(":id/learning-progress")
     async deleteLearningProgress(@Param("id") progressId: string) {
         return this.userService.deleteProgressForId(progressId);
@@ -126,7 +117,7 @@ export class UserMgmtController {
     getCareerProfileByFilter(@Query() filter: CareerProfileFilterDto) {
         return this.userService.getCareerProfileByFilter(filter);
     }
-  
+
     @Get("/career-profiles/:career_profile_id")
     getCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
         return this.userService.getCareerProfileByID(careerProfileId);
@@ -136,7 +127,7 @@ export class UserMgmtController {
     delCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
         return this.userService.deleteCareerProfileByID(careerProfileId);
     }
-    
+
     @Patch("/career-profiles/:career_profile_id")
     patchCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
@@ -145,7 +136,7 @@ export class UserMgmtController {
         return this.userService.patchCareerProfileByID(careerProfileId, dto);
     }
     @Post("/career-profiles/:career_profile_id/job_history")
-    addJob(@Param("career_profile_id") careerProfileId: string,@Body() dto: JobCreationDto) {
+    addJob(@Param("career_profile_id") careerProfileId: string, @Body() dto: JobCreationDto) {
         return this.userService.createJob(careerProfileId, dto);
     }
     @Patch("/career-profiles/:career_profile_id/:job_history_id")
@@ -153,19 +144,57 @@ export class UserMgmtController {
         @Param("career_profile_id") careerProfileId: string,
         @Param("job_history_id") jobHisoryId: string,
         @Body() dto: JobUpdateDto,
-    ) { 
-        return this.userService.patchJobHistoryAtCareerProfileByID(careerProfileId, jobHisoryId ,dto);
+    ) {
+        return this.userService.patchJobHistoryAtCareerProfileByID(
+            careerProfileId,
+            jobHisoryId,
+            dto,
+        );
     }
     @Delete("/career-profiles/:career_profile_id/:job_history_id")
     deleteJobHistoryAtCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
         @Param("job_history_id") jobHisoryId: string,
-        
-    ) { 
-        return this.userService.deleteJobHistoryAtCareerProfileByID(careerProfileId, jobHisoryId );
+    ) {
+        return this.userService.deleteJobHistoryAtCareerProfileByID(careerProfileId, jobHisoryId);
     }
 
+    @Post("/career-profiles/:career_profile_id/qualifications/")
+    addQualificationToCareerProfile(
+        @Param("career_profile_id") careerProfileId: string,
+        @Body() dto: QualificationCreationDto,
+    ) {
+        return this.userService.createQualificationForCareerProfil(careerProfileId, dto);
+    }
 
+    @Get("/career-profiles/:career_profile_id/qualifications/:qualificaion_id")
+    getQualificationForCareerProfile(@Param("qualificaion_id") qualificaionId: string) {
+        return this.userService.getQualificationForCareerProfil(qualificaionId);
+    }
+
+    @Patch("/career-profiles/:career_profile_id/qualifications/:qualificaion_id")
+    patchQualificationToCareerProfile(
+        @Param("career_profile_id") careerProfileId: string,
+        @Param("qualificaion_id") qualificationId: string,
+        @Body() dto: QualificationCreationDto,
+    ) {
+        return this.userService.patchQualificationForCareerProfil(
+            careerProfileId,
+            qualificationId,
+            dto,
+        );
+    }
+    
+    @Delete("/career-profiles/:career_profile_id/qualifications/:qualificaion_id")
+    deleteQualificationToCareerProfile(
+        @Param("career_profile_id") careerProfileId: string,
+        @Param("qualificaion_id") qualificationId: string,
+    ) {
+        return this.userService.deleteQualificationForCareerProfil(
+            careerProfileId,
+            qualificationId,
+        );
+    }
 
     @Get("/learning-profiles/:learning_profile_id")
     getLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
@@ -202,27 +231,31 @@ export class UserMgmtController {
 
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("/learning-history/:history_id/:comp_path_id")
-    getCompPathByID(@Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string) {
+    getCompPathByID(
+        @Param("history_id") historyId: string,
+        @Param("comp_path_id") compPathId: string,
+    ) {
         return this.userService.getCompPathByID(historyId, compPathId);
     }
 
-   
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete("/learning-history/:history_id/:comp_path_id")
-    delCompPathByID(@Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string) {
+    delCompPathByID(
+        @Param("history_id") historyId: string,
+        @Param("comp_path_id") compPathId: string,
+    ) {
         return this.userService.delCompPathByID(historyId, compPathId);
     }
 
-   
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Patch("/learning-history/:history_id/:comp_path_id")
     patchCompPathByID(
-        @Param("history_id") historyId: string, @Param("comp_path_id") compPathId: string,
+        @Param("history_id") historyId: string,
+        @Param("comp_path_id") compPathId: string,
         @Body() dto: LearningProfileDto,
     ) {
         return this.userService.patchCompPathByID(historyId, compPathId, dto);
     }
-
 }
 
 /**

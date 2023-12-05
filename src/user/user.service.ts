@@ -24,6 +24,7 @@ import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 import { STATUS, USERSTATUS, UserProfile } from "@prisma/client";
 import { connect } from "http2";
 import { JobUpdateDto } from "./dto/job-update.dto";
+import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -31,7 +32,7 @@ import { JobUpdateDto } from "./dto/job-update.dto";
  */
 @Injectable()
 export class UserMgmtService {
-   
+    
     constructor(private db: PrismaService) {}
 
     async setProfileToInactive(userId: string) {
@@ -636,13 +637,13 @@ export class UserMgmtService {
         }
     }
 
-    async createQualification(dto: QualificationDto) {
+    async createQualificationForCareerProfil(id: string, dto: QualificationDto) {
         try {
             const qual = await this.db.qualification.create({
                 data: {
                     name: dto.name,
                     year: dto.year,
-                    userId: dto.userId,
+                    
                 },
             });
 
@@ -657,6 +658,17 @@ export class UserMgmtService {
             throw error;
         }
     }
+
+    async deleteQualificationForCareerProfil(careerProfileId: string, qualificationId: string) {
+        throw new Error("Method not implemented.");
+    }
+    async patchQualificationForCareerProfil(careerProfileId: string, qualificationId: string, dto: QualificationCreationDto) {
+        throw new Error("Method not implemented.");
+    }
+    async getQualificationForCareerProfil(qualificaionId: string) {
+        throw new Error("Method not implemented.");
+    }
+
     async editStatusForAConsumedUnitById(consumedUnitId: string, status: STATUS) {
         try {
             // Find users with the given learning unit in their learning history

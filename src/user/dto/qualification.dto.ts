@@ -11,12 +11,12 @@ export class QualificationDto extends QualificationCreationDto {
   @IsDefined()
   userId: string;
 
-  constructor(id: string, name: string, year: number, userId: string) {
+  constructor(id: string, name: string, year: number) {
     super();
     this.id = id;
     this.name = name;
     this.year = year;
-    this.userId = userId;
+    
   }
 
   /**
@@ -25,6 +25,6 @@ export class QualificationDto extends QualificationCreationDto {
    * @returns The corresponding DTO
    */
   static createFromDao(qualification: Qualification): QualificationDto {
-    return new QualificationDto(qualification.id, qualification.name, qualification.year, qualification.userId);
+    return new QualificationDto(qualification.id, qualification.name, qualification.year);
   }
 }
