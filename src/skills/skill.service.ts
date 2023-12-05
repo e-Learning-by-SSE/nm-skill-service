@@ -732,6 +732,19 @@ export class SkillMgmtService {
                 "One or more specified nested skills do not exist or would create a cyclic relationship.",
             );
         } 
+        if(dto.createdAt){
+            const createdAtValid = this.isValidDate(dto.createdAt);
+            if (!createdAtValid) {
+                throw new BadRequestException("Invalid createdAt date format.");
+            }
+        }
+        
+        if(dto.updatedAt){
+        const updatedAtValid = this.isValidDate(dto.updatedAt);
+        if (!updatedAtValid) {
+            throw new BadRequestException("Invalid updatedAt date format.");
+        }}
+
         await this.db.skill.update({
             where: { id: dto.id },
             data: {
@@ -774,5 +787,10 @@ export class SkillMgmtService {
         
         return SkillDto.createFromDao(updatedSkill, updatedSkill.nestedSkills, updatedSkill.parentSkills);
     }
-  
+    isValidDate(dateString: any) {
+        const date = new Date(dateString);
+        
+        // Check if the date is valid and the string is not 'Invalid Date'
+        return !isNaN(date.getTime());
+    }
 }
