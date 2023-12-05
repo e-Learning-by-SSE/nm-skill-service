@@ -771,7 +771,8 @@ export class SkillMgmtService {
                 
             },
         });
-        return updatedSkill;
+        
+        return SkillDto.createFromDao(updatedSkill, updatedSkill.nestedSkills, updatedSkill.parentSkills);
     }
   
 }
