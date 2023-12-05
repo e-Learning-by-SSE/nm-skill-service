@@ -718,7 +718,7 @@ export class SkillMgmtService {
         return true;
     }
 
-    async adaptSkill(dto: SkillDto): Promise<void> {
+    async adaptSkill(dto: SkillDto){
         // Check if the skill is already in use
         const isUsed = await this.isSkillUsed(dto.id);
         if (isUsed) {
@@ -731,19 +731,47 @@ export class SkillMgmtService {
             throw new BadRequestException(
                 "One or more specified nested skills do not exist or would create a cyclic relationship.",
             );
-        }
-
+        } 
+        await this.db.skill.update({
+            where: { id: dto.id },
+            data: {
+                nestedSkills: { set: [] },
+                parentSkills: { set: [] },
+            },
+            
+        });
+        const existingSkill = await this.db.skill.findUnique({
+            where: { id: dto.id },include:{nestedSkills:true, parentSkills: true}
+        });
+        if (!existingSkill) {
+            throw new BadRequestException(
+                "Skill not found",
+            );
+        } 
         // Update the skill with the provided data, including nestedSkills
         const updatedSkill = await this.db.skill.update({
             where: { id: dto.id },
             data: {
-                name: dto.name,
-                level: dto.level,
-                description: dto.description,
+                name: dto.name ?? existingSkill.name,
+                level: dto.level ?? existingSkill.level,
+                description: dto.description ?? existingSkill.description,
+                createdAt: dto.createdAt ?? existingSkill.createdAt,
+                updatedAt: dto.updatedAt ?? existingSkill.updatedAt ,
                 nestedSkills: {
-                    connect: dto.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
+                    connect: dto.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId }))??existingSkill.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
                 },
+                parentSkills: {
+                    connect: dto.parentSkills.map((nestedSkillId) => ({ id: nestedSkillId }))??existingSkill.parentSkills.map((nestedSkillId) => ({ id: nestedSkillId })) ,
+                },
+            },include:{
+                nestedSkills: true,
+                parentSkills: true,
+                pathTeachingGoals: true, 
+
+                
             },
         });
+        return updatedSkill;
     }
+  
 }

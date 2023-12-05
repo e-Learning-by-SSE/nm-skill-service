@@ -143,6 +143,7 @@ export class SkillMgmtController {
      */
     @Post("repository/adapt")
     adaptRepo(@Body() dto: SkillRepositoryDto) {
+        console.log(dto);
         return this.skillService.adaptRepository(dto);
     }
 
@@ -179,6 +180,7 @@ export class SkillMgmtController {
      */
     @Put("/skill/adapt_skill")
     adaptSkill(@Body() dto: SkillDto) {
+console.log(dto)
         return this.skillService.adaptSkill(dto);
     }
     @ApiOperation({deprecated: true})
