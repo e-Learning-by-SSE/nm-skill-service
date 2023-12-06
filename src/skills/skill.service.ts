@@ -732,18 +732,7 @@ export class SkillMgmtService {
                 "One or more specified nested skills do not exist or would create a cyclic relationship.",
             );
         } 
-        if(dto.createdAt){
-            const createdAtValid = this.isValidDate(dto.createdAt);
-            if (!createdAtValid) {
-                throw new BadRequestException("Invalid createdAt date format.");
-            }
-        }
-        
-        if(dto.updatedAt){
-        const updatedAtValid = this.isValidDate(dto.updatedAt);
-        if (!updatedAtValid) {
-            throw new BadRequestException("Invalid updatedAt date format.");
-        }}
+      
 
         await this.db.skill.update({
             where: { id: dto.id },
@@ -768,8 +757,7 @@ export class SkillMgmtService {
                 name: dto.name ?? existingSkill.name,
                 level: dto.level ?? existingSkill.level,
                 description: dto.description ?? existingSkill.description,
-                createdAt: dto.createdAt ?? existingSkill.createdAt,
-                updatedAt: dto.updatedAt ?? existingSkill.updatedAt ,
+              
                 nestedSkills: {
                     connect: dto.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId }))??existingSkill.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
                 },
