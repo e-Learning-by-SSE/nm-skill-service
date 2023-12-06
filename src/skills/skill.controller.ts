@@ -180,7 +180,7 @@ export class SkillMgmtController {
      */
     @Put("/skill/adapt_skill")
     adaptSkill(@Body() dto: SkillDto) {
-console.log(dto)
+
         return this.skillService.adaptSkill(dto);
     }
     @ApiOperation({deprecated: true})

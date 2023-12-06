@@ -732,6 +732,8 @@ export class SkillMgmtService {
                 "One or more specified nested skills do not exist or would create a cyclic relationship.",
             );
         } 
+      
+
         await this.db.skill.update({
             where: { id: dto.id },
             data: {
@@ -755,8 +757,7 @@ export class SkillMgmtService {
                 name: dto.name ?? existingSkill.name,
                 level: dto.level ?? existingSkill.level,
                 description: dto.description ?? existingSkill.description,
-                createdAt: dto.createdAt ?? existingSkill.createdAt,
-                updatedAt: dto.updatedAt ?? existingSkill.updatedAt ,
+              
                 nestedSkills: {
                     connect: dto.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId }))??existingSkill.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
                 },
@@ -774,5 +775,10 @@ export class SkillMgmtService {
         
         return SkillDto.createFromDao(updatedSkill, updatedSkill.nestedSkills, updatedSkill.parentSkills);
     }
-  
+    isValidDate(dateString: any) {
+        const date = new Date(dateString);
+        
+        // Check if the date is valid and the string is not 'Invalid Date'
+        return !isNaN(date.getTime());
+    }
 }

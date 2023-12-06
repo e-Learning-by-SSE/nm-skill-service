@@ -17,11 +17,7 @@ export class SkillDto extends OmitType(SkillCreationDto, ["owner", "nestedSkills
     @IsDefined()
     repositoryId: string;
 
-    @IsDefined()
-    createdAt: string;
-
-    @IsDefined()
-    updatedAt: string;
+   
 
     constructor(
         id: string,
@@ -31,8 +27,6 @@ export class SkillDto extends OmitType(SkillCreationDto, ["owner", "nestedSkills
         repositoryId: string,
         nestedSkills: string[],
         parentSkills: string[],
-        createdAt: string,
-        updatedAt: string,
     ) {
         super();
         this.name = name;
@@ -42,8 +36,6 @@ export class SkillDto extends OmitType(SkillCreationDto, ["owner", "nestedSkills
         this.nestedSkills = nestedSkills;
         this.parentSkills = parentSkills;
         this.repositoryId = repositoryId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     /**
@@ -62,8 +54,7 @@ export class SkillDto extends OmitType(SkillCreationDto, ["owner", "nestedSkills
             skill.repositoryId,
             nestedSkillIds,
             parentSkillIds,
-            skill.createdAt.toString(),
-            skill.updatedAt.toString(),
+            
         );
     }
 }
