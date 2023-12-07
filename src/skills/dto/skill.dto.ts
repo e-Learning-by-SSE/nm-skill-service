@@ -17,8 +17,10 @@ export class SkillDto extends OmitType(SkillCreationDto, ["owner", "nestedSkills
     @IsDefined()
     repositoryId: string;
 
-   
+    createdAt?: string;
 
+     
+     updatedAt?: string;
     constructor(
         id: string,
         name: string,
@@ -46,7 +48,7 @@ export class SkillDto extends OmitType(SkillCreationDto, ["owner", "nestedSkills
     static createFromDao(skill: Skill, nestedSkills?: Skill[], parentSkills?: Skill[]): SkillDto {
         const nestedSkillIds = nestedSkills?.map((element) => element.id) || [];
         const parentSkillIds = parentSkills?.map((element) => element.id) || [];
-        return new SkillDto(
+        let a= new SkillDto(
             skill.id,
             skill.name,
             skill.level,
@@ -56,5 +58,8 @@ export class SkillDto extends OmitType(SkillCreationDto, ["owner", "nestedSkills
             parentSkillIds,
             
         );
+        a.createdAt = skill.createdAt.toISOString();
+        a.updatedAt = skill.updatedAt.toISOString();
+        return a;
     }
 }

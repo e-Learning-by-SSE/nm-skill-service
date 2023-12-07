@@ -43,7 +43,10 @@ export class UserMgmtController {
     addUser(@Body() dto: UserCreationDto) {
         return this.userService.createUser(dto);
     }
-
+    @Post("add_Qualification")
+    addQualification(@Body() dto: QualificationCreationDto) {
+        return this.userService.createQualification(dto);
+    }
     @Post("add_company")
     addCompany(@Body() dto: CompanyCreationDto) {
         return this.userService.createComp(dto);
