@@ -658,7 +658,27 @@ export class UserMgmtService {
             throw error;
         }
     }
+    async createQualification(dto: QualificationDto) {
+        try {
+            const qual = await this.db.qualification.create({
+                data: {
+                    name: dto.name,
+                    year: dto.year,
+                    userId: dto.userId,
+                },
+            });
 
+            return QualificationDto.createFromDao(qual);
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                // unique field already exists
+                if (error.code === "P2002") {
+                    throw new ForbiddenException("Qualification could not be created");
+                }
+            }
+            throw error;
+        }
+    }
     async deleteQualificationForCareerProfil(careerProfileId: string, qualificationId: string) {
         throw new Error("Method not implemented.");
     }

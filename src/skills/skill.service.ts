@@ -20,6 +20,7 @@ import {
     ResolvedSkillListDto,
 } from "./dto";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
+import { SkillUpdateDto } from "./dto/skill-update.dto";
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -718,7 +719,7 @@ export class SkillMgmtService {
         return true;
     }
 
-    async adaptSkill(dto: SkillDto){
+    async adaptSkill(dto: SkillUpdateDto){
         // Check if the skill is already in use
         const isUsed = await this.isSkillUsed(dto.id);
         if (isUsed) {
@@ -768,7 +769,7 @@ export class SkillMgmtService {
                 nestedSkills: true,
                 parentSkills: true,
                 pathTeachingGoals: true, 
-
+                
                 
             },
         });

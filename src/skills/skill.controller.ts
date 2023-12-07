@@ -12,6 +12,7 @@ import {
 
 import { SkillMgmtService } from "./skill.service";
 import { Prisma } from "@prisma/client";
+import { SkillUpdateDto } from "./dto/skill-update.dto";
 
 @ApiTags("Skill")
 @Controller("skill-repositories")
@@ -179,7 +180,7 @@ export class SkillMgmtController {
      * @returns The created skill.
      */
     @Put("/skill/adapt_skill")
-    adaptSkill(@Body() dto: SkillDto) {
+    adaptSkill(@Body() dto: SkillUpdateDto) {
 
         return this.skillService.adaptSkill(dto);
     }
