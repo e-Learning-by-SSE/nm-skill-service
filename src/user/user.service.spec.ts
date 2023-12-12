@@ -3,6 +3,7 @@ import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserMgmtService } from "./user.service";
 import {
+    Company,
     ConsumedUnitData,
     LearningProgress,
     LearningUnit,
@@ -12,11 +13,11 @@ import {
     UserProfile,
 } from "@prisma/client";
 import { Skill } from "@prisma/client";
-import { NotFoundException } from "@nestjs/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
-import { LearningHistoryCreationDto, LearningHistoryDto, UserCreationDto } from "./dto";
+import { LearningHistoryCreationDto, LearningHistoryDto, QualificationDto, UserCreationDto } from "./dto";
 import { createProfiles, createProfilesWithoutSkills } from "../../prisma/user_profiles_example_seed";
 describe("User Service", () => {
     const config = new ConfigService();
@@ -29,6 +30,103 @@ describe("User Service", () => {
     beforeEach(async () => {
         // Wipe DB before test
         await dbUtils.wipeDb();
+    });
+
+    describe("createQualificationForCareerProfil", () => {
+        it("should create a new qualification for a user", async () => {
+            // Arrange: Prepare test data
+            const userId = '123';
+           
+            await dbUtils.wipeDb();
+           const comp=  await db.company.create({
+                data: {
+                    name: "Firma1",
+                },
+            });
+
+            const user : UserCreationDto = {companyId:comp.id, name:"Name123", id:userId}
+            await db.userProfile.create({data:{id:user.id, name: user.name, companyId:user.companyId}})
+            const qualificationDto: QualificationDto = {
+                name: 'Bachelor of Science',
+                year: 2020,
+                userId:"123",
+                id:"123"
+            };
+
+            // Act: Call the createQualificationForCareerProfil method
+            const createdQualification = await userService.createQualificationForCareerProfil(userId, qualificationDto);
+
+            // Assert: Check the result and database state
+            expect(createdQualification).toBeInstanceOf(QualificationDto);
+            expect(createdQualification.name).toEqual(qualificationDto.name);
+            expect(createdQualification.year).toEqual(qualificationDto.year);
+
+            // Check the database state to ensure the qualification is created
+            const userQualifications = await db.qualification.findMany({
+                where: {
+                    userId: userId,
+                },
+            });
+            expect(userQualifications).toHaveLength(1);
+            expect(userQualifications[0].name).toEqual(qualificationDto.name);
+            expect(userQualifications[0].year).toEqual(qualificationDto.year);
+        });
+
+        it("should handle errors when creating a qualification", async () => {
+            // Arrange: Prepare invalid test data
+            const invalidUserId = 'non-existent-user';
+            const qualificationDto: QualificationDto = {
+                name: 'Bachelor of Science',
+                year: 2020,
+                userId:"123",
+                id:"123"
+            };
+
+            // Act and Assert: Call the createQualificationForCareerProfil method and expect it to throw an error
+            await expect(userService.createQualificationForCareerProfil(invalidUserId, qualificationDto)).rejects.toThrowError(BadRequestException);
+        });
+    });
+
+    describe("deleteQualificationForCareerProfil", () => {
+        it("should delete a qualification for a user", async () => {
+            // Arrange: Prepare test data
+            const userId = '123';
+           
+            await dbUtils.wipeDb();
+           const comp=  await db.company.create({
+                data: {
+                    name: "Firma1",
+                },
+            });
+
+            const user : UserCreationDto = {companyId:comp.id, name:"Name123", id:userId}
+            await db.userProfile.create({data:{id:user.id, name: user.name, companyId:user.companyId}})
+            const qualificationDto: QualificationDto = {
+                name: 'Bachelor of Science',
+                year: 2020,
+                userId:"123",
+                id:"123"
+            };
+
+            const createdQualification = await userService.createQualificationForCareerProfil(userId, qualificationDto);
+         
+            // Act: Call the deleteQualificationForCareerProfil method
+            const deletedQualification = await userService.deleteQualificationForCareerProfil(userId, createdQualification.id);
+
+            // Assert: Check the result and database state
+            expect(deletedQualification).toBeInstanceOf(QualificationDto);
+            expect(deletedQualification.id).toEqual(createdQualification.id);
+
+            // Check the database state to ensure the qualification is deleted
+            const userQualifications = await db.qualification.findMany({
+                where: {
+                    userId: userId,
+                },
+            });
+            expect(userQualifications).toHaveLength(0);
+        });
+
+        
     });
 
     describe('createLearningHistory', () => {
