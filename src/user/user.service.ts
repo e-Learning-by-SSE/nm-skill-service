@@ -239,8 +239,8 @@ export class UserMgmtService {
             if (!profile) {
                 throw new NotFoundException("No careerProfile found.");
             }
-
-            return profile;
+            
+            return CareerProfileDto.createFromDao(profile);
         } catch (error) {
             // Handle any other errors or rethrow them as needed
             throw error;
@@ -261,7 +261,7 @@ export class UserMgmtService {
                     throw new NotFoundException("User not found.");
                 }
 
-                return career;
+                return CareerProfileDto.createFromDao(career);
             } else {
                 const career = await this.db.careerProfile.findMany();
 
@@ -269,7 +269,14 @@ export class UserMgmtService {
                     throw new NotFoundException("User not found.");
                 }
 
-                return career;
+                const careerProfileDtos: CareerProfileDto[] = [
+                  
+                    
+                ];
+                career.forEach(element => {
+                    careerProfileDtos.push(CareerProfileDto.createFromDao(element))
+                });
+                return careerProfileDtos;
             }
         } catch (error) {
             // Handle errors appropriately, you can log or rethrow the error
