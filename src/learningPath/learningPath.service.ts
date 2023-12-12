@@ -137,7 +137,6 @@ export class LearningPathMgmtService {
      */
     async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto, checkPath = true) {
         await this.precheckOfUpdateLearningPath(learningPathId, dto);
-   
 
         let result = await this.db.learningPath
             .update({
@@ -163,7 +162,6 @@ export class LearningPathMgmtService {
                 if (error instanceof PrismaClientKnownRequestError) {
                     // Specified Learning not found
                     if (error.code === "P2025") {
-                       
                         throw new NotFoundException(
                             `LearningPath with id ${learningPathId} not found`,
                         );
@@ -252,7 +250,10 @@ export class LearningPathMgmtService {
                     nestedSkills: true,
                 },
             })
-        ).map((skill) => SkillDto.createFromDao(skill));
+        ).map((skill) => ({
+            ...SkillDto.createFromDao(skill),
+            nestedSkills: skill.nestedSkills.map((skill) => skill.id),
+        }));
         const goalSkills = await this.db.skill.findMany({
             where: {
                 id: {
@@ -351,7 +352,6 @@ export class LearningPathMgmtService {
         page?: number,
         pageSize?: number,
     ) {
-      
         let skip;
         let take;
         if (page && pageSize) {
@@ -360,7 +360,7 @@ export class LearningPathMgmtService {
                 take = pageSize;
             }
         }
-        
+
         const learningPaths = await this.db.learningPath.findMany({
             where,
             include: {

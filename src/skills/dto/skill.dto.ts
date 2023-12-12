@@ -17,49 +17,34 @@ export class SkillDto extends OmitType(SkillCreationDto, ["owner", "nestedSkills
     @IsDefined()
     repositoryId: string;
 
-    createdAt?: string;
+    @IsDefined()
+    createdAt: string;
 
-     
-     updatedAt?: string;
-    constructor(
-        id: string,
-        name: string,
-        level: number,
-        description: string | null,
-        repositoryId: string,
-        nestedSkills: string[],
-        parentSkills: string[],
-    ) {
-        super();
-        this.name = name;
-        this.level = level;
-        this.description = description ?? undefined;
-        this.id = id;
-        this.nestedSkills = nestedSkills;
-        this.parentSkills = parentSkills;
-        this.repositoryId = repositoryId;
-    }
+    @IsDefined()
+    updatedAt: string;
 
     /**
      * Creates a new SkillDto from a DB result, but won't consider parents/children.
      * @param skill The DB result which shall be converted to a DTO
      * @returns The corresponding DTO, but without parents/children
      */
-    static createFromDao(skill: Skill, nestedSkills?: Skill[], parentSkills?: Skill[]): SkillDto {
-        const nestedSkillIds = nestedSkills?.map((element) => element.id) || [];
-        const parentSkillIds = parentSkills?.map((element) => element.id) || [];
-        let a= new SkillDto(
-            skill.id,
-            skill.name,
-            skill.level,
-            skill.description,
-            skill.repositoryId,
-            nestedSkillIds,
-            parentSkillIds,
-            
-        );
-        a.createdAt = skill.createdAt.toISOString();
-        a.updatedAt = skill.updatedAt.toISOString();
-        return a;
+    static createFromDao(
+        skill: Skill & {
+            nestedSkills: { id: string }[];
+            parentSkills?: { id: string }[];
+        },
+    ): SkillDto {
+        const dto: SkillDto = {
+            id: skill.id,
+            name: skill.name,
+            level: skill.level,
+            description: skill.description ?? undefined,
+            repositoryId: skill.repositoryId,
+            nestedSkills: skill.nestedSkills.map((element) => element.id),
+            parentSkills: skill.parentSkills?.map((element) => element.id) || [],
+            createdAt: skill.createdAt.toISOString(),
+            updatedAt: skill.updatedAt.toISOString(),
+        };
+        return dto;
     }
 }
