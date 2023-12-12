@@ -235,10 +235,12 @@ export class UserMgmtService {
                             create: {
                                 name: qualification.name,
                                 year: qualification.year,
+                                userId:qualification.userId
                             },
                             update: {
                                 name: qualification.name,
                                 year: qualification.year,
+                                userId:qualification.userId
                             },
                         })),
                     },
