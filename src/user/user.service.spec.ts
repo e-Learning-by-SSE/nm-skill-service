@@ -64,7 +64,7 @@ describe("User Service", () => {
             // Check the database state to ensure the qualification is created
             const userQualifications = await db.qualification.findMany({
                 where: {
-                    userId: userId,
+                    careerProfileId: userId,
                 },
             });
             expect(userQualifications).toHaveLength(1);
@@ -120,7 +120,7 @@ describe("User Service", () => {
             // Check the database state to ensure the qualification is deleted
             const userQualifications = await db.qualification.findMany({
                 where: {
-                    userId: userId,
+                    careerProfileId: userId,
                 },
             });
             expect(userQualifications).toHaveLength(0);
