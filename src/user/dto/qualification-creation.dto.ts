@@ -17,7 +17,7 @@ export class QualificationCreationDto {
   @IsOptional()
   year: number;
 
-  @IsDefined()
-  userId: string;
+  @IsOptional()
+  userCareerProfilId: string;
 
 }

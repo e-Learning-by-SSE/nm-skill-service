@@ -9,7 +9,7 @@ export class QualificationDto extends QualificationCreationDto {
   id: string;
 
   @IsDefined()
-  userId: string;
+  userCareerProfilId: string;
 
   constructor(id: string, name: string, year: number) {
     super();
