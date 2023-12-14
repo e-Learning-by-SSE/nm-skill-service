@@ -49,7 +49,7 @@ describe("User Service", () => {
             const qualificationDto: QualificationDto = {
                 name: 'Bachelor of Science',
                 year: 2020,
-                userId:"123",
+                userCareerProfilId:"123",
                 id:"123"
             };
 
@@ -78,7 +78,7 @@ describe("User Service", () => {
             const qualificationDto: QualificationDto = {
                 name: 'Bachelor of Science',
                 year: 2020,
-                userId:"123",
+                userCareerProfilId:"123",
                 id:"123"
             };
 
@@ -104,7 +104,7 @@ describe("User Service", () => {
             const qualificationDto: QualificationDto = {
                 name: 'Bachelor of Science',
                 year: 2020,
-                userId:"123",
+                userCareerProfilId:"123",
                 id:"123"
             };
 

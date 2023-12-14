@@ -655,7 +655,7 @@ export class UserMgmtService {
                 data: {
                     name: dto.name,
                     year: dto.year,
-                    user: { connect: { id } }, // Associate the qualification with the user
+                    careerProfile: { connect: { id } }, // Associate the qualification with the user
                 },
             });
 
@@ -664,31 +664,11 @@ export class UserMgmtService {
             throw new BadRequestException(`Failed to create qualification: ${error.message}`);
         }
     }
-    async createQualification(dto: QualificationDto) {
-        try {
-            const qual = await this.db.qualification.create({
-                data: {
-                    name: dto.name,
-                    year: dto.year,
-                    userId: dto.userId,
-                },
-            });
-
-            return QualificationDto.createFromDao(qual);
-        } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
-                if (error.code === "P2002") {
-                    throw new ForbiddenException("Qualification could not be created");
-                }
-            }
-            throw error;
-        }
-    }
+    
     async deleteQualificationForCareerProfil(careerProfileId: string, qualificationId: string) {
         try {
             const qualification = await this.db.qualification.findUnique({
-                where: { id: qualificationId, userId: careerProfileId },
+                where: { id: qualificationId, careerProfileId: careerProfileId },
             });
 
             if (!qualification) {
@@ -719,27 +699,58 @@ export class UserMgmtService {
         dto: QualificationCreationDto,
     ) {
         try {
+            // Check if the qualification exists
+            const existingQualification = await this.db.qualification.findUnique({
+                where: {
+                    id: qualificationId,
+                    careerProfileId: careerProfileId,
+                },
+            });
+    
+            if (!existingQualification) {
+                throw new NotFoundException("Qualification not found for update.");
+            }
+    
+            // Check if the careerProfileId in dto is provided and exists
+            const newCareerProfileId = dto.userCareerProfilId;
+            const careerProfileExists = newCareerProfileId
+                ? await this.db.careerProfile.findUnique({
+                      where: { id: newCareerProfileId },
+                  })
+                : true; // If not provided, assume it's valid
+    
+            if (!careerProfileExists) {
+                throw new NotFoundException("Career profile not found.");
+            }
+    
+            // Update the qualification
             const updatedQualification = await this.db.qualification.update({
                 where: {
                     id: qualificationId,
                     careerProfileId: careerProfileId,
                 },
                 data: {
-                    name: dto.name,
-                    year: dto.year,
-                    // Other fields to update
+                    name: dto.name || existingQualification.name,
+                    year: dto.year || existingQualification.year,
+                   
+                    
+                    careerProfile: dto.userCareerProfilId
+                    ? { connect: { id: dto.userCareerProfilId } }
+                    : undefined,
+          
                 },
             });
-
-            if (!updatedQualification) {
-                throw new BadRequestException("Qualification not found for update.");
-            }
-
+    
             return QualificationDto.createFromDao(updatedQualification);
         } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+                throw new NotFoundException("Qualification not found");
+            }
+    
             if (error instanceof PrismaClientValidationError) {
                 throw new BadRequestException(`Validation error: ${error.message}`);
             }
+    
             throw new BadRequestException(`Failed to update qualification: ${error.message}`);
         }
     }
