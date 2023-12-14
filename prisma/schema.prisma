@@ -105,7 +105,7 @@ model LearningPath {
   updatedAt               DateTime                   @updatedAt
   pathTeachingGoals       Skill[]                    @relation("pathGoals")
   requirements            Skill[]                    @relation("pathRequirements")
-  recommendedUnitSequence LearningUnit[]             @relation("recommendedUnitsOfLearningPath")
+  recommendedUnitSequence Json?
   lifecycle               LIFECYCLE                  @default(DRAFT)
   assignedProposedPath    PersonalizedLearningPath[]
   assignedProposedPathId  String[]
@@ -167,7 +167,6 @@ model LearningUnit {
   // learningHistoryId String?
   orga_id  String             @default("")
 
-  usedInRecommendations LearningPath[]             @relation("recommendedUnitsOfLearningPath")
   usedInProposed        PersonalizedLearningPath[] @relation("proposedUnitsOfLearningPath")
   lifecycle             LIFECYCLE                  @default(DRAFT)
 

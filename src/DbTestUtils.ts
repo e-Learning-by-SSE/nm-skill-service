@@ -118,7 +118,6 @@ export class DbTestUtils {
             include: {
                 requirements: true,
                 pathTeachingGoals: true,
-                recommendedUnitSequence: true,
             },
         });
     }

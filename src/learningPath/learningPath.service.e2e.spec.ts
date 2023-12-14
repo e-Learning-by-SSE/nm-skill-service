@@ -14,7 +14,14 @@ import {
     LearningPathListDto,
     UpdatePathRequestDto,
 } from "./dto";
-import { LIFECYCLE, Skill, SkillMap, LearningUnit as PrismaLearningUnit } from "@prisma/client";
+import {
+    LIFECYCLE,
+    Skill,
+    SkillMap,
+    LearningUnit as PrismaLearningUnit,
+    LearningUnit,
+    LearningPath,
+} from "@prisma/client";
 import { LearningPathMgmtService } from "./learningPath.service";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 
@@ -565,14 +572,24 @@ describe("Learning-Path Controller E2E-Tests", () => {
         });
 
         describe("Scenario Tests", () => {
-            it("Florian (12.12.2023): 2 nested skills to learn parent", async () => {
-                const parentSkill = await dbUtils.createSkill(skillMap, "A");
-                const nestedSkill1 = await dbUtils.createSkill(skillMap, "A1", [parentSkill.id]);
-                const nestedSkill2 = await dbUtils.createSkill(skillMap, "A2", [parentSkill.id]);
-                const unit1 = await dbUtils.createLearningUnit("Unit1", [nestedSkill1], []);
-                const unit2 = await dbUtils.createLearningUnit("Unit2", [nestedSkill2], []);
-                const initialPath = await dbUtils.createLearningPath("test-orga");
+            // Test data
+            let skillMap: SkillMap;
+            let [parentSkill, nestedSkill1, nestedSkill2]: Skill[] = [];
+            let [unit1, unit2]: LearningUnit[] = [];
+            let initialPath: LearningPath;
 
+            beforeEach(async () => {
+                await dbUtils.wipeDb();
+                skillMap = await dbUtils.createSkillMap("test-orga", "Skill Map");
+                parentSkill = await dbUtils.createSkill(skillMap, "A");
+                nestedSkill1 = await dbUtils.createSkill(skillMap, "A1", [parentSkill.id]);
+                nestedSkill2 = await dbUtils.createSkill(skillMap, "A2", [parentSkill.id]);
+                unit1 = await dbUtils.createLearningUnit("Unit1", [nestedSkill1], []);
+                unit2 = await dbUtils.createLearningUnit("Unit2", [nestedSkill2], []);
+                initialPath = await dbUtils.createLearningPath("test-orga");
+            });
+
+            it("Florian (12.12.2023): 2 nested skills to learn parent", async () => {
                 // Input
                 const update: UpdatePathRequestDto = {
                     title: "A new title",
@@ -593,6 +610,59 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     createdAt: expect.any(String),
                     updatedAt: expect.any(String),
                 };
+
+                // Test: Update of initialPath
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(200)
+                    .expect((res) => {
+                        const result = res.body as LearningPathDto;
+                        expect(result).toMatchObject(expectedResult);
+                    });
+            });
+
+            it("Florian (13.12.2023): 2 nested skills to learn parent and move them multiple times", async () => {
+                // First Update
+                let update: UpdatePathRequestDto = {
+                    title: "A new title",
+                    requirements: [],
+                    pathGoals: [parentSkill.id],
+                    recommendedUnitSequence: [unit1.id, unit2.id],
+                };
+
+                // Expected Result
+                let expectedResult: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: initialPath.owner,
+                    title: update.title!,
+                    lifecycle: initialPath.lifecycle,
+                    requirements: [],
+                    pathGoals: [parentSkill.id],
+                    recommendedUnitSequence: update.recommendedUnitSequence!,
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
+                };
+
+                console.log("First Update: " + update.recommendedUnitSequence!);
+
+                await request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(200)
+                    .expect((res) => {
+                        const result = res.body as LearningPathDto;
+                        expect(result).toMatchObject(expectedResult);
+                    });
+
+                // Second Update
+                update = {
+                    recommendedUnitSequence: [unit2.id, unit1.id],
+                };
+
+                // Expected Result
+                expectedResult.recommendedUnitSequence = update.recommendedUnitSequence!;
+                console.log("Second Update: " + update.recommendedUnitSequence!);
 
                 // Test: Update of initialPath
                 return request(app.getHttpServer())

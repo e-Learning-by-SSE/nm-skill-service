@@ -1,6 +1,6 @@
 import { IsDate, IsDefined, IsNotEmpty } from "class-validator";
 
-import { LearningPath, LearningUnit, Skill, LIFECYCLE } from "@prisma/client";
+import { LearningPath, LearningUnit, Skill, LIFECYCLE, Prisma } from "@prisma/client";
 
 export class LearningPathDto {
     @IsNotEmpty()
@@ -34,54 +34,26 @@ export class LearningPathDto {
     @IsDate()
     updatedAt: string;
 
-    constructor(
-        id: string,
-        owner: string,
-        title: string,
-        description: string | null,
-        targetAudience: string | null,
-        lifecycle: LIFECYCLE,
-        requirements: string[],
-        pathGoals: string[],
-        recommendedUnitSequence: string[],
-        createdAt: Date,
-        updatedAt: Date,
-    ) {
-        this.id = id;
-        this.owner = owner;
-        this.title = title;
-        this.description = description ?? undefined;
-        this.targetAudience = targetAudience ?? undefined;
-        this.lifecycle = lifecycle;
-        this.requirements = requirements;
-        this.pathGoals = pathGoals;
-        this.recommendedUnitSequence = recommendedUnitSequence;
-        this.createdAt = createdAt.toISOString();
-        this.updatedAt = updatedAt.toISOString();
-    }
-
     static createFromDao(
         lp: LearningPath & {
             requirements: Skill[];
             pathTeachingGoals: Skill[];
-            recommendedUnitSequence: LearningUnit[];
         },
-    ): LearningPathDto {
-        const requirements = lp.requirements.map((requirement) => requirement.id);
-        const goals = lp.pathTeachingGoals.map((goal) => goal.id);
-        const recommendedUnitSequence = lp.recommendedUnitSequence.map((unit) => unit.id);
-        return new LearningPathDto(
-            lp.id,
-            lp.owner,
-            lp.title ?? "",
-            lp.description,
-            lp.targetAudience,
-            lp.lifecycle,
-            requirements,
-            goals,
-            recommendedUnitSequence,
-            lp.createdAt,
-            lp.updatedAt,
-        );
+    ) {
+        const dto: LearningPathDto = {
+            id: lp.id,
+            owner: lp.owner,
+            title: lp.title ?? "",
+            description: lp.description ?? undefined,
+            targetAudience: lp.targetAudience ?? undefined,
+            lifecycle: lp.lifecycle,
+            requirements: lp.requirements.map((requirement) => requirement.id),
+            pathGoals: lp.pathTeachingGoals.map((goal) => goal.id),
+            recommendedUnitSequence: (lp.recommendedUnitSequence as string[]) ?? [],
+            createdAt: lp.createdAt.toISOString(),
+            updatedAt: lp.updatedAt.toISOString(),
+        };
+
+        return dto;
     }
 }
