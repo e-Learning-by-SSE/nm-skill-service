@@ -13,7 +13,7 @@ import {
     UserProfile,
 } from "@prisma/client";
 import { Skill } from "@prisma/client";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
@@ -55,7 +55,7 @@ describe("User Service", () => {
 
             // Act: Call the createQualificationForCareerProfil method
             const createdQualification = await userService.createQualificationForCareerProfil(userId, qualificationDto);
-
+            console.log(createdQualification);
             // Assert: Check the result and database state
             expect(createdQualification).toBeInstanceOf(QualificationDto);
             expect(createdQualification.name).toEqual(qualificationDto.name);
@@ -101,6 +101,7 @@ describe("User Service", () => {
 
             const user : UserCreationDto = {companyId:comp.id, name:"Name123", id:userId}
             await db.userProfile.create({data:{id:user.id, name: user.name, companyId:user.companyId}})
+          
             const qualificationDto: QualificationDto = {
                 name: 'Bachelor of Science',
                 year: 2020,

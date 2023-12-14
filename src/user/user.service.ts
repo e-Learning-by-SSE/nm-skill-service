@@ -650,15 +650,22 @@ export class UserMgmtService {
             if (!user) {
                 throw new BadRequestException("User not found");
             }
-
+            const profile = await this.db.careerProfile.create({
+                data: {
+                    userId:user.id,
+                    id:user.id,
+                     // Associate the qualification with the user
+                },
+            });
+            console.log(profile);
             const qualification = await this.db.qualification.create({
                 data: {
                     name: dto.name,
                     year: dto.year,
-                    careerProfile: { connect: { id } }, // Associate the qualification with the user
+                    careerProfile: { connect: { userId:user.id,  } }, // Associate the qualification with the user
                 },
             });
-
+            console.log(qualification);
             return QualificationDto.createFromDao(qualification);
         } catch (error) {
             throw new BadRequestException(`Failed to create qualification: ${error.message}`);
