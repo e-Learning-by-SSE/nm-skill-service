@@ -1,8 +1,8 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { SkillDto } from "../skills/dto";
-import { PathDto, PathRequestDto, PathStorageRequestDto, PathStorageResponseDto } from "./dto";
-import { Skill, getPath } from "../../nm-skill-lib/src";
+import { PathDto, PathRequestDto, PathStorageRequestDto, PathStorageResponseDto, SkillToAnalysis, SubPathDto, SubPathListDto  } from "./dto";
+import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import {
     LearningHistory,
@@ -196,12 +196,56 @@ export class PathFinderService {
                 `Could not compute a path for the specified goal: ${dto.goal}`,
             );
         }
+
+        if (path.cost == -1) {
+            throw new NotFoundException(
+                `Could not compute a path for the specified goal: ${dto.goal}`,
+                `Missing skills are : ${path.path[0].requiredSkills.map((lu) => lu.id)}`
+            );
+        }
+
         return new PathDto(
             path.path.map((lu) => lu.id),
             path.cost,
         );
     }
 
+    /**
+     * @param dto Specifies the search parameters (goals to be analyzed)
+     * @returns A list of the missing skills with the sub paths for them
+     */
+    public async skillAnalysis(dto: SkillToAnalysis) {
+        const goal = await this.loadSkills(dto.goal);
+
+        // Find all skills that are in the same repository as the goals (most likely to find a solution for them)
+        // Could be revised in future if algorithm detects relevant skills
+        const repositories = [...new Set(goal.map((goal) => goal.repositoryId))];
+        const skills = await this.loadAllSkillsOfRepositories(repositories);
+
+        const skillAnalyzedPath = await getSkillAnalysis({
+            skills: skills,
+            learningUnits: await this.luFactory.getLearningUnits(),
+            goal
+        });
+
+        if (!skillAnalyzedPath) {
+            throw new NotFoundException(
+                `There is a learning path for the goal: ${dto.goal}, try to use computePath`,
+            );
+        }
+
+        const subPathDtoList = new SubPathListDto();
+        for (let index = 0; index < skillAnalyzedPath.length; index++) {
+            const subPath = new SubPathDto(
+                skillAnalyzedPath[index].missingSkill,
+                skillAnalyzedPath[index].subPath.path.map((lu) => lu.id),
+            );
+            subPathDtoList.subPaths.push(subPath);
+        }
+
+        return subPathDtoList;
+    }
+    
     private async loadSkills(skillIds: string[]) {
         const skillDAOs = await this.db.skill.findMany({
             where: {
