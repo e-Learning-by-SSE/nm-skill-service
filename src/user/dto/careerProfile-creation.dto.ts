@@ -4,7 +4,10 @@
  * 
  */
 
+import { Job, Qualification } from '@prisma/client';
 import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
+import { JobCreationDto } from './job-creation.dto';
+import { QualificationCreationDto } from './qualification-creation.dto';
 export class CareerProfileCreationDto {
   
   /**
@@ -21,6 +24,17 @@ export class CareerProfileCreationDto {
   @IsDefined()
   userId: string;
 
+  @IsOptional()
+  selfReportedSkills: string[] = [];
+
+  @IsOptional()
+  verifiedSkills: string[] = [];
+
+  @IsOptional()
+  jobHistory: Job[] = [];
+
+  @IsOptional()
+  qualifications: Qualification[] = [];
 
 
 }

@@ -185,13 +185,13 @@ export class UserMgmtService {
             const existingCareerProfile = await this.db.careerProfile.findUnique({
                 where: {
                     id: careerProfileId,
-                },
+                },include:{jobHistory:true}
             });
 
             if (!existingCareerProfile) {
                 throw new NotFoundException("Career profile not found.");
             }
-            console.log(dto.professionalInterests);
+         
             const updatedCareerProfile = await this.db.careerProfile.update({
                 where: {
                     id: careerProfileId,
@@ -202,6 +202,12 @@ export class UserMgmtService {
                     currentJobIdAtBerufeNet:
                         dto.currentJobIdAtBerufeNet ||
                         existingCareerProfile.currentJobIdAtBerufeNet,
+                    selfReportedSkills: {
+                        connect: dto.selfReportedSkills.map((id) => ({ id })),
+                    },
+                    verifiedSkills: {
+                        connect: dto.verifiedSkills.map((id) => ({ id })),
+                    },
                     ...(dto.currentCompanyId
                         ? {
                               currentCompany: {
@@ -210,9 +216,45 @@ export class UserMgmtService {
                           }
                         : {}),
                     ...(dto.userId ? { user: { connect: { id: dto.userId } } } : {}),
+                    jobHistory: {
+                
+                        upsert: dto.jobHistory?.map((job) => ({
+                            where: { id: job.id || undefined },
+                            create: {
+                              
+                                jobtitle: job.jobtitle,
+                                userId: job.userId,
+                                companyId:job.companyId,
+                                starttime: job.starttime,
+                                endtime: job.endtime
+                            },
+                            update: {
+                                jobtitle: job.jobtitle,
+                                userId: job.userId,
+                                companyId:job.companyId,
+                                starttime: job.starttime,
+                                endtime: job.endtime
+                            },
+                        })),
+                    },
+                    qualifications: {
+                        upsert: dto.qualifications?.map((qualification) => ({
+                            where: { id: qualification.id || undefined },
+                            create: {
+                                name: qualification.name,
+                                year: qualification.year,
+                                userId:qualification.careerProfileId
+                            },
+                            update: {
+                                name: qualification.name,
+                                year: qualification.year,
+                                userId:qualification.careerProfileId
+                            },
+                        })),
+                    },
+                    
                 },
             });
-            console.log(updatedCareerProfile);
             const careerProfileDto = CareerProfileDto.createFromDao(updatedCareerProfile);
 
             return careerProfileDto;
@@ -231,7 +273,7 @@ export class UserMgmtService {
                 throw new NotFoundException("No careerProfile found.");
             }
 
-            return profile;
+            return CareerProfileDto.createFromDao(profile);
         } catch (error) {
             throw error;
         }
@@ -247,7 +289,7 @@ export class UserMgmtService {
                 throw new NotFoundException("No careerProfile found.");
             }
 
-            return profile;
+            return CareerProfileDto.createFromDao(profile);
         } catch (error) {
             // Handle any other errors or rethrow them as needed
             throw error;
@@ -268,7 +310,7 @@ export class UserMgmtService {
                     throw new NotFoundException("User not found.");
                 }
 
-                return career;
+                return CareerProfileDto.createFromDao(career);
             } else {
                 const career = await this.db.careerProfile.findMany();
 
@@ -276,7 +318,11 @@ export class UserMgmtService {
                     throw new NotFoundException("User not found.");
                 }
 
-                return career;
+                const careerProfileDtos: CareerProfileDto[] = [];
+                career.forEach((element) => {
+                    careerProfileDtos.push(CareerProfileDto.createFromDao(element));
+                });
+                return careerProfileDtos;
             }
         } catch (error) {
             // Handle errors appropriately, you can log or rethrow the error
@@ -699,7 +745,6 @@ export class UserMgmtService {
             throw new BadRequestException(`Failed to delete qualification: ${error.message}`);
         }
     }
-
     async patchQualificationForCareerProfil(
         careerProfileId: string,
         qualificationId: string,
