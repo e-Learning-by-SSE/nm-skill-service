@@ -132,7 +132,7 @@ export class UserMgmtController {
     patchCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
         
-        @Body() dto: CareerProfileCreationDto,dto2: JobCreationDto
+        @Body() dto: CareerProfileCreationDto
     ) {
         return this.userService.patchCareerProfileByID(careerProfileId, dto);
     }
