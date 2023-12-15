@@ -191,7 +191,7 @@ export class UserMgmtService {
             if (!existingCareerProfile) {
                 throw new NotFoundException("Career profile not found.");
             }
-            console.log(dto.professionalInterests);
+         
             const updatedCareerProfile = await this.db.careerProfile.update({
                 where: {
                     id: careerProfileId,
