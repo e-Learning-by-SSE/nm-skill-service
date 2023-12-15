@@ -228,7 +228,7 @@ describe("LearningPath Service", () => {
             expect(initialPath.lifecycle).not.toEqual(updateDto.lifecycle);
             expect(initialPath.requirements).toEqual([]);
             expect(initialPath.pathTeachingGoals).toEqual([]);
-            expect(initialPath.recommendedUnitSequence).toEqual([]);
+            expect(initialPath.recommendedUnitSequence).toBeNull();
 
             // Expected result
             // Non-Null Assertion (! operator, may cause runtime errors) used, because:
@@ -373,6 +373,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     requirements: [skill3.id],
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -387,6 +388,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     pathGoals: [skill3.id],
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -401,6 +403,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     recommendedUnitSequence: [unit1.id, unit2.id, unit3.id],
+                    updatedAt: expect.any(String),
                 };
                 await expect(
                     learningPathService.updateLearningPath(initialPath.id, updateDto),
@@ -500,6 +503,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     pathGoals: [],
+                    updatedAt: expect.any(String),
                 };
 
                 await expect(
@@ -515,6 +519,7 @@ describe("LearningPath Service", () => {
                 const expected: LearningPathDto = {
                     ...initialPath,
                     recommendedUnitSequence: [],
+                    updatedAt: expect.any(String),
                 };
 
                 await expect(

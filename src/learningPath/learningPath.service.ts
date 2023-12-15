@@ -51,7 +51,6 @@ export class LearningPathMgmtService {
                 include: {
                     requirements: true,
                     pathTeachingGoals: true,
-                    recommendedUnitSequence: true,
                 },
             });
 
@@ -67,6 +66,12 @@ export class LearningPathMgmtService {
         }
     }
 
+    /**
+     * Checks if a learningPath may be updated with the passed parameters and throws an error if not.
+     * @param learningPathId The path to be checked (checks its lifecycle)
+     * @param dto The data to be set
+     * @returns Will return an exception if the update is not allowed, otherwise nothing will be returned.
+     */
     async precheckOfUpdateLearningPath(learningPathId: string, dto: UpdatePathRequestDto) {
         const oldLearningPath = await this.db.learningPath.findUnique({
             where: {
@@ -136,7 +141,14 @@ export class LearningPathMgmtService {
      * @returns The updated LearningPath.
      */
     async updateLearningPath(learningPathId: string, dto: UpdatePathRequestDto, checkPath = true) {
+        // Check if path may be altered (based on its lifecycle)
         await this.precheckOfUpdateLearningPath(learningPathId, dto);
+
+        // Delete on null -> []
+        // No action on undefined -> undefined
+        // Overwrite existing values on value -> value
+        const recommendedUnits =
+            dto.recommendedUnitSequence === null ? [] : dto.recommendedUnitSequence;
 
         let result = await this.db.learningPath
             .update({
@@ -150,12 +162,11 @@ export class LearningPathMgmtService {
                     targetAudience: dto.targetAudience,
                     requirements: this.updateQuery(dto.requirements),
                     pathTeachingGoals: this.updateQuery(dto.pathGoals),
-                    recommendedUnitSequence: this.updateQuery(dto.recommendedUnitSequence),
+                    recommendedUnitSequence: recommendedUnits,
                 },
                 include: {
                     requirements: true,
                     pathTeachingGoals: true,
-                    recommendedUnitSequence: true,
                 },
             })
             .catch((error) => {
@@ -163,7 +174,7 @@ export class LearningPathMgmtService {
                     // Specified Learning not found
                     if (error.code === "P2025") {
                         throw new NotFoundException(
-                            `LearningPath with id ${learningPathId} not found`,
+                            `LearningPath "${learningPathId}" could not be loaded due to: ${error.message}`,
                         );
                     }
                 }
@@ -199,7 +210,6 @@ export class LearningPathMgmtService {
                 include: {
                     requirements: true,
                     pathTeachingGoals: true,
-                    recommendedUnitSequence: true,
                 },
             });
         }
@@ -250,10 +260,7 @@ export class LearningPathMgmtService {
                     nestedSkills: true,
                 },
             })
-        ).map((skill) => ({
-            ...SkillDto.createFromDao(skill),
-            nestedSkills: skill.nestedSkills.map((skill) => skill.id),
-        }));
+        ).map((skill) => SkillDto.createFromDao(skill));
         const goalSkills = await this.db.skill.findMany({
             where: {
                 id: {
@@ -366,7 +373,6 @@ export class LearningPathMgmtService {
             include: {
                 requirements: true,
                 pathTeachingGoals: true,
-                recommendedUnitSequence: true,
             },
             skip, // Skip the specified number of items
             take, // Take the specified number of items
@@ -387,7 +393,6 @@ export class LearningPathMgmtService {
             include: {
                 requirements: true,
                 pathTeachingGoals: true,
-                recommendedUnitSequence: true,
             },
         });
 
