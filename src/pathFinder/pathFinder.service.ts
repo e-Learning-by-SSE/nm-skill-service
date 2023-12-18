@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { SkillDto } from "../skills/dto";
-import { PathDto, PathRequestDto, PathStorageRequestDto, PathStorageResponseDto, SkillToAnalysis, SubPathDto, SubPathListDto  } from "./dto";
+import { PathDto, PathRequestDto, PathStorageRequestDto, PathStorageResponseDto, SkillsToAnalyze, SubPathDto, SubPathListDto  } from "./dto";
 import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import {
@@ -214,7 +214,7 @@ export class PathFinderService {
      * @param dto Specifies the search parameters (goals to be analyzed)
      * @returns A list of the missing skills with the sub paths for them
      */
-    public async skillAnalysis(dto: SkillToAnalysis) {
+    public async skillAnalysis(dto: SkillsToAnalyze) {
         const goal = await this.loadSkills(dto.goal);
 
         // Find all skills that are in the same repository as the goals (most likely to find a solution for them)
@@ -235,13 +235,13 @@ export class PathFinderService {
         }
 
         const subPathDtoList = new SubPathListDto();
-        for (let index = 0; index < skillAnalyzedPath.length; index++) {
+        skillAnalyzedPath.forEach(analyzedPath => {
             const subPath = new SubPathDto(
-                skillAnalyzedPath[index].missingSkill,
-                skillAnalyzedPath[index].subPath.path.map((lu) => lu.id),
+                analyzedPath.missingSkill,
+                analyzedPath.subPath.path.map((lu) => lu.id),
             );
             subPathDtoList.subPaths.push(subPath);
-        }
+        });
 
         return subPathDtoList;
     }

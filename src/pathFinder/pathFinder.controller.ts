@@ -2,7 +2,7 @@ import { Body, Controller, Param, Post } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { PathFinderService } from "./pathFinder.service";
-import { PathRequestDto, PathStorageRequestDto, SkillToAnalysis } from "./dto";
+import { PathRequestDto, PathStorageRequestDto, SkillsToAnalyze } from "./dto";
 
 @ApiTags("PathFinder")
 @Controller("PathFinder")
@@ -80,7 +80,7 @@ export class PathFinderController {
      * ```
      */
     @Post("skillAnalysis/")
-    skillAnalysis(@Body() dto: SkillToAnalysis) {
+    skillAnalysis(@Body() dto: SkillsToAnalyze) {
         return this.pfService.skillAnalysis(dto);
     }
     
