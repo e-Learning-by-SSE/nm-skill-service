@@ -10,20 +10,28 @@ import { LearningPathDto } from "../../learningPath/dto";
  */
 export class PersonalizedLearningPathCreationDto {
     /**
-     * 
      * // SomethingDto are specifically for data(object) transfer outside the (Prisma)-DB
-     * 
      */
     @IsNotEmpty()
     id: string;
-    pathTeachingGoals: SkillDto[]; 
-    unitSequence: SearchLearningUnitDto[];
-    userProfile: LearningHistoryDto;   
-    userProfileId: string;
-    learningPath: LearningPathDto;
-    learningPathId: string;
-    progress: LearningPathProgress;  // progress: LearningPathProgressDto;   // Fix to later, when dto is available
-    lifecycle: LIFECYCLE;
-
-
+    @IsOptional()
+    pathTeachingGoals?: SkillDto[]; 
+    @IsOptional()
+    unitSequence?: SearchLearningUnitDto[];
+    @IsOptional()
+    userProfile?: LearningHistoryDto;  
+    @IsOptional() 
+    userProfileId?: string;
+    @IsOptional()
+    learningPath?: LearningPathDto;
+    @IsOptional()
+    learningPathId?: string;
+    @IsOptional()
+    progress?: LearningPathProgress;  // progress: LearningPathProgressDto;   // Fix to later, when dto is available
+    @IsOptional()
+    lifecycle?: LIFECYCLE;
+    @IsNotEmpty()
+    createdAt: Date;
+    @IsNotEmpty()
+    updatedAt: Date;
 }
