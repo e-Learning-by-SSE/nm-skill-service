@@ -4,10 +4,10 @@ const prisma = new PrismaClient();
 
 const learningProgressProfiles = [
     // Java Profile: Knows Hello World <-> LU 1
-    {
-        id: "1001",
-        skills: ["15", "1001"],
-    },
+    // {
+    //     id: "1001",
+    //     skills: ["15", "1001"],
+    // },
     // DigiMedia Profile: Knows Basics about Industry 4.0 <-> LU 2003, 2004
     {
         id: "2001",
@@ -16,15 +16,12 @@ const learningProgressProfiles = [
 ];
 
 const learningProgressProfilesWithoutSkills = [
-
-    {
-        id: "1001",
-      
-    },
+    // {
+    //     id: "1001",
+    // },
 
     {
         id: "2001",
-      
     },
 ];
 
@@ -51,8 +48,7 @@ export async function createProfilesWithoutSkills() {
             await prisma.userProfile.create({
                 data: {
                     id: profile.id,
-                   
-                    
+
                     status: USERSTATUS.ACTIVE,
                 },
             });

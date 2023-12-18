@@ -1,5 +1,5 @@
 import axios from "axios";
-import { SearchLearningUnitCreationDto } from "../../learningUnit/dto";
+import { SearchLearningUnitCreationDto } from "../learningUnit/dto";
 
 export class MLSClient {
     private BASE_URL: string;

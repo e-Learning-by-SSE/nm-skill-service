@@ -1,14 +1,9 @@
-import { IsDefined, IsNotEmpty, IsDate } from "class-validator";
+import { IsNotEmpty } from "class-validator";
 import {
-    Skill,
-    LearningHistory,
-    LearningUnit,
-    LearningPath,
     LearningPathProgress,
     PersonalizedLearningPath,
     LIFECYCLE,
 } from "@prisma/client";
-import { OmitType } from "@nestjs/swagger";
 import { PersonalizedLearningPathCreationDto } from "./personalizedLearningPath-creation.dto";
 import { SkillDto } from "../../skills/dto/skill.dto";
 import { SearchLearningUnitDto } from "../../learningUnit/dto/learningUnit.dto";

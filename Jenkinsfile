@@ -88,7 +88,10 @@ pipeline {
                 }
 
                 stage('Docker Build') {
-                    steps {
+                    when {
+                        branch 'main'
+                    }
+					steps {
                         ssedocker {
                             create {
                                 target "${env.DOCKER_TARGET}"

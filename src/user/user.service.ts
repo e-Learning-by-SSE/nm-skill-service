@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 
 import { PrismaService } from "../prisma/prisma.service";
 import {
@@ -21,10 +26,15 @@ import {
     PersonalizedLearningPathCreationDto,
     PersonalizedLearningPathDto,
 } from "./dto";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+    PrismaClientKnownRequestError,
+    PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 import { STATUS, USERSTATUS, UserProfile } from "@prisma/client";
 import { connect } from "http2";
+import { JobUpdateDto } from "./dto/job-update.dto";
+import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -197,6 +207,7 @@ export class UserMgmtService {
                 where: {
                     id: careerProfileId,
                 },
+                include: { jobHistory: true },
             });
 
             if (!existingCareerProfile) {
@@ -210,6 +221,15 @@ export class UserMgmtService {
                 data: {
                     professionalInterests:
                         dto.professionalInterests || existingCareerProfile.professionalInterests,
+                    currentJobIdAtBerufeNet:
+                        dto.currentJobIdAtBerufeNet ||
+                        existingCareerProfile.currentJobIdAtBerufeNet,
+                    selfReportedSkills: {
+                        connect: dto.selfReportedSkills.map((id) => ({ id })),
+                    },
+                    verifiedSkills: {
+                        connect: dto.verifiedSkills.map((id) => ({ id })),
+                    },
                     ...(dto.currentCompanyId
                         ? {
                               currentCompany: {
@@ -218,6 +238,40 @@ export class UserMgmtService {
                           }
                         : {}),
                     ...(dto.userId ? { user: { connect: { id: dto.userId } } } : {}),
+                    jobHistory: {
+                        upsert: dto.jobHistory?.map((job) => ({
+                            where: { id: job.id || undefined },
+                            create: {
+                                jobtitle: job.jobtitle,
+                                userId: job.userId,
+                                companyId: job.companyId,
+                                starttime: job.starttime,
+                                endtime: job.endtime,
+                            },
+                            update: {
+                                jobtitle: job.jobtitle,
+                                userId: job.userId,
+                                companyId: job.companyId,
+                                starttime: job.starttime,
+                                endtime: job.endtime,
+                            },
+                        })),
+                    },
+                    qualifications: {
+                        upsert: dto.qualifications?.map((qualification) => ({
+                            where: { id: qualification.id || undefined },
+                            create: {
+                                name: qualification.name,
+                                year: qualification.year,
+                                userId: qualification.careerProfileId,
+                            },
+                            update: {
+                                name: qualification.name,
+                                year: qualification.year,
+                                userId: qualification.careerProfileId,
+                            },
+                        })),
+                    },
                 },
             });
             const careerProfileDto = CareerProfileDto.createFromDao(updatedCareerProfile);
@@ -227,6 +281,7 @@ export class UserMgmtService {
             throw new Error(`Error patching career profile by ID: ${error.message}`);
         }
     }
+
     async deleteCareerProfileByID(careerProfileId: string) {
         try {
             const profile = await this.db.careerProfile.delete({
@@ -237,7 +292,7 @@ export class UserMgmtService {
                 throw new NotFoundException("No careerProfile found.");
             }
 
-            return profile;
+            return CareerProfileDto.createFromDao(profile);
         } catch (error) {
             throw error;
         }
@@ -253,7 +308,7 @@ export class UserMgmtService {
                 throw new NotFoundException("No careerProfile found.");
             }
 
-            return profile;
+            return CareerProfileDto.createFromDao(profile);
         } catch (error) {
             // Handle any other errors or rethrow them as needed
             throw error;
@@ -274,7 +329,7 @@ export class UserMgmtService {
                     throw new NotFoundException("User not found.");
                 }
 
-                return career;
+                return CareerProfileDto.createFromDao(career);
             } else {
                 const career = await this.db.careerProfile.findMany();
 
@@ -282,7 +337,11 @@ export class UserMgmtService {
                     throw new NotFoundException("User not found.");
                 }
 
-                return career;
+                const careerProfileDtos: CareerProfileDto[] = [];
+                career.forEach((element) => {
+                    careerProfileDtos.push(CareerProfileDto.createFromDao(element));
+                });
+                return careerProfileDtos;
             }
         } catch (error) {
             // Handle errors appropriately, you can log or rethrow the error
@@ -385,6 +444,12 @@ export class UserMgmtService {
                     learningBehavior: {
                         create: { id: dto.id },
                     },
+                    careerProfile: {
+                        create: { id: dto.id, currentCompanyId: dto.companyId },
+                    },
+                    learningProfile: {
+                        create: { id: dto.id, semanticDensity: 0, semanticGravity: 0 },
+                    },
                 },
                 include: { company: true },
             });
@@ -469,7 +534,73 @@ export class UserMgmtService {
         }
     }
 
-    async createJob(dto: JobCreationDto) {
+    async deleteJobHistoryAtCareerProfileByID(careerProfileId: string, jobHistoryId: string) {
+        try {
+            const careerProfile = await this.db.careerProfile.findUnique({
+                where: { id: careerProfileId },
+            });
+
+            if (!careerProfile) {
+                throw new NotFoundException("Career profile not found");
+            }
+            const jobHistory = await this.db.job.findUnique({
+                where: { id: jobHistoryId },
+            });
+
+            if (!jobHistory) {
+                throw new NotFoundException("Job history entry not found");
+            }
+
+            await this.db.job.delete({
+                where: { id: jobHistoryId },
+            });
+
+            return { success: true, message: "Job history entry deleted successfully" };
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+            }
+            throw error;
+        }
+    }
+    async patchJobHistoryAtCareerProfileByID(
+        careerProfileId: string,
+        jobHistoryId: string,
+        dto: JobUpdateDto,
+    ) {
+        try {
+            const careerProfile = await this.db.careerProfile.findUnique({
+                where: { id: careerProfileId },
+            });
+
+            if (!careerProfile) {
+                throw new NotFoundException("Career profile not found");
+            }
+
+            const jobHistory = await this.db.job.findUnique({
+                where: { id: jobHistoryId },
+            });
+
+            if (!jobHistory) {
+                throw new NotFoundException("Job history entry not found");
+            }
+
+            const updatedJobHistory = await this.db.job.update({
+                where: { id: jobHistoryId },
+                data: {
+                    endtime: dto.endtime || jobHistory.endtime,
+                    starttime: dto.starttime || jobHistory.starttime,
+                    jobtitle: dto.jobtitle || jobHistory.jobtitle,
+                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet || jobHistory.jobIdAtBerufeNet,
+                },
+            });
+
+            return updatedJobHistory;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async createJob(id: string, dto: JobCreationDto) {
         // Create and return a Job
         try {
             const jb = await this.db.job.create({
@@ -478,7 +609,8 @@ export class UserMgmtService {
                     starttime: dto.starttime,
                     endtime: dto.endtime,
                     companyId: dto.companyId,
-                    userId: dto.userId,
+                    userId: id,
+                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet,
                 },
             });
 
@@ -542,11 +674,11 @@ export class UserMgmtService {
     }
 
     async createCP(dto: CareerProfileCreationDto) {
-        console.log(dto.currentCompanyId);
         try {
             const cp = await this.db.careerProfile.create({
                 data: {
                     professionalInterests: dto.professionalInterests,
+                    currentJobIdAtBerufeNet: dto.currentJobIdAtBerufeNet,
 
                     user: {
                         connect: {
@@ -573,27 +705,145 @@ export class UserMgmtService {
         }
     }
 
-    async createQualification(dto: QualificationDto) {
+    async createQualificationForCareerProfil(id: string, dto: QualificationDto) {
         try {
-            const qual = await this.db.qualification.create({
+            // Ensure that the user with the given ID exists
+            const user = await this.db.userProfile.findUnique({
+                where: { id },
+            });
+
+            if (!user) {
+                throw new BadRequestException("User not found");
+            }
+            const profile = await this.db.careerProfile.create({
+                data: {
+                    userId: user.id,
+                    id: user.id,
+                    // Associate the qualification with the user
+                },
+            });
+            console.log(profile);
+            const qualification = await this.db.qualification.create({
                 data: {
                     name: dto.name,
                     year: dto.year,
-                    userId: dto.userId,
+                    careerProfile: { connect: { userId: user.id } }, // Associate the qualification with the user
+                },
+            });
+            console.log(qualification);
+            return QualificationDto.createFromDao(qualification);
+        } catch (error) {
+            throw new BadRequestException(`Failed to create qualification: ${error.message}`);
+        }
+    }
+
+    async deleteQualificationForCareerProfil(careerProfileId: string, qualificationId: string) {
+        try {
+            const qualification = await this.db.qualification.findUnique({
+                where: { id: qualificationId, careerProfileId: careerProfileId },
+            });
+
+            if (!qualification) {
+                throw new NotFoundException("Qualification not found");
+            }
+            const deletedQualification = await this.db.qualification.delete({
+                where: {
+                    id: qualificationId,
                 },
             });
 
-            return QualificationDto.createFromDao(qual);
-        } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
-                if (error.code === "P2002") {
-                    throw new ForbiddenException("Qualification could not be created");
-                }
+            if (!deletedQualification) {
+                throw new BadRequestException("Qualification not found for deletion.");
             }
-            throw error;
+
+            return QualificationDto.createFromDao(deletedQualification);
+        } catch (error) {
+            if (error instanceof PrismaClientValidationError) {
+                throw new BadRequestException(`Validation error: ${error.message}`);
+            }
+            throw new BadRequestException(`Failed to delete qualification: ${error.message}`);
         }
     }
+    async patchQualificationForCareerProfil(
+        careerProfileId: string,
+        qualificationId: string,
+        dto: QualificationCreationDto,
+    ) {
+        try {
+            // Check if the qualification exists
+            const existingQualification = await this.db.qualification.findUnique({
+                where: {
+                    id: qualificationId,
+                    careerProfileId: careerProfileId,
+                },
+            });
+
+            if (!existingQualification) {
+                throw new NotFoundException("Qualification not found for update.");
+            }
+
+            // Check if the careerProfileId in dto is provided and exists
+            const newCareerProfileId = dto.userCareerProfileId;
+            const careerProfileExists = newCareerProfileId
+                ? await this.db.careerProfile.findUnique({
+                      where: { id: newCareerProfileId },
+                  })
+                : true; // If not provided, assume it's valid
+
+            if (!careerProfileExists) {
+                throw new NotFoundException("Career profile not found.");
+            }
+
+            // Update the qualification
+            const updatedQualification = await this.db.qualification.update({
+                where: {
+                    id: qualificationId,
+                    careerProfileId: careerProfileId,
+                },
+                data: {
+                    name: dto.name || existingQualification.name,
+                    year: dto.year || existingQualification.year,
+
+                    careerProfile: dto.userCareerProfileId
+                        ? { connect: { id: dto.userCareerProfileId } }
+                        : undefined,
+                },
+            });
+
+            return QualificationDto.createFromDao(updatedQualification);
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+                throw new NotFoundException("Qualification not found");
+            }
+
+            if (error instanceof PrismaClientValidationError) {
+                throw new BadRequestException(`Validation error: ${error.message}`);
+            }
+
+            throw new BadRequestException(`Failed to update qualification: ${error.message}`);
+        }
+    }
+    async getQualificationForCareerProfil(qualificationId: string) {
+        try {
+            const qualification = await this.db.qualification.findUnique({
+                where: {
+                    id: qualificationId,
+                },
+            });
+
+            if (!qualification) {
+                throw new BadRequestException("Qualification not found.");
+            }
+
+            return QualificationDto.createFromDao(qualification);
+        } catch (error) {
+            if (error instanceof PrismaClientValidationError) {
+                throw new BadRequestException(`Validation error: ${error.message}`);
+            }
+            throw new BadRequestException(`Failed to retrieve qualification: ${error.message}`);
+        }
+    }
+
     async editStatusForAConsumedUnitById(consumedUnitId: string, status: STATUS) {
         try {
             // Find users with the given learning unit in their learning history

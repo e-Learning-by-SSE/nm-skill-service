@@ -20,6 +20,7 @@ import {
     ResolvedSkillListDto,
 } from "./dto";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
+import { SkillUpdateDto } from "./dto/skill-update.dto";
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -55,9 +56,7 @@ export class SkillMgmtService {
 
         // Map the retrieved skills to SkillDto objects and include nestedSkills and parentSkills
 
-        skillList.skills = skills.map((skill) =>
-            SkillDto.createFromDao(skill, skill.nestedSkills, skill.parentSkills),
-        );
+        skillList.skills = skills.map((skill) => SkillDto.createFromDao(skill));
 
         // Return the skillList containing the skills hierarchy
         return skillList;
@@ -384,7 +383,7 @@ export class SkillMgmtService {
                     parentSkills: true, // Include nestedSkills in the response
                 },
             });
-            return SkillDto.createFromDao(skill, skill.nestedSkills);
+            return SkillDto.createFromDao(skill);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 // unique field already exists
@@ -429,7 +428,7 @@ export class SkillMgmtService {
             throw new NotFoundException(`Specified skill not found: ${skillId}`);
         }
 
-        const skill = SkillDto.createFromDao(dao, dao.nestedSkills);
+        const skill = SkillDto.createFromDao(dao);
         skill.nestedSkills = dao.nestedSkills.map((c) => c.id);
         skill.parentSkills = dao.parentSkills.map((sk) => sk.id);
         return skill;
@@ -553,7 +552,7 @@ export class SkillMgmtService {
         // Resolve nested skills if there are any
         const skillList = new SkillListDto();
         for (const skill of skills) {
-            const child = SkillDto.createFromDao(skill, skill.nestedSkills);
+            const child = SkillDto.createFromDao(skill);
             // Add nested skills
             child.nestedSkills = skill.nestedSkills.map((c) => c.id);
 
@@ -718,7 +717,7 @@ export class SkillMgmtService {
         return true;
     }
 
-    async adaptSkill(dto: SkillDto): Promise<void> {
+    async adaptSkill(dto: SkillUpdateDto) {
         // Check if the skill is already in use
         const isUsed = await this.isSkillUsed(dto.id);
         if (isUsed) {
@@ -733,17 +732,52 @@ export class SkillMgmtService {
             );
         }
 
+        await this.db.skill.update({
+            where: { id: dto.id },
+            data: {
+                nestedSkills: { set: [] },
+                parentSkills: { set: [] },
+            },
+        });
+        const existingSkill = await this.db.skill.findUnique({
+            where: { id: dto.id },
+            include: { nestedSkills: true, parentSkills: true },
+        });
+        if (!existingSkill) {
+            throw new BadRequestException("Skill not found");
+        }
         // Update the skill with the provided data, including nestedSkills
         const updatedSkill = await this.db.skill.update({
             where: { id: dto.id },
             data: {
-                name: dto.name,
-                level: dto.level,
-                description: dto.description,
+                name: dto.name ?? existingSkill.name,
+                level: dto.level ?? existingSkill.level,
+                description: dto.description ?? existingSkill.description,
+
                 nestedSkills: {
-                    connect: dto.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
+                    connect:
+                        dto.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })) ??
+                        existingSkill.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
+                },
+                parentSkills: {
+                    connect:
+                        dto.parentSkills.map((nestedSkillId) => ({ id: nestedSkillId })) ??
+                        existingSkill.parentSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
                 },
             },
+            include: {
+                nestedSkills: true,
+                parentSkills: true,
+                pathTeachingGoals: true,
+            },
         });
+
+        return SkillDto.createFromDao(updatedSkill);
+    }
+    isValidDate(dateString: any) {
+        const date = new Date(dateString);
+
+        // Check if the date is valid and the string is not 'Invalid Date'
+        return !isNaN(date.getTime());
     }
 }

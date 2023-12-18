@@ -1,30 +1,29 @@
-import { IsDefined, IsNotEmpty } from 'class-validator';
+import { IsDefined, IsNotEmpty } from "class-validator";
 
-import { Qualification, CareerProfile } from '@prisma/client';
+import { Qualification } from "@prisma/client";
 
-import { QualificationCreationDto } from './qualification-creation.dto';
+import { QualificationCreationDto } from "./qualification-creation.dto";
 
 export class QualificationDto extends QualificationCreationDto {
-  @IsNotEmpty()
-  id: string;
+    @IsNotEmpty()
+    id: string;
 
-  @IsDefined()
-  userId: string;
+    @IsDefined()
+    userCareerProfileId: string;
 
-  constructor(id: string, name: string, year: number, userId: string) {
-    super();
-    this.id = id;
-    this.name = name;
-    this.year = year;
-    this.userId = userId;
-  }
+    constructor(id: string, name: string, year: number) {
+        super();
+        this.id = id;
+        this.name = name;
+        this.year = year;
+    }
 
-  /**
-   * Creates a new QualificationDto from a DB result
-   * @param skilqualification The DB result which shall be converted to a DTO
-   * @returns The corresponding DTO
-   */
-  static createFromDao(qualification: Qualification): QualificationDto {
-    return new QualificationDto(qualification.id, qualification.name, qualification.year, qualification.userId);
-  }
+    /**
+     * Creates a new QualificationDto from a DB result
+     * @param qualification The DB result which shall be converted to a DTO
+     * @returns The corresponding DTO
+     */
+    static createFromDao(qualification: Qualification): QualificationDto {
+        return new QualificationDto(qualification.id, qualification.name, qualification.year);
+    }
 }

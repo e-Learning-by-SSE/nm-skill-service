@@ -31,14 +31,22 @@ case "${DB_ACTION}" in
 
     "INIT")
         # Start the NestJS application
-         printf "Initializing the database and fills these with administrative values\n"
+        printf "Initializing the database and fills these with administrative values\n"
         cd /usr/src/app/
-        node /usr/src/app/dist/src/main.js
         npx prisma db push
         cd /usr/src/app/
         node /usr/src/app/dist/src/main.js
         ;;
     
+    "RESET")
+        # Start the NestJS application
+        printf "Resetting and Initializing the database\n"
+        cd /usr/src/app/
+        npx prisma db push --force-reset
+        cd /usr/src/app/
+        node /usr/src/app/dist/src/main.js
+        ;;
+
     "MIGRATE")
         # Start the NestJS application
         printf "Migrate the database \n"

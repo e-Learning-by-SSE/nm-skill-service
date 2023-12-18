@@ -31,9 +31,9 @@ describe("Skill Controller Tests", () => {
     let skillMap2: SkillMap;
     let skillMap3: SkillMap;
     let skillMapWithSkills: SkillMap;
-    let skill2: Skill;
-    let skill3: Skill;
-    let nestedSkill1: Skill;
+    let skill2: Skill & { nestedSkills: { id: string }[] };
+    let skill3: Skill & { nestedSkills: { id: string }[] };
+    let nestedSkill1: Skill & { nestedSkills: { id: string }[] };
 
     /**
      * Initializes (relevant parts of) the application before the first test.
@@ -503,7 +503,8 @@ describe("Skill Controller Tests", () => {
         it("Existing ID -> Skill", () => {
             // Expected result
             const expectedObject: SkillDto = {
-                ...SkillDto.createFromDao(skill2, [nestedSkill1]),
+                ...SkillDto.createFromDao(skill2),
+                nestedSkills: [nestedSkill1.id],
             };
 
             return request(app.getHttpServer())

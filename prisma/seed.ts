@@ -13,15 +13,15 @@ async function seed(): Promise<void> {
     // Use the same seed for faker to get the same results
     faker.seed(1);
 
-    console.log("\x1b[34m%s\x1b[0m", "Java Example");
-    await javaSeed();
-    console.log("\x1b[34m%s\x1b[32m ✔\x1b[0m", "Java Example");
+    // console.log("\x1b[34m%s\x1b[0m", "Java Example");
+    // await javaSeed();
+    // console.log("\x1b[34m%s\x1b[32m ✔\x1b[0m", "Java Example");
     console.log("\x1b[34m%s\x1b[0m", "OpenDigiMedia Example");
     await digimediaSeed();
     console.log("\x1b[34m%s\x1b[32m ✔\x1b[0m", "OpenDigiMedia Example");
-    console.log("\x1b[34m%s\x1b[0m", "Medieninformatik Example");
-    await miSeed();
-    console.log("\x1b[34m%s\x1b[32m ✔\x1b[0m", "Medieninformatik Example");
+    // console.log("\x1b[34m%s\x1b[0m", "Medieninformatik Example");
+    // await miSeed();
+    // console.log("\x1b[34m%s\x1b[32m ✔\x1b[0m", "Medieninformatik Example");
 
     await createProfiles();
     console.log("\x1b[34m%s\x1b[32m ✔\x1b[0m", "User Profiles Example");
