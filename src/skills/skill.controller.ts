@@ -1,6 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiTags , ApiOperation} from "@nestjs/swagger";
 
+
+
 import {
     SkillCreationDto,
     SkillRepositorySearchDto,
@@ -14,20 +16,31 @@ import { SkillMgmtService } from "./skill.service";
 import { Prisma } from "@prisma/client";
 import { SkillUpdateDto } from "./dto/skill-update.dto";
 
+import LoggerUtil from "../logger/logger";
+
 @ApiTags("Skill")
 @Controller("skill-repositories")
 export class SkillMgmtController {
     constructor(private skillService: SkillMgmtService) {}
 
+
+    
     @Get("/getAllSkills/")
     getAllSkills() {
-        return this.skillService.loadAllSkills();
+        try {
+            LoggerUtil.logInfo('getAllSkills', 'Retrieving all skills');
+            return this.skillService.loadAllSkills();
+        } catch (error) {
+            LoggerUtil.logError('getAllSkills', error);
+            throw error;
+        }
     }
 
     @Post()
     searchForRepositories(@Body() dto?: SkillRepositorySearchDto) {
-        // Return also repositories that contain the specified name
-        const mapName: Prisma.StringFilter | null = dto?.name
+        try {
+            LoggerUtil.logInfo('searchForRepositories', 'Searching for repositories');
+            const mapName: Prisma.StringFilter | null = dto?.name
             ? { contains: dto.name, mode: "insensitive" }
             : null;
 
@@ -38,7 +51,13 @@ export class SkillMgmtController {
             mapName,
             dto?.version ?? null,
         );
+        } catch (error) {
+            LoggerUtil.logError('searchForRepositories', error);
+            throw error;
+        }
     }
+
+    
 
     /**
      * Lists all repositories of the specified user, without showing its content.
@@ -47,8 +66,14 @@ export class SkillMgmtController {
      */
     @Get("byOwner/:ownerId")
     listRepositories(@Param("ownerId") owner: string) {
-        // SE: I do not expect so many repositories per user that we need pagination here
-        return this.skillService.findSkillRepositories(null, null, owner, null, null);
+        try {
+            LoggerUtil.logInfo('listRepositories', `Listing repositories for owner ${owner}`);
+            // SE: I do not expect so many repositories per user that we need pagination here
+            return this.skillService.findSkillRepositories(null, null, owner, null, null);
+        } catch (error) {
+            LoggerUtil.logError('listRepositories', error);
+            throw error;
+        }
     }
 
     /**
@@ -58,7 +83,13 @@ export class SkillMgmtController {
      */
     @Get("byId/:repositoryId")
     async loadRepository(@Param("repositoryId") repositoryId: string) {
-        return this.skillService.loadSkillRepository(repositoryId);
+        try {
+            LoggerUtil.logInfo('loadRepository', `Loading repository with ID ${repositoryId}`);
+            return this.skillService.loadSkillRepository(repositoryId);
+        } catch (error) {
+            LoggerUtil.logError('loadRepository', error);
+            throw error;
+        }
     }
 
     /**
@@ -68,18 +99,24 @@ export class SkillMgmtController {
    */
     @Post("findSkills")
     findSkills(@Body() dto: SkillSearchDto) {
-        // Return also repositories that contain the specified name
-        const skillName: Prisma.StringFilter | null = dto?.name
-            ? { contains: dto.name, mode: "insensitive" }
-            : null;
+        try {
+            LoggerUtil.logInfo('findSkills', 'Searching for skills with attributes:${dto}')
+            // Return also repositories that contain the specified name
+            const skillName: Prisma.StringFilter | null = dto?.name
+                ? { contains: dto.name, mode: "insensitive" }
+                : null;
 
-        return this.skillService.searchSkills(
-            dto.page ?? null,
-            dto.pageSize ?? null,
-            skillName,
-            dto?.level ?? null,
-            dto?.skillMap ?? null,
-        );
+            return this.skillService.searchSkills(
+                dto.page ?? null,
+                dto.pageSize ?? null,
+                skillName,
+                dto?.level ?? null,
+                dto?.skillMap ?? null,
+            );
+        } catch (error) {
+            LoggerUtil.logError('findSkills', error);
+            throw error;
+        }
     }
 
     /**
