@@ -1,5 +1,5 @@
-import { plainToInstance } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsNumber, validateSync } from "class-validator";
+import { Transform, plainToInstance } from "class-transformer";
+import { IsBoolean, IsDefined, IsEnum, IsNotEmpty, IsNumber, validateSync } from "class-validator";
 
 /**
  * Validation Schema for the configuration file.
@@ -13,6 +13,15 @@ export enum DB_ACTION {
     INIT = "INIT",
     RESET = "RESET",
     MIGRATE = "MIGRATE",
+}
+
+export enum LOG_ACTION {
+    DEBUG = "DEBUG",
+    ERROR = "ERROR",
+    FATAL = "FATAL",
+    INFO = "INFO",
+    TRACE = "TRACE",
+    WARN = "WARN",
 }
 
 export class EnvironmentVariables {
@@ -57,6 +66,21 @@ export class EnvironmentVariables {
     @IsEnum(DB_ACTION)
     @IsNotEmpty()
     DB_ACTION: DB_ACTION;
+
+    @IsEnum(LOG_ACTION)
+    @IsNotEmpty()
+    MIN_LOG_LEVEL :string;
+
+    @IsEnum(LOG_ACTION)
+    @IsNotEmpty()
+    MAX_LOG_LEVEL :string;
+    
+    @IsDefined()
+    @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)
+    @IsBoolean()
+    SAVE_LOG_TO_FILE :string;
+
+
 }
 
 export function validate(config: Record<string, unknown>) {

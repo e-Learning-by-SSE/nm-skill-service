@@ -1,26 +1,47 @@
-import pino from 'pino';
-import pretty from 'pino-pretty';
+import pino from "pino";
+import pretty from "pino-pretty";
 
 const stream = pretty({
-  colorize: true,
-  colorizeObjects: false,
-  singleLine: true,
+    colorize: true,
+    colorizeObjects: false,
+    singleLine: true,
 });
 
-const logger = pino({ level: 'debug' }, stream);
-
 class LoggerUtil {
-  static logInfo(endpoint: string, message?: string) {
-    logger.info(`[${endpoint}] ${message || ''}`);
-  }
+    private static MIN_LOG_LEVEL = process.env.MIN_LOG_LEVEL;
+    private static MAX_LOG_LEVEL = process.env.MAX_LOG_LEVEL;
+    private static SAVE_LOG_TO_FILE: boolean = LoggerUtil.stringToBoolean(process.env.SAVE_LOG_TO_FILE);
+    
+    private static transport = pino.transport({
+        targets: [ {
+          
+          target: 'pino/file',
+          options: { destination: 'log.txt' }
+        }]
+      })
+      
+      private static logger = pino(this.SAVE_LOG_TO_FILE ? this.transport:{ level: "debug" }, stream);
+    constructor(){
+        
+        
+    }  
+    
 
-  static logDebug(endpoint: string, message?: string) {
-    logger.debug(`[${endpoint}] ${message || ''}`);
-  }
+    static stringToBoolean(value: string | undefined): boolean {
+        return value?.toLowerCase() === "true" || false;
+    }
 
-  static logError(endpoint: string, error: Error) {
-    logger.error(`[${endpoint}] An error occurred: ${error.message}`, error);
-  }
+    static logInfo(endpoint: string, message?: string) {
+        this.logger.info(`[${endpoint}] ${message || ""}`);
+    }
+
+    static logDebug(endpoint: string, message?: string) {
+        this.logger.debug(`[${endpoint}] ${message || ""}`);
+    }
+
+    static logError(endpoint: string, error: Error) {
+        this.logger.error(`[${endpoint}] An error occurred: ${error.message}`, error);
+    }
 }
 
 export default LoggerUtil;

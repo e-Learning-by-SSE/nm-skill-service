@@ -17,7 +17,6 @@ import { Prisma } from "@prisma/client";
 import { SkillUpdateDto } from "./dto/skill-update.dto";
 
 import LoggerUtil from "../logger/logger";
-
 @ApiTags("Skill")
 @Controller("skill-repositories")
 export class SkillMgmtController {
