@@ -1,1 +1,0 @@
-{"level":30,"time":1703071902806,"pid":16565,"hostname":"MAC-FVFX31Q5HV2F","msg":"[getAllSkills] Retrieving all skills"}
