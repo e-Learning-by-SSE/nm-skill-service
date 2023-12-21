@@ -16,12 +16,12 @@ export enum DB_ACTION {
 }
 
 export enum LOG_ACTION {
-    DEBUG = "DEBUG",
-    ERROR = "ERROR",
-    FATAL = "FATAL",
-    INFO = "INFO",
-    TRACE = "TRACE",
-    WARN = "WARN",
+    DEBUG = "debug",
+    ERROR = "error",
+    FATAL = "fatal",
+    INFO = "info",
+    TRACE = "trace",
+    WARN = "warn",
 }
 
 export class EnvironmentVariables {
@@ -69,11 +69,9 @@ export class EnvironmentVariables {
 
     @IsEnum(LOG_ACTION)
     @IsNotEmpty()
-    MIN_LOG_LEVEL :string;
+    LOG_LEVEL :string;
 
-    @IsEnum(LOG_ACTION)
-    @IsNotEmpty()
-    MAX_LOG_LEVEL :string;
+   
     
     @IsDefined()
     @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)

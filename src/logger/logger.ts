@@ -8,19 +8,20 @@ const stream = pretty({
 });
 
 class LoggerUtil {
-    private static MIN_LOG_LEVEL = process.env.MIN_LOG_LEVEL;
-    private static MAX_LOG_LEVEL = process.env.MAX_LOG_LEVEL;
+    
+    private static LOG_LEVEL = process.env.LOG_LEVEL;
     private static SAVE_LOG_TO_FILE: boolean = LoggerUtil.stringToBoolean(process.env.SAVE_LOG_TO_FILE);
     
     private static transport = pino.transport({
         targets: [ {
+          level:LoggerUtil.LOG_LEVEL,
           
           target: 'pino/file',
           options: { destination: 'log.txt' }
         }]
       })
       
-      private static logger = pino(this.SAVE_LOG_TO_FILE ? this.transport:{ level: "debug" }, stream);
+      private static logger = pino(this.SAVE_LOG_TO_FILE ? this.transport:{ level: LoggerUtil.LOG_LEVEL,  }, stream);
     constructor(){
         
         
