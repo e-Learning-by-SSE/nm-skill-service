@@ -17,7 +17,7 @@ class LoggerUtil {
           level:LoggerUtil.LOG_LEVEL,
           
           target: 'pino/file',
-          options: { destination: 'log.txt' }
+          options: { destination: './logs/log.txt' },
         }]
       })
       
