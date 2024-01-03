@@ -1,12 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from "@nestjs/common";
-import { ApiTags, ApiQuery } from "@nestjs/swagger"; // Import ApiQuery decorator
-
-
-
+import { Body, Controller, Post} from "@nestjs/common";
+import { ApiTags} from "@nestjs/swagger";
 
 import { MLSEvent } from "../events/dtos/mls-event.dto";
-
-import { LIFECYCLE } from "@prisma/client";
 import { EventMgmtService } from "./events.service";
 
 @ApiTags("Events")
