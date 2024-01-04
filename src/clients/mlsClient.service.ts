@@ -1,5 +1,6 @@
 import axios from "axios";
 import { NotFoundException } from "@nestjs/common";
+import { SearchLearningUnitCreationDto } from "../learningUnit/dto";
 
 export class MLSClient {
     private BASE_URL: string;

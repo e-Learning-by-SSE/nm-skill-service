@@ -6,12 +6,13 @@ import { SearchLearningUnitCreationDto } from "../learningUnit/dto";
 import { LearningUnitMgmtService } from "../learningUnit/learningUnit.service";
 import { UserCreationDto } from "../user/dto";
 import { UserMgmtService } from "../user/user.service";
+import { USERSTATUS } from "@prisma/client";
 
 /**
  * Triggers actions when certain events related to tasks (like creating a TaskTodo) occur in the MLS system
  * Currently, needs a subscription in the MLS system (via the GUI).
  * Receives the complete object as message body.
- * @author Gerling
+ * @author Wenzel, Gerling
  */
 @Injectable()
 export class EventMgmtService {
@@ -119,7 +120,7 @@ export class EventMgmtService {
                 //This is the same as PUT state to "inactive"    
                 //TODO: Specification does not mention a delete action
                 } else if (mlsEvent.method === MlsActionType.DELETE) {
-                    return this.userService.patchUserState(mlsEvent.id, false);
+                    return this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
                     
                 } else {
                     return new Error("UserEvent: Method for this action type not implemented.");
