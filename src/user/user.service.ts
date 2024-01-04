@@ -418,7 +418,7 @@ export class UserMgmtService {
                     id: dto.id,
                     name: dto.name,
                     status: USERSTATUS.ACTIVE,
-                    id: dto.id,
+                    
                     ...(dto.companyId && { company: { connect: { id: dto.companyId } } }),
                     learningHistory: {
                         create: { id: dto.id },
@@ -942,12 +942,12 @@ export class UserMgmtService {
      * @param userState The new user state. True: Active, False: Inactive.
      * @returns updatedUser The user with userID and the new state userState.
      */
-    async patchUserState(userId: string, userState: boolean) {
+    async patchUserState(userId: string, userState: USERSTATUS) {
         try {
             const updatedUser = await this.db.userProfile.update({
                 where: { id: "" + userId },
                 data: {
-                    status: "" + userState,     //Only change the state
+                    status:  userState,     //Only change the state
                 },
 
             });
