@@ -1,6 +1,5 @@
 export enum MlsActionType {
     PUT = "PUT",
     POST = "POST",
-    DELETE = "DELETE",
-    
+    DELETE = "DELETE",   
   }

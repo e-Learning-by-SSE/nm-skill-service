@@ -113,6 +113,8 @@ export class EventMgmtService {
                     //TODO: Change the state directly
                     let userState = await client.getUserStateForId(mlsEvent.id);
                     // Change the state and return the updated user
+
+                    //Parse payload into JSON, in this case we need a mapping from boolean to our user states
                     let user = await this.userService.patchUserState(mlsEvent.id, userState);
 
                     return user;
@@ -158,9 +160,7 @@ export class EventMgmtService {
             }
 
             //TODO: What about taskTodoInfo? It is existing in the Excel table, but not in Miro
-
-            //We do not need to handle task step, remove this later
-            case MlsActionEntity.TaskStep: {
+            case MlsActionEntity.TaskToDoInfo: {
                 break;
             }
 
