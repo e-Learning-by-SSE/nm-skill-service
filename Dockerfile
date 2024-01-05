@@ -19,6 +19,7 @@ COPY --chown=node:node . ./
 
 # Delete test files before compilation
 RUN rm -rf test/
+RUN rm -rf src/**/*.spec.ts
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -31,6 +32,9 @@ RUN npm run build
 # Delete source files after deletion
 RUN rm -rf src/ Jenkinsfile README.md docker/ docker-compose.yml tsconfig.build.json tsconfig.json .dockerignore
 
+# Create Log folder
+RUN mkdir -p /usr/src/app/logs
+RUN chown node:node -R /usr/src/app/logs
 
 
 # Multistage build: Keep only result instead of all intermediate layers
