@@ -34,7 +34,6 @@ RUN rm -rf src/ Jenkinsfile README.md docker/ docker-compose.yml tsconfig.build.
 
 # Create Log folder
 RUN mkdir -p /usr/src/app/logs
-RUN chown node:node -R /usr/src/app/logs
 
 
 # Multistage build: Keep only result instead of all intermediate layers
@@ -53,6 +52,7 @@ RUN chmod +x /entry.sh
 
 # Use the node user from the image (instead of the root user)
 USER node
+RUN chown node:node -R /usr/src/app/logs
 
 # Start the server using the production build
 ENTRYPOINT ["/entry.sh"]
