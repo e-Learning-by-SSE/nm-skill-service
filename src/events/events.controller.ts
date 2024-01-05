@@ -8,8 +8,9 @@ import { EventMgmtService } from "./events.service";
 @Controller("events")
 export class EventsController {
     constructor(private eventService: EventMgmtService) {}
-    @Post("/")
+    @Post("")
     getEvents(@Body() dto: MLSEvent) {
+        console.log(dto);
         return this.eventService.getEvent(dto);
     }
 }

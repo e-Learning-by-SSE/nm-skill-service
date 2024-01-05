@@ -31,6 +31,7 @@ export class EventMgmtService {
      * @returns Depends on the use case? 
      */
     async getEvent(mlsEvent: MLSEvent) {
+
         switch (mlsEvent.entityType) {
 
             //MLS tasks are called learning units in this system
@@ -68,10 +69,17 @@ export class EventMgmtService {
                     //Gets id, title, description, lifecycle, and creator from the MLS system
                     //Caution: A PUT may contain just a partial update
                     //TODO: Change, so that we can read the data directly from the event
-                    let learningUnitDto = await client.getLearningUnitForId(mlsEvent.id);
-                    let learningUnit = await this.learningUnitService.patchLearningUnit(mlsEvent.id, learningUnitDto);
+                    //let learningUnitDto = await client.getLearningUnitForId(mlsEvent.id);
+                    //let learningUnit = await this.learningUnitService.patchLearningUnit(mlsEvent.id, learningUnitDto);
 
-                    return learningUnit;
+                    console.log(mlsEvent.payload); 
+                    let learningUnitPayload = mlsEvent.payload;
+                    
+                    //Only use the required key/value pair
+                    //TODO: Handle when key is not existent (the result is "undefined")
+                    console.log(learningUnitPayload["entityType" as keyof JSON]);
+
+                    return learningUnitPayload;
 
                 //Delete an existing learning unit if the corresponding task in MLS is deleted
                 //TODO: Check that we only delete when lifecycle is draft?    
@@ -79,7 +87,7 @@ export class EventMgmtService {
                     return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
 
                 } else {
-                    return new Error("TaskEvent: Method for this action type not implemented.");
+                    return new ForbiddenException("TaskEvent: Method for this action type not implemented.");
                 }
             }
 
@@ -87,16 +95,14 @@ export class EventMgmtService {
             case MlsActionEntity.User: {
 
                 //Create a new empty user profile when a user is created in the MLS system
-                //TODO: Why does this have to be empty?
+                //TODO: Why does this have to be empty? We could also read out the other values like state and name?
                 if (mlsEvent.method === MlsActionType.POST) {
                     let userDto: UserCreationDto = new UserCreationDto(
                         mlsEvent.id,
                         null,
                         null,
                         null,
-                        null,
-                        
-                        
+                        null,   
                         null,
                         null,
                         null,
@@ -105,19 +111,26 @@ export class EventMgmtService {
 
                 //Change the user profile state when it is changed in MLS    
                 } else if (mlsEvent.method === MlsActionType.PUT) {
-                    let client = new MLSClient();
 
-                    // ToDo? Create a user DTO based on the data from MLS (currently only state attribute)
+                    //Try to read the state attribute of the user
+                    let userState = mlsEvent.payload["state" as keyof JSON];
 
-                    // Get the new user state from MLS
-                    //TODO: Change the state directly
-                    let userState = await client.getUserStateForId(mlsEvent.id);
-                    // Change the state and return the updated user
-
-                    //Parse payload into JSON, in this case we need a mapping from boolean to our user states
-                    let user = await this.userService.patchUserState(mlsEvent.id, userState);
-
-                    return user;
+                    //Check if we got a valid result (MLS uses a boolean) and change the user state accordingly
+                    if(userState != undefined){
+                        if(userState == "true"){
+                            let user = await this.userService.patchUserState(mlsEvent.id, USERSTATUS.ACTIVE);
+                            return user;
+                        } else if (userState == "false") {
+                            let user = await this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
+                            return user;
+                        }
+                        else {
+                            return new ForbiddenException("UserEvent: Unknown state attribute value "+userState+" from MLS user entity. Update aborted.");
+                        }
+                    }
+                    else {
+                        return new ForbiddenException("UserEvent: Could not read the state attribute from MLS user entity. Update aborted.");
+                    }
 
                 //This is the same as PUT state to "inactive"    
                 //TODO: Specification does not mention a delete action
@@ -125,7 +138,7 @@ export class EventMgmtService {
                     return this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
                     
                 } else {
-                    return new Error("UserEvent: Method for this action type not implemented.");
+                    return new ForbiddenException("UserEvent: Method for this action type not implemented.");
                 }
             }
 
@@ -155,7 +168,7 @@ export class EventMgmtService {
                     --> Update user profile: if (FINISHED && scorePoints/maxPoints >= 0.5) {skill is considered to be acquired} */
 
                 } else {
-                    return new Error("TaskToDoEvent: Method for this action type not implemented.");
+                    return new ForbiddenException("TaskToDoEvent: Method for this action type not implemented.");
                 }   
             }
 

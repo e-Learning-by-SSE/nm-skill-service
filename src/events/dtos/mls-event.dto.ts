@@ -31,9 +31,9 @@ export class MLSEvent {
      * The complete entity (including its id and all other attributes existing in the MLS system)
      */
     @IsNotEmpty()
-    payload: string;
+    payload: JSON;
 
-    constructor(entityType: MlsActionEntity, method: MlsActionType, id: string, payload: string) {     
+    constructor(entityType: MlsActionEntity, method: MlsActionType, id: string, payload: JSON) {     
         this.method = method;
         this.entityType = entityType;
         this.id = id;
