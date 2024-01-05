@@ -1,7 +1,6 @@
 export * from "./user.dto";
 export * from "./user-creation.dto";
 export * from "./company.dto";
-
 export * from "./company-creation.dto";
 export * from "./learningProfile-creation.dto";
 export * from "./learningProfile.dto";
@@ -15,3 +14,5 @@ export * from "./job-creation.dto";
 export * from "./job.dto";
 export * from "./learningHistory-creation.dto";
 export * from "./learningHistory.dto";
+export * from "./personalizedLearningPath.dto";
+export * from "./personalizedLearningPath-creation.dto";
