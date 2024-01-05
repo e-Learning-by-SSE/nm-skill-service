@@ -1,12 +1,11 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
 
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
-import { MLSClient } from "../clients/mlsClient.service";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto";
 import { LearningUnitMgmtService } from "../learningUnit/learningUnit.service";
 import { UserCreationDto } from "../user/dto";
 import { UserMgmtService } from "../user/user.service";
-import { USERSTATUS } from "@prisma/client";
+import { USERSTATUS, LIFECYCLE } from "@prisma/client";
 
 /**
  * Triggers actions when certain events related to tasks (like creating a TaskTodo) occur in the MLS system
@@ -64,22 +63,39 @@ export class EventMgmtService {
                 //Relevant values are: title, description, lifecycle, and creator    
                 //TODO: There is a note about a required values check. If Lifecycle!=DRAFT, teachingGoal must be set?
                 } else if (mlsEvent.method === MlsActionType.PUT) {
-                    let client = new MLSClient();
 
+                    //Lifecycle needs extra handling
+                    //TODO
+                    let lifecycle: LIFECYCLE = "DRAFT";
+                    // mlsEvent.payload["lifecycle" as keyof JSON]!.toString as LIFECYCLE
+                  
                     //Gets id, title, description, lifecycle, and creator from the MLS system
-                    //Caution: A PUT may contain just a partial update
-                    //TODO: Change, so that we can read the data directly from the event
-                    //let learningUnitDto = await client.getLearningUnitForId(mlsEvent.id);
-                    //let learningUnit = await this.learningUnitService.patchLearningUnit(mlsEvent.id, learningUnitDto);
+                    //Caution: A PUT may contain just a partial update, some values may be undefined
+                   let learningUnitDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(
+                        mlsEvent.id,
+                        null,
+                        mlsEvent.payload["title" as keyof JSON]!.toString(), //Only convert to string if not undefined or null
+                        mlsEvent.payload["description" as keyof JSON]!.toString(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        lifecycle,
+                        mlsEvent.payload["creator" as keyof JSON]!.toString(),
+                    );
 
-                    console.log(mlsEvent.payload); 
-                    let learningUnitPayload = mlsEvent.payload;
-                    
-                    //Only use the required key/value pair
-                    //TODO: Handle when key is not existent (the result is "undefined")
-                    console.log(learningUnitPayload["entityType" as keyof JSON]);
+                    console.log(learningUnitDto);
 
-                    return learningUnitPayload;
+                    //Update the existing learning unit in our system with the new values from MLS
+                    let learningUnit = await this.learningUnitService.patchLearningUnit(mlsEvent.id, learningUnitDto);
+                   
+                    return learningUnit;
 
                 //Delete an existing learning unit if the corresponding task in MLS is deleted
                 //TODO: Check that we only delete when lifecycle is draft?    
