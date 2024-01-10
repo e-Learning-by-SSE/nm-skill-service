@@ -1071,6 +1071,7 @@ const learningObjectives = [
     // Chapter 1
     {
         id: "2001",
+        parent: [],
         name: "Wandel der Industrie",
         description:
             "Die Lernenden können zentrale technische Veränderungen in der Industrie geschichtlich einordnen und den Begriff Industrie 4.0 erklären.",
@@ -1081,6 +1082,7 @@ const learningObjectives = [
     },
     {
         id: "2002",
+        parent: [],
         name: "Digitale Transformation",
         description:
             "Die Lernenden können die Einführung in die digitale Transformation darstellen sowie die wesentlichen Gründe für die zunehmende Digitalisierung in der Produktion erklären.",
@@ -1091,6 +1093,7 @@ const learningObjectives = [
     },
     {
         id: "2003",
+        parent: [],
         name: "Daten- und Informationsflüsse in der Smart Factory",
         description:
             "Die Lernenden können die Begriffe Smart Factory, Daten und Informationen erklären sowie Daten- und Informationsflüsse in Unternehmen darstellen.",
@@ -1101,6 +1104,7 @@ const learningObjectives = [
     },
     {
         id: "2004",
+        parent: [],
         name: "Technologien der Industrie 4.0",
         description:
             "Die Lernenden können grundlegende Technologien und Methoden der Digitalisierung in der Produktion benennen.",
@@ -1111,6 +1115,7 @@ const learningObjectives = [
     },
     {
         id: "2005",
+        parent: [],
         name: "Lerneinheit 1.5",
         description:
             "Die Lernenden können Möglichkeiten zur Umsetzung von Digitalisierungsmaßnahmen sowie Handlungsoptionen zu Herausforderungen benennen.",
@@ -1122,6 +1127,7 @@ const learningObjectives = [
     // Chapter 2
     {
         id: "2006",
+        parent: [],
         name: "Datenbewegung in der digitalisierten Produktion",
         description:
             "Die Lernenden können die Datenbewegung in der digitalisierten Produktion erklären.",
@@ -1132,6 +1138,7 @@ const learningObjectives = [
     },
     {
         id: "2007",
+        parent: [],
         name: "Betriebsdaten in der Produktion",
         description:
             "Die Lernenden können verschiedene Datenarten in der Produktion benennen und unterscheiden.",
@@ -1142,6 +1149,7 @@ const learningObjectives = [
     },
     {
         id: "2008",
+        parent: [],
         name: "Grundlagen der Kommunikationstechnik",
         description:
             "Die Lernenden können die Grundlagen der Kommunikationstechnik benennen sowie die Begriffe Kommunikationstechnik, Kommunikationsnetz und Endsystem erklären.",
@@ -1152,6 +1160,7 @@ const learningObjectives = [
     },
     {
         id: "2009",
+        parent: [],
         name: "Analoge Übertragungswege in der Produktion",
         description:
             "Die Lernenden können analoge Übertragungswege, deren Vor- und Nachteile sowie verschiedene Anwendungsbeispiele von analogen Übertragungswegen erklären.",
@@ -1162,6 +1171,7 @@ const learningObjectives = [
     },
     {
         id: "2010",
+        parent: [],
         name: "Digitale Übertragungswege in der Produktion",
         description:
             "Die Lernenden können digitale Übertragungswege, deren Vor- und Nachteile sowie verschiedene Anwendungsbeispiele von digitalen Übertragungswegen erklären.",
@@ -1172,6 +1182,7 @@ const learningObjectives = [
     },
     {
         id: "2011",
+        parent: [],
         name: "Subsysteme, Schnittstellen und Protokolle",
         description:
             "Die Lernenden können die Begriffe Subsystem, Schnittstelle und Protokoll erklären und in den Bereich der Kommunikationstechnik einordnen.",
@@ -1182,6 +1193,7 @@ const learningObjectives = [
     },
     {
         id: "2012",
+        parent: [],
         name: "Grundlagen der Informationstechnik",
         description:
             "Die Lernenden können die Begriffe Informationstechnik, Big Data sowie Predictive Maintenance erklären und in den Bereich der Kommunikations- und Informationstechnik einordnen.",
@@ -1192,6 +1204,7 @@ const learningObjectives = [
     },
     {
         id: "2013",
+        parent: [],
         name: "Datenverarbeitung in der digitalen Produktion",
         description:
             "Die Lernenden können die Datenverarbeitung der digitalen Produktion und den Zusammenhang zu Algorithmen erklären.",
@@ -1202,6 +1215,7 @@ const learningObjectives = [
     },
     {
         id: "2014",
+        parent: [],
         name: "IT-Sicherheit und Blockchain",
         description:
             "Die Lernenden können den Begriff Blockchain erklären und in den Bereich der Informationstechnik einordnen.",
@@ -1212,6 +1226,7 @@ const learningObjectives = [
     },
     {
         id: "2015",
+        parent: [],
         name: "Neue Geschäftsmodelle der Digitalisierung",
         description:
             "Die Lernenden können Gründe und Beispiele für neue digitale Geschäftsmodelle benennen.",
@@ -1222,6 +1237,7 @@ const learningObjectives = [
     },
     {
         id: "2016",
+        parent: [],
         name: "Technologien der neuen Geschäftsmodelle",
         description:
             "Die Lernenden können die Begriffe Internet der Dinge und Cloud Computing erklären.",
@@ -1232,6 +1248,7 @@ const learningObjectives = [
     },
     {
         id: "2017",
+        parent: [],
         name: "Daten als Unternehmenswert",
         description:
             "Die Lernenden können die Begriffe Datenschutz, Datensicherheit, Datenhoheit und Daten Compliance erklären.",
@@ -1243,6 +1260,7 @@ const learningObjectives = [
     // Chapter 3
     {
         id: "2018",
+        parent: [],
         name: "Veränderungen in der Arbeitswelt: Arbeit 4.0",
         description:
             "Die Lernenden können den Begriff Arbeit 4.0 erklären und zentrale Entwicklungen der Arbeitswelt benennen.",
@@ -1253,6 +1271,7 @@ const learningObjectives = [
     },
     {
         id: "2019",
+        parent: [],
         name: "Einführung in die Lean Production",
         description:
             "Die Lernenden können die Begriffe Lean Production und Lean Management erklären sowie die Prinzipien der Lean Production in der Fertigung benennen.",
@@ -1263,6 +1282,7 @@ const learningObjectives = [
     },
     {
         id: "2020",
+        parent: [],
         name: "Einführung in Assistenzsysteme",
         description:
             "Die Lernenden können Assistenzsysteme sowie deren verschiedener Arten und Anwendung erklären.",
@@ -1273,6 +1293,7 @@ const learningObjectives = [
     },
     {
         id: "2021",
+        parent: [],
         name: "Anwendung von Assistenzsystemen",
         description:
             "Die Lernenden können verschiedene Assistenzsysteme in der Prodution sowie deren Zusammenhang zwischen virtueller Realität und Ergonomie erklären.",
@@ -1284,6 +1305,7 @@ const learningObjectives = [
     //Chapter 4
     {
         id: "2022",
+        parent: [],
         name: "Digitale Methoden, Modelle und Werkzeuge in der Fertigung",
         description:
             "Die Lernenden können erklären, was unter einer Digitalen Fabrik zu verstehen ist sowie Anwendungsbeispiele, verschiedene Methoden, Modelle und Werkzeuge und Unternehmensziele in Bezug auf die Digitale Fabrik benennen.",
@@ -1294,6 +1316,7 @@ const learningObjectives = [
     },
     {
         id: "2023",
+        parent: [],
         name: "Automatisierungskomponenten",
         description:
             "Die Lernenden können die Grundlagen der Automatisierungskomponenten und Mechatronik sowie die Begriffe Intelligente Systeme, Cyber-physisches System und Cyber-physisches Produktionssystem erklären.",
@@ -1304,6 +1327,7 @@ const learningObjectives = [
     },
     {
         id: "2024",
+        parent: [],
         name: "Einführung in die Sensorik",
         description:
             "Die Lernenden können den Begriff der Sensorik und weitere Grundlagen erklären sowie verschiedene Arten von Sensoren benennen.",
@@ -1314,6 +1338,7 @@ const learningObjectives = [
     },
     {
         id: "2025",
+        parent: [],
         name: "Sensorik: Anwendungsbeispiele",
         description:
             "Die Lernenden können Anwendungsbeispiele zum sensorischen Werkstückspannsystem und Predictive Maintenance beschreiben.",
@@ -1324,6 +1349,7 @@ const learningObjectives = [
     },
     {
         id: "2026",
+        parent: [],
         name: "Klassische Steuerungssysteme",
         description:
             "Die Lernenden können Feldgeräte, speicherprogrammierbare Steuerungseinheiten und Industrie-Personal-Computer erklären.",
@@ -1334,6 +1360,7 @@ const learningObjectives = [
     },
     {
         id: "2027",
+        parent: [],
         name: "Neue 'digitale' Steuerungssysteme",
         description:
             "Die Lernenden können smarte Feldgeräte erklären sowie die Wichtigkeit von digitalen Abbildern, der Selbststeuerung und automatisierten Routenplanungen benennen.",
@@ -1344,6 +1371,7 @@ const learningObjectives = [
     },
     {
         id: "2028",
+        parent: [],
         name: "Einführung in die Fertigung 4.0",
         description:
             "Die Lernenden können additive Fertigungsverfahren und deren Anwendung in der Produktion erklären.",
@@ -1354,6 +1382,7 @@ const learningObjectives = [
     },
     {
         id: "2029",
+        parent: [],
         name: "'Neue' Methoden der Produktionstechnik",
         description:
             "Die Lernenden können die Begriffe Maschine Learning und Künstliche Intelligenz erklären sowie Einsatzgebiete des Maschine Learnings benennen.",
@@ -1365,6 +1394,7 @@ const learningObjectives = [
     // Chapter 5
     {
         id: "2030",
+        parent: [],
         name: "Definition und Entwicklung von Big Data",
         description:
             "Die Lernenden können den Begriff Big Data, dessen Entwicklung sowie das 4-V-Modell erklären.",
@@ -1375,6 +1405,7 @@ const learningObjectives = [
     },
     {
         id: "2031",
+        parent: [],
         name: "Datenmanagement von Big Data",
         description:
             "Die Lernenden können die Aufgabenfelder des Datenmanagements sowie verschiedene Methoden zur Datenanalyse erklären.",
@@ -1385,6 +1416,7 @@ const learningObjectives = [
     },
     {
         id: "2032",
+        parent: [],
         name: "Big Data: Informationen und Wissen",
         description:
             "Die Lernenden können Data Mining und Wissen sowie deren Entstehung, verschiedene Wissensarten und Wissensträger erklären.",
@@ -1395,6 +1427,7 @@ const learningObjectives = [
     },
     {
         id: "2033",
+        parent: [],
         name: "Wissen entdecken mit Big Data und Data Mining",
         description:
             "Die Lernenden können die einzelnen Schritte des Wissensentdeckungsprozesses sowie die grundlegenden Aufgaben, Verfahren und Versuchsdurchführungen des Data Mining erklären.",
@@ -1405,6 +1438,7 @@ const learningObjectives = [
     },
     {
         id: "2034",
+        parent: [],
         name: "Anwendung und Risiken von Big Data",
         description:
             "Die Lernenden können beschreiben, wie eine beispielhafte Datenanalyse vorgenommen wird und welche Risiken von Big Data für produzierende Unternehmen bestehen.",
@@ -1416,6 +1450,7 @@ const learningObjectives = [
     // Chapter 6
     {
         id: "2035",
+        parent: [],
         name: "Einführung in das Produktionsmanagement",
         description:
             "Die Lernenden können eine Einführung in das Produktionsmanagement geben, die Begriffe Produktionsplanung und Produktionssteuerung erklären sowie ein beispielhaftes Lieferkettenmodell beschreiben.",
@@ -1426,6 +1461,7 @@ const learningObjectives = [
     },
     {
         id: "2036",
+        parent: [],
         name: "Produktionsmanagement: Einordnung der Systeme",
         description:
             "Die Lernenden können die Softwaresysteme ERP, MES und BDE in die Thematik des Produktionsmanagements einordnen und erklären.",
@@ -1436,6 +1472,7 @@ const learningObjectives = [
     },
     {
         id: "2037",
+        parent: [],
         name: "Softwaresysteme: ERP, MES und BDE",
         description:
             "Die Lernenden können die Zusammenhänge zwischen den Softwaresystemen ERP, MES und BDE benennen sowie die Aufgabenbereiche und Funktionen erklären.",
@@ -1446,6 +1483,7 @@ const learningObjectives = [
     },
     {
         id: "2038",
+        parent: [],
         name: "Softwaresysteme: Herausforderungen bei der Einführung",
         description:
             "Die Lernenden können die Gründe für die Einführung von Softwaresystemen, die Abweichungen des Ist-Zustands vom Soll-Zustand in der Produktion, wie die Datenversorgung von MES geschieht und wie mithilfe von MES Schwachstellen ausgeglichen werden, benennen.",
@@ -1456,6 +1494,7 @@ const learningObjectives = [
     },
     {
         id: "2039",
+        parent: [],
         name: "PPS: Blick in die Forschung",
         description:
             "Die Lernenden können die Themen Industrie 4.0, Digitalisierung und Vernetzung anhand eines Beispiels beschreiben.",
@@ -1467,6 +1506,7 @@ const learningObjectives = [
     // Chapter 7
     {
         id: "2040",
+        parent: [],
         name: "Lean Management",
         description:
             "Die Lernenden können das Lean Management sowie dessen Prinzipien und Ziele erklären sowie Formen der Verschwendung benennen.",
@@ -1477,6 +1517,7 @@ const learningObjectives = [
     },
     {
         id: "2041",
+        parent: [],
         name: "Lean Management: 5S-Methode",
         description: "Die Lernenden können die 5S-Methode sowie deren Methodenschritte erläutern.",
         requirements: ["2108"],
@@ -1486,6 +1527,7 @@ const learningObjectives = [
     },
     {
         id: "2042",
+        parent: [],
         name: "Lean Management: Kanban",
         description:
             "Die Lernenden können die Kanban-Methode sowie deren Durchführung und Voraussetzungen erklären.",
@@ -1496,6 +1538,7 @@ const learningObjectives = [
     },
     {
         id: "2043",
+        parent: [],
         name: "Lean Management: Wertstrommethode",
         description:
             "Die Lernenden können die Wertstrommethode, deren Erfolgsfaktoren, Durchführung und Vorteile sowie die Darstellung des Wertstroms erklären.",
@@ -1506,6 +1549,7 @@ const learningObjectives = [
     },
     {
         id: "2044",
+        parent: [],
         name: "Lean Management: PDCA-Zyklus",
         description:
             "Die Lernenden können den PDCA-Zyklus, dessen Phasen sowie Vor- und Nachteile erklären.",
@@ -1516,6 +1560,7 @@ const learningObjectives = [
     },
     {
         id: "2045",
+        parent: [],
         name: "Lean Management: Poka Yoke",
         description:
             "Die Lernenden können die Poka Yoke Technik sowie deren Durchführung und Anwendungsformen erklären.",
@@ -1526,6 +1571,7 @@ const learningObjectives = [
     },
     {
         id: "2046",
+        parent: [],
         name: "Lean Management: Just-in-Time",
         description:
             "Die Lernenden können das Just-in-Time-Konzept sowie dessen Voraussetzungen, Anwendungsformen und Vor- und Nachteile erklären.",
@@ -1536,6 +1582,7 @@ const learningObjectives = [
     },
     {
         id: "2047",
+        parent: [],
         name: "Lean Management: FIFO-Prinzip",
         description:
             "Die Lernenden können das FIFO-Prinzip, dessen Anwendungsformen, verschiedene Arten von FIFO-Regalen sowie Vor- und Nachteile erklären.",
@@ -1546,6 +1593,7 @@ const learningObjectives = [
     },
     {
         id: "2048",
+        parent: [],
         name: "Lean Management: Spaghetti-Diagramm",
         description:
             "Die Lernenden können das Spaghetti-Diagramm, deren Ziele, Anwendungsformen sowie die Durchführung der Methode erklären.",
@@ -1557,6 +1605,7 @@ const learningObjectives = [
     // Chapter 8
     {
         id: "2049",
+        parent: [],
         name: "Physik des Lasers",
         description:
             "Die Lernenden können die wichtigsten physikalischen Grundlagen der Lasertechnik sowie Eigenschaften eines Lasers beschreiben.",
@@ -1567,6 +1616,7 @@ const learningObjectives = [
     },
     {
         id: "2050",
+        parent: [],
         name: "Laser in der Fertigung",
         description:
             "Die Lernenden können einen Überblick über die verschiedenen Fertigungsprozesse mit Lasern geben sowie Parameter der Lasertechnik und ein Beispiel für die Informationsbereitstellung beschreiben.",
@@ -1577,6 +1627,7 @@ const learningObjectives = [
     },
     {
         id: "2051",
+        parent: [],
         name: "Additive Fertigung: Einführung",
         description:
             "Die Lernenden können die additive Fertigung und deren Geschichte, Vorteile sowie Einsatzbereiche erklären.",
@@ -1587,6 +1638,7 @@ const learningObjectives = [
     },
     {
         id: "2052",
+        parent: [],
         name: "Additive Fertigung: Prozesskette",
         description:
             "Die Lernenden können die Prozesskette inklusive Nachbehandlung der additiven Fertigung erklären und zwei Beispiele von additiv gefertigten Bauteilen beschreiben.",
@@ -1598,6 +1650,7 @@ const learningObjectives = [
     //Chapter 9
     {
         id: "2053",
+        parent: [],
         name: "Assistenzsysteme: Der Mensch",
         description:
             "Die Lernenden können verschiedene Belastungsarten sowie Formen und Ziele von Assistenzsystemen erklären.",
@@ -1608,6 +1661,7 @@ const learningObjectives = [
     },
     {
         id: "2054",
+        parent: [],
         name: "Assistenzsysteme: Die Technik",
         description:
             "Die Lernenden können erklären, welche Automatisierungslösungen und Assistenten physische Belastungen reduzieren können und erhalten einen Einblick in die Künstliche Intelligenz und Forschung.",
@@ -1618,6 +1672,7 @@ const learningObjectives = [
     },
     {
         id: "2055",
+        parent: [],
         name: "Assistenzsysteme: Technische Komponenten",
         description:
             "Die Lernenden können verschiedene Beispiele für Komponenten von Assistenzsystemen aus den Bereichen Steuerung, Sensorik und Aktorik erläutern.",
@@ -1629,6 +1684,7 @@ const learningObjectives = [
     // Chapter 10
     {
         id: "2056",
+        parent: [],
         name: "Grundlagen der Sensorik",
         description:
             "Die Lernenden können erklären, was unter Sensorik bzw. einem Sensor zu verstehen ist und wie die Entwicklung von Sensoren verläuft.",
@@ -1639,6 +1695,7 @@ const learningObjectives = [
     },
     {
         id: "2057",
+        parent: [],
         name: "Grundlagen der Messtechnik",
         description:
             "Die Lernenden können den Begriff der Messtechnik, einige Größen des SI-Einheitensystems sowie die Signale und Funktionsweise von Analog-Digital-Wandlern erklären.",
@@ -1649,6 +1706,7 @@ const learningObjectives = [
     },
     {
         id: "2058",
+        parent: [],
         name: "Funktionsprinzip von Messeinrichtungen",
         description:
             "Die Lernenden können das Funktionsprinzip von Messeinrichtungen, die Begriffe Kalibrieren, Justieren und Eichen sowie die daraus resultierenden Arten von Messabweichungen erklären.",
@@ -1659,6 +1717,7 @@ const learningObjectives = [
     },
     {
         id: "2059",
+        parent: [],
         name: "Arten von Sensoren",
         description:
             "Die Lernenden können aktive und passive Sensoren unterscheiden sowie verschiedene Messprinzipien von Sensoren und den Begriff Aktorik in Verbindung mit fahrerlosen Transportsystemen erklären.",
@@ -1669,6 +1728,7 @@ const learningObjectives = [
     },
     {
         id: "2060",
+        parent: [],
         name: "Sensoren zur Kraftmessung",
         description:
             "Die Lernenden können Sensoren zur Kraftmessung und den Aufbau eines Dehnungsmessstreifens erklären sowie Beispiele aus der Forschung, wie sensorische Wertstückspannsysteme und fühlende Maschinen, beschreiben.",
@@ -1679,6 +1739,7 @@ const learningObjectives = [
     },
     {
         id: "2061",
+        parent: [],
         name: "Sensoren zur Temperaturmessung",
         description:
             "Die Lernenden können Sensoren zur Temperaturmessung und den Unterschied zwischen Kaltleitern und Heißleitern erklären.",
@@ -1689,6 +1750,7 @@ const learningObjectives = [
     },
     {
         id: "2062",
+        parent: [],
         name: "Sensoren zur Schwingungsmessung",
         description:
             "Die Lernenden können die Funktion und den Aufbau von Sensoren zur Schwingungsmessung erklären.",
@@ -1699,6 +1761,7 @@ const learningObjectives = [
     },
     {
         id: "2063",
+        parent: [],
         name: "Sensoren zur Längenvermessung",
         description:
             "Die Lernenden können die Funktion und den Aufbau von Sensoren zur Längenvermessung sowie den Aufbau einer Einweglichtschranke erklären und ein Beispiel für den Einsatz der Einweglichtschranke in einem KI-Demonstrator beschreiben.",
@@ -1710,6 +1773,7 @@ const learningObjectives = [
     // Chapter 11
     {
         id: "2064",
+        parent: [],
         name: "Darstellung des innerbetrieblichen Materialflusses",
         description:
             "Die Lernenden können den innerbetrieblichen Materialfluss erklären und verschiedene Darstellungsformen des Materialflusses beschreiben.",
@@ -1720,6 +1784,7 @@ const learningObjectives = [
     },
     {
         id: "2065",
+        parent: [],
         name: "Fertigungsprinzipien des innerbetrieblichen Materialflusses",
         description:
             "Die Lernenden können unterschiedliche Fertigungsprinzipien, Simulationsmodelle sowie die Planung und Steuerung des innerbetrieblichen Materialflusses erklären.",
@@ -1730,6 +1795,7 @@ const learningObjectives = [
     },
     {
         id: "2066",
+        parent: [],
         name: "Funktionen von Materialflusssimulationen",
         description:
             "Die Lernenden können den Begriff der Materialflusssimulation, deren Phasen sowie die Handhabung der Verifizierung und Validierung eines Simulationsmodells erklären.",
@@ -1740,6 +1806,7 @@ const learningObjectives = [
     },
     {
         id: "2067",
+        parent: [],
         name: "Anwendung von Materialflusssimulationen",
         description:
             "Die Lernenden können verschiedene Einsatzbereiche von Materialflusssimulationen erklären.",
@@ -1751,6 +1818,7 @@ const learningObjectives = [
     // Chapter 12
     {
         id: "2068",
+        parent: [],
         name: "Komponenten und Funktionsweise von RFID",
         description:
             "Die Lernenden können den Begriff RFID sowie die Komponenten und Funktionsweise von RFID erklären.",
@@ -1761,6 +1829,7 @@ const learningObjectives = [
     },
     {
         id: "2069",
+        parent: [],
         name: "Einsatzmöglichkeiten von RFID",
         description: "Die Lernenden können verschiedene Einsatzbereiche von RFID erklären.",
         requirements: ["2197"],
@@ -1770,6 +1839,7 @@ const learningObjectives = [
     },
     {
         id: "2070",
+        parent: [],
         name: "Chancen und Risiken von RFID",
         description:
             "Die Lernenden können erklären, welche Chancen und Risiken bei der Verwendung von RFID bestehen und einen Ausblick über das Thema geben.",
