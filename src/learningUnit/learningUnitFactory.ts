@@ -298,6 +298,14 @@ export class LearningUnitFactory {
             getSuggestedSkills: getSuggestedSkills,
         }));
 
+        learningUnits.forEach(lu => {
+            lu.children.forEach(child => {
+                const resultParent = results.find!(parent => parent.id == lu.id)!;
+                const resultChild = results.find!(result => result.id == child.id)!;
+                resultParent.children!.push(resultChild);
+            });
+        });
+        
         return results;
     }
 

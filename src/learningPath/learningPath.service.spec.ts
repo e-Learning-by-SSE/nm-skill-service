@@ -9,7 +9,7 @@ import {
     LearningPathListDto,
     UpdatePathRequestDto,
 } from "./dto";
-import { LearningUnit, getPath } from "../../nm-skill-lib/src";
+import { LearningUnit, getPath, getRequiredSkills, getSuggestedSkills, getTeachingGoals } from "../../nm-skill-lib/src";
 import { SkillDto } from "../skills/dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LIFECYCLE, Skill, SkillMap, LearningUnit as PrismaLearningUnit } from "@prisma/client";
@@ -767,6 +767,11 @@ describe("LearningPath Service", () => {
 async function findAll_internal(db: PrismaService) {
     return await db.learningUnit.findMany({
         include: {
+            children: {
+                include: {
+                    children: true,
+                },
+            },
             requirements: {
                 include: {
                     nestedSkills: true,
@@ -791,8 +796,10 @@ async function findAll_internal(db: PrismaService) {
 }
 
 async function findAll(db: PrismaService) {
-    const results: LearningUnit[] = (await findAll_internal(db)).map((lu) => ({
+    const learningUnits = await findAll_internal(db);
+    const results: LearningUnit[] = learningUnits.map((lu) => ({
         id: lu.id,
+        children: [],
         requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
         teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
         suggestedSkills: lu.orderings
@@ -806,7 +813,18 @@ async function findAll(db: PrismaService) {
                 weight: 0.1,
                 skill: skill,
             })),
+            getTeachingGoals: getTeachingGoals,
+            getRequiredSkills: getRequiredSkills,
+            getSuggestedSkills: getSuggestedSkills,
     }));
+
+    learningUnits.forEach(lu => {
+        lu.children.forEach(child => {
+            const resultParent = results.find!(parent => parent.id == lu.id)!;
+            const resultChild = results.find!(result => result.id == child.id)!;
+            resultParent.children!.push(resultChild);
+        });
+    });
 
     return results;
 }
