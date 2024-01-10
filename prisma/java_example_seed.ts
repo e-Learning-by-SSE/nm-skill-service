@@ -247,6 +247,7 @@ const learningObjectives = [
     // Java Chapter 1
     {
         id: "1",
+        parent: [],
         name: "Introduction",
         description: "Motivation & Hello-World Example",
         requirements: [],
@@ -256,6 +257,7 @@ const learningObjectives = [
     },
     {
         id: "2",
+        parent: [],
         name: "Compiler vs. Interpreter",
         description: "Explanation what javac & java do",
         requirements: ["1001"],
@@ -265,6 +267,7 @@ const learningObjectives = [
     },
     {
         id: "3",
+        parent: [],
         name: "Writing Simple Programs",
         description: "How to write first programs / program structure",
         requirements: ["15"],
@@ -275,6 +278,7 @@ const learningObjectives = [
     // Java Chapter 2
     {
         id: "4",
+        parent: [],
         name: "Literals",
         description: "Constant expressions",
         requirements: ["16", "1002"],
@@ -284,6 +288,7 @@ const learningObjectives = [
     },
     {
         id: "5",
+        parent: [],
         name: "Basic Datatypes, Literals, Casts",
         description: "Constant expressions",
         requirements: ["16", "18", "1002"],
@@ -293,6 +298,7 @@ const learningObjectives = [
     },
     {
         id: "6",
+        parent: [],
         name: "Variables / Constants",
         description: "Variable Expressions",
         requirements: ["1002"],
@@ -302,6 +308,7 @@ const learningObjectives = [
     },
     {
         id: "7",
+        parent: [],
         name: "Input w/ Scanner",
         description: "Using Scanner for user input",
         requirements: ["6", "7", "16", "1002"],
@@ -311,6 +318,7 @@ const learningObjectives = [
     },
     {
         id: "8",
+        parent: [],
         name: "if statement",
         description: "Using Scanner for user input",
         requirements: ["16", "20", "1002", "1003"],
@@ -320,6 +328,7 @@ const learningObjectives = [
     },
     {
         id: "9",
+        parent: [],
         name: "if/else statements",
         description: "Using Scanner for user input",
         requirements: ["9", "16", "20", "1002", "1003"],
@@ -329,6 +338,7 @@ const learningObjectives = [
     },
     {
         id: "10",
+        parent: [],
         name: "if/else statements (advanced)",
         description: "Using Scanner for user input",
         requirements: ["9", "10", "16", "20", "1002", "1003"],
@@ -338,6 +348,7 @@ const learningObjectives = [
     },
     {
         id: "11",
+        parent: [],
         name: "Random numbers",
         description: "Random numbers using Math.random",
         requirements: ["6", "7", "16", "1002", "1003"],
@@ -347,6 +358,7 @@ const learningObjectives = [
     },
     {
         id: "12",
+        parent: [],
         name: "switch/case",
         description: "switch case as alternative to if/else",
         requirements: ["16", "20", "1002", "1003", "1004"],
@@ -356,6 +368,7 @@ const learningObjectives = [
     },
     {
         id: "13",
+        parent: [],
         name: "Code-Blocks",
         description: "Allowing more than 1 statement & scope",
         requirements: ["16", "1002"],
@@ -365,6 +378,7 @@ const learningObjectives = [
     },
     {
         id: "14",
+        parent: [],
         name: "Introduction of Loops",
         description: "Introduction of Loops",
         requirements: ["16", "1002", "1006"],
@@ -374,6 +388,7 @@ const learningObjectives = [
     },
     {
         id: "15",
+        parent: [],
         name: "For-Loop",
         description: "For-Loop",
         requirements: ["16", "25", "1002", "1006"],
@@ -383,6 +398,7 @@ const learningObjectives = [
     },
     {
         id: "16",
+        parent: [],
         name: "While-Loop",
         description: "While-Loop",
         requirements: ["16", "25", "1002", "1006"],
@@ -392,6 +408,7 @@ const learningObjectives = [
     },
     {
         id: "17",
+        parent: [],
         name: "Do-While-Loop",
         description: "Do-While-Loop",
         requirements: ["16", "25", "1002", "1006"],
