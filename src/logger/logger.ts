@@ -1,7 +1,6 @@
 import pino from "pino";
 import pretty from "pino-pretty";
 
-import path from "path";
 var fs = require("fs");
 
 function fileExists(filePath: string) {
@@ -16,10 +15,10 @@ const logsDirectory = "./logs/";
 const logFilePath = logsDirectory + "log.txt";
 if (!fs.existsSync(logsDirectory)) {
     fs.mkdirSync(logsDirectory);
-  }
+}
 
 if (!fileExists(logFilePath)) {
-    fs.writeFile(logFilePath, "", (err:Error) => {
+    fs.writeFile(logFilePath, "", (err: Error) => {
         if (err) {
             console.error("Error in Logger can't writing to file:", err);
         } else {
@@ -61,8 +60,8 @@ class LoggerUtil {
         return value?.toLowerCase() === "true" || false;
     }
 
-    static logInfo(endpoint: string, message?: string) {
-        this.logger.info(`[${endpoint}] ${message || ""}`);
+    static logInfo(endpoint: string, params?: object | string) {
+        this.logger.info({ params }, `[${endpoint}]`);
     }
 
     static logDebug(endpoint: string, message?: string) {

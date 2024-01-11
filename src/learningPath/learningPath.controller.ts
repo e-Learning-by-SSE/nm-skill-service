@@ -1,9 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { ApiQuery, ApiTags } from "@nestjs/swagger";
 
 import { CreateEmptyPathRequestDto, UpdatePathRequestDto } from "./dto";
 
 import { LearningPathMgmtService } from "./learningPath.service";
+import LoggerUtil from "../logger/logger";
 
 @ApiTags("LearningPath")
 @Controller("learning-paths")
@@ -17,6 +18,7 @@ export class LearningPathMgmtController {
      */
     @Post()
     createEmptyLearningPath(@Body() dto: CreateEmptyPathRequestDto) {
+        LoggerUtil.logInfo("LearningPathMgmtController::createEmptyLearningPath", dto);
         return this.learningpathService.createEmptyLearningPath(dto);
     }
 
@@ -38,13 +40,22 @@ export class LearningPathMgmtController {
         description: "Page number - set up value if pagination is needed",
     })
     @ApiQuery({
-        name: 'pageSize',
+        name: "pageSize",
         required: false,
         type: Number,
-        description: 'Number of items per page - set up value if pagination is needed',
+        description: "Number of items per page - set up value if pagination is needed",
     })
     @Get()
-    getLearningPathsOfOwner(@Query("owner") owner: string, @Query("page") page?: string ,@Query("pageSize") pagesize?: string   ) {
+    getLearningPathsOfOwner(
+        @Query("owner") owner: string,
+        @Query("page") page?: string,
+        @Query("pageSize") pagesize?: string,
+    ) {
+        LoggerUtil.logInfo("LearningPathMgmtController::getLearningPathsOfOwner", {
+            owner: owner,
+            page: page,
+            pageSize: pagesize,
+        });
         return this.learningpathService.loadLearningPathList({ owner: owner }, page, pagesize);
     }
 
@@ -71,6 +82,10 @@ export class LearningPathMgmtController {
      */
     @Patch(":pathId")
     updateLearningPath(@Param("pathId") pathId: string, @Body() dto: UpdatePathRequestDto) {
+        LoggerUtil.logInfo("LearningPathMgmtController::updateLearningPath", {
+            pathId: pathId,
+            dto: dto,
+        });
         return this.learningpathService.updateLearningPath(pathId, dto);
     }
 
@@ -80,6 +95,10 @@ export class LearningPathMgmtController {
      */
     @Delete(":pathId")
     async deleteLearningPath(@Param("pathId") pathId: string) {
+        LoggerUtil.logInfo("LearningPathMgmtController::deleteLearningPath", {
+            pathId: pathId,
+        });
+
         // Need to wait for the result (e.g., exception) to ensure correct status code
         await this.learningpathService.deleteLearningPath(pathId);
     }
@@ -91,6 +110,15 @@ export class LearningPathMgmtController {
      */
     @Get(":pathId")
     async getLearningPath(@Param("pathId") pathId: string) {
-        return this.learningpathService.getLearningPath(pathId);
+        LoggerUtil.logInfo("LearningPathMgmtController::getLearningPath", {
+            pathId: pathId,
+        });
+        const result = this.learningpathService.getLearningPath(pathId);
+
+        LoggerUtil.logInfo("LearningPathMgmtController::getLearningPath", {
+            response: result,
+        });
+
+        return result;
     }
 }

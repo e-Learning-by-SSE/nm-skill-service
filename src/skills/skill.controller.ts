@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 
 import {
@@ -7,7 +7,6 @@ import {
     SkillRepositoryCreationDto,
     SkillSearchDto,
     SkillRepositoryDto,
-    SkillDto,
 } from "./dto";
 
 import { SkillMgmtService } from "./skill.service";
@@ -23,7 +22,7 @@ export class SkillMgmtController {
     @Get("/getAllSkills/")
     getAllSkills() {
         try {
-            LoggerUtil.logInfo("getAllSkills", "Retrieving all skills");
+            LoggerUtil.logInfo("Skill::getAllSkills");
             return this.skillService.loadAllSkills();
         } catch (error) {
             LoggerUtil.logError("getAllSkills", error);
@@ -34,7 +33,7 @@ export class SkillMgmtController {
     @Post()
     searchForRepositories(@Body() dto?: SkillRepositorySearchDto) {
         try {
-            LoggerUtil.logInfo("searchForRepositories", "Searching for repositories");
+            LoggerUtil.logInfo("Skill::searchForRepositories");
             const mapName: Prisma.StringFilter | null = dto?.name
                 ? { contains: dto.name, mode: "insensitive" }
                 : null;
@@ -60,11 +59,11 @@ export class SkillMgmtController {
     @Get("byOwner/:ownerId")
     listRepositories(@Param("ownerId") owner: string) {
         try {
-            LoggerUtil.logInfo("listRepositories", `Listing repositories for owner ${owner}`);
+            LoggerUtil.logInfo("Skill::listRepositories", { ownerId: owner });
             // SE: I do not expect so many repositories per user that we need pagination here
             return this.skillService.findSkillRepositories(null, null, owner, null, null);
         } catch (error) {
-            LoggerUtil.logError("listRepositories", error);
+            LoggerUtil.logError("Skill::listRepositories", error);
             throw error;
         }
     }
@@ -77,10 +76,10 @@ export class SkillMgmtController {
     @Get("byId/:repositoryId")
     async loadRepository(@Param("repositoryId") repositoryId: string) {
         try {
-            LoggerUtil.logInfo("loadRepository", `Loading repository with ID ${repositoryId}`);
+            LoggerUtil.logInfo("Skill::loadRepository", { repositoryId: repositoryId });
             return this.skillService.loadSkillRepository(repositoryId);
         } catch (error) {
-            LoggerUtil.logError("loadRepository", error);
+            LoggerUtil.logError("Skill::loadRepository", error);
             throw error;
         }
     }
@@ -93,7 +92,7 @@ export class SkillMgmtController {
     @Post("findSkills")
     findSkills(@Body() dto: SkillSearchDto) {
         try {
-            LoggerUtil.logInfo("findSkills", "Searching for skills with attributes:${dto}");
+            LoggerUtil.logInfo("Skill::findSkills", dto);
             // Return also repositories that contain the specified name
             const skillName: Prisma.StringFilter | null = dto?.name
                 ? { contains: dto.name, mode: "insensitive" }
@@ -107,7 +106,7 @@ export class SkillMgmtController {
                 dto?.skillMap ?? null,
             );
         } catch (error) {
-            LoggerUtil.logError("findSkills", error);
+            LoggerUtil.logError("Skill::findSkills", error);
             throw error;
         }
     }
@@ -121,18 +120,12 @@ export class SkillMgmtController {
     @Get("resolve/:repositoryId")
     async loadResolvedRepository(@Param("repositoryId") repositoryId: string) {
         try {
-            LoggerUtil.logInfo(
-                "loadResolvedRepository",
-                `Loading resolved repository with ID ${repositoryId}`,
-            );
+            LoggerUtil.logInfo("Skill::loadResolvedRepository", { repositoryId: repositoryId });
             const result = await this.skillService.loadResolvedSkillRepository(repositoryId);
-            LoggerUtil.logInfo(
-                "loadResolvedRepository",
-                `Successfully loaded resolved repository with ID ${repositoryId}`,
-            );
+            LoggerUtil.logInfo("Skill::loadResolvedRepository", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("loadResolvedRepository", error);
+            LoggerUtil.logError("Skill::loadResolvedRepository", error);
             throw error;
         }
     }
@@ -143,18 +136,15 @@ export class SkillMgmtController {
    */
     @ApiOperation({ deprecated: true })
     @Post("resolve/findSkills")
-    findSkillsResolved(@Body() dto: SkillSearchDto) {
+    async findSkillsResolved(@Body() dto: SkillSearchDto) {
         try {
-            LoggerUtil.logInfo(
-                "findSkillsResolved",
-                `Searching for resolved skills with attributes: ${JSON.stringify(dto)}`,
-            );
+            LoggerUtil.logInfo("Skill::findSkillsResolved", dto);
             // Return also repositories that contain the specified name
             const skillName: Prisma.StringFilter | null = dto?.name
                 ? { contains: dto.name, mode: "insensitive" }
                 : null;
 
-            const result = this.skillService.searchSkillsResolved(
+            const result = await this.skillService.searchSkillsResolved(
                 dto.page ?? null,
                 dto.pageSize ?? null,
                 skillName,
@@ -162,14 +152,11 @@ export class SkillMgmtController {
                 dto?.skillMap ?? null,
             );
 
-            LoggerUtil.logInfo(
-                "findSkillsResolved",
-                `Successfully found resolved skills with attributes: ${JSON.stringify(dto)}`,
-            );
+            LoggerUtil.logInfo("Skill::findSkillsResolved", { response: result });
 
             return result;
         } catch (error) {
-            LoggerUtil.logError("findSkillsResolved", error);
+            LoggerUtil.logError("Skill::findSkillsResolved", error);
             throw error;
         }
     }
@@ -180,22 +167,14 @@ export class SkillMgmtController {
      * @returns The newly created repository or an error message.
      */
     @Post("/create")
-    createRepository(@Body() dto: SkillRepositoryCreationDto) {
+    async createRepository(@Body() dto: SkillRepositoryCreationDto) {
         try {
-            LoggerUtil.logInfo(
-                "createRepository",
-                `Creating a new skill repository with attributes: ${JSON.stringify(dto)}`,
-            );
-            const result = this.skillService.createRepository(dto);
-            LoggerUtil.logInfo(
-                "createRepository",
-                `Successfully created a new skill repository with attributes: ${JSON.stringify(
-                    dto,
-                )}`,
-            );
+            LoggerUtil.logInfo("Skill::createRepository", dto);
+            const result = await this.skillService.createRepository(dto);
+            LoggerUtil.logInfo("Skill::createRepository", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("createRepository", error);
+            LoggerUtil.logError("Skill::createRepository", error);
             throw error;
         }
     }
@@ -207,24 +186,14 @@ export class SkillMgmtController {
      * @returns The created skill.
      */
     @Post(":repositoryId/skill/add_skill")
-    addSkill(@Param("repositoryId") repositoryId: string, @Body() dto: SkillCreationDto) {
+    async addSkill(@Param("repositoryId") repositoryId: string, @Body() dto: SkillCreationDto) {
         try {
-            LoggerUtil.logInfo(
-                "addSkill",
-                `Adding a new skill to repository ${repositoryId} with attributes: ${JSON.stringify(
-                    dto,
-                )}`,
-            );
-            const result = this.skillService.createSkill(repositoryId, dto);
-            LoggerUtil.logInfo(
-                "addSkill",
-                `Successfully added a new skill to repository ${repositoryId} with attributes: ${JSON.stringify(
-                    dto,
-                )}`,
-            );
+            LoggerUtil.logInfo("Skill::addSkill", { repositoryId: repositoryId, dto: dto });
+            const result = await this.skillService.createSkill(repositoryId, dto);
+            LoggerUtil.logInfo("Skill::addSkill", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("addSkill", error);
+            LoggerUtil.logError("Skill::addSkill", error);
             throw error;
         }
     }
@@ -236,36 +205,27 @@ export class SkillMgmtController {
      * @returns The adapted repository.
      */
     @Post("repository/adapt")
-    adaptRepo(@Body() dto: SkillRepositoryDto) {
+    async adaptRepo(@Body() dto: SkillRepositoryDto) {
         try {
-            LoggerUtil.logInfo(
-                "adaptRepo",
-                `Adapting repository with attributes: ${JSON.stringify(dto)}`,
-            );
-            const result = this.skillService.adaptRepository(dto);
-            LoggerUtil.logInfo(
-                "adaptRepo",
-                `Successfully adapted repository with attributes: ${JSON.stringify(dto)}`,
-            );
+            LoggerUtil.logInfo("Skill::adaptRepo", { dto });
+            const result = await this.skillService.adaptRepository(dto);
+            LoggerUtil.logInfo("Skill::adaptRepo", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("adaptRepo", error);
+            LoggerUtil.logError("Skill::adaptRepo", error);
             throw error;
         }
     }
 
     @Delete(":repositoryId")
-    deleteRepo(@Param("repositoryId") repositoryId: string) {
+    async deleteRepo(@Param("repositoryId") repositoryId: string) {
         try {
-            LoggerUtil.logInfo("deleteRepo", `Deleting repository with ID: ${repositoryId}`);
-            const result = this.skillService.deleteRepository(repositoryId);
-            LoggerUtil.logInfo(
-                "deleteRepo",
-                `Successfully deleted repository with ID: ${repositoryId}`,
-            );
+            LoggerUtil.logInfo("Skill::deleteRepo", { repositoryId: repositoryId });
+            const result = await this.skillService.deleteRepository(repositoryId);
+            LoggerUtil.logInfo("Skill::deleteRepo", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("deleteRepo", error);
+            LoggerUtil.logError("Skill::deleteRepo", error);
             throw error;
         }
     }
@@ -276,14 +236,14 @@ export class SkillMgmtController {
      * @returns The specified skill.
      */
     @Get("skill/:skillId")
-    getSkill(@Param("skillId") skillId: string) {
+    async getSkill(@Param("skillId") skillId: string) {
         try {
-            LoggerUtil.logInfo("getSkill", `Retrieving skill with ID: ${skillId}`);
-            const result = this.skillService.getSkill(skillId);
-            LoggerUtil.logInfo("getSkill", `Successfully retrieved skill with ID: ${skillId}`);
+            LoggerUtil.logInfo("Skill::getSkill", { skillId: skillId });
+            const result = await this.skillService.getSkill(skillId);
+            LoggerUtil.logInfo("Skill::getSkill", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("getSkill", error);
+            LoggerUtil.logError("Skill::getSkill", error);
             throw error;
         }
     }
@@ -295,17 +255,14 @@ export class SkillMgmtController {
      */
     @ApiOperation({ deprecated: true })
     @Get("resolve/skill/:skillId")
-    getResolvedSkill(@Param("skillId") skillId: string) {
+    async getResolvedSkill(@Param("skillId") skillId: string) {
         try {
-            LoggerUtil.logInfo("getResolvedSkill", `Retrieving resolved skill with ID: ${skillId}`);
-            const result = this.skillService.getResolvedSkill(skillId);
-            LoggerUtil.logInfo(
-                "getResolvedSkill",
-                `Successfully retrieved resolved skill with ID: ${skillId}`,
-            );
+            LoggerUtil.logInfo("Skill::getResolvedSkill", { skillId: skillId });
+            const result = await this.skillService.getResolvedSkill(skillId);
+            LoggerUtil.logInfo("Skill::getResolvedSkill", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("getResolvedSkill", error);
+            LoggerUtil.logError("Skill::getResolvedSkill", error);
             throw error;
         }
     }
@@ -316,45 +273,39 @@ export class SkillMgmtController {
      * @returns The created skill.
      */
     @Put("/skill/adapt_skill")
-    adaptSkill(@Body() dto: SkillUpdateDto) {
+    async adaptSkill(@Body() dto: SkillUpdateDto) {
         try {
-            LoggerUtil.logInfo("adaptSkill", `Adapting skill with ID: ${dto.id}`);
-            const result = this.skillService.adaptSkill(dto);
-            LoggerUtil.logInfo("adaptSkill", `Successfully adapted skill with ID: ${dto.id}`);
+            LoggerUtil.logInfo("Skill::adaptSkill", dto);
+            const result = await this.skillService.adaptSkill(dto);
+            LoggerUtil.logInfo("Skill::adaptSkill", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("adaptSkill", error);
+            LoggerUtil.logError("Skill::adaptSkill", error);
             throw error;
         }
     }
     @Delete("/skill/deleteWithoutCheck/:skillId")
-    deleteSkillWithoutCheck(@Param("skillId") skillId: string) {
+    async deleteSkillWithoutCheck(@Param("skillId") skillId: string) {
         try {
-            LoggerUtil.logInfo(
-                "deleteSkillWithoutCheck",
-                `Deleting skill without check with ID: ${skillId}`,
-            );
-            const result = this.skillService.deleteSkillWithoutCheck(skillId);
-            LoggerUtil.logInfo(
-                "deleteSkillWithoutCheck",
-                `Successfully deleted skill without check with ID: ${skillId}`,
-            );
+            LoggerUtil.logInfo("Skill::deleteSkillWithoutCheck", { skillId: skillId });
+            const result = await this.skillService.deleteSkillWithoutCheck(skillId);
+            LoggerUtil.logInfo("Skill::deleteSkillWithoutCheck", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("deleteSkillWithoutCheck", error);
+            LoggerUtil.logError("Skill::deleteSkillWithoutCheck", error);
             throw error;
         }
     }
 
     @Delete("/skill/deleteWithCheck/:skillId")
-    deleteSkillWithCheck(@Param("skillId") skillId: string) {
+    async deleteSkillWithCheck(@Param("skillId") skillId: string) {
         try {
-            LoggerUtil.logInfo('deleteSkillWithCheck', `Deleting skill with check with ID: ${skillId}`);
-            const result = this.skillService.deleteSkillWithCheck(skillId);
-            LoggerUtil.logInfo('deleteSkillWithCheck', `Successfully deleted skill with check with ID: ${skillId}`);
+            LoggerUtil.logInfo("Skill::deleteSkillWithCheck", { skillId: skillId });
+            const result = await this.skillService.deleteSkillWithCheck(skillId);
+            LoggerUtil.logInfo("Skill::deleteSkillWithCheck", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError('deleteSkillWithCheck', error);
+            LoggerUtil.logError("Skill::deleteSkillWithCheck", error);
             throw error;
         }
     }

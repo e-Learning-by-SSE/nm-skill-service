@@ -29,7 +29,8 @@ import { Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 
 /**
- * Service that manages the creation/update/deletion
+ * Service that manages the creation/update/deletion of LearningPaths defined by teachers (courses).
+ * @author El-Sharkawy
  * @author Wenzel
  */
 @Injectable()
