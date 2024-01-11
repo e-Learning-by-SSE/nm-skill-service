@@ -574,8 +574,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
         describe("Scenario Tests", () => {
             // Test data
             let skillMap: SkillMap;
-            let [parentSkill, nestedSkill1, nestedSkill2]: Skill[] = [];
-            let [unit1, unit2]: LearningUnit[] = [];
+            let [parentSkill, nestedSkill1, nestedSkill2, skill1, skill2, skill3]: Skill[] = [];
+            let [unit1, unit2, unit3, unit4]: LearningUnit[] = [];
             let initialPath: LearningPath;
 
             beforeEach(async () => {
@@ -584,8 +584,13 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 parentSkill = await dbUtils.createSkill(skillMap, "A");
                 nestedSkill1 = await dbUtils.createSkill(skillMap, "A1", [parentSkill.id]);
                 nestedSkill2 = await dbUtils.createSkill(skillMap, "A2", [parentSkill.id]);
+                skill1 = await dbUtils.createSkill(skillMap, "Skill 1");
+                skill2 = await dbUtils.createSkill(skillMap, "Skill 2");
+                skill3 = await dbUtils.createSkill(skillMap, "Skill 3");
                 unit1 = await dbUtils.createLearningUnit("Unit1", [nestedSkill1], []);
                 unit2 = await dbUtils.createLearningUnit("Unit2", [nestedSkill2], []);
+                unit3 = await dbUtils.createLearningUnit("Unit3", [skill1, skill2], []);
+                unit4 = await dbUtils.createLearningUnit("Unit3", [skill2, skill3], []);
                 initialPath = await dbUtils.createLearningPath("test-orga");
             });
 
@@ -644,7 +649,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
                     updatedAt: expect.any(String),
                 };
 
-                console.log("First Update: " + update.recommendedUnitSequence!);
+                // First Update
 
                 await request(app.getHttpServer())
                     .patch(`/learning-paths/${initialPath.id}`)
@@ -663,6 +668,39 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 // Expected Result
                 expectedResult.recommendedUnitSequence = update.recommendedUnitSequence!;
                 console.log("Second Update: " + update.recommendedUnitSequence!);
+
+                // Test: Update of initialPath
+                return request(app.getHttpServer())
+                    .patch(`/learning-paths/${initialPath.id}`)
+                    .send(update)
+                    .expect(200)
+                    .expect((res) => {
+                        const result = res.body as LearningPathDto;
+                        expect(result).toMatchObject(expectedResult);
+                    });
+            });
+
+            it("Florian (10.01.2024): 2 LearningUnits with overlapping taught skills + recommended path", async () => {
+                // Input
+                const update: UpdatePathRequestDto = {
+                    title: "Unit 3 and 4",
+                    requirements: [],
+                    pathGoals: [skill1.id, skill2.id, skill3.id],
+                    recommendedUnitSequence: [unit3.id, unit4.id],
+                };
+
+                // Expected Result
+                const expectedResult: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: initialPath.owner,
+                    title: update.title!,
+                    lifecycle: initialPath.lifecycle,
+                    requirements: [],
+                    pathGoals: [skill1.id, skill2.id, skill3.id],
+                    recommendedUnitSequence: [unit3.id, unit4.id],
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
+                };
 
                 // Test: Update of initialPath
                 return request(app.getHttpServer())
