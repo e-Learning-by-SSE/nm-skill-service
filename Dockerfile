@@ -3,7 +3,7 @@ FROM node:18-alpine as build
 
 # Required:
 # * openssl1.1-compat: Prisma Client to work in container
-RUN apk add --update --no-cache openssl1.1-compat
+# RUN apk add --update --no-cache openssl1.1-compat
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -44,7 +44,8 @@ COPY --from=build /usr/src/app /usr/src/app
 # * openssl1.1-compat: Prisma Client to work in container
 # * bash: entry-script
 # * pg_isready: To test if DB is up, bevor application starts
-RUN apk add --update --no-cache openssl1.1-compat bash postgresql-libs postgresql-client
+# RUN apk add --update --no-cache openssl1.1-compat bash postgresql-libs postgresql-client
+RUN apk add --update --no-cache bash postgresql-libs postgresql-client
 
 # Prepare startup script
 COPY docker/entry.sh /entry.sh
@@ -52,7 +53,7 @@ RUN chmod +x /entry.sh
 
 # Use the node user from the image (instead of the root user)
 USER node
-RUN chown node:node -R /usr/src/app/logs
+# RUN chown node:node -R /usr/src/app/logs
 
 # Start the server using the production build
 ENTRYPOINT ["/entry.sh"]
