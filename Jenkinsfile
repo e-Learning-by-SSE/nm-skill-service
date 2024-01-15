@@ -135,24 +135,6 @@ pipeline {
                                 tag "${env.API_VERSION}"
                             }
                         }
-                        script {
-                            sh 'rm -f competence_repository*.zip'
-                            docker.image(env.DOCKER_TARGET).withRun("-p 3000:3000") {
-                                // Wait for the application to be ready (after container was started)  
-                                sleep(time:30, unit:"SECONDS")
-                
-                                generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "competence_repository_search_api", ['python'])
-
-                                generateSwaggerClient("${env.APP_URL}", "${API_VERSION}", 'net.ssehub.e_learning', "competence_repository_search_api", ['typescript-axios']) {
-                                    docker.image('node').inside('-v $HOME/.npm:/.npm') {
-                                        dir('target/generated-sources/openapi') {
-                                            sh 'npm install'
-                                            npmPublish("${NPMRC}")
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
