@@ -64,18 +64,21 @@ export class EventMgmtService {
                 //TODO: There is a note about a required values check. If Lifecycle!=DRAFT, teachingGoal must be set?
                 } else if (mlsEvent.method === MlsActionType.PUT) {
 
-                    //Lifecycle needs extra handling
-                    //TODO
-                    let lifecycle: LIFECYCLE = "DRAFT";
-                    // mlsEvent.payload["lifecycle" as keyof JSON]!.toString as LIFECYCLE
+                    //Lifecycle needs extra handling (save content of JSON as string if key exists)
+                    let lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
+                    //Match string to enum. Can result in undefined. Enum matching is case sensitive.
+                    var lifecycle : LIFECYCLE = LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE]; 
+
+                    //TODO: Do we want to notify if any of the values is undefined or cannot be matched?
+                    //Further: Do we want to create non-existing learning units for which we get an update?
                   
                     //Gets id, title, description, lifecycle, and creator from the MLS system
                     //Caution: A PUT may contain just a partial update, some values may be undefined
                    let learningUnitDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(
                         mlsEvent.id,
                         null,
-                        mlsEvent.payload["title" as keyof JSON]!.toString(), //Only convert to string if not undefined or null
-                        mlsEvent.payload["description" as keyof JSON]!.toString(),
+                        mlsEvent.payload["title" as keyof JSON]?.toString(), //Only convert to string if not undefined or null
+                        mlsEvent.payload["description" as keyof JSON]?.toString(),
                         null,
                         null,
                         null,
@@ -87,7 +90,7 @@ export class EventMgmtService {
                         null,
                         null,
                         lifecycle,
-                        mlsEvent.payload["creator" as keyof JSON]!.toString(),
+                        mlsEvent.payload["creator" as keyof JSON]?.toString(),
                     );
 
                     console.log(learningUnitDto);
