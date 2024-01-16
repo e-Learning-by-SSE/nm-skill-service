@@ -1,12 +1,15 @@
 {
     "editor.tabSize": 4,
     "cSpell.words": [
+        "Carsten",
         "checkstyle",
         "dagrejs",
         "Digi",
         "Dtos",
         "El-Sharkawy",
+        "Eugen",
         "Florian",
+        "Gerling",
         "graphlib",
         "javac",
         "learningpath",
@@ -22,6 +25,7 @@
         "ueber",
         "uebercompetence",
         "uebercompetencies",
+        "USERSTATUS",
         "Wenzel"
     ],
     "typescript.preferences.importModuleSpecifier": "relative"
