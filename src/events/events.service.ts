@@ -38,17 +38,19 @@ export class EventMgmtService {
             //MLS tasks are called learning units in this system
             case MlsActionEntity.Task: {
 
-                //Create an empty learning unit with the provided id from MLS (when a task is created in MLS)
-                //TODO: Why does this have to be empty? -> Get all relevant info
+                //Create a partly empty learning unit with the provided id from MLS (when a task is created in MLS)
                 if (mlsEvent.method === MlsActionType.POST) {
-                    const locDto: SearchLearningUnitCreationDto = {
+                    const learningUnitDto: SearchLearningUnitCreationDto = {
                         id: mlsEvent.id,
-                        teachingGoals: [],
-                        requiredSkills: [],
-                        lifecycle: LIFECYCLE.DRAFT
+                        title: mlsEvent.payload["title" as keyof JSON]?.toString(), //Only convert to string if not undefined or null
+                        description: mlsEvent.payload["description" as keyof JSON]?.toString(),
+                        contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
+                        teachingGoals: [], //Initially empty
+                        requiredSkills: [], //Initially empty
+                        lifecycle: LIFECYCLE.DRAFT //Initially as draft
                     }
 
-                    return this.learningUnitService.createLearningUnit(locDto);
+                    return this.learningUnitService.createLearningUnit(learningUnitDto);
 
                 //Update an existing learning unit when the corresponding task in MLS is changed
                 //Relevant values are: title, description, lifecycle, and creator    
@@ -56,48 +58,46 @@ export class EventMgmtService {
                 } else if (mlsEvent.method === MlsActionType.PUT) {
 
                     //Lifecycle needs extra handling (save content of JSON as string if key exists)
-                    let lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
+                    const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
                     //Match string to enum. Can result in undefined. Enum matching is case sensitive.
-                    var lifecycle : LIFECYCLE = LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE]; 
+                    const lifecycle : LIFECYCLE = LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE]; 
 
                     //TODO: Do we want to notify if any of the values is undefined or cannot be matched?
                     //Further: Do we want to create non-existing learning units for which we get an update?
                   
                     //Gets id, title, description, lifecycle, and creator from the MLS system
                     //Caution: A PUT may contain just a partial update, some values may be undefined
-                   let learningUnitDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(
-                        mlsEvent.id,
-                        null,
-                        mlsEvent.payload["title" as keyof JSON]?.toString(), //Only convert to string if not undefined or null
-                        mlsEvent.payload["description" as keyof JSON]?.toString(),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        lifecycle,
-                        mlsEvent.payload["creator" as keyof JSON]?.toString(),
-                    );
+                    const learningUnitDto: SearchLearningUnitCreationDto = {
+                        id: mlsEvent.id,
+                        title: mlsEvent.payload["title" as keyof JSON]?.toString(), //Only convert to string if not undefined or null
+                        description: mlsEvent.payload["description" as keyof JSON]?.toString(),
+                        contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
+                        teachingGoals: [], //ToDo: How do we handle these? Who is updating them?
+                        requiredSkills: [], //ToDo: How do we handle these? Who is updating them?
+                        lifecycle: lifecycle 
+                    }
 
                     console.log(learningUnitDto);
 
                     //Update the existing learning unit in our system with the new values from MLS
-                    let learningUnit = await this.learningUnitService.patchLearningUnit(mlsEvent.id, learningUnitDto);
+                    const learningUnit = await this.learningUnitService.patchLearningUnit(mlsEvent.id, learningUnitDto);
                    
                     return learningUnit;
 
-                //Delete an existing learning unit if the corresponding task in MLS is deleted
-                //TODO: Check that we only delete when lifecycle is draft!   
+                //Delete an existing learning unit if the corresponding task in MLS is deleted 
                 } else if (mlsEvent.method === MlsActionType.DELETE) {
-                    return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
+
+                    //Check that we only delete if lifecycle is draft
+                    const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
+
+                    if (lifecycleString == "DRAFT"){
+                        return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
+                    } else {
+                        return new ForbiddenException("TaskEvent: Cannot delete a task that is not in DRAFT mode. Currently: "+lifecycleString);
+                    }
 
                 } else {
-                    return new ForbiddenException("TaskEvent: Method for this action type not implemented.");
+                    return new ForbiddenException("TaskEvent: Method for this action type ("+mlsEvent.method+") not implemented.");
                 }
             }
 
@@ -105,34 +105,28 @@ export class EventMgmtService {
             case MlsActionEntity.User: {
 
                 //Create a new empty user profile when a user is created in the MLS system
-                //TODO: Why does this have to be empty? We could also read out the other values like state and name!
                 if (mlsEvent.method === MlsActionType.POST) {
-                    let userDto: UserCreationDto = new UserCreationDto(
-                        mlsEvent.id,
-                        null,
-                        null,
-                        null,
-                        null,   
-                        null,
-                        null,
-                        null,
-                    );
+
+                    const userDto: UserCreationDto = {
+                        id: mlsEvent.id,
+                        name: mlsEvent.payload["name" as keyof JSON]?.toString(),
+                        //ToDo: What is the initial userstatus? Do we need more values/attributes?
+                    }
+
                     return this.userService.createUser(userDto);
 
                 //Change the user profile state when it is changed in MLS    
                 } else if (mlsEvent.method === MlsActionType.PUT) {
 
                     //Try to read the state attribute of the user
-                    let userState = mlsEvent.payload["state" as keyof JSON];
+                    const userState = mlsEvent.payload["state" as keyof JSON];
 
                     //Check if we got a valid result (MLS uses a boolean) and change the user state accordingly
                     if(userState != undefined){
                         if(userState == "true"){
-                            let user = await this.userService.patchUserState(mlsEvent.id, USERSTATUS.ACTIVE);
-                            return user;
+                            return await this.userService.patchUserState(mlsEvent.id, USERSTATUS.ACTIVE);
                         } else if (userState == "false") {
-                            let user = await this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
-                            return user;
+                            return await this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
                         }
                         else {
                             return new ForbiddenException("UserEvent: Unknown state attribute value "+userState+" from MLS user entity. Update aborted.");
@@ -148,7 +142,7 @@ export class EventMgmtService {
                     return this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
                     
                 } else {
-                    return new ForbiddenException("UserEvent: Method for this action type not implemented.");
+                    return new ForbiddenException("UserEvent: Method for this action type ("+mlsEvent.method+") not implemented.");
                 }
             }
 
