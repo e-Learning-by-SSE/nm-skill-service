@@ -1,5 +1,5 @@
 import { Transform, plainToInstance } from "class-transformer";
-import { IsBoolean, IsDefined, IsEnum, IsNotEmpty, IsNumber, validateSync } from "class-validator";
+import { IsBoolean, IsDefined, IsEnum, IsNotEmpty, IsNumber, Max, Min, isNotEmpty, isNumber, max, validateSync } from "class-validator";
 
 /**
  * Validation Schema for the configuration file.
@@ -77,6 +77,12 @@ export class EnvironmentVariables {
     @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)
     @IsBoolean()
     SAVE_LOG_TO_FILE :string;
+
+    @IsNumber()
+    @IsNotEmpty()
+    @Max(1)
+    @Min(0)
+    PASSING_THRESHOLD: number;
 
 
 }
