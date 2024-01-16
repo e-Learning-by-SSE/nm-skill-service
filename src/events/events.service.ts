@@ -6,6 +6,7 @@ import { LearningUnitMgmtService } from "../learningUnit/learningUnit.service";
 import { UserCreationDto } from "../user/dto";
 import { UserMgmtService } from "../user/user.service";
 import { USERSTATUS, LIFECYCLE } from "@prisma/client";
+import { ConfigService } from "@nestjs/config";
 
 /**
  * Triggers actions when certain events related to tasks (like creating a TaskTodo) occur in the MLS system
@@ -18,6 +19,7 @@ export class EventMgmtService {
     constructor(
         private learningUnitService: LearningUnitMgmtService,
         private userService: UserMgmtService,
+        private configService: ConfigService
     ) {}
 
     /**
@@ -37,31 +39,20 @@ export class EventMgmtService {
             case MlsActionEntity.Task: {
 
                 //Create an empty learning unit with the provided id from MLS (when a task is created in MLS)
-                //TODO: Why does this have to be empty?
+                //TODO: Why does this have to be empty? -> Get all relevant info
                 if (mlsEvent.method === MlsActionType.POST) {
-                    let locDto: SearchLearningUnitCreationDto = new SearchLearningUnitCreationDto(
-                        mlsEvent.id,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                    );
+                    const locDto: SearchLearningUnitCreationDto = {
+                        id: mlsEvent.id,
+                        teachingGoals: [],
+                        requiredSkills: [],
+                        lifecycle: LIFECYCLE.DRAFT
+                    }
+
                     return this.learningUnitService.createLearningUnit(locDto);
 
                 //Update an existing learning unit when the corresponding task in MLS is changed
                 //Relevant values are: title, description, lifecycle, and creator    
-                //TODO: There is a note about a required values check. If Lifecycle!=DRAFT, teachingGoal must be set?
+                //TODO: There is a note about a required values check. If Lifecycle!=DRAFT, teachingGoal must be set. Send 409 exception back.
                 } else if (mlsEvent.method === MlsActionType.PUT) {
 
                     //Lifecycle needs extra handling (save content of JSON as string if key exists)
@@ -101,7 +92,7 @@ export class EventMgmtService {
                     return learningUnit;
 
                 //Delete an existing learning unit if the corresponding task in MLS is deleted
-                //TODO: Check that we only delete when lifecycle is draft?    
+                //TODO: Check that we only delete when lifecycle is draft!   
                 } else if (mlsEvent.method === MlsActionType.DELETE) {
                     return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
 
@@ -114,7 +105,7 @@ export class EventMgmtService {
             case MlsActionEntity.User: {
 
                 //Create a new empty user profile when a user is created in the MLS system
-                //TODO: Why does this have to be empty? We could also read out the other values like state and name?
+                //TODO: Why does this have to be empty? We could also read out the other values like state and name!
                 if (mlsEvent.method === MlsActionType.POST) {
                     let userDto: UserCreationDto = new UserCreationDto(
                         mlsEvent.id,
@@ -152,7 +143,7 @@ export class EventMgmtService {
                     }
 
                 //This is the same as PUT state to "inactive"    
-                //TODO: Specification does not mention a delete action
+                //TODO: Specification does not mention a delete action. Talk with Eugen about what should happen here.
                 } else if (mlsEvent.method === MlsActionType.DELETE) {
                     return this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
                     
@@ -163,7 +154,7 @@ export class EventMgmtService {
 
             // A MLS teacher adds a MLS user ID to a Task (specifically to its taskTodos array), meaning the user has to complete this task
             // A taskTodo object contains the individual learning progress per user
-            //TODO: There is no equivalent in this system? Relation to learning history?
+            //TODO: There is no equivalent in this system? Relation to learning history? Wait until user profile is finished.
             case MlsActionEntity.TaskToDo: {
 
                 // When a TaskTodo is updated in the MLS system, update our user profile accordingly
