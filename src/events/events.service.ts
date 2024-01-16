@@ -110,7 +110,7 @@ export class EventMgmtService {
                     const userDto: UserCreationDto = {
                         id: mlsEvent.id,
                         name: mlsEvent.payload["name" as keyof JSON]?.toString(),
-                        //ToDo: What is the initial userstatus? Do we need more values/attributes?
+                        status: USERSTATUS.ACTIVE //Initially, users are created as active users
                     }
 
                     return this.userService.createUser(userDto);
