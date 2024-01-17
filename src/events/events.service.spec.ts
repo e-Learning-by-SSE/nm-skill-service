@@ -8,6 +8,8 @@ import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
+import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
+import { LIFECYCLE } from "@prisma/client";
 
 
 describe("Event Service", () => {
@@ -168,20 +170,65 @@ describe("Event Service", () => {
     describe("learningUnitCreationUpdateDeletion", () => {
         it("should create a valid learning unit", async () => {
             // Arrange: Define test data and create event input
-            const validMLSEvent : MLSEvent = {
+            const validMLSPostEvent : MLSEvent = {
                 entityType: MlsActionEntity.Task,
                 method: MlsActionType.POST,
                 id: "test1",
-                payload: JSON.parse("{\"noState\":\"notRelevant\"}")
+                payload: JSON.parse("{\"title\":\"Test Title\", \"description\":\"Test description\", \"creator\":\"Test creator\"}")
+              };
+
+            const expectedLearningUnitDto: SearchLearningUnitCreationDto = {
+                id: validMLSPostEvent.id,
+                title: "Test Title", 
+                description: "Test description",
+                contentCreator: "Test creator",
+                teachingGoals: [], 
+                requiredSkills: [], 
+                lifecycle: LIFECYCLE.DRAFT 
+                }
+
+            // Act: Call the getEvent method
+            let createdEntry = await eventService.getEvent(validMLSPostEvent);
+
+            // Assert: Check that the createdEntry is valid and matches the expected data
+            expect((createdEntry as SearchLearningUnitCreationDto).id).toEqual(expectedLearningUnitDto.id);
+            expect((createdEntry as SearchLearningUnitCreationDto).title).toEqual(expectedLearningUnitDto.title);
+            expect((createdEntry as SearchLearningUnitCreationDto).description).toEqual(expectedLearningUnitDto.description);
+            expect((createdEntry as SearchLearningUnitCreationDto).contentCreator).toEqual(expectedLearningUnitDto.contentCreator);
+            expect((createdEntry as SearchLearningUnitCreationDto).teachingGoals).toEqual(expectedLearningUnitDto.teachingGoals);
+            expect((createdEntry as SearchLearningUnitCreationDto).requiredSkills).toEqual(expectedLearningUnitDto.requiredSkills);
+            expect((createdEntry as SearchLearningUnitCreationDto).lifecycle).toEqual(expectedLearningUnitDto.lifecycle);
+
+            // Arrange: Define an update event
+            const validMLSPutEvent : MLSEvent = {
+                entityType: MlsActionEntity.Task,
+                method: MlsActionType.PUT,
+                id: "test1",
+                payload: JSON.parse("{\"description\":\"Updated test description\"}")
               };
 
             // Act: Call the getEvent method
-            const createdEntry = await eventService.getEvent(validMLSEvent);
+            createdEntry = await eventService.getEvent(validMLSPutEvent);  
 
-            // Assert: Check that the createdEntry is valid and matches the expected data
-            expect(createdEntry).toBeDefined();
+            // Assert: Check that the createdEntry is valid and matches the expected data (updated description, other selected values unchanged)
+            expect((createdEntry as SearchLearningUnitCreationDto).description).toEqual("Updated test description");
+            expect((createdEntry as SearchLearningUnitCreationDto).teachingGoals).toEqual(expectedLearningUnitDto.teachingGoals);
+            expect((createdEntry as SearchLearningUnitCreationDto).lifecycle).toEqual(expectedLearningUnitDto.lifecycle);
 
-            //Updates and deletion
+            // Arrange: Define a delete event
+            const validMLSDeleteEvent : MLSEvent = {
+                entityType: MlsActionEntity.Task,
+                method: MlsActionType.DELETE,
+                id: "test1",
+                payload: JSON.parse("{\"lifecycle\":\"DRAFT\"}")   //We need this information as only draft units can be deleted
+                };
+
+            // Act: Call the getEvent method
+            const returnedObject = await eventService.getEvent(validMLSDeleteEvent);  
+
+            // Assert: Check that the learning unit is successfully deleted
+            expect(returnedObject).toEqual({ message: `Learning Unit deleted successfully: test1` });
+
         });
 
     });
