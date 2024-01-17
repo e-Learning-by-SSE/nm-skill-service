@@ -81,6 +81,8 @@ export class EventMgmtService {
 
                     //Update the existing learning unit in our system with the new values from MLS
                     const learningUnit = await this.learningUnitService.patchLearningUnit(mlsEvent.id, learningUnitDto);
+
+                    console.log(learningUnit);
                    
                     return learningUnit;
 
@@ -90,6 +92,7 @@ export class EventMgmtService {
                     //Check that we only delete if lifecycle is draft
                     const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
 
+                    //This works only if we really get the whole object with the DELETE event
                     if (lifecycleString == "DRAFT"){
                         return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
                     } else {
