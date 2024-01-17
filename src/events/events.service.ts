@@ -93,11 +93,11 @@ export class EventMgmtService {
                     if (lifecycleString == "DRAFT"){
                         return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
                     } else {
-                        return new ForbiddenException("TaskEvent: Cannot delete a task that is not in DRAFT mode. Currently: "+lifecycleString);
+                        throw new ForbiddenException("TaskEvent: Cannot delete a task that is not in DRAFT mode. Currently: "+lifecycleString);
                     }
 
                 } else {
-                    return new ForbiddenException("TaskEvent: Method for this action type ("+mlsEvent.method+") not implemented.");
+                    throw new ForbiddenException("TaskEvent: Method for this action type ("+mlsEvent.method+") not implemented.");
                 }
             }
 
@@ -129,11 +129,11 @@ export class EventMgmtService {
                             return await this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
                         }
                         else {
-                            return new ForbiddenException("UserEvent: Unknown state attribute value "+userState+" from MLS user entity. Update aborted.");
+                            throw new ForbiddenException("UserEvent: Unknown state attribute value "+userState+" from MLS user entity. Update aborted.");
                         }
                     }
                     else {
-                        return new ForbiddenException("UserEvent: Could not read the state attribute from MLS user entity. Update aborted.");
+                        throw new ForbiddenException("UserEvent: Could not read the state attribute from MLS user entity. Update aborted.");
                     }
 
                 //This is the same as PUT state to "inactive"    
@@ -142,7 +142,7 @@ export class EventMgmtService {
                     return this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
                     
                 } else {
-                    return new ForbiddenException("UserEvent: Method for this action type ("+mlsEvent.method+") not implemented.");
+                    throw new ForbiddenException("UserEvent: Method for this action type ("+mlsEvent.method+") not implemented.");
                 }
             }
 
@@ -154,15 +154,6 @@ export class EventMgmtService {
                 // When a TaskTodo is updated in the MLS system, update our user profile accordingly
                 // Currently only when TaskTodo is finished? To update our learning history?
                 if (mlsEvent.method === MlsActionType.PUT) {
-                    //We do not need that, get info directly from payload
-                    //let client = new MLSClient();
-
-                    //We don't have a taskToDo DTO, this should be done in the learning history
-                    //let taskTodoDto = await client.getTaskToDoForId(mlsEvent.id);
-                    //TODO: Do we really have to calculate ourself when a task is finished successfully?
-                    //let taskToDo = await this.taskToDoService.patchTaskToDo(mlsEvent.id, taskTodoDto);
-
-                    return null;
                    // Reaction: From TaskToDo get:
                     /* task, (IRI)
                     user, (IRI)
@@ -171,8 +162,69 @@ export class EventMgmtService {
                     maxPoints
                     --> Update user profile: if (FINISHED && scorePoints/maxPoints >= 0.5) {skill is considered to be acquired} */
 
+                //What is changed during a put event? We do not get the user or the points during the put event! This is only received with the get event for the tasktodo
+                //TaskToDoInfo: status    
+                const tdti = {
+                    "status": "string",
+                    "stepsProcessed": 0,
+                    "lockingStepsProcessed": 0,
+                    "maxStepsProcessed": 0,
+                    "lockAfterStep": [
+                      "string"
+                    ],
+                    "dueTime": 0,
+                    "reactivatedStartTime": "2024-01-17T09:56:29.862Z",
+                    "note": "string"
+                  };
+                  //TaskToDo: task
+                  const ttd = {
+                    "task": "string",
+                    "taskTodoInfo": {
+                      "lockAfterStep": [
+                        "string"
+                      ],
+                      "dueTime": 0,
+                      "reactivatedStartTime": "2024-01-17T09:56:29.907Z",
+                      "note": "string"
+                    },
+                    "formAnswers": {
+                      "": ""
+                    },
+                    "scormAnswers": {
+                      "": ""
+                    },
+                    "instructorsToNotify": [
+                      "string"
+                    ],
+                    "files": [
+                      "string"
+                    ],
+                    "reactivated": true,
+                    "archived": true,
+                    "showToLearners": true,
+                    "showInStatistic": true,
+                    "usedHelpingTopics": [
+                      "string"
+                    ],
+                    "equipments": [
+                      "string"
+                    ],
+                    "notice": "string",
+                    "equipmentMaintenance": "string",
+                    "weightedPercents": 0,
+                    "deselectedForms": [
+                      "string"
+                    ]
+                  };
+
+
+                    //We don't have a taskToDo DTO, this should be done in the learning history
+                    //const taskToDo = await this.taskToDoService.patchTaskToDo(mlsEvent.id, taskTodoDto);
+
+                    return "Nothing changed yet";
+
                 } else {
-                    return new ForbiddenException("TaskToDoEvent: Method for this action type not implemented.");
+                    throw new ForbiddenException("TaskToDoEvent: Method for this action type not implemented.");
                 }   
             }
 
@@ -182,7 +234,7 @@ export class EventMgmtService {
             }
 
             default:
-                return new ForbiddenException("MlsActionEntity unknown");
+                throw new ForbiddenException("MlsActionEntity unknown");
         }
     }
 }

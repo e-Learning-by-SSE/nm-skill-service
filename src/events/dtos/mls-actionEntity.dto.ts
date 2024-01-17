@@ -2,5 +2,6 @@ export enum MlsActionEntity {
     User = "User",
     TaskToDo = "TaskTodo",
     TaskToDoInfo = "TaskTodoInfo",
-    Task = "Task"
+    Task = "Task",
+    Other =  "Other"
   }
