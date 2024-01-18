@@ -19,7 +19,7 @@ export class EventMgmtService {
     constructor(
         private learningUnitService: LearningUnitMgmtService,
         private userService: UserMgmtService,
-        private configService: ConfigService
+        private configService: ConfigService,
     ) {}
 
     /**
@@ -29,15 +29,12 @@ export class EventMgmtService {
      * For TaskTodo events: When task is finished, update learning unit status to finished, save scored points, update linked user.
      * For TaskTodoInfo events: Update the progress (StepProcessed, MaxStepsProcessed) within the learning unit.
      * @param mlsEvent Generic event, contains an entityType (User, Task, TaskTodo, TaskTodoInfo), method (PUT, POST, DELETE), id (in the MLS system), and the object itself as payload
-     * @returns Depends on the use case? 
+     * @returns Depends on the use case?
      */
     async getEvent(mlsEvent: MLSEvent) {
-
         switch (mlsEvent.entityType) {
-
             //MLS tasks are called learning units in this system
             case MlsActionEntity.Task: {
-
                 //Create a partly empty learning unit with the provided id from MLS (when a task is created in MLS)
                 if (mlsEvent.method === MlsActionType.POST) {
                     const learningUnitDto: SearchLearningUnitCreationDto = {
@@ -47,24 +44,24 @@ export class EventMgmtService {
                         contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
                         teachingGoals: [], //Initially empty
                         requiredSkills: [], //Initially empty
-                        lifecycle: LIFECYCLE.DRAFT //Initially as draft
-                    }
+                        lifecycle: LIFECYCLE.DRAFT, //Initially as draft
+                    };
 
                     return this.learningUnitService.createLearningUnit(learningUnitDto);
 
-                //Update an existing learning unit when the corresponding task in MLS is changed
-                //Relevant values are: title, description, lifecycle, and creator    
-                //TODO: There is a note about a required values check. If Lifecycle!=DRAFT, teachingGoal must be set. Send 409 exception back.
+                    //Update an existing learning unit when the corresponding task in MLS is changed
+                    //Relevant values are: title, description, lifecycle, and creator
+                    //TODO: There is a note about a required values check. If Lifecycle!=DRAFT, teachingGoal must be set. Send 409 exception back.
                 } else if (mlsEvent.method === MlsActionType.PUT) {
-
                     //Lifecycle needs extra handling (save content of JSON as string if key exists)
                     const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
                     //Match string to enum. Can result in undefined. Enum matching is case sensitive.
-                    const lifecycle : LIFECYCLE = LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE]; 
+                    const lifecycle: LIFECYCLE =
+                        LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE];
 
                     //TODO: Do we want to notify if any of the values is undefined or cannot be matched?
                     //Further: Do we want to create non-existing learning units for which we get an update?
-                  
+
                     //Gets id, title, description, lifecycle, and creator from the MLS system
                     //Caution: A PUT may contain just a partial update, some values may be undefined
                     const learningUnitDto: SearchLearningUnitCreationDto = {
@@ -74,78 +71,96 @@ export class EventMgmtService {
                         contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
                         teachingGoals: [], //ToDo: How do we handle these? Who is updating them?
                         requiredSkills: [], //ToDo: How do we handle these? Who is updating them?
-                        lifecycle: lifecycle 
-                    }
+                        lifecycle: lifecycle,
+                    };
 
                     console.log(learningUnitDto);
 
                     //Update the existing learning unit in our system with the new values from MLS
-                    const learningUnit = await this.learningUnitService.patchLearningUnit(mlsEvent.id, learningUnitDto);
+                    const learningUnit = await this.learningUnitService.patchLearningUnit(
+                        mlsEvent.id,
+                        learningUnitDto,
+                    );
 
                     console.log(learningUnit);
-                   
+
                     return learningUnit;
 
-                //Delete an existing learning unit if the corresponding task in MLS is deleted 
+                    //Delete an existing learning unit if the corresponding task in MLS is deleted
                 } else if (mlsEvent.method === MlsActionType.DELETE) {
-
                     //Check that we only delete if lifecycle is draft
                     const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
 
                     //This works only if we really get the whole object with the DELETE event
-                    if (lifecycleString == "DRAFT"){
+                    if (lifecycleString == "DRAFT") {
                         return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
                     } else {
-                        throw new ForbiddenException("TaskEvent: Cannot delete a task that is not in DRAFT mode. Currently: "+lifecycleString);
+                        throw new ForbiddenException(
+                            "TaskEvent: Cannot delete a task that is not in DRAFT mode. Currently: " +
+                                lifecycleString,
+                        );
                     }
-
                 } else {
-                    throw new ForbiddenException("TaskEvent: Method for this action type ("+mlsEvent.method+") not implemented.");
+                    throw new ForbiddenException(
+                        "TaskEvent: Method for this action type (" +
+                            mlsEvent.method +
+                            ") not implemented.",
+                    );
                 }
             }
 
             //MLS users are only available as user profiles in this system
             case MlsActionEntity.User: {
-
                 //Create a new empty user profile when a user is created in the MLS system
                 if (mlsEvent.method === MlsActionType.POST) {
-
                     const userDto: UserCreationDto = {
                         id: mlsEvent.id,
                         name: mlsEvent.payload["name" as keyof JSON]?.toString(),
-                        status: USERSTATUS.ACTIVE //Initially, users are created as active users
-                    }
+                        status: USERSTATUS.ACTIVE, //Initially, users are created as active users
+                    };
 
                     return this.userService.createUser(userDto);
 
-                //Change the user profile state when it is changed in MLS    
+                    //Change the user profile state when it is changed in MLS
                 } else if (mlsEvent.method === MlsActionType.PUT) {
-
                     //Try to read the state attribute of the user
                     const userState = mlsEvent.payload["state" as keyof JSON];
 
                     //Check if we got a valid result (MLS uses a boolean) and change the user state accordingly
-                    if(userState != undefined){
-                        if(userState == "true"){
-                            return await this.userService.patchUserState(mlsEvent.id, USERSTATUS.ACTIVE);
+                    if (userState != undefined) {
+                        if (userState == "true") {
+                            return await this.userService.patchUserState(
+                                mlsEvent.id,
+                                USERSTATUS.ACTIVE,
+                            );
                         } else if (userState == "false") {
-                            return await this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
+                            return await this.userService.patchUserState(
+                                mlsEvent.id,
+                                USERSTATUS.INACTIVE,
+                            );
+                        } else {
+                            throw new ForbiddenException(
+                                "UserEvent: Unknown state attribute value " +
+                                    userState +
+                                    " from MLS user entity. Update aborted.",
+                            );
                         }
-                        else {
-                            throw new ForbiddenException("UserEvent: Unknown state attribute value "+userState+" from MLS user entity. Update aborted.");
-                        }
-                    }
-                    else {
-                        throw new ForbiddenException("UserEvent: Could not read the state attribute from MLS user entity. Update aborted.");
+                    } else {
+                        throw new ForbiddenException(
+                            "UserEvent: Could not read the state attribute from MLS user entity. Update aborted.",
+                        );
                     }
 
-                //This is the same as PUT state to "inactive"    
-                //TODO: Specification does not mention a delete action. Talk with Eugen about what should happen here.
+                    //This is the same as PUT state to "inactive"
+                    //TODO: Specification does not mention a delete action. Talk with Eugen about what should happen here.
                 } else if (mlsEvent.method === MlsActionType.DELETE) {
                     return this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
-                    
                 } else {
-                    throw new ForbiddenException("UserEvent: Method for this action type ("+mlsEvent.method+") not implemented.");
+                    throw new ForbiddenException(
+                        "UserEvent: Method for this action type (" +
+                            mlsEvent.method +
+                            ") not implemented.",
+                    );
                 }
             }
 
@@ -153,11 +168,10 @@ export class EventMgmtService {
             // A taskTodo object contains the individual learning progress per user
             //TODO: There is no equivalent in this system? Relation to learning history? Wait until user profile is finished.
             case MlsActionEntity.TaskToDo: {
-
                 // When a TaskTodo is updated in the MLS system, update our user profile accordingly
                 // Currently only when TaskTodo is finished? To update our learning history?
                 if (mlsEvent.method === MlsActionType.PUT) {
-                   // Reaction: From TaskToDo get:
+                    // Reaction: From TaskToDo get:
                     /* task, (IRI)
                     user, (IRI)
                     TaskToDoInfo.status, (==FINISHED)
@@ -165,70 +179,48 @@ export class EventMgmtService {
                     maxPoints
                     --> Update user profile: if (FINISHED && scorePoints/maxPoints >= 0.5) {skill is considered to be acquired} */
 
-                //What is changed during a put event? We do not get the user or the points during the put event! This is only received with the get event for the tasktodo
-                //TaskToDoInfo: status    
-                const tdti = {
-                    "status": "string",
-                    "stepsProcessed": 0,
-                    "lockingStepsProcessed": 0,
-                    "maxStepsProcessed": 0,
-                    "lockAfterStep": [
-                      "string"
-                    ],
-                    "dueTime": 0,
-                    "reactivatedStartTime": "2024-01-17T09:56:29.862Z",
-                    "note": "string"
-                  };
-                  //TaskToDo: task
-                  const ttd = {
-                    "task": "string",
-                    "taskTodoInfo": {
-                      "lockAfterStep": [
-                        "string"
-                      ],
-                      "dueTime": 0,
-                      "reactivatedStartTime": "2024-01-17T09:56:29.907Z",
-                      "note": "string"
-                    },
-                    "formAnswers": {
-                      "": ""
-                    },
-                    "scormAnswers": {
-                      "": ""
-                    },
-                    "instructorsToNotify": [
-                      "string"
-                    ],
-                    "files": [
-                      "string"
-                    ],
-                    "reactivated": true,
-                    "archived": true,
-                    "showToLearners": true,
-                    "showInStatistic": true,
-                    "usedHelpingTopics": [
-                      "string"
-                    ],
-                    "equipments": [
-                      "string"
-                    ],
-                    "notice": "string",
-                    "equipmentMaintenance": "string",
-                    "weightedPercents": 0,
-                    "deselectedForms": [
-                      "string"
-                    ]
-                  };
-
+                    //What is changed during a put event? We do not get the user or the points during the put event! This is only received with the get event for the tasktodo
+                    //TaskToDoInfo: status
+                    const tdti = {
+                        status: "string",
+                        stepsProcessed: 0,
+                        lockingStepsProcessed: 0,
+                        maxStepsProcessed: 0,
+                        lockAfterStep: ["string"],
+                        dueTime: 0,
+                        reactivatedStartTime: "2024-01-17T09:56:29.862Z",
+                        note: "string",
+                    };
+                    //TaskToDo: task
+                    const ttd = {
+                        task: "string",
+                        taskTodoInfo: {
+                            lockAfterStep: ["string"],
+                            dueTime: 0,
+                            reactivatedStartTime: "2024-01-17T09:56:29.907Z",
+                            note: "string",
+                        },
+                        //...
+                        reactivated: true,
+                        archived: true,
+                        showToLearners: true,
+                        showInStatistic: true,
+                        //...
+                        notice: "string",
+                        equipmentMaintenance: "string",
+                        weightedPercents: 0,
+                        deselectedForms: ["string"],
+                    };
 
                     //We don't have a taskToDo DTO, this should be done in the learning history
                     //const taskToDo = await this.taskToDoService.patchTaskToDo(mlsEvent.id, taskTodoDto);
 
                     return "Nothing changed yet";
-
                 } else {
-                    throw new ForbiddenException("TaskToDoEvent: Method for this action type not implemented.");
-                }   
+                    throw new ForbiddenException(
+                        "TaskToDoEvent: Method for this action type not implemented.",
+                    );
+                }
             }
 
             //TODO: What about taskTodoInfo? It is existing in the Excel table, but not in Miro
