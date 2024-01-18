@@ -9,7 +9,8 @@ import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
-import { LIFECYCLE } from "@prisma/client";
+import { LIFECYCLE, USERSTATUS } from "@prisma/client";
+import { UserCreationDto } from "../user/dto/user-creation.dto";
 
 
 describe("Event Service", () => {
@@ -168,7 +169,7 @@ describe("Event Service", () => {
      * Positive tests for the event handling API for MLS tasks (our learning units), testing all kinds of valid inputs.
      */
     describe("learningUnitCreationUpdateDeletion", () => {
-        it("should create a valid learning unit", async () => {
+        it("should create a valid learning unit, update it, and then delete it", async () => {
             // Arrange: Define test data and create event input
             const validMLSPostEvent : MLSEvent = {
                 entityType: MlsActionEntity.Task,
@@ -190,7 +191,7 @@ describe("Event Service", () => {
             // Act: Call the getEvent method
             let createdEntry = await eventService.getEvent(validMLSPostEvent);
 
-            // Assert: Check that the createdEntry is valid and matches the expected data
+            // Assert: Check that the createdEntry is valid and matches the expected data (we cannot check object equality as the created DTO contains way more values)
             expect((createdEntry as SearchLearningUnitCreationDto).id).toEqual(expectedLearningUnitDto.id);
             expect((createdEntry as SearchLearningUnitCreationDto).title).toEqual(expectedLearningUnitDto.title);
             expect((createdEntry as SearchLearningUnitCreationDto).description).toEqual(expectedLearningUnitDto.description);
@@ -230,6 +231,84 @@ describe("Event Service", () => {
             expect(returnedObject).toEqual({ message: `Learning Unit deleted successfully: test1` });
 
         });
-
     });
+
+    /**
+     * Positive tests for the event handling API for MLS users (our user profiles), testing all kinds of valid inputs.
+     */
+    describe("userCreationUpdateDeletion", () => {
+        it("should create a valid user, update it, and then delete it", async () => {
+            // Arrange: Define test data and create event input
+            const validMLSPostEvent : MLSEvent = {
+                entityType: MlsActionEntity.User,
+                method: MlsActionType.POST,
+                id: "test1",
+                payload: JSON.parse("{\"name\":\"Test Name\"}")
+              };
+
+            const expectedUserDto: UserCreationDto = {
+                id: validMLSPostEvent.id,
+                name: "Test Name", 
+                status: USERSTATUS.ACTIVE //Initially, users are created as active users
+                }
+
+            // Act: Call the getEvent method
+            let createdEntry = await eventService.getEvent(validMLSPostEvent);
+
+            // Assert: Check that the createdEntry is valid and matches the expected data (we cannot check object equality as the created DTO contains way more values)
+            expect((createdEntry as UserCreationDto).id).toEqual(expectedUserDto.id);
+            expect((createdEntry as UserCreationDto).name).toEqual(expectedUserDto.name);
+            expect((createdEntry as UserCreationDto).status).toEqual(expectedUserDto.status);
+
+
+            // Arrange: Define an update event
+            const validMLSPutEvent : MLSEvent = {
+                entityType: MlsActionEntity.User,
+                method: MlsActionType.PUT,
+                id: "test1",
+                payload: JSON.parse("{\"state\":\"false\"}")
+              };
+
+            // Act: Call the getEvent method
+            createdEntry = await eventService.getEvent(validMLSPutEvent);  
+
+            // Assert: Check that the createdEntry is valid and matches the expected data (updated state, other selected values unchanged)
+            expect((createdEntry as UserCreationDto).id).toEqual(expectedUserDto.id);
+            expect((createdEntry as UserCreationDto).name).toEqual(expectedUserDto.name);
+            expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.INACTIVE);
+
+
+            //Update again as preparation for next test and to test the other branch
+            const validMLSPutEvent2 : MLSEvent = {
+                entityType: MlsActionEntity.User,
+                method: MlsActionType.PUT,
+                id: "test1",
+                payload: JSON.parse("{\"state\":\"true\"}")
+              };
+
+             // Act: Call the getEvent method
+            createdEntry = await eventService.getEvent(validMLSPutEvent2);  
+
+            // Assert: Check that the createdEntry is valid and matches the expected data (updated state, other selected values unchanged)
+            expect((createdEntry as UserCreationDto).id).toEqual(expectedUserDto.id);
+            expect((createdEntry as UserCreationDto).name).toEqual(expectedUserDto.name);
+            expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.ACTIVE);
+
+            // Arrange: Define a delete event
+            const validMLSDeleteEvent : MLSEvent = {
+                entityType: MlsActionEntity.User,
+                method: MlsActionType.DELETE,
+                id: "test1",
+                payload: JSON.parse("{}")   
+                };
+
+            // Act: Call the getEvent method
+            createdEntry = await eventService.getEvent(validMLSDeleteEvent);  
+
+            // Assert: Check that the user unit is successfully deleted (in our case this means setting status to inactive)
+            expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.INACTIVE);
+
+        });
+    });
+
 });
