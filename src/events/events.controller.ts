@@ -1,6 +1,5 @@
-import { Body, Controller, Post} from "@nestjs/common";
-import { ApiTags} from "@nestjs/swagger";
-
+import { Body, Controller, Post } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { MLSEvent } from "../events/dtos/mls-event.dto";
 import { EventMgmtService } from "./events.service";
 
