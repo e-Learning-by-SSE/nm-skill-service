@@ -317,8 +317,9 @@ export class LearningPathMgmtService {
     }
 
     /**
-     *
-     * @param learningPathId
+     * Re-validates an existing path (checks for cycles and completeness), without altering the path.
+     * This is required to update the UI after an reload to enable a sve button only for valid paths.
+     * @param learningPathId The ID of an existing learning path to be validated.
      */
     async validateStoredPath(learningPathId: string) {
         const learningPath = await this.db.learningPath.findUnique({

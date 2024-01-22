@@ -122,6 +122,12 @@ export class LearningPathMgmtController {
         return result;
     }
 
+    /**
+     * Re-validates an existing learning path. Checks:
+     * - The path contains cycles
+     * - The goal can be reached (if actually a path exists)
+     * @param pathId The ID of an already existing learning path.
+     */
     @Get(":pathId/validate")
     async validateLearningPath(@Param("pathId") pathId: string) {
         // Log incoming request
