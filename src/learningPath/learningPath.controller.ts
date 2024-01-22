@@ -121,4 +121,31 @@ export class LearningPathMgmtController {
 
         return result;
     }
+
+    @Get(":pathId/validate")
+    async validateLearningPath(@Param("pathId") pathId: string) {
+        // Log incoming request
+        LoggerUtil.logInfo("LearningPathMgmtController::validateLearningPath", {
+            pathId: pathId,
+        });
+
+        // Perform validation
+        try {
+            await this.learningpathService.validateStoredPath(pathId);
+
+            // Log outgoing response: Valid Path
+            LoggerUtil.logInfo("LearningPathMgmtController::validateLearningPath", {
+                response: "Path is valid",
+            });
+        } catch (error) {
+            // Log outgoing response: Invalid Path
+            LoggerUtil.logInfo("LearningPathMgmtController::validateLearningPath", {
+                response: {
+                    pathId: pathId,
+                    invalid: error,
+                },
+            });
+            throw error;
+        }
+    }
 }

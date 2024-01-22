@@ -316,6 +316,29 @@ export class LearningPathMgmtService {
         }
     }
 
+    /**
+     *
+     * @param learningPathId
+     */
+    async validateStoredPath(learningPathId: string) {
+        const learningPath = await this.db.learningPath.findUnique({
+            where: {
+                id: learningPathId,
+            },
+            include: {
+                requirements: true,
+                pathTeachingGoals: true,
+            },
+        });
+
+        if (!learningPath) {
+            throw new NotFoundException(`Can not find learningPath with id ${learningPathId}`);
+        }
+
+        // Won't return anything if path is valid, but will return an exception if path is invalid
+        await this.checkPath(LearningPathDto.createFromDao(learningPath));
+    }
+
     async deleteLearningPath(learningPathId: string) {
         const oldLearningPath = await this.db.learningPath.findUnique({
             where: {

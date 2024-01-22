@@ -650,7 +650,6 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 };
 
                 // First Update
-
                 await request(app.getHttpServer())
                     .patch(`/learning-paths/${initialPath.id}`)
                     .send(update)
@@ -667,7 +666,6 @@ describe("Learning-Path Controller E2E-Tests", () => {
 
                 // Expected Result
                 expectedResult.recommendedUnitSequence = update.recommendedUnitSequence!;
-                console.log("Second Update: " + update.recommendedUnitSequence!);
 
                 // Test: Update of initialPath
                 return request(app.getHttpServer())
@@ -712,6 +710,107 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         expect(result).toMatchObject(expectedResult);
                     });
             });
+        });
+    });
+
+    describe("GET:/pathId/validate", () => {
+        // Test data
+        let skillMap: SkillMap;
+        let [parentSkill, nestedSkill1, nestedSkill2, skill1, skill2, skill3]: Skill[] = [];
+        let [unit1, unit2, cyclicUnit1, cyclicUnit2]: LearningUnit[] = [];
+        let path: LearningPath;
+        const lpService = new LearningPathMgmtService(
+            dbUtils.getDb(),
+            new LearningUnitFactory(dbUtils.getDb()),
+        );
+
+        beforeEach(async () => {
+            await dbUtils.wipeDb();
+            skillMap = await dbUtils.createSkillMap("test-orga", "Skill Map");
+            parentSkill = await dbUtils.createSkill(skillMap, "A");
+            nestedSkill1 = await dbUtils.createSkill(skillMap, "A1", [parentSkill.id]);
+            nestedSkill2 = await dbUtils.createSkill(skillMap, "A2", [parentSkill.id]);
+            skill1 = await dbUtils.createSkill(skillMap, "Skill 1");
+            skill2 = await dbUtils.createSkill(skillMap, "Skill 2");
+            skill3 = await dbUtils.createSkill(skillMap, "Skill 3");
+            unit1 = await dbUtils.createLearningUnit("Unit1", [nestedSkill1], []);
+            unit2 = await dbUtils.createLearningUnit("Unit2", [nestedSkill2], []);
+            cyclicUnit1 = await dbUtils.createLearningUnit("Unit3", [skill1], [skill2]);
+            cyclicUnit2 = await dbUtils.createLearningUnit("Unit3", [skill2], [skill1]);
+            path = await dbUtils.createLearningPath("Validate Tests");
+        });
+
+        it("Valid Path -> 200", async () => {
+            // Input
+            const update: UpdatePathRequestDto = {
+                title: "A new title",
+                requirements: [],
+                pathGoals: [parentSkill.id],
+                recommendedUnitSequence: [unit1.id, unit2.id],
+            };
+
+            // Apply data
+            await lpService.updateLearningPath(path.id, update, false);
+
+            // Test: Validate stored path -> 200 (OK)
+            return request(app.getHttpServer())
+                .get(`/learning-paths/${path!.id}/validate`)
+                .expect(200);
+        });
+
+        it("Cycled Path -> 409", async () => {
+            // Input
+            const update: UpdatePathRequestDto = {
+                title: "A new title",
+                pathGoals: [skill1.id],
+                recommendedUnitSequence: [cyclicUnit1.id, cyclicUnit2.id],
+            };
+
+            // Apply data
+            await lpService.updateLearningPath(path.id, update, false);
+
+            // Test: Cycle detected -> 409
+            return request(app.getHttpServer())
+                .get(`/learning-paths/${path!.id}/validate`)
+                .expect(409)
+                .expect((res) => {
+                    const result = res.body as ConflictException;
+                    const synopsis = result.message[0] as unknown as ErrorSynopsisDto;
+                    expect(synopsis.type).toEqual(ErrorType.CYCLE_DETECTED.toString());
+                    expect(synopsis.affectedSkills.sort()).toEqual([skill1.id, skill2.id].sort());
+                    expect(synopsis.affectedLearningUnits.sort()).toEqual(
+                        [cyclicUnit1.id, cyclicUnit2.id].sort(),
+                    );
+                });
+        });
+
+        it("No Path -> 409", async () => {
+            // Input
+            const update: UpdatePathRequestDto = {
+                title: "A new title",
+                pathGoals: [skill3.id],
+            };
+
+            // Apply data
+            await lpService.updateLearningPath(path.id, update, false);
+
+            // Test: No path available -> 409
+            return request(app.getHttpServer())
+                .get(`/learning-paths/${path!.id}/validate`)
+                .expect(409)
+                .expect((res) => {
+                    const result = res.body as ConflictException;
+                    const synopsis = result.message[0] as unknown as ErrorSynopsisDto;
+                    expect(synopsis.type).toEqual(ErrorType.PATH_NOT_FOUND.toString());
+                    expect(synopsis.affectedSkills).toEqual([skill3.id]);
+                    expect(synopsis.affectedLearningUnits).toEqual([]);
+                });
+        });
+
+        it("Path not found -> 404", async () => {
+            return request(app.getHttpServer())
+                .get(`/learning-paths/random-non-existing-path-ID/validate`)
+                .expect(404);
         });
     });
 
