@@ -166,7 +166,7 @@ export class EventMgmtService {
 
             // A MLS teacher adds a MLS user ID to a Task (specifically to its taskTodos array), meaning the user has to complete this task
             // A taskTodo object contains the individual learning progress per user
-            //TODO: There is no equivalent in this system? Relation to learning history? Wait until user profile is finished.
+            //TODO: Wait until user profile is finished.
             case MlsActionEntity.TaskToDo: {
                 // When a TaskTodo is updated in the MLS system, update our user profile accordingly
                 // Currently only when TaskTodo is finished? To update our learning history?
@@ -179,43 +179,15 @@ export class EventMgmtService {
                     maxPoints
                     --> Update user profile: if (FINISHED && scorePoints/maxPoints >= 0.5) {skill is considered to be acquired} */
 
-                    //What is changed during a put event? We do not get the user or the points during the put event! This is only received with the get event for the tasktodo
-                    //TaskToDoInfo: status
-                    const tdti = {
-                        status: "string",
-                        stepsProcessed: 0,
-                        lockingStepsProcessed: 0,
-                        maxStepsProcessed: 0,
-                        lockAfterStep: ["string"],
-                        dueTime: 0,
-                        reactivatedStartTime: "2024-01-17T09:56:29.862Z",
-                        note: "string",
-                    };
-                    //TaskToDo: task
-                    const ttd = {
-                        task: "string",
-                        taskTodoInfo: {
-                            lockAfterStep: ["string"],
-                            dueTime: 0,
-                            reactivatedStartTime: "2024-01-17T09:56:29.907Z",
-                            note: "string",
-                        },
-                        //...
-                        reactivated: true,
-                        archived: true,
-                        showToLearners: true,
-                        showInStatistic: true,
-                        //...
-                        notice: "string",
-                        equipmentMaintenance: "string",
-                        weightedPercents: 0,
-                        deselectedForms: ["string"],
-                    };
+                    //ToDo: We need the complete TaskToDo entity. When are the put events triggered?
+                    //TaskToDoInfo (via TaskToDo): status
+                    //TaskToDo: taskTodoInfo
 
                     //We don't have a taskToDo DTO, this should be done in the learning history
                     //const taskToDo = await this.taskToDoService.patchTaskToDo(mlsEvent.id, taskTodoDto);
 
                     return "Nothing changed yet";
+
                 } else {
                     throw new ForbiddenException(
                         "TaskToDoEvent: Method for this action type not implemented.",
