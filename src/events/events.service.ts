@@ -7,6 +7,7 @@ import { UserCreationDto } from "../user/dto";
 import { UserMgmtService } from "../user/user.service";
 import { USERSTATUS, LIFECYCLE } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
+import LoggerUtil from "../logger/logger";
 
 /**
  * Triggers actions when certain events related to tasks (like creating a TaskTodo) occur in the MLS system
@@ -47,7 +48,11 @@ export class EventMgmtService {
                         lifecycle: LIFECYCLE.DRAFT, //Initially as draft
                     };
 
-                    return this.learningUnitService.createLearningUnit(learningUnitDto);
+                    const learningUnit = this.learningUnitService.createLearningUnit(learningUnitDto);
+
+                    LoggerUtil.logInfo("EventService::createLearningUnit", learningUnit);
+
+                    return learningUnit;
 
                     //Update an existing learning unit when the corresponding task in MLS is changed
                     //Relevant values are: title, description, lifecycle, and creator
@@ -58,6 +63,8 @@ export class EventMgmtService {
                     //Match string to enum. Can result in undefined. Enum matching is case sensitive.
                     const lifecycle: LIFECYCLE =
                         LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE];
+
+                    LoggerUtil.logInfo("EventService::updateLearningUnit(getLifecycle)", lifecycle);   
 
                     //TODO: Do we want to notify if any of the values is undefined or cannot be matched?
                     //Further: Do we want to create non-existing learning units for which we get an update?
@@ -75,6 +82,7 @@ export class EventMgmtService {
                     };
 
                     console.log(learningUnitDto);
+                    LoggerUtil.logInfo("EventService::updateLearningUnit(createDTO)", learningUnitDto);  
 
                     //Update the existing learning unit in our system with the new values from MLS
                     const learningUnit = await this.learningUnitService.patchLearningUnit(
@@ -83,6 +91,7 @@ export class EventMgmtService {
                     );
 
                     console.log(learningUnit);
+                    LoggerUtil.logInfo("EventService::updateLearningUnit(updateResult)", learningUnit); 
 
                     return learningUnit;
 
@@ -91,16 +100,21 @@ export class EventMgmtService {
                     //Check that we only delete if lifecycle is draft
                     const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
 
+                    LoggerUtil.logInfo("EventService::deleteLearningUnit(getLifecycle)", lifecycleString); 
+
                     //This works only if we really get the whole object with the DELETE event
                     if (lifecycleString == "DRAFT") {
+                        LoggerUtil.logInfo("EventService::deleteLearningUnit(delete)", mlsEvent.id); 
                         return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
                     } else {
+                        LoggerUtil.logInfo("EventService::deleteLearningUnit(deleteError)", mlsEvent.id); 
                         throw new ForbiddenException(
                             "TaskEvent: Cannot delete a task that is not in DRAFT mode. Currently: " +
                                 lifecycleString,
                         );
                     }
                 } else {
+                    LoggerUtil.logInfo("EventService::unknownTaskEventMethod", mlsEvent.method); 
                     throw new ForbiddenException(
                         "TaskEvent: Method for this action type (" +
                             mlsEvent.method +
@@ -119,7 +133,13 @@ export class EventMgmtService {
                         status: USERSTATUS.ACTIVE, //Initially, users are created as active users
                     };
 
-                    return this.userService.createUser(userDto);
+                    LoggerUtil.logInfo("EventService::createUserDTO", userDto);
+
+                    const user = this.userService.createUser(userDto);
+
+                    LoggerUtil.logInfo("EventService::createUser", user);
+
+                    return user;
 
                     //Change the user profile state when it is changed in MLS
                 } else if (mlsEvent.method === MlsActionType.PUT) {
@@ -128,24 +148,30 @@ export class EventMgmtService {
 
                     //Check if we got a valid result (MLS uses a boolean) and change the user state accordingly
                     if (userState != undefined) {
+                        
                         if (userState == "true") {
+                            LoggerUtil.logInfo("EventService::updateUserActive", userState);
                             return await this.userService.patchUserState(
                                 mlsEvent.id,
                                 USERSTATUS.ACTIVE,
                             );
                         } else if (userState == "false") {
+                            LoggerUtil.logInfo("EventService::updateUserInactive", userState);
                             return await this.userService.patchUserState(
                                 mlsEvent.id,
                                 USERSTATUS.INACTIVE,
                             );
                         } else {
+                            LoggerUtil.logInfo("EventService::updateUserFailed", userState);
                             throw new ForbiddenException(
                                 "UserEvent: Unknown state attribute value " +
                                     userState +
                                     " from MLS user entity. Update aborted.",
                             );
                         }
+
                     } else {
+                        LoggerUtil.logInfo("EventService::updateUserFailed", userState);
                         throw new ForbiddenException(
                             "UserEvent: Could not read the state attribute from MLS user entity. Update aborted.",
                         );
@@ -154,8 +180,10 @@ export class EventMgmtService {
                     //This is the same as PUT state to "inactive"
                     //TODO: Specification does not mention a delete action. Talk with Eugen about what should happen here.
                 } else if (mlsEvent.method === MlsActionType.DELETE) {
+                    LoggerUtil.logInfo("EventService::deleteUser", mlsEvent.id);
                     return this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
                 } else {
+                    LoggerUtil.logInfo("EventService::deleteUserFailed", mlsEvent.id);
                     throw new ForbiddenException(
                         "UserEvent: Method for this action type (" +
                             mlsEvent.method +
@@ -168,6 +196,7 @@ export class EventMgmtService {
             // A taskTodo object contains the individual learning progress per user
             //TODO: Wait until user profile is finished.
             case MlsActionEntity.TaskToDo: {
+                LoggerUtil.logInfo("EventService::TaskToDoNotYetImplemented", mlsEvent.id);
                 // When a TaskTodo is updated in the MLS system, update our user profile accordingly
                 // Currently only when TaskTodo is finished? To update our learning history?
                 if (mlsEvent.method === MlsActionType.PUT) {
@@ -197,10 +226,12 @@ export class EventMgmtService {
 
             //TODO: What about taskTodoInfo? It is existing in the Excel table, but not in Miro
             case MlsActionEntity.TaskToDoInfo: {
+                LoggerUtil.logInfo("EventService::TaskToDoInfoNotYetImplemented", mlsEvent.id);
                 break;
             }
 
             default:
+                LoggerUtil.logInfo("EventService::MlsActionEntityUnknown", mlsEvent.entityType);
                 throw new ForbiddenException("MlsActionEntity unknown");
         }
     }
