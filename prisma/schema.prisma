@@ -295,7 +295,7 @@ model CareerProfile {
   pastCompanies           Company[]       @relation("workedAt")
   currentCompany          Company?        @relation("workingNow", fields: [currentCompanyId], references: [id])
   currentCompanyId        String?
-  currentJobIdAtBerufeNet String?
+  currentJobIdAtJobsNet String?
   user                    UserProfile     @relation(fields: [userId], references: [id])
   userId                  String          @unique // relation scalar field 
 }
@@ -363,15 +363,15 @@ model Qualification {
 
 model Job {
   id               String          @id @default(cuid())
-  jobtitle         String
-  starttime        DateTime
-  endtime          DateTime // Year the job was ended, if the job is still on-going set this to NULL
+  jobTitle         String
+  startTime        DateTime
+  endTime          DateTime // Year the job was ended, if the job is still on-going set this to NULL
   company          Company         @relation(fields: [companyId], references: [id]) //company at which the job was/is
   companyId        String
   userJobs         CareerProfile[] @relation("pastJobs")
   user             UserProfile     @relation(fields: [userId], references: [id])
   userId           String          @unique // relation scalar field
-  jobIdAtBerufeNet String?
+  jobIdAtJobsNet String?
 
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
   // userCareerProfileId String          @unique // relation scalar field   
@@ -405,7 +405,7 @@ model Bkgr {
   id    String  @id @default(cuid())
   typ   Typ     @relation(fields: [typId], references: [id])
   typId String
-  Beruf Beruf[]
+  JobDescription JobDescription[]
 }
 
 model Typ {
@@ -413,7 +413,7 @@ model Typ {
   Bkgr Bkgr[]
 }
 
-model Beruf {
+model JobDescription {
   id                     String @id @default(cuid())
   kurzBezeichnungNeutral String
   bkgr                   Bkgr   @relation(fields: [bkgrId], references: [id])
