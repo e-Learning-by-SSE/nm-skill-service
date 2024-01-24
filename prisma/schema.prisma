@@ -13,6 +13,12 @@ datasource db {
 // Stores a set/graph of skills created by one entity (e.g., an organization).
 // Allows to store more than one topic-related skill map per entity.
 // Skills may be treated as some kind of structured (hiarchical) tags.
+// 
+// Current / planned concepts:
+// - Optionally provide a taxonomy (e.g., Bloom) to support the same skill on different levels
+// - Versioning of skill maps
+// - Sharing of skill maps (e.g., between organizations)
+// - Access rights (e.g., private, public, company)
 //
 // Requested by:
 // - Part of the core concept of the project proposal to provide comptency-based & individualizeable learning paths
@@ -66,12 +72,8 @@ enum USERSTATUS {
 // Skills may be treated as some kind of structured (hiarchical) tags.
 // Skills model what needs to be learned to understand a learning unit (i.e. requirement)
 // and what is taught by a learning unit (i.e. teaching goal).
-// 
-// Current / planned concepts:
-// - Optionally provide a taxonomy (e.g., Bloom) to support the same skill on different levels
-// - Versioning of skill maps
-// - Sharing of skill maps (e.g., between organizations)
-// - Access rights (e.g., private, public, company)
+// The planing algorithm analyzes required/taught skills and computes a learning path to learn
+// the desired skills by considering the background of a learner.
 //
 // Requested by:
 // - Part of the core concept of the project proposal to provide comptency-based & individualizeable learning paths
@@ -134,6 +136,10 @@ model LearningPath {
   @@map("paths")
 }
 
+// Obsolete, to be deleted in future.
+// The original intention of nuggets was to store separately elements of a learning unit
+// (e.g., introduction, learning content, exercise).
+// As we do not have realized any use case for this, we will remove this model in future.
 enum NuggetCategory {
   ANALYZE
   INTRODUCTION
@@ -143,6 +149,10 @@ enum NuggetCategory {
   TEST
 }
 
+// Obsolete, to be deleted in future.
+// The original intention of nuggets was to store separately elements of a learning unit
+// (e.g., introduction, learning content, exercise).
+// As we do not have realized any use case for this, we will remove this model in future.
 model Nugget {
   id             String         @id @default(cuid())
   resource       String // Should point to the actual ressource
@@ -157,6 +167,16 @@ model Nugget {
   learningUnitId String?
 }
 
+// Stores SEARCH-specific meta data for a learning unit (i.e., a TASK in MLS).
+// This data is used by the planning algorithm to find the best fitting learning units / learning path.
+//
+// Items to be deleted in future (as they are not used by the algorithm & already stored in MLS):
+// - title
+// - description
+// 
+// Requested by:
+// - Part of the core concept of the project proposal to provide comptency-based & individualizeable learning paths
+// - Requested in class diagram (Seafile\ConceptsAndDesigns\Diagram_08_2023)
 model LearningUnit {
   id          String   @id @default(cuid())
   resource    String   @default("") // Should point to the actual ressource
@@ -213,7 +233,6 @@ model PreferredOrdering {
 
 model UserProfile {
   id               String                @id @default(cuid())
-  // mlsUserId	   String                 // ersetzen wir hier "unsere" Id oder erg�nzen um die mlsUserId ?
   name             String                @default("")
   learningProfile  LearningProfile?
   careerProfile    CareerProfile?
