@@ -10,6 +10,13 @@ datasource db {
   url      = env("DB_URL")
 }
 
+// Stores a set/graph of skills created by one entity (e.g., an organization).
+// Allows to store more than one topic-related skill map per entity.
+// Skills may be treated as some kind of structured (hiarchical) tags.
+//
+// Requested by:
+// - Part of the core concept of the project proposal to provide comptency-based & individualizeable learning paths
+// - Requested in class diagram (Seafile\ConceptsAndDesigns\Diagram_08_2023)
 model SkillMap {
   id            String        @id @default(cuid())
   name          String
@@ -55,6 +62,20 @@ enum USERSTATUS {
   INACTIVE
 }
 
+// Represents a skill which is taught by the learn management software (LMS).
+// Skills may be treated as some kind of structured (hiarchical) tags.
+// Skills model what needs to be learned to understand a learning unit (i.e. requirement)
+// and what is taught by a learning unit (i.e. teaching goal).
+// 
+// Current / planned concepts:
+// - Optionally provide a taxonomy (e.g., Bloom) to support the same skill on different levels
+// - Versioning of skill maps
+// - Sharing of skill maps (e.g., between organizations)
+// - Access rights (e.g., private, public, company)
+//
+// Requested by:
+// - Part of the core concept of the project proposal to provide comptency-based & individualizeable learning paths
+// - Requested in class diagram (Seafile\ConceptsAndDesigns\Diagram_08_2023)
 model Skill {
   id          String  @id @default(cuid())
   name        String
