@@ -49,12 +49,12 @@ describe("User Service", () => {
             const qualificationDto: QualificationDto = {
                 name: 'Bachelor of Science',
                 year: 2020,
-                userCareerProfilId:"123",
+                userCareerProfileId:"123",
                 id:"123"
             };
 
-            // Act: Call the createQualificationForCareerProfil method
-            const createdQualification = await userService.createQualificationForCareerProfil(userId, qualificationDto);
+            // Act: Call the createQualificationForCareerProfile method
+            const createdQualification = await userService.createQualificationForCareerProfile(userId, qualificationDto);
             console.log(createdQualification);
             // Assert: Check the result and database state
             expect(createdQualification).toBeInstanceOf(QualificationDto);
@@ -78,12 +78,12 @@ describe("User Service", () => {
             const qualificationDto: QualificationDto = {
                 name: 'Bachelor of Science',
                 year: 2020,
-                userCareerProfilId:"123",
+                userCareerProfileId:"123",
                 id:"123"
             };
 
-            // Act and Assert: Call the createQualificationForCareerProfil method and expect it to throw an error
-            await expect(userService.createQualificationForCareerProfil(invalidUserId, qualificationDto)).rejects.toThrowError(BadRequestException);
+            // Act and Assert: Call the createQualificationForCareerProfile method and expect it to throw an error
+            await expect(userService.createQualificationForCareerProfile(invalidUserId, qualificationDto)).rejects.toThrowError(BadRequestException);
         });
     });
 
@@ -105,14 +105,14 @@ describe("User Service", () => {
             const qualificationDto: QualificationDto = {
                 name: 'Bachelor of Science',
                 year: 2020,
-                userCareerProfilId:"123",
+                userCareerProfileId:"123",
                 id:"123"
             };
 
-            const createdQualification = await userService.createQualificationForCareerProfil(userId, qualificationDto);
+            const createdQualification = await userService.createQualificationForCareerProfile(userId, qualificationDto);
          
-            // Act: Call the deleteQualificationForCareerProfil method
-            const deletedQualification = await userService.deleteQualificationForCareerProfil(userId, createdQualification.id);
+            // Act: Call the deleteQualificationForCareerProfile method
+            const deletedQualification = await userService.deleteQualificationForCareerProfile(userId, createdQualification.id);
 
             // Assert: Check the result and database state
             expect(deletedQualification).toBeInstanceOf(QualificationDto);

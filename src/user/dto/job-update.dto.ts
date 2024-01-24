@@ -6,24 +6,24 @@ import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
  */
 export class JobUpdateDto {
  @IsOptional()
-  jobtitle: string;
+  jobTitle: string;
   @IsOptional()
-  starttime: Date;
+  startTime: Date;
   @IsOptional()
-  endtime: Date;
+  endTime: Date;
   @IsOptional()
   companyId:string;
   
 
   @IsOptional()
-  jobIdAtBerufeNet? : string;
+  jobIdAtJobsNet? : string;
 
-  constructor(jobtitle: string, starttime: Date, endtime: Date, companyId: string, userId: string, jobIdAtBerufeNet? :string) {
-    this.jobtitle = jobtitle ?? undefined;   
-    this.starttime = starttime ?? undefined;
-    this.endtime = endtime ?? undefined;
+  constructor(jobTitle: string, startTime: Date, endTime: Date, companyId: string, userId: string, jobIdAtJobsNet? :string) {
+    this.jobTitle = jobTitle ?? undefined;   
+    this.startTime = startTime ?? undefined;
+    this.endTime = endTime ?? undefined;
     this.companyId = companyId   ?? undefined;
     
-    this.jobIdAtBerufeNet = jobIdAtBerufeNet ?? undefined;
+    this.jobIdAtJobsNet = jobIdAtJobsNet ?? undefined;
   }
 }

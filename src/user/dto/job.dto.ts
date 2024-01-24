@@ -10,13 +10,13 @@ export class JobDto extends JobCreationDto {
   @IsNotEmpty()
   id!: string;
 
-  constructor(id: string,jobtitle: string, starttime : Date, endtime : Date, companyId: string, userId : string) {
+  constructor(id: string,jobTitle: string, startTime : Date, endTime : Date, companyId: string, userId : string) {
 
-    super(jobtitle,starttime,endtime,companyId,userId);
+    super(jobTitle,startTime,endTime,companyId,userId);
     this.id = id;
-    this.jobtitle = jobtitle;
-    this.starttime = starttime;
-    this.endtime = endtime;
+    this.jobTitle = jobTitle;
+    this.startTime = startTime;
+    this.endTime = endTime;
     this.companyId = companyId;
     this.userId = userId;
   }
@@ -24,9 +24,9 @@ export class JobDto extends JobCreationDto {
   static createFromDao(jb: Job): JobCreationDto {
     return new JobDto(
       jb.id,
-      jb.jobtitle,
-      jb.starttime,
-      jb.endtime,
+      jb.jobTitle,
+      jb.startTime,
+      jb.endTime,
       jb.companyId,
       jb.userId
     );
