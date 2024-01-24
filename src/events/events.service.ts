@@ -149,13 +149,13 @@ export class EventMgmtService {
                     //Check if we got a valid result (MLS uses a boolean) and change the user state accordingly
                     if (userState != undefined) {
                         
-                        if (userState == "true") {
+                        if (userState == "1" || userState == "true") {
                             LoggerUtil.logInfo("EventService::updateUserActive", userState);
                             return await this.userService.patchUserState(
                                 mlsEvent.id,
                                 USERSTATUS.ACTIVE,
                             );
-                        } else if (userState == "false") {
+                        } else if (userState == "0" || userState == "false") {
                             LoggerUtil.logInfo("EventService::updateUserInactive", userState);
                             return await this.userService.patchUserState(
                                 mlsEvent.id,
