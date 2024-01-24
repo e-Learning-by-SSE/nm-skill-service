@@ -71,7 +71,7 @@ export class UserMgmtController {
      */
 
     @Get("/user-profiles/:user_profile_id")
-    getuserProfiles(@Param("user_profile_id") userId: string) {
+    getUserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUser(userId);
     }
 
@@ -82,7 +82,7 @@ export class UserMgmtController {
      */
 
     @Delete("/user-profiles/:user_profile_id")
-    deleteuserProfiles(@Param("user_profile_id") userId: string) {
+    deleteUserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.setProfileToInactive(userId);
     }
 
@@ -143,21 +143,21 @@ export class UserMgmtController {
     @Patch("/career-profiles/:career_profile_id/:job_history_id")
     patchJobHistoryAtCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
-        @Param("job_history_id") jobHisoryId: string,
+        @Param("job_history_id") jobHistoryId: string,
         @Body() dto: JobUpdateDto,
     ) {
         return this.userService.patchJobHistoryAtCareerProfileByID(
             careerProfileId,
-            jobHisoryId,
+            jobHistoryId,
             dto,
         );
     }
     @Delete("/career-profiles/:career_profile_id/:job_history_id")
     deleteJobHistoryAtCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
-        @Param("job_history_id") jobHisoryId: string,
+        @Param("job_history_id") jobHistoryId: string,
     ) {
-        return this.userService.deleteJobHistoryAtCareerProfileByID(careerProfileId, jobHisoryId);
+        return this.userService.deleteJobHistoryAtCareerProfileByID(careerProfileId, jobHistoryId);
     }
 
     @Post("/career-profiles/:career_profile_id/qualifications/")
@@ -165,33 +165,33 @@ export class UserMgmtController {
         @Param("career_profile_id") careerProfileId: string,
         @Body() dto: QualificationCreationDto,
     ) {
-        return this.userService.createQualificationForCareerProfil(careerProfileId, dto);
+        return this.userService.createQualificationForCareerProfile(careerProfileId, dto);
     }
 
-    @Get("/career-profiles/:career_profile_id/qualifications/:qualificaion_id")
-    getQualificationForCareerProfile(@Param("qualificaion_id") qualificaionId: string) {
-        return this.userService.getQualificationForCareerProfil(qualificaionId);
+    @Get("/career-profiles/:career_profile_id/qualifications/:qualification_id")
+    getQualificationForCareerProfile(@Param("qualification_id") qualificationId: string) {
+        return this.userService.getQualificationForCareerProfile(qualificationId);
     }
 
-    @Patch("/career-profiles/:career_profile_id/qualifications/:qualificaion_id")
+    @Patch("/career-profiles/:career_profile_id/qualifications/:qualification_id")
     patchQualificationToCareerProfile(
         @Param("career_profile_id") careerProfileId: string,
-        @Param("qualificaion_id") qualificationId: string,
+        @Param("qualification_id") qualificationId: string,
         @Body() dto: QualificationCreationDto,
     ) {
-        return this.userService.patchQualificationForCareerProfil(
+        return this.userService.patchQualificationForCareerProfile(
             careerProfileId,
             qualificationId,
             dto,
         );
     }
     
-    @Delete("/career-profiles/:career_profile_id/qualifications/:qualificaion_id")
+    @Delete("/career-profiles/:career_profile_id/qualifications/:qualification_id")
     deleteQualificationToCareerProfile(
         @Param("career_profile_id") careerProfileId: string,
-        @Param("qualificaion_id") qualificationId: string,
+        @Param("qualification_id") qualificationId: string,
     ) {
-        return this.userService.deleteQualificationForCareerProfil(
+        return this.userService.deleteQualificationForCareerProfile(
             careerProfileId,
             qualificationId,
         );

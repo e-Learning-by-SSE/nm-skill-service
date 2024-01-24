@@ -18,6 +18,6 @@ export class QualificationCreationDto {
   year: number;
 
   @IsOptional()
-  userCareerProfilId: string;
+  userCareerProfileId: string;
 
 }

@@ -199,9 +199,9 @@ export class UserMgmtService {
                 data: {
                     professionalInterests:
                         dto.professionalInterests || existingCareerProfile.professionalInterests,
-                    currentJobIdAtBerufeNet:
-                        dto.currentJobIdAtBerufeNet ||
-                        existingCareerProfile.currentJobIdAtBerufeNet,
+                    currentJobIdAtJobsNet:
+                        dto.currentJobIdAtJobsNet ||
+                        existingCareerProfile.currentJobIdAtJobsNet,
                     selfReportedSkills: {
                         connect: dto.selfReportedSkills.map((id) => ({ id })),
                     },
@@ -222,18 +222,18 @@ export class UserMgmtService {
                             where: { id: job.id || undefined },
                             create: {
                               
-                                jobtitle: job.jobtitle,
+                                jobTitle: job.jobTitle,
                                 userId: job.userId,
                                 companyId:job.companyId,
-                                starttime: job.starttime,
-                                endtime: job.endtime
+                                startTime: job.startTime,
+                                endTime: job.endTime
                             },
                             update: {
-                                jobtitle: job.jobtitle,
+                                jobTitle: job.jobTitle,
                                 userId: job.userId,
                                 companyId:job.companyId,
-                                starttime: job.starttime,
-                                endtime: job.endtime
+                                startTime: job.startTime,
+                                endTime: job.endTime
                             },
                         })),
                     },
@@ -569,10 +569,10 @@ export class UserMgmtService {
             const updatedJobHistory = await this.db.job.update({
                 where: { id: jobHistoryId },
                 data: {
-                    endtime: dto.endtime || jobHistory.endtime,
-                    starttime: dto.starttime || jobHistory.starttime,
-                    jobtitle: dto.jobtitle || jobHistory.jobtitle,
-                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet || jobHistory.jobIdAtBerufeNet,
+                    endTime: dto.endTime || jobHistory.endTime,
+                    startTime: dto.startTime || jobHistory.startTime,
+                    jobTitle: dto.jobTitle || jobHistory.jobTitle,
+                    jobIdAtJobsNet: dto.jobIdAtJobsNet || jobHistory.jobIdAtJobsNet,
                 },
             });
 
@@ -587,12 +587,12 @@ export class UserMgmtService {
         try {
             const jb = await this.db.job.create({
                 data: {
-                    jobtitle: dto.jobtitle,
-                    starttime: dto.starttime,
-                    endtime: dto.endtime,
+                    jobTitle: dto.jobTitle,
+                    startTime: dto.startTime,
+                    endTime: dto.endTime,
                     companyId: dto.companyId,
                     userId: id,
-                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet,
+                    jobIdAtJobsNet: dto.jobIdAtJobsNet,
                 },
             });
 
@@ -660,7 +660,7 @@ export class UserMgmtService {
             const cp = await this.db.careerProfile.create({
                 data: {
                     professionalInterests: dto.professionalInterests,
-                    currentJobIdAtBerufeNet: dto.currentJobIdAtBerufeNet,
+                    currentJobIdAtJobsNet: dto.currentJobIdAtJobsNet,
 
                     user: {
                         connect: {
@@ -687,7 +687,7 @@ export class UserMgmtService {
         }
     }
 
-    async createQualificationForCareerProfil(id: string, dto: QualificationDto) {
+    async createQualificationForCareerProfile(id: string, dto: QualificationDto) {
         try {
             // Ensure that the user with the given ID exists
             const user = await this.db.userProfile.findUnique({
@@ -719,7 +719,7 @@ export class UserMgmtService {
         }
     }
     
-    async deleteQualificationForCareerProfil(careerProfileId: string, qualificationId: string) {
+    async deleteQualificationForCareerProfile(careerProfileId: string, qualificationId: string) {
         try {
             const qualification = await this.db.qualification.findUnique({
                 where: { id: qualificationId, careerProfileId: careerProfileId },
@@ -746,7 +746,7 @@ export class UserMgmtService {
             throw new BadRequestException(`Failed to delete qualification: ${error.message}`);
         }
     }
-    async patchQualificationForCareerProfil(
+    async patchQualificationForCareerProfile(
         careerProfileId: string,
         qualificationId: string,
         dto: QualificationCreationDto,
@@ -765,7 +765,7 @@ export class UserMgmtService {
             }
     
             // Check if the careerProfileId in dto is provided and exists
-            const newCareerProfileId = dto.userCareerProfilId;
+            const newCareerProfileId = dto.userCareerProfileId;
             const careerProfileExists = newCareerProfileId
                 ? await this.db.careerProfile.findUnique({
                       where: { id: newCareerProfileId },
@@ -787,8 +787,8 @@ export class UserMgmtService {
                     year: dto.year || existingQualification.year,
                    
                     
-                    careerProfile: dto.userCareerProfilId
-                    ? { connect: { id: dto.userCareerProfilId } }
+                    careerProfile: dto.userCareerProfileId
+                    ? { connect: { id: dto.userCareerProfileId } }
                     : undefined,
           
                 },
@@ -807,7 +807,7 @@ export class UserMgmtService {
             throw new BadRequestException(`Failed to update qualification: ${error.message}`);
         }
     }
-    async getQualificationForCareerProfil(qualificationId: string) {
+    async getQualificationForCareerProfile(qualificationId: string) {
         try {
             const qualification = await this.db.qualification.findUnique({
                 where: {
