@@ -187,7 +187,7 @@ export class JobsService {
 
             const firstPageResult = await this.getALLJobsByPage("0");
             const lastPage = this.extractLastPageNumber(firstPageResult);
-            const del = await this.db.jobDescription.deleteMany();
+            const del = await this.db.berufeNetJob.deleteMany();
             await this.db.bkgr.deleteMany();
             await this.db.typ.deleteMany();
             while (currentPage <= lastPage) {
@@ -239,7 +239,7 @@ export class JobsService {
             // Store the job in the database
             try {
                 console.log(mappedJobData);
-                await this.db.jobDescription.create({
+                await this.db.berufeNetJob.create({
                     data: mappedJobData,
                 });
                 console.log(`Job ${mappedJobData.id} stored successfully.`);

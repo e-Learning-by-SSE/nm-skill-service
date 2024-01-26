@@ -295,7 +295,7 @@ model CareerProfile {
   pastCompanies           Company[]       @relation("workedAt")
   currentCompany          Company?        @relation("workingNow", fields: [currentCompanyId], references: [id])
   currentCompanyId        String?
-  currentJobIdAtJobsNet String?
+  currentJobIdAtBerufeNet String?
   user                    UserProfile     @relation(fields: [userId], references: [id])
   userId                  String          @unique // relation scalar field 
 }
@@ -371,7 +371,7 @@ model Job {
   userJobs         CareerProfile[] @relation("pastJobs")
   user             UserProfile     @relation(fields: [userId], references: [id])
   userId           String          @unique // relation scalar field
-  jobIdAtJobsNet String?
+  jobIdAtBerufeNet String?
 
   // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
   // userCareerProfileId String          @unique // relation scalar field   
@@ -405,7 +405,7 @@ model Bkgr {
   id    String  @id @default(cuid())
   typ   Typ     @relation(fields: [typId], references: [id])
   typId String
-  JobDescription JobDescription[]
+  BerufeNetJob BerufeNetJob[]
 }
 
 model Typ {
@@ -413,7 +413,7 @@ model Typ {
   Bkgr Bkgr[]
 }
 
-model JobDescription {
+model BerufeNetJob {
   id                     String @id @default(cuid())
   kurzBezeichnungNeutral String
   bkgr                   Bkgr   @relation(fields: [bkgrId], references: [id])

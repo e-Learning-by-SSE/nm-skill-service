@@ -16,7 +16,7 @@ export class CareerProfileCreationDto {
   @IsOptional()
   currentCompanyId?: string;
   @IsOptional()
-  currentJobIdAtJobsNet?: string;
+  currentJobIdAtBerufeNet?: string;
 
   @IsDefined()
   professionalInterests: string;
@@ -38,4 +38,3 @@ export class CareerProfileCreationDto {
 
 
 }
-
