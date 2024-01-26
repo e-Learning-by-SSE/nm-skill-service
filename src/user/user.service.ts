@@ -199,9 +199,9 @@ export class UserMgmtService {
                 data: {
                     professionalInterests:
                         dto.professionalInterests || existingCareerProfile.professionalInterests,
-                    currentJobIdAtJobsNet:
-                        dto.currentJobIdAtJobsNet ||
-                        existingCareerProfile.currentJobIdAtJobsNet,
+                    currentJobIdAtBerufeNet:
+                        dto.currentJobIdAtBerufeNet ||
+                        existingCareerProfile.currentJobIdAtBerufeNet,
                     selfReportedSkills: {
                         connect: dto.selfReportedSkills.map((id) => ({ id })),
                     },
@@ -572,7 +572,7 @@ export class UserMgmtService {
                     endTime: dto.endTime || jobHistory.endTime,
                     startTime: dto.startTime || jobHistory.startTime,
                     jobTitle: dto.jobTitle || jobHistory.jobTitle,
-                    jobIdAtJobsNet: dto.jobIdAtJobsNet || jobHistory.jobIdAtJobsNet,
+                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet || jobHistory.jobIdAtBerufeNet,
                 },
             });
 
@@ -592,7 +592,7 @@ export class UserMgmtService {
                     endTime: dto.endTime,
                     companyId: dto.companyId,
                     userId: id,
-                    jobIdAtJobsNet: dto.jobIdAtJobsNet,
+                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet,
                 },
             });
 
@@ -660,7 +660,7 @@ export class UserMgmtService {
             const cp = await this.db.careerProfile.create({
                 data: {
                     professionalInterests: dto.professionalInterests,
-                    currentJobIdAtJobsNet: dto.currentJobIdAtJobsNet,
+                    currentJobIdAtBerufeNet: dto.currentJobIdAtBerufeNet,
 
                     user: {
                         connect: {
