@@ -12,13 +12,13 @@ export class CareerProfileDto extends CareerProfileCreationDto {
   description?: string;
   
 
-  constructor(id: string, professionalInterests: string, userId: string, currentCompanyId?: string | null, currentJobIdAtJobsNet?: string | null) {
+  constructor(id: string, professionalInterests: string, userId: string, currentCompanyId?: string | null, currentJobIdAtBerufeNet?: string | null) {
     super();
     
     this.id = id;
     this.professionalInterests = professionalInterests;
     this.currentCompanyId = currentCompanyId ?? undefined;
-    this.currentJobIdAtJobsNet = currentJobIdAtJobsNet ?? undefined;
+    this.currentJobIdAtBerufeNet = currentJobIdAtBerufeNet ?? undefined;
     this.userId = userId;
   }
 
@@ -28,6 +28,6 @@ export class CareerProfileDto extends CareerProfileCreationDto {
    * @returns The corresponding DTO, but without parents/children
    */
   static createFromDao(cp: CareerProfile): CareerProfileDto {
-    return new CareerProfileDto(cp.id, cp.professionalInterests, cp.userId, cp.currentCompanyId, cp.currentJobIdAtJobsNet);
+    return new CareerProfileDto(cp.id, cp.professionalInterests, cp.userId, cp.currentCompanyId, cp.currentJobIdAtBerufeNet);
   }
 }

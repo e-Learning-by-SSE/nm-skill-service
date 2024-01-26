@@ -16,7 +16,7 @@ export class JobUpdateDto {
   
 
   @IsOptional()
-  jobIdAtJobsNet? : string;
+  jobIdAtBerufeNet? : string;
 
   constructor(jobTitle: string, startTime: Date, endTime: Date, companyId: string, userId: string, jobIdAtBerufeNet? :string) {
     this.jobTitle = jobTitle ?? undefined;   

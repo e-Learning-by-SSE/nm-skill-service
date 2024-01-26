@@ -17,7 +17,7 @@ export class JobCreationDto {
   userId:string;
 
   @IsOptional()
-  jobIdAtJobsNet? : string;
+  jobIdAtBerufeNet? : string;
 
   constructor(jobTitle: string, startTime: Date, endTime: Date, companyId: string, userId: string, jobIdAtBerufeNet? :string) {
     this.jobTitle = jobTitle;   
