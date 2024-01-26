@@ -214,6 +214,7 @@ export class UserMgmtController {
     ) {
         return this.userService.patchLearningProfileByID(learningProfileId, dto);
     }
+    
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("learning-history/:history_id")
     async getLearningHistoryById(@Param("history_id") historyId: string) {
@@ -221,6 +222,7 @@ export class UserMgmtController {
         return this.userService.getLearningHistoryById(historyId);
     }
 
+    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("learning-history/:history_id")
     async createLearningHistory(
         @Param("history_id") historyId: string,
