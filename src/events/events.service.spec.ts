@@ -7,7 +7,6 @@ import { UserMgmtService } from "../user/user.service";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
-import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 import { LIFECYCLE, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
@@ -96,19 +95,6 @@ describe("Event Service", () => {
             await expect(eventService.getEvent(invalidMLSEvent)).rejects.toThrow(
                 ForbiddenException,
             );
-        });
-
-        it("should throw errors when trying to update a non-existent task", async () => {
-            // Arrange: Create events with invalid id
-            const invalidMLSEvent: MLSEvent = {
-                entityType: MlsActionEntity.Task,
-                method: MlsActionType.PUT,
-                id: "non-existent",
-                payload: JSON.parse("{}"),
-            };
-
-            // Act and assert: Call the getEvent PUT method with a non-existing id for a task
-            await expect(eventService.getEvent(invalidMLSEvent)).rejects.toThrow(NotFoundException);
         });
 
         it("should throw errors when trying to delete a task that is not in DRAFT mode", async () => {
@@ -249,6 +235,22 @@ describe("Event Service", () => {
             expect(returnedObject).toEqual({
                 message: `Learning Unit deleted successfully: test1`,
             });
+        });
+
+        it("should create a new learning unit when receiving a PUT event for a non-existent one", async () => {
+            // Arrange: Create events with non-existent id
+            const MlsPUTEvent: MLSEvent = {
+                entityType: MlsActionEntity.Task,
+                method: MlsActionType.PUT,
+                id: "non-existent",
+                payload: JSON.parse("{}"),
+            };
+
+            // Act: Call the getEvent method
+            const createdEntry = await eventService.getEvent(MlsPUTEvent);
+
+            // Assert: Check that the createdEntry is valid and matches the expected data
+            expect((createdEntry as SearchLearningUnitCreationDto).id).toEqual("non-existent");
         });
     });
 

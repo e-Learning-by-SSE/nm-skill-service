@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto";
@@ -36,62 +36,52 @@ export class EventMgmtService {
         switch (mlsEvent.entityType) {
             //MLS tasks are called learning units in this system
             case MlsActionEntity.Task: {
-                //Create a partly empty learning unit with the provided id from MLS (when a task is created in MLS)
+                //Create a partly empty learning unit with the provided data from MLS (when a task is created in MLS)
                 if (mlsEvent.method === MlsActionType.POST) {
-                    const learningUnitDto: SearchLearningUnitCreationDto = {
-                        id: mlsEvent.id,
-                        title: mlsEvent.payload["title" as keyof JSON]?.toString(), //Only convert to string if not undefined or null
-                        description: mlsEvent.payload["description" as keyof JSON]?.toString(),
-                        contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
-                        teachingGoals: [], //Initially empty
-                        requiredSkills: [], //Initially empty
-                        lifecycle: LIFECYCLE.DRAFT, //Initially as draft
-                    };
-
-                    const learningUnit = this.learningUnitService.createLearningUnit(learningUnitDto);
-
+                    const learningUnit = this.learningUnitService.createLearningUnit(
+                        await this.createLearningUnitDTOFromMLSEvent(mlsEvent),
+                    );
                     LoggerUtil.logInfo("EventService::createLearningUnit", learningUnit);
-
                     return learningUnit;
 
                     //Update an existing learning unit when the corresponding task in MLS is changed
                     //Relevant values are: title, description, lifecycle, and creator
                     //TODO: There is a note about a required values check. If Lifecycle!=DRAFT, teachingGoal must be set. Send 409 exception back.
                 } else if (mlsEvent.method === MlsActionType.PUT) {
-                    //Lifecycle needs extra handling (save content of JSON as string if key exists)
-                    const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
-                    //Match string to enum. Can result in undefined. Enum matching is case sensitive.
-                    const lifecycle: LIFECYCLE =
-                        LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE];
+                    //Declare required objects
+                    let learningUnit;
+                    const learningUnitDTO = await this.createLearningUnitDTOFromMLSEvent(mlsEvent);
 
-                    LoggerUtil.logInfo("EventService::updateLearningUnit(getLifecycle)", lifecycle);   
-
-                    //TODO: Do we want to notify if any of the values is undefined or cannot be matched?
-                    //Further: Do we want to create non-existing learning units for which we get an update?
-
-                    //Gets id, title, description, lifecycle, and creator from the MLS system
-                    //Caution: A PUT may contain just a partial update, some values may be undefined
-                    const learningUnitDto: SearchLearningUnitCreationDto = {
-                        id: mlsEvent.id,
-                        title: mlsEvent.payload["title" as keyof JSON]?.toString(), //Only convert to string if not undefined or null
-                        description: mlsEvent.payload["description" as keyof JSON]?.toString(),
-                        contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
-                        teachingGoals: [], //ToDo: How do we handle these? Who is updating them?
-                        requiredSkills: [], //ToDo: How do we handle these? Who is updating them?
-                        lifecycle: lifecycle,
-                    };
-
-                    console.log(learningUnitDto);
-                    LoggerUtil.logInfo("EventService::updateLearningUnit(createDTO)", learningUnitDto);  
-
-                    //Update the existing learning unit in our system with the new values from MLS
-                    const learningUnit = await this.learningUnitService.patchLearningUnit(
-                        mlsEvent.id,
-                        learningUnitDto,
-                    );
-
-                    console.log(learningUnit);
-                    LoggerUtil.logInfo("EventService::updateLearningUnit(updateResult)", learningUnit); 
+                    //Then try to either update the learning unit, or create a new one if not existent
+                    try {
+                        //Update the existing learning unit in our system with the new values from MLS
+                        learningUnit = await this.learningUnitService.patchLearningUnit(
+                            mlsEvent.id,
+                            learningUnitDTO,
+                        );
+                        console.log("Updated LU: " + learningUnit);
+                        LoggerUtil.logInfo(
+                            "EventService::updateLearningUnit(updateResult)",
+                            learningUnit,
+                        );
+                    } catch (exception) {
+                        if (exception instanceof NotFoundException) {
+                            //Create a new learning unit in our system with the new values from MLS (this can happen if we missed a post request)
+                            learningUnit =
+                                this.learningUnitService.createLearningUnit(learningUnitDTO);
+                            console.log("Created new LU instead of update: " + learningUnit);
+                            LoggerUtil.logInfo(
+                                "EventService::updateLearningUnit(createNewLearningUnit)",
+                                learningUnit,
+                            );
+                        } else {
+                            throw new ForbiddenException(
+                                "Update of learning unit: " +
+                                    mlsEvent.id +
+                                    " was aborted due to unknown reasons",
+                            );
+                        }
+                    }
 
                     return learningUnit;
 
@@ -100,21 +90,27 @@ export class EventMgmtService {
                     //Check that we only delete if lifecycle is draft
                     const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
 
-                    LoggerUtil.logInfo("EventService::deleteLearningUnit(getLifecycle)", lifecycleString); 
+                    LoggerUtil.logInfo(
+                        "EventService::deleteLearningUnit(getLifecycle)",
+                        lifecycleString,
+                    );
 
                     //This works only if we really get the whole object with the DELETE event
-                    if (lifecycleString == "DRAFT") {
-                        LoggerUtil.logInfo("EventService::deleteLearningUnit(delete)", mlsEvent.id); 
+                    if (lifecycleString == "DRAFT" || lifecycleString == "draft") {
+                        LoggerUtil.logInfo("EventService::deleteLearningUnit(delete)", mlsEvent.id);
                         return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
                     } else {
-                        LoggerUtil.logInfo("EventService::deleteLearningUnit(deleteError)", mlsEvent.id); 
+                        LoggerUtil.logInfo(
+                            "EventService::deleteLearningUnit(deleteError)",
+                            mlsEvent.id,
+                        );
                         throw new ForbiddenException(
                             "TaskEvent: Cannot delete a task that is not in DRAFT mode. Currently: " +
                                 lifecycleString,
                         );
                     }
                 } else {
-                    LoggerUtil.logInfo("EventService::unknownTaskEventMethod", mlsEvent.method); 
+                    LoggerUtil.logInfo("EventService::unknownTaskEventMethod", mlsEvent.method);
                     throw new ForbiddenException(
                         "TaskEvent: Method for this action type (" +
                             mlsEvent.method +
@@ -127,34 +123,25 @@ export class EventMgmtService {
             case MlsActionEntity.User: {
                 //Create a new empty user profile when a user is created in the MLS system
                 if (mlsEvent.method === MlsActionType.POST) {
-                    const userDto: UserCreationDto = {
-                        id: mlsEvent.id,
-                        name: mlsEvent.payload["name" as keyof JSON]?.toString(),
-                        status: USERSTATUS.ACTIVE, //Initially, users are created as active users
-                    };
-
-                    LoggerUtil.logInfo("EventService::createUserDTO", userDto);
-
-                    const user = this.userService.createUser(userDto);
-
-                    LoggerUtil.logInfo("EventService::createUser", user);
-
-                    return user;
+                    return await this.createUserProfileDTOFromMLSEvent(mlsEvent);
 
                     //Change the user profile state when it is changed in MLS
+                    //TODO: We could also create a user if it is not in our db, but currently we only get an update when the user should be deleted, so a new creation makes no sense
                 } else if (mlsEvent.method === MlsActionType.PUT) {
                     //Try to read the state attribute of the user
                     const userState = mlsEvent.payload["state" as keyof JSON];
 
-                    //Check if we got a valid result (MLS uses a boolean) and change the user state accordingly
+                    //Check if we got a valid result (MLS uses a boolean, which is parsed to a number) and change the user state accordingly
                     if (userState != undefined) {
-                        
+                        //This case should not happen in practice
                         if (userState == "1" || userState == "true") {
                             LoggerUtil.logInfo("EventService::updateUserActive", userState);
                             return await this.userService.patchUserState(
                                 mlsEvent.id,
                                 USERSTATUS.ACTIVE,
                             );
+
+                            //This is the same as the DELETE event
                         } else if (userState == "0" || userState == "false") {
                             LoggerUtil.logInfo("EventService::updateUserInactive", userState);
                             return await this.userService.patchUserState(
@@ -169,7 +156,6 @@ export class EventMgmtService {
                                     " from MLS user entity. Update aborted.",
                             );
                         }
-
                     } else {
                         LoggerUtil.logInfo("EventService::updateUserFailed", userState);
                         throw new ForbiddenException(
@@ -178,7 +164,6 @@ export class EventMgmtService {
                     }
 
                     //This is the same as PUT state to "inactive"
-                    //TODO: Specification does not mention a delete action. Talk with Eugen about what should happen here.
                 } else if (mlsEvent.method === MlsActionType.DELETE) {
                     LoggerUtil.logInfo("EventService::deleteUser", mlsEvent.id);
                     return this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
@@ -216,7 +201,6 @@ export class EventMgmtService {
                     //const taskToDo = await this.taskToDoService.patchTaskToDo(mlsEvent.id, taskTodoDto);
 
                     return "Nothing changed yet";
-
                 } else {
                     throw new ForbiddenException(
                         "TaskToDoEvent: Method for this action type not implemented.",
@@ -234,5 +218,57 @@ export class EventMgmtService {
                 LoggerUtil.logInfo("EventService::MlsActionEntityUnknown", mlsEvent.entityType);
                 throw new ForbiddenException("MlsActionEntity unknown");
         }
+    }
+
+    /**
+     * Helper function to create a learning unit DTO from the values of a MLS event.
+     * @param mlsEvent Must contain at least the id, can also contain title, description, and contentCreator as payload.
+     * @returns The newly created learning unit DTO
+     */
+    async createLearningUnitDTOFromMLSEvent(mlsEvent: MLSEvent) {
+        //Lifecycle needs extra handling (save content of JSON as string if key exists)
+        const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
+        //Match string to enum. Can result in undefined. Enum matching is case sensitive.
+        const lifecycle: LIFECYCLE = LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE];
+
+        LoggerUtil.logInfo("EventService::LearningUnit(getLifecycle)", lifecycle);
+
+        //Gets id, title, description, lifecycle, and creator from the MLS system
+        //Caution: An event may contain just a partial update, some values may be undefined
+        const learningUnitDto: SearchLearningUnitCreationDto = {
+            id: mlsEvent.id,
+            title: mlsEvent.payload["title" as keyof JSON]?.toString(), //Only convert to string if not undefined or null
+            description: mlsEvent.payload["description" as keyof JSON]?.toString(),
+            contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
+            teachingGoals: [], //ToDo: How do we handle these? Who is updating them?
+            requiredSkills: [], //ToDo: How do we handle these? Who is updating them?
+            lifecycle: lifecycle,
+        };
+
+        console.log("Created LU DTO: " + learningUnitDto);
+        LoggerUtil.logInfo("EventService::LearningUnit(createDTO)", learningUnitDto);
+
+        return learningUnitDto;
+    }
+
+    /**
+     * Helper function to create a user profile DTO from the values of a MLS event.
+     * @param mlsEvent Must contain at least the id, can also contain title, description, and contentCreator as payload.
+     * @returns The newly created learning unit DTO
+     */
+    async createUserProfileDTOFromMLSEvent(mlsEvent: MLSEvent) {
+        //Create DTO
+        const userDto: UserCreationDto = {
+            id: mlsEvent.id,
+            name: mlsEvent.payload["name" as keyof JSON]?.toString(),
+            status: USERSTATUS.ACTIVE, //Initially, users are created as active users. They only become inactive when deleted.
+        };
+        LoggerUtil.logInfo("EventService::createUserDTO", userDto);
+
+        //Create user profile in database
+        const user = this.userService.createUser(userDto);
+        LoggerUtil.logInfo("EventService::createUser", user);
+
+        return user;
     }
 }
