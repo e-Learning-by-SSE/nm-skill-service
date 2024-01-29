@@ -6,7 +6,7 @@ import {
     SearchLearningUnitListDto,
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { LIFECYCLE, LearningUnit as PrismaLearningUnit, Prisma, Skill } from "@prisma/client";
+import { LIFECYCLE, Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 import { LearningUnit } from "../../nm-skill-lib/src";
 import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";
@@ -23,7 +23,7 @@ export class LearningUnitFactory {
     public async patchLearningUnit(learningUnitId: string, dto: SearchLearningUnitCreationDto) {
         try {
             const existingLearningUnit = await this.loadLearningUnit(learningUnitId);
-            
+
             if (!existingLearningUnit) {
                 throw new NotFoundException(`Learning Unit not found: ${learningUnitId}`);
             }
@@ -39,9 +39,9 @@ export class LearningUnitFactory {
                 where: { id: "" + dto.id },
                 data: {
                     id: "" + dto.id ?? existingLearningUnit.id,
-                    title: dto.title  ?? existingLearningUnit.title,
-                    orga_id: dto.orga_id ??  existingLearningUnit.orga_id,
-                    lifecycle: dto.lifecycle?? existingLearningUnit.lifecycle,
+                    title: dto.title ?? existingLearningUnit.title,
+                    orga_id: dto.orga_id ?? existingLearningUnit.orga_id,
+                    lifecycle: dto.lifecycle ?? existingLearningUnit.lifecycle,
                     description: dto.description ?? existingLearningUnit.description,
                     language: dto.language ?? existingLearningUnit.language,
 
@@ -50,17 +50,22 @@ export class LearningUnitFactory {
                     contentCreator: dto.contentCreator ?? existingLearningUnit.contentCreator,
                     targetAudience: dto.targetAudience ?? existingLearningUnit.targetAudience,
                     semanticDensity: dto.semanticDensity ?? existingLearningUnit.semanticDensity,
-                    semanticGravity: dto.semanticGravity?? existingLearningUnit.semanticGravity,
+                    semanticGravity: dto.semanticGravity ?? existingLearningUnit.semanticGravity,
                     contentTags: dto.contentTags ?? existingLearningUnit.contentTags,
                     contextTags: dto.contextTags ?? existingLearningUnit.contextTags,
-                    linkToHelpMaterial: dto.linkToHelpMaterial ?? existingLearningUnit.linkToHelpMaterial,
+                    linkToHelpMaterial:
+                        dto.linkToHelpMaterial ?? existingLearningUnit.linkToHelpMaterial,
 
                     requirements: {
-                        connect: dto.requiredSkills?.map((skillId) => ({ id: skillId })) ?? existingLearningUnit.requirements.map((r) => ({ id: r.id })),
+                        connect:
+                            dto.requiredSkills?.map((skillId) => ({ id: skillId })) ??
+                            existingLearningUnit.requirements.map((r) => ({ id: r.id })),
                     },
-    
+
                     teachingGoals: {
-                        connect: dto.teachingGoals?.map((skillId) => ({ id: skillId })) ?? existingLearningUnit.teachingGoals.map((tg) => ({ id: tg.id })),
+                        connect:
+                            dto.teachingGoals?.map((skillId) => ({ id: skillId })) ??
+                            existingLearningUnit.teachingGoals.map((tg) => ({ id: tg.id })),
                     },
                 },
                 include: {
@@ -69,7 +74,7 @@ export class LearningUnitFactory {
                     teachingGoals: true,
                 },
             });
-            return this.createLearningUnitDto(updatedLearningUnit);
+            return SearchLearningUnitDto.createFromDao(updatedLearningUnit);
         } catch (error) {
             throw error;
         }
@@ -127,7 +132,7 @@ export class LearningUnitFactory {
     public async getLearningUnit(learningUnitId: string) {
         const dao = await this.loadLearningUnit(learningUnitId);
 
-        return this.createLearningUnitDto(dao);
+        return SearchLearningUnitDto.createFromDao(dao);
     }
 
     private async loadManyLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {
@@ -146,23 +151,10 @@ export class LearningUnitFactory {
         return learningUnits;
     }
 
-    private createLearningUnitDto(
-        dao: PrismaLearningUnit & {
-            teachingGoals?: Skill[];
-            requirements?: Skill[];
-        },
-    ) {
-        const searchUnit = SearchLearningUnitDto.createFromDao(dao);
-        searchUnit.requiredSkills = dao.requirements?.map((skill) => skill.id) ?? [];
-        searchUnit.teachingGoals = dao.teachingGoals?.map((skill) => skill.id) ?? [];
-
-        return searchUnit;
-    }
-
     public async loadAllLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {
         const learningUnits = await this.loadManyLearningUnits(args);
         const searchUnits = new SearchLearningUnitListDto();
-        searchUnits.learningUnits = learningUnits.map(this.createLearningUnitDto);
+        searchUnits.learningUnits = learningUnits.map(SearchLearningUnitDto.createFromDao);
 
         return searchUnits;
     }
@@ -210,7 +202,7 @@ export class LearningUnitFactory {
                 },
             });
 
-            return this.createLearningUnitDto(learningUnit);
+            return SearchLearningUnitDto.createFromDao(learningUnit);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 // unique field already exists
@@ -351,7 +343,7 @@ export class LearningUnitFactory {
 
         const res: SearchLearningUnitListDto = new SearchLearningUnitListDto();
         result.forEach((element) => {
-            res.learningUnits.push(this.createLearningUnitDto(element));
+            res.learningUnits.push(SearchLearningUnitDto.createFromDao(element));
         });
 
         return res;

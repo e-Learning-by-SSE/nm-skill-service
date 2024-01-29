@@ -165,6 +165,7 @@ describe("Event Service", () => {
             const expectedLearningUnitDto: SearchLearningUnitCreationDto = {
                 id: validMLSPostEvent.id,
                 title: "Test Title",
+                targetAudience: [],
                 description: "Test description",
                 contentCreator: "Test creator",
                 teachingGoals: [],

@@ -40,8 +40,8 @@ export class SearchLearningUnitCreationDto {
     @IsOptional()
     contentProvider?: string;
 
-    @IsOptional()
-    targetAudience?: string;
+    @IsDefined()
+    targetAudience: string[] = [];
 
     @IsOptional()
     semanticDensity?: string;
@@ -64,43 +64,6 @@ export class SearchLearningUnitCreationDto {
     @IsOptional()
     orga_id?: string;
 
-    constructor(
-        id: string,
-        language: string | null,
-        title: string | null,
-
-        description: string | null,
-        processingTime: string | null,
-        rating: string | null,
-        contentCreator: string | null,
-        contentProvider: string | null,
-        targetAudience: string | null,
-        semanticDensity: string | null,
-        semanticGravity: string | null,
-        contentTags: string[] | null,
-        contextTags: string[] | null,
-        linkToHelpMaterial: string | null,
-        lifecycle: LIFECYCLE | null,
-        orga_id: string | null,
-    ) {
-        this.id = id;
-        this.title = title ?? undefined;
-        this.language = language ?? undefined;
-        this.description = description ?? undefined;
-        this.processingTime = processingTime ?? undefined;
-        this.rating = rating ?? undefined;
-        this.contentCreator = contentCreator ?? undefined;
-        this.contentProvider = contentProvider ?? undefined;
-        this.targetAudience = targetAudience ?? undefined;
-        this.semanticDensity = semanticDensity ?? undefined;
-        this.semanticGravity = semanticGravity ?? undefined;
-        this.contentTags = contentTags ?? undefined;
-        this.contextTags = contextTags ?? undefined;
-        this.linkToHelpMaterial = linkToHelpMaterial ?? undefined;
-        this.lifecycle = lifecycle ?? undefined;
-        this.orga_id = orga_id ?? undefined;
-    }
-
     /**
      * Alternative, shorthand factory method to create testing objects.
      * Only mandatory properties that are used during test need to be defined.
@@ -111,23 +74,25 @@ export class SearchLearningUnitCreationDto {
         params: Pick<SearchLearningUnitCreationDto, "title"> &
             Partial<SearchLearningUnitCreationDto>,
     ): SearchLearningUnitCreationDto {
-        return new SearchLearningUnitCreationDto(
-            params.id ?? "",
-            params.language ?? "en",
-            params.title ?? null, // Mandatory
-            params.description ?? null,
-            params.processingTime ?? null,
-            params.rating ?? null,
-            params.contentCreator ?? null,
-            params.contentProvider ?? null,
-            params.targetAudience ?? null,
-            params.semanticDensity ?? null,
-            params.semanticGravity ?? null,
-            params.contentTags ?? null,
-            params.contextTags ?? null,
-            params.linkToHelpMaterial ?? null,
-            params.lifecycle ?? LIFECYCLE.DRAFT,
-            params.orga_id ?? null,
-        );
+        return {
+            id: params.id ?? "",
+            language: params.language ?? "en",
+            title: params.title ?? undefined, // Mandatory
+            description: params.description ?? undefined,
+            processingTime: params.processingTime ?? undefined,
+            rating: params.rating ?? undefined,
+            contentCreator: params.contentCreator ?? undefined,
+            contentProvider: params.contentProvider ?? undefined,
+            targetAudience: params.targetAudience ?? [],
+            semanticDensity: params.semanticDensity ?? undefined,
+            semanticGravity: params.semanticGravity ?? undefined,
+            contentTags: params.contentTags ?? undefined,
+            contextTags: params.contextTags ?? undefined,
+            linkToHelpMaterial: params.linkToHelpMaterial ?? undefined,
+            lifecycle: params.lifecycle ?? LIFECYCLE.DRAFT,
+            orga_id: params.orga_id ?? undefined,
+            requiredSkills: params.requiredSkills ?? [],
+            teachingGoals: params.teachingGoals ?? [],
+        };
     }
 }

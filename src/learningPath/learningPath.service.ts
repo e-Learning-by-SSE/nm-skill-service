@@ -160,7 +160,7 @@ export class LearningPathMgmtService {
                     owner: dto.owner,
                     title: dto.title,
                     description: dto.description,
-                    targetAudience: dto.targetAudience,
+                    targetAudience: dto.targetAudience === null ? [] : dto.targetAudience,
                     requirements: this.updateQuery(dto.requirements),
                     pathTeachingGoals: this.updateQuery(dto.pathGoals),
                     recommendedUnitSequence: recommendedUnits,

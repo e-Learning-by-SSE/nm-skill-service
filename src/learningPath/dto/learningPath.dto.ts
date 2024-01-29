@@ -1,6 +1,6 @@
 import { IsDate, IsDefined, IsNotEmpty } from "class-validator";
 
-import { LearningPath, LearningUnit, Skill, LIFECYCLE, Prisma } from "@prisma/client";
+import { LearningPath, Skill, LIFECYCLE } from "@prisma/client";
 
 export class LearningPathDto {
     @IsNotEmpty()
@@ -26,7 +26,8 @@ export class LearningPathDto {
     @IsDefined()
     recommendedUnitSequence: string[];
 
-    targetAudience?: string;
+    @IsDefined()
+    targetAudience: string[];
 
     @IsDate()
     createdAt: string;
@@ -45,7 +46,7 @@ export class LearningPathDto {
             owner: lp.owner,
             title: lp.title ?? "",
             description: lp.description ?? undefined,
-            targetAudience: lp.targetAudience ?? undefined,
+            targetAudience: lp.targetAudience,
             lifecycle: lp.lifecycle,
             requirements: lp.requirements.map((requirement) => requirement.id),
             pathGoals: lp.pathTeachingGoals.map((goal) => goal.id),

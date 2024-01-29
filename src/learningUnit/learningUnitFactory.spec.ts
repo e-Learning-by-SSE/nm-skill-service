@@ -171,6 +171,7 @@ describe("LearningUnit Factory", () => {
             const existingLearningUnit: SearchLearningUnitCreationDto = {
                 id: "789",
                 title: "Learning Unit 2",
+                targetAudience: [],
                 lifecycle: LIFECYCLE.POOL, // Assuming PUBLISHED is not the DRAFT state
                 teachingGoals: [],
                 requiredSkills: [],
@@ -209,6 +210,7 @@ describe("LearningUnit Factory", () => {
             const existingLearningUnit: SearchLearningUnitCreationDto = {
                 id: "789",
                 title: "Learning Unit 2",
+                targetAudience: [],
                 lifecycle: LIFECYCLE.POOL, // Assuming PUBLISHED is not the DRAFT state
                 teachingGoals: [],
                 requiredSkills: [],
@@ -227,6 +229,7 @@ describe("LearningUnit Factory", () => {
             const existingLearningUnit: SearchLearningUnitCreationDto = {
                 id: "1234",
                 title: "Learning Unit 2",
+                targetAudience: [],
                 lifecycle: LIFECYCLE.POOL, // Assuming PUBLISHED is not the DRAFT state
                 teachingGoals: [],
                 requiredSkills: [],

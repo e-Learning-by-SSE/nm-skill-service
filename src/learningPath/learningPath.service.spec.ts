@@ -113,6 +113,7 @@ describe("LearningPath Service", () => {
                         id: creationResult.id,
                         owner: creationResult.owner,
                         title: "",
+                        targetAudience: [],
                         lifecycle: LIFECYCLE.DRAFT,
                         requirements: [],
                         pathGoals: [],
@@ -154,6 +155,7 @@ describe("LearningPath Service", () => {
                         id: path1.id,
                         owner: path1.owner,
                         title: "",
+                        targetAudience: [],
                         lifecycle: LIFECYCLE.DRAFT,
                         description: undefined,
                         requirements: [],
@@ -166,6 +168,7 @@ describe("LearningPath Service", () => {
                         id: path2.id,
                         owner: path2.owner,
                         title: "",
+                        targetAudience: [],
                         lifecycle: LIFECYCLE.DRAFT,
                         description: undefined,
                         requirements: [],
@@ -213,7 +216,7 @@ describe("LearningPath Service", () => {
                 owner: "New Owner",
                 title: "New Title",
                 description: "New Description",
-                targetAudience: "New Audience",
+                targetAudience: ["New Audience"],
                 lifecycle: LIFECYCLE.POOL,
                 requirements: [skill1.id],
                 pathGoals: [skill2.id],
@@ -239,6 +242,7 @@ describe("LearningPath Service", () => {
                 id: initialPath.id,
                 owner: updateDto.owner!,
                 title: updateDto.title!,
+                targetAudience: updateDto.targetAudience!,
                 description: updateDto.description!,
                 lifecycle: LIFECYCLE.POOL,
                 requirements: updateDto.requirements!,
@@ -264,7 +268,7 @@ describe("LearningPath Service", () => {
                     owner: "TestUser",
                     title: "A Title",
                     description: "A Description",
-                    targetAudience: "An Audience",
+                    targetAudience: ["An Audience"],
                     lifecycle: LIFECYCLE.DRAFT,
                     requirements: [skill1.id],
                     pathGoals: [skill2.id],
@@ -337,7 +341,7 @@ describe("LearningPath Service", () => {
 
             it("targetAudience", async () => {
                 const updateDto: UpdatePathRequestDto = {
-                    targetAudience: "New Audience",
+                    targetAudience: ["New Audience"],
                 };
 
                 const expected: LearningPathDto = {
@@ -421,7 +425,7 @@ describe("LearningPath Service", () => {
                     owner: "TestUser",
                     title: "A Title",
                     description: "A Description",
-                    targetAudience: "An Audience",
+                    targetAudience: ["An Audience"],
                     lifecycle: LIFECYCLE.DRAFT,
                     requirements: [skill1.id],
                     pathGoals: [skill2.id],
@@ -470,7 +474,7 @@ describe("LearningPath Service", () => {
 
                 const expected: LearningPathDto = {
                     ...initialPath,
-                    targetAudience: undefined,
+                    targetAudience: [],
                     updatedAt: expect.any(String),
                 };
 
@@ -538,7 +542,7 @@ describe("LearningPath Service", () => {
                     owner: "TestUser",
                     title: "A Title",
                     description: "A Description",
-                    targetAudience: "An Audience",
+                    targetAudience: ["An Audience"],
                     lifecycle: LIFECYCLE.POOL,
                     requirements: [skill1.id],
                     pathGoals: [skill2.id],
@@ -609,7 +613,7 @@ describe("LearningPath Service", () => {
                 const updateDto: UpdatePathRequestDto = {
                     owner: "A new owner",
                     title: "A new title",
-                    targetAudience: "A new audience",
+                    targetAudience: ["A new audience"],
                     requirements: [skill3.id],
                     pathGoals: [skill1.id],
                 };
@@ -638,7 +642,7 @@ describe("LearningPath Service", () => {
                     owner: "TestUser",
                     title: "A Title",
                     description: "A Description",
-                    targetAudience: "An Audience",
+                    targetAudience: ["An Audience"],
                     lifecycle: LIFECYCLE.ARCHIVED,
                     requirements: [skill1.id],
                     pathGoals: [skill2.id],

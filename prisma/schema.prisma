@@ -122,7 +122,7 @@ model LearningPath {
   id                      String                     @id @default(cuid())
   owner                   String
   title                   String?
-  targetAudience          String?
+  targetAudience          String[]
   description             String?
   createdAt               DateTime                   @default(now())
   updatedAt               DateTime                   @updatedAt
@@ -196,7 +196,7 @@ model LearningUnit {
   rating             String   @default("")
   contentCreator     String   @default("")
   contentProvider    String   @default("")
-  targetAudience     String   @default("")
+  targetAudience     String[] @default([])
   semanticDensity    String   @default("")
   semanticGravity    String   @default("")
   contentTags        String[]

@@ -9,7 +9,7 @@ export class UpdatePathRequestDto {
     description?: string | null;
 
     @IsOptional()
-    targetAudience?: string | null;
+    targetAudience?: string[] | null;
 
     @IsOptional()
     owner?: string;
