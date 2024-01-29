@@ -16,44 +16,48 @@ fi
 case "${DB_ACTION}" in
     "DEMO_SEED")
         # Initialize the database and apply sample data
-        if [ ! -e /home/node/db_initialized ]; then
-            printf "Initializing the database and applying sample data...\n"
-            cd /usr/src/app/
-            npx prisma db push --accept-data-loss
-            npx prisma db seed
-            touch /home/node/db_initialized
-            cd -
-            printf "Database initialization completed.\n"
-            cd /usr/src/app/
-            node /usr/src/app/dist/src/main.js
-        fi
+        echo "Initializing the database and applying sample data..."
+        
+        # Initilize DB and apply seed data
+        cd /usr/src/app/
+        npx prisma db push --accept-data-loss
+        npx prisma db seed
+        echo "Database initialization completed."
+        
+        node /usr/src/app/dist/src/main.js
         ;;
 
     "INIT")
-        # Start the NestJS application
-        printf "Initializing the database and fills these with administrative values\n"
+        # Initialize the database, if not already initialized
+        echo "Initializing the database if not already initialized"
+        
+        # Initilize, but do not reset existing data
         cd /usr/src/app/
         npx prisma db push
-        cd /usr/src/app/
+        
         node /usr/src/app/dist/src/main.js
         ;;
     
     "RESET")
-        # Start the NestJS application
-        printf "Resetting and Initializing the database\n"
+        # Resets the database and initializes it
+        echo "Resetting and Initializing the database"
+        
+        # Reset the database
         cd /usr/src/app/
         npx prisma db push --force-reset
-        cd /usr/src/app/
+
         node /usr/src/app/dist/src/main.js
         ;;
 
     "MIGRATE")
         # Start the NestJS application
-        printf "Migrate the database \n"
+        echo "Database already initialized, apply migrations"
+        
+        # Apply only migrations
         cd /usr/src/app/
-        npx prisma db push --accept-data-loss
         npx prisma migrate deploy
-        cd /usr/src/app/
+
+        # Start the server
         node /usr/src/app/dist/src/main.js
         ;;
 
