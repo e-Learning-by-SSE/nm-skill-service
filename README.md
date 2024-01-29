@@ -62,6 +62,18 @@ npm run test:e2e
 npm run test:cov
 ```
 
+## Release Management
+
+1. Merge all stable branches into `main`, which shall be included into the release.
+2. Create a new data base migration, only if the prisma schema was changed since the last release:
+   `npx prisma migrate dev --name <a_concise_name_describing_the_db_change>`
+   Replace `<a_concise_name_describing_the_db_change>` with an appropriate name that describes the change.
+3. Create a new _tag_ in the Git repository, use [semantic versioning according to our guide line](https://github.com/e-Learning-by-SSE/nm-skill-lib/blob/main/semver.md). Also add a description to the _tag_ that describes the change of the new release. Push the commit (depending on the tool, it may require some additional parameters to include tags).
+4. Log into Jenkins and build the new release, it must not fail. Otherwise fix and prepare a new release
+5. Log into GitHub and prepare a new release based on the given tag. Also add here the release description and add the link to the Docker container, which was built by Jenkins.
+6. Ideally: Test the container + migration locally.
+7. Increment the version number inside the `package.json` before adding any further changes to the _main_ branch.
+
 ## Used Packages / Frameworks
 
 -   [Nest](https://github.com/nestjs/nest): Server-side backend
