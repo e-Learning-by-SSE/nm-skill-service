@@ -720,6 +720,27 @@ describe("LearningPath Service", () => {
     });
 
     describe("definePreferredPath", () => {
+        let map: SkillMap;
+        let [skill1, skill2, skill3]: (Skill & {
+            nestedSkills: { id: string }[];
+            parentSkills?: { id: string }[];
+        })[] = [];
+        let [skill1Dto, skill2Dto, skill3Dto]: SkillDto[] = [];
+
+        beforeEach(async () => {
+            // Create three learning units which can be shuffled
+            map = await dbUtils.createSkillMap("user1", "OrderedSkillMap");
+            skill1 = await dbUtils.createSkill(map, "Skill1");
+            skill2 = await dbUtils.createSkill(map, "Skill2");
+            skill3 = await dbUtils.createSkill(map, "Skill3");
+            await dbUtils.createLearningUnit("unit 1", [skill1], []);
+            await dbUtils.createLearningUnit("unit 2", [skill2], []);
+            await dbUtils.createLearningUnit("unit 3", [skill3], [skill1, skill2]);
+            skill1Dto = SkillDto.createFromDao(skill1);
+            skill2Dto = SkillDto.createFromDao(skill2);
+            skill3Dto = SkillDto.createFromDao(skill3);
+        });
+
         it("Non existent Learning Unit specified -> NotFoundException", async () => {
             await expect(
                 learningPathService.definePreferredPath(["non existent unit ID"], "anyID"),
@@ -727,18 +748,6 @@ describe("LearningPath Service", () => {
         });
 
         it("Ordering defined -> LearningPath updated", async () => {
-            // Create three learning units which can be shuffled
-            const map = await dbUtils.createSkillMap("user1", "OrderedSkillMap");
-            const skill1 = await dbUtils.createSkill(map, "Skill1");
-            const skill2 = await dbUtils.createSkill(map, "Skill2");
-            const skill3 = await dbUtils.createSkill(map, "Skill3");
-            await dbUtils.createLearningUnit("unit 1", [skill1], []);
-            await dbUtils.createLearningUnit("unit 2", [skill2], []);
-            await dbUtils.createLearningUnit("unit 3", [skill3], [skill1, skill2]);
-            const skill1Dto = SkillDto.createFromDao(skill1);
-            const skill2Dto = SkillDto.createFromDao(skill2);
-            const skill3Dto = SkillDto.createFromDao(skill3);
-
             // Pre-condition: Determine default path produced by the algorithm
             const path = await getPath({
                 skills: [skill1Dto, skill2Dto, skill3Dto],
@@ -764,6 +773,11 @@ describe("LearningPath Service", () => {
             });
             expect(newPath).not.toBeNull();
             expect(newPath!.path.map((unit) => unit.id)).toEqual(unitOrdering);
+        });
+
+        it("Empty preferred path -> no action", async () => {
+            // Tests that no exception will be thrown
+            await learningPathService.definePreferredPath([], "anyID");
         });
     });
 });
