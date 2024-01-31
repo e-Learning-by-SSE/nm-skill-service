@@ -14,14 +14,14 @@ import { PrismaService } from "../prisma/prisma.service";
 
 import { CareerProfileCreationDto } from "./dto/careerProfile-creation.dto";
 import { CareerProfileDto } from "./dto/careerProfile.dto";
-import { CareerProfileFilterDto} from "./dto/careerProfile-filter.dto";
+import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 
-import { JobCreationDto} from "../user/dto/job-creation.dto";
-import { JobUpdateDto} from "../user/dto/job-update.dto";
-import { JobDto} from "../user/dto/job.dto";
+import { JobCreationDto } from "../user/dto/job-creation.dto";
+import { JobUpdateDto } from "../user/dto/job-update.dto";
+import { JobDto } from "../user/dto/job.dto";
 
-import { QualificationCreationDto} from "../user/dto/qualification-creation.dto";
-import { QualificationDto} from "../user/dto/qualification.dto";
+import { QualificationCreationDto } from "../user/dto/qualification-creation.dto";
+import { QualificationDto } from "../user/dto/qualification.dto";
 
 /**
  * Service that manages the creation/update/deletion of learningHistory
@@ -30,7 +30,6 @@ import { QualificationDto} from "../user/dto/qualification.dto";
 @Injectable()
 export class CareerProfileService {
     constructor(private db: PrismaService) {}
-
 
     async createCareerProfile(dto: CareerProfileCreationDto) {
         try {
@@ -63,20 +62,20 @@ export class CareerProfileService {
             throw error;
         }
     }
-    
 
     async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileCreationDto) {
         try {
             const existingCareerProfile = await this.db.careerProfile.findUnique({
                 where: {
                     id: careerProfileId,
-                },include:{jobHistory:true}
+                },
+                include: { jobHistory: true },
             });
 
             if (!existingCareerProfile) {
                 throw new NotFoundException("Career profile not found.");
             }
-         
+
             const updatedCareerProfile = await this.db.careerProfile.update({
                 where: {
                     id: careerProfileId,
@@ -102,23 +101,21 @@ export class CareerProfileService {
                         : {}),
                     ...(dto.userId ? { user: { connect: { id: dto.userId } } } : {}),
                     jobHistory: {
-                
                         upsert: dto.jobHistory?.map((job) => ({
                             where: { id: job.id || undefined },
                             create: {
-                              
                                 jobTitle: job.jobTitle,
                                 userId: job.userId,
-                                companyId:job.companyId,
+                                companyId: job.companyId,
                                 startTime: job.startTime,
-                                endTime: job.endTime
+                                endTime: job.endTime,
                             },
                             update: {
                                 jobTitle: job.jobTitle,
                                 userId: job.userId,
-                                companyId:job.companyId,
+                                companyId: job.companyId,
                                 startTime: job.startTime,
-                                endTime: job.endTime
+                                endTime: job.endTime,
                             },
                         })),
                     },
@@ -128,16 +125,15 @@ export class CareerProfileService {
                             create: {
                                 name: qualification.name,
                                 year: qualification.year,
-                                userId:qualification.careerProfileId
+                                userId: qualification.careerProfileId,
                             },
                             update: {
                                 name: qualification.name,
                                 year: qualification.year,
-                                userId:qualification.careerProfileId
+                                userId: qualification.careerProfileId,
                             },
                         })),
                     },
-                    
                 },
             });
             const careerProfileDto = CareerProfileDto.createFromDao(updatedCareerProfile);
@@ -215,7 +211,6 @@ export class CareerProfileService {
         }
     }
 
-    
     async createJob(id: string, dto: JobCreationDto) {
         // Create and return a Job
         try {
@@ -321,9 +316,9 @@ export class CareerProfileService {
             }
             const profile = await this.db.careerProfile.create({
                 data: {
-                    userId:user.id,
-                    id:user.id,
-                     // Associate the qualification with the user
+                    userId: user.id,
+                    id: user.id,
+                    // Associate the qualification with the user
                 },
             });
             console.log(profile);
@@ -331,7 +326,7 @@ export class CareerProfileService {
                 data: {
                     name: dto.name,
                     year: dto.year,
-                    careerProfile: { connect: { userId:user.id,  } }, // Associate the qualification with the user
+                    careerProfile: { connect: { userId: user.id } }, // Associate the qualification with the user
                 },
             });
             console.log(qualification);
@@ -340,7 +335,7 @@ export class CareerProfileService {
             throw new BadRequestException(`Failed to create qualification: ${error.message}`);
         }
     }
-    
+
     async deleteQualificationForCareerProfile(careerProfileId: string, qualificationId: string) {
         try {
             const qualification = await this.db.qualification.findUnique({
@@ -381,11 +376,11 @@ export class CareerProfileService {
                     careerProfileId: careerProfileId,
                 },
             });
-    
+
             if (!existingQualification) {
                 throw new NotFoundException("Qualification not found for update.");
             }
-    
+
             // Check if the careerProfileId in dto is provided and exists
             const newCareerProfileId = dto.userCareerProfileId;
             const careerProfileExists = newCareerProfileId
@@ -393,11 +388,11 @@ export class CareerProfileService {
                       where: { id: newCareerProfileId },
                   })
                 : true; // If not provided, assume it's valid
-    
+
             if (!careerProfileExists) {
                 throw new NotFoundException("Career profile not found.");
             }
-    
+
             // Update the qualification
             const updatedQualification = await this.db.qualification.update({
                 where: {
@@ -407,25 +402,23 @@ export class CareerProfileService {
                 data: {
                     name: dto.name || existingQualification.name,
                     year: dto.year || existingQualification.year,
-                   
-                    
+
                     careerProfile: dto.userCareerProfileId
-                    ? { connect: { id: dto.userCareerProfileId } }
-                    : undefined,
-          
+                        ? { connect: { id: dto.userCareerProfileId } }
+                        : undefined,
                 },
             });
-    
+
             return QualificationDto.createFromDao(updatedQualification);
         } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+            if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
                 throw new NotFoundException("Qualification not found");
             }
-    
+
             if (error instanceof PrismaClientValidationError) {
                 throw new BadRequestException(`Validation error: ${error.message}`);
             }
-    
+
             throw new BadRequestException(`Failed to update qualification: ${error.message}`);
         }
     }

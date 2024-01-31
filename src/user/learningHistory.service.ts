@@ -34,6 +34,8 @@ export class LearningHistoryService {
                 // unique field already exists
                 if (error.code === "P2002") {
                     throw new ForbiddenException("Learning History could not be created");
+                } else if (error.code === "P2003") {
+                    throw new NotFoundException(`No user profile found with id ${dto.userId}`);
                 }
             }
             throw error;
@@ -58,15 +60,15 @@ export class LearningHistoryService {
 
     async deleteLearningHistoryById(historyId: string) {
         try {
-            const lhistory = await this.db.learningHistory.delete({
+            const lHistory = await this.db.learningHistory.delete({
                 where: { id: historyId },
             });
 
-            if (!lhistory) {
+            if (!lHistory) {
                 throw new NotFoundException("No learningHistory found.");
             }
 
-            return LearningHistoryDto.createFromDao(lhistory);
+            return LearningHistoryDto.createFromDao(lHistory);
         } catch (error) {
             throw error;
         }
