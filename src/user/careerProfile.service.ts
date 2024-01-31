@@ -24,7 +24,7 @@ import { QualificationCreationDto } from "../user/dto/qualification-creation.dto
 import { QualificationDto } from "../user/dto/qualification.dto";
 
 /**
- * Service that manages the creation/update/deletion of careerProfile
+ * Service that manages the creation/update/deletion of learningHistory
  * @author Sauer
  */
 @Injectable()
