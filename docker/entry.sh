@@ -55,6 +55,7 @@ case "${DB_ACTION}" in
         
         # Apply only migrations
         cd /usr/src/app/
+		npx prisma migrate resolve --applied 0_init
         npx prisma migrate deploy
 
         # Start the server
