@@ -23,8 +23,8 @@ async function seed(): Promise<void> {
     // await miSeed();
     // console.log("\x1b[34m%s\x1b[32m ✔\x1b[0m", "Medieninformatik Example");
 
-    await createProfiles();
-    console.log("\x1b[34m%s\x1b[32m ✔\x1b[0m", "User Profiles Example");
+    // await createProfiles();
+    // console.log("\x1b[34m%s\x1b[32m ✔\x1b[0m", "User Profiles Example");
 
     console.log("Seeding completed 😎");
 }
