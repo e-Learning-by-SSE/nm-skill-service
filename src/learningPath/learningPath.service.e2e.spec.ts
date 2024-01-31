@@ -584,8 +584,19 @@ describe("Learning-Path Controller E2E-Tests", () => {
         describe("Scenario Tests", () => {
             // Test data
             let skillMap: SkillMap;
-            let [parentSkill, nestedSkill1, nestedSkill2, skill1, skill2, skill3]: Skill[] = [];
-            let [unit1, unit2, unit3, unit4]: LearningUnit[] = [];
+            let [
+                parentSkill,
+                nestedSkill1,
+                nestedSkill2,
+                skill1,
+                skill2,
+                skill3,
+                skillB,
+                skillB1,
+                skillB2,
+                skillB3,
+            ]: Skill[] = [];
+            let [unit1, unit2, unit3, unit4, unitB1, unitB2, unitB3]: LearningUnit[] = [];
             let initialPath: LearningPath;
 
             beforeEach(async () => {
@@ -597,10 +608,17 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 skill1 = await dbUtils.createSkill(skillMap, "Skill 1");
                 skill2 = await dbUtils.createSkill(skillMap, "Skill 2");
                 skill3 = await dbUtils.createSkill(skillMap, "Skill 3");
+                skillB = await dbUtils.createSkill(skillMap, "B");
+                skillB1 = await dbUtils.createSkill(skillMap, "B1", [skillB.id]);
+                skillB2 = await dbUtils.createSkill(skillMap, "B2", [skillB.id]);
+                skillB3 = await dbUtils.createSkill(skillMap, "B3", [skillB.id]);
                 unit1 = await dbUtils.createLearningUnit("Unit1", [nestedSkill1], []);
                 unit2 = await dbUtils.createLearningUnit("Unit2", [nestedSkill2], []);
                 unit3 = await dbUtils.createLearningUnit("Unit3", [skill1, skill2], []);
                 unit4 = await dbUtils.createLearningUnit("Unit3", [skill2, skill3], []);
+                unitB1 = await dbUtils.createLearningUnit("UnitB1", [skillB1], []);
+                unitB2 = await dbUtils.createLearningUnit("UnitB2", [skillB2], []);
+                unitB3 = await dbUtils.createLearningUnit("UnitB3", [skillB3], []);
                 initialPath = await dbUtils.createLearningPath("test-orga");
             });
 
@@ -722,6 +740,64 @@ describe("Learning-Path Controller E2E-Tests", () => {
                         const result = res.body as LearningPathDto;
                         expect(result).toMatchObject(expectedResult);
                     });
+            });
+
+            it("Florian (31.01.2024): 3 nested skills; multiple shuffles; revalidate fails sometimes", async () => {
+                async function applyUpdateAndValidate(
+                    update: UpdatePathRequestDto,
+                    expectedResult: LearningPathDto,
+                ) {
+                    await request(app.getHttpServer())
+                        .patch(`/learning-paths/${initialPath.id}`)
+                        .send(update)
+                        .expect(200)
+                        .expect((res) => {
+                            const result = res.body as LearningPathDto;
+                            expect(result).toMatchObject(expectedResult);
+                        });
+                    await request(app.getHttpServer())
+                        .get(`/learning-paths/${initialPath.id}/validate`)
+                        .expect(200);
+                }
+
+                // First Update
+                let update: UpdatePathRequestDto = {
+                    title: "A new title",
+                    requirements: [],
+                    pathGoals: [skillB.id],
+                    recommendedUnitSequence: [unitB1.id, unitB2.id, unitB3.id],
+                };
+
+                // Expected Result
+                let expectedResult: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: initialPath.owner,
+                    title: update.title!,
+                    targetAudience: [],
+                    lifecycle: initialPath.lifecycle,
+                    requirements: [],
+                    pathGoals: update.pathGoals!,
+                    recommendedUnitSequence: update.recommendedUnitSequence!,
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
+                };
+
+                // First Update: Define initial recommended sequence and revalidate
+                await applyUpdateAndValidate(update, expectedResult);
+
+                // Second Update: Reorder recommended sequence and revalidate
+                update.recommendedUnitSequence = [unitB2.id, unitB1.id, unitB3.id];
+                expectedResult.recommendedUnitSequence = update.recommendedUnitSequence!;
+
+                // Test: Update of initialPath
+                await applyUpdateAndValidate(update, expectedResult);
+
+                // Third Update: Reorder recommended sequence and revalidate
+                update.recommendedUnitSequence = [unitB3.id, unitB1.id, unitB2.id];
+                expectedResult.recommendedUnitSequence = update.recommendedUnitSequence!;
+
+                // Test: Update of initialPath
+                await applyUpdateAndValidate(update, expectedResult);
             });
         });
     });

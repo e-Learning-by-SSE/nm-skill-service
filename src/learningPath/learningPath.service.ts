@@ -459,15 +459,23 @@ export class LearningPathMgmtService {
         await computeSuggestedSkills(
             learningUnits,
             async (lu: LearningUnit, missingSkills: string[]) => {
-                if (missingSkills.length > 0) {
-                    const updateQuery: Prisma.PreferredOrderingUncheckedUpdateWithoutLearningUnitInput &
-                        Prisma.PreferredOrderingUncheckedCreateWithoutLearningUnitInput = {
+                // Generate the Update or Create query to
+                // - For Create we need "connect" as there is no other command available
+                // - For Update we need "set" to overwrite the old value
+                function generateUpdateQuery(
+                    cmd: keyof (Prisma.SkillUncheckedUpdateManyWithoutSuggestedByNestedInput &
+                        Prisma.SkillUncheckedCreateNestedManyWithoutSuggestedByInput),
+                ): Prisma.PreferredOrderingUncheckedUpdateWithoutLearningUnitInput &
+                    Prisma.PreferredOrderingUncheckedCreateWithoutLearningUnitInput {
+                    return {
                         orderId: preferredPathId,
                         suggestedSkills: {
-                            connect: missingSkills.map((skillId) => ({ id: skillId })),
+                            [cmd]: missingSkills.map((skillId) => ({ id: skillId })),
                         },
                     };
+                }
 
+                if (missingSkills.length > 0) {
                     // Update / Overwrite order-constraint for the given preferredPathId
                     await this.db.learningUnit.update({
                         where: {
@@ -483,8 +491,8 @@ export class LearningPathMgmtService {
                                             orderId: preferredPathId,
                                         },
                                     },
-                                    create: updateQuery,
-                                    update: updateQuery,
+                                    create: generateUpdateQuery("connect"),
+                                    update: generateUpdateQuery("set"),
                                 },
                             },
                         },
