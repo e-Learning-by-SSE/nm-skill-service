@@ -56,6 +56,18 @@ export class DbTestUtils {
         return this.db;
     }
 
+    async createUserProfile(name?: string) {
+        return this.db.userProfile.create({
+            data: {
+                name,
+            },
+            include: {
+                learningProfile: true,
+                careerProfile: true,
+            },
+        });
+    }
+
     async createSkill(
         skillMap: SkillMap,
         name: string,
