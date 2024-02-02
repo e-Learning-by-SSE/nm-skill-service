@@ -263,8 +263,8 @@ model LearningProgress {
 
 model LearningProfile {
   id                      String           @id @default(cuid())
-  semanticDensity         Int
-  semanticGravity         Int
+  semanticDensity         Int?
+  semanticGravity         Int?
   mediaType               String           @default("")
   language                String           @default("")
   processingTimePerUnit   String           @default("")
