@@ -4,7 +4,10 @@ import { LearningProfileCreationDto } from "./dto/learningProfile-creation.dto";
 import { LearningProfileDto } from "./dto/learningProfile.dto";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+    PrismaClientKnownRequestError,
+    PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
 
 /**
  * Service that manages the creation/update/deletion of learningProfile
@@ -15,26 +18,36 @@ export class LearningProfileService {
     constructor(private db: PrismaService) {}
 
     async createLearningProfile(dto: LearningProfileCreationDto) {
+        // Create the learning profile and connect it to the user profile
         try {
             const lp = await this.db.learningProfile.create({
                 data: {
-                    semanticDensity: Number(dto.semanticDensity),
-                    semanticGravity: Number(dto.semanticGravity),
+                    semanticDensity: dto.semanticDensity,
+                    semanticGravity: dto.semanticGravity,
                     mediaType: dto.mediaType,
                     language: dto.language,
-                    userId: dto.userId,
                     processingTimePerUnit: dto.processingTimePerUnit,
                     preferredDidacticMethod: dto.preferredDidacticMethod,
                     id: dto.userId,
+                    user: {
+                        connect: {
+                            id: dto.userId,
+                        },
+                    },
                 },
             });
 
             return LearningProfileDto.createFromDao(lp);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
                 if (error.code === "P2002") {
-                    throw new ForbiddenException("Learning Profile could not be created");
+                    // Unique field already exists
+                    throw new ForbiddenException(
+                        `User ${dto.userId} has already a Learning Profile`,
+                    );
+                } else if (error.code === "P2025") {
+                    // Foreign key constraint failed
+                    throw new NotFoundException(`User ${dto.userId} does not exist`);
                 }
             }
             throw error;
