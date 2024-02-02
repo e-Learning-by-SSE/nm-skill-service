@@ -16,6 +16,7 @@ import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 import { JobUpdateDto } from "./dto/job-update.dto";
 import { CareerProfileService } from "./careerProfile.service";
 import { LearningHistoryService } from "./learningHistory.service";
+import { LearningProfileService } from "./learningProfile.service";
 /**
  * Controller for managing the Users and its entities
  * @author Wenzel
@@ -27,6 +28,7 @@ export class UserMgmtController {
         private userService: UserMgmtService,
         private careerService: CareerProfileService,
         private learningHistoryService: LearningHistoryService,
+        private learningProfileService: LearningProfileService,
     ) {}
 
     /**
@@ -56,17 +58,17 @@ export class UserMgmtController {
 
     @Post("add_learningProfile")
     addLearningProfile(@Body() dto: LearningProfileCreationDto) {
-        return this.userService.createLP(dto);
+        return this.learningProfileService.createLearningProfile(dto);
     }
 
     @Get("/learning-profiles/:learning_profile_id")
     getLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
-        return this.userService.getLearningProfileByID(learningProfileId);
+        return this.learningProfileService.getLearningProfileByID(learningProfileId);
     }
 
     @Delete("/learning-profiles/:learning_profile_id")
     delLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
-        return this.userService.deleteLearningProfileByID(learningProfileId);
+        return this.learningProfileService.deleteLearningProfileByID(learningProfileId);
     }
 
     @Patch("/learning-profiles/:learning_profile_id")
@@ -74,7 +76,7 @@ export class UserMgmtController {
         @Param("learning_profile_id") learningProfileId: string,
         @Body() dto: LearningProfileDto,
     ) {
-        return this.userService.patchLearningProfileByID(learningProfileId, dto);
+        return this.learningProfileService.patchLearningProfileByID(learningProfileId, dto);
     }
 
     @Post("add_LearningHistory")
