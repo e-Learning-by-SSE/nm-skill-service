@@ -10,6 +10,7 @@ import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exceptio
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 import { LIFECYCLE, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
+import { UserDto } from "../user/dto";
 
 describe("Event Service", () => {
     //Required Classes
@@ -328,5 +329,22 @@ describe("Event Service", () => {
             // Assert: Check that the user unit is successfully deleted (in our case this means setting status to inactive)
             expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.INACTIVE);
         });
+
+        it("should create a new user profile when receiving a PUT event for a non-existent one (when manually triggered in MLS for import)", async () => {
+            // Arrange: Create events with non-existent id (but active state, as we do not create inactive users)
+            const MlsPUTEvent: MLSEvent = {
+                entityType: MlsActionEntity.User,
+                method: MlsActionType.PUT,
+                id: "non-existent",
+                payload: JSON.parse('{"state":"true"}'),
+            };
+
+            // Act: Call the getEvent method
+            const createdEntry = await eventService.getEvent(MlsPUTEvent);
+
+            // Assert: Check that the createdEntry is valid and matches the expected data
+            expect((createdEntry as UserCreationDto).id).toEqual("non-existent");
+        });
+
     });
 });

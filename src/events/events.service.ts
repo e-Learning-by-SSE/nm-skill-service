@@ -130,16 +130,53 @@ export class EventMgmtService {
                 } else if (mlsEvent.method === MlsActionType.PUT) {
                     //Try to read the state attribute of the user
                     const userState = mlsEvent.payload["state" as keyof JSON];
+                    //Declare required object
+                    let userProfile;
 
                     //Check if we got a valid result (MLS uses a boolean, which is parsed to a number) and change the user state accordingly
                     if (userState != undefined) {
-                        //This case should not happen in practice
+                        //This case can happen if we manually import users from MLS via the respective button (this will trigger PUT events instead of POST)
                         if (userState == "1" || userState == "true") {
                             LoggerUtil.logInfo("EventService::updateUserActive", userState);
-                            return await this.userService.patchUserState(
-                                mlsEvent.id,
-                                USERSTATUS.ACTIVE,
-                            );
+
+                            //Then try to either update the user profile, or create a new one if not existent
+                            try {
+                                //Update the existing learning unit in our system with the new values from MLS
+                                userProfile = await this.userService.patchUserState(
+                                    mlsEvent.id,
+                                    USERSTATUS.ACTIVE,
+                                );
+                                console.log("Updated user: " + userProfile);
+                                LoggerUtil.logInfo(
+                                    "EventService::updateUserActive(updateResult)",
+                                    userProfile,
+                                );
+
+                            //When the user profile is not in our database    
+                            } catch (exception) {
+                                if (exception instanceof ForbiddenException) {  //TODO Change to NotFound?
+
+                                    //Create a new user profile in our system with the new values from MLS (this can happen if we missed a post request or the update is manually triggered by MLS)
+                                    userProfile = this.createUserProfileDTOFromMLSEvent(mlsEvent);
+
+                                    console.log(
+                                        "Created new user profile instead of update: " +
+                                            userProfile,
+                                    );
+                                    LoggerUtil.logInfo(
+                                        "EventService::updateUserActive(createNewUserProfile)",
+                                        userProfile,
+                                    );
+                                } else {
+                                    throw new ForbiddenException(
+                                        "Update of user profile: " +
+                                            mlsEvent.id +
+                                            " was aborted due to unknown reasons",
+                                    );
+                                }
+                            }
+
+                            return userProfile;
 
                             //This is the same as the DELETE event
                         } else if (userState == "0" || userState == "false") {
@@ -255,7 +292,7 @@ export class EventMgmtService {
     /**
      * Helper function to create a user profile DTO from the values of a MLS event.
      * @param mlsEvent Must contain at least the id, can also contain title, description, and contentCreator as payload.
-     * @returns The newly created learning unit DTO
+     * @returns The newly created learning user creation DTO
      */
     async createUserProfileDTOFromMLSEvent(mlsEvent: MLSEvent) {
         //Create DTO
