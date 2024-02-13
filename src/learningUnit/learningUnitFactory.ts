@@ -8,7 +8,7 @@ import {
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { LIFECYCLE, Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
-import { LearningUnit } from "../../nm-skill-lib/src";
+import { LearningUnit, getRequiredSkills, getSuggestedSkills, getTeachingGoals, computeSkills } from "../../nm-skill-lib/src";
 import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";
 
 /**
@@ -241,6 +241,11 @@ export class LearningUnitFactory {
         const learningUnits = await this.db.learningUnit.findMany({
             where,
             include: {
+                children: {
+                    include: {
+                        children: true,
+                    },
+                },
                 requirements: {
                     include: {
                         nestedSkills: true,
@@ -265,6 +270,7 @@ export class LearningUnitFactory {
 
         const results: LearningUnit[] = learningUnits.map((lu) => ({
             id: lu.id,
+            children: [],
             requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
             teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
             suggestedSkills: lu.orderings
@@ -279,7 +285,20 @@ export class LearningUnitFactory {
                     weight: 0.1,
                     skill: skill,
                 })),
+            getTeachingGoals: getTeachingGoals,
+            getRequiredSkills: getRequiredSkills,
+            getSuggestedSkills: getSuggestedSkills,
         }));
+
+        learningUnits.forEach(lu => {
+            lu.children.forEach(child => {
+                const resultParent = results.find!(parent => parent.id == lu.id)!;
+                const resultChild = results.find!(result => result.id == child.id)!;
+                resultParent.children!.push(resultChild);
+            });
+        });
+
+        computeSkills(results.filter(lu => lu.children.length > 0));
 
         return results;
     }

@@ -273,6 +273,7 @@ const learningObjectives = [
     // Medieninformatik Kapitel 1: Überblick
     {
         id: "3001",
+        parent: [],
         name: "Menschen, Medien, Maschinen",
         description: "Menschen, Medien, Maschinen",
         requirements: [],
@@ -282,6 +283,7 @@ const learningObjectives = [
     },
     {
         id: "3002",
+        parent: [],
         name: "Informationsverarbeitung (Intro)",
         description: "Informationsverarbeitung (Intro)",
         requirements: [],
@@ -291,6 +293,7 @@ const learningObjectives = [
     },
     {
         id: "3003",
+        parent: [],
         name: "Visuelles System",
         description: "Visuelles System",
         requirements: [],
@@ -300,6 +303,7 @@ const learningObjectives = [
     },
     {
         id: "3004",
+        parent: [],
         name: "Auditives System",
         description: "Auditives System",
         requirements: [],
@@ -309,6 +313,7 @@ const learningObjectives = [
     },
     {
         id: "3005",
+        parent: [],
         name: "Haptik",
         description: "Haptik",
         requirements: [],
@@ -318,6 +323,7 @@ const learningObjectives = [
     },
     {
         id: "3006",
+        parent: [],
         name: "Gedächtnis",
         description: "Gedächtnis",
         requirements: [],
@@ -327,6 +333,7 @@ const learningObjectives = [
     },
     {
         id: "3007",
+        parent: [],
         name: "Motorisches System",
         description: "Motorisches System",
         requirements: [],
@@ -336,6 +343,7 @@ const learningObjectives = [
     },
     {
         id: "3008",
+        parent: [],
         name: "Human Capabilities (Outro)",
         description: "Human Capabilities (Outro)",
         requirements: [],
@@ -345,6 +353,7 @@ const learningObjectives = [
     },
     {
         id: "3009",
+        parent: [],
         name: "Medien und Interaktion",
         description: "Medien und Interaktion",
         requirements: [],
@@ -354,6 +363,7 @@ const learningObjectives = [
     },
     {
         id: "3010",
+        parent: [],
         name: "Medien(-theorie)",
         description: "Medien(-theorie)",
         requirements: [],
@@ -363,6 +373,7 @@ const learningObjectives = [
     },
     {
         id: "3011",
+        parent: [],
         name: "Semiotik",
         description: "Semiotik",
         requirements: [],
@@ -372,6 +383,7 @@ const learningObjectives = [
     },
     {
         id: "3012",
+        parent: [],
         name: "Mensch-Computer-Interaktion",
         description: "Mensch-Computer-Interaktion",
         requirements: [],
