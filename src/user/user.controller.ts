@@ -224,7 +224,6 @@ export class UserMgmtController {
         );
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("learning-history/:history_id")
     async getLearningHistoryById(@Param("history_id") historyId: string) {
         // Fetch a user's learning progress by user ID
@@ -232,6 +231,12 @@ export class UserMgmtController {
     }
 
     @ApiOperation({ summary: "Experimental (WIP)" })
+    @Get("learning-history/:history_id")
+    async getCompPathsIdsByHistoryById(@Param("history_id") historyId: string) {
+        // Fetch all Computed Paths for a given LearningHistoryId
+        return this.learningHistoryService.getCompPathsIdsByHistoryById(historyId);
+    }
+
     @Post("learning-history/")
     async createLearningHistory(@Body() createLearningHistoryDto: LearningHistoryCreationDto) {
         // Create a new learning progress entry for a user
