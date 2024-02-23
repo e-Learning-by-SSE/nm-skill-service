@@ -58,6 +58,24 @@ export class LearningHistoryService {
         }
     }
 
+    async getCompPathsIdsByHistoryById(historyId: string) {
+        try {
+            const profile = await this.db.learningHistory.findUnique({
+                where: { id: historyId },
+            });
+
+            if (!profile) {
+                throw new NotFoundException("No learning History found.");
+            }
+
+            return profile;   // Hier die CompPath zurueckgeben
+
+        } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw error;
+        }
+    }
+
     async deleteLearningHistoryById(historyId: string) {
         try {
             const lHistory = await this.db.learningHistory.delete({
