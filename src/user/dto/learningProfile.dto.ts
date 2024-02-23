@@ -11,7 +11,7 @@ export class LearningProfileDto extends LearningProfileCreationDto {
 
   
 
-  constructor(id: string, semanticDensity: number | undefined, semanticGravity: number | undefined, mediaType: string | null, language: string | null, processingTPU: string | null, learningHistoryId: string | null, userId: string) {
+  constructor(id: string, semanticDensity: number | null, semanticGravity: number | undefined, mediaType: string | null, language: string | null, processingTPU: string | null, learningHistoryId: string | null, userId: string) {
     super();
     
     this.id = id;

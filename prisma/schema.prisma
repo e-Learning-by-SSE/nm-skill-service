@@ -208,8 +208,8 @@ model LearningUnit {
   // learningHistoryId String?
   orga_id  String             @default("")
 
-  usedInProposed        PersonalizedLearningPath[] @relation("proposedUnitsOfLearningPath")
-  lifecycle             LIFECYCLE                  @default(DRAFT)
+  usedInProposed PersonalizedLearningPath[] @relation("proposedUnitsOfLearningPath")
+  lifecycle      LIFECYCLE                  @default(DRAFT)
 
   feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
   progress  LearningPathProgress[]
@@ -263,8 +263,8 @@ model LearningProgress {
 
 model LearningProfile {
   id                      String           @id @default(cuid())
-  semanticDensity         Int?
-  semanticGravity         Int?
+  semanticDensity         Int              @default(0)
+  semanticGravity         Int              @default(0)
   mediaType               String           @default("")
   language                String           @default("")
   processingTimePerUnit   String           @default("")
@@ -281,7 +281,7 @@ model LearningHistory {
   learnedSkills        LearningProgress[]
   user                 UserProfile                @relation(fields: [userId], references: [id])
   userId               String                     @unique // relation scalar field 
-  LearningProfile      LearningProfile[]
+  learningProfile      LearningProfile[]
   personalPaths        PersonalizedLearningPath[]
 }
 
@@ -402,9 +402,9 @@ model Feedback {
 }
 
 model Bkgr {
-  id    String  @id @default(cuid())
-  typ   Typ     @relation(fields: [typId], references: [id])
-  typId String
+  id           String         @id @default(cuid())
+  typ          Typ            @relation(fields: [typId], references: [id])
+  typId        String
   BerufeNetJob BerufeNetJob[]
 }
 
