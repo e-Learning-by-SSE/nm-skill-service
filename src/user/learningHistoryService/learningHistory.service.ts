@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
-import { PrismaService } from "../prisma/prisma.service";
+import { PrismaService } from "../../prisma/prisma.service";
 import { LearningHistoryCreationDto } from "./dto/learningHistory-creation.dto";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";

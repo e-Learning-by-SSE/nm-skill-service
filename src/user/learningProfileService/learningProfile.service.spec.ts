@@ -1,8 +1,8 @@
 import { ConfigService } from "@nestjs/config";
-import { DbTestUtils } from "../DbTestUtils";
-import { PrismaService } from "../prisma/prisma.service";
+import { DbTestUtils } from "../../DbTestUtils";
+import { PrismaService } from "../../prisma/prisma.service";
 import { LearningProfileService } from "./learningProfile.service";
-import { LearningProfileCreationDto, LearningProfileDto } from "./dto";
+import { LearningProfileCreationDto, LearningProfileDto } from "../dto";
 import { NotFoundException } from "@nestjs/common";
 
 describe("LearningProfileService", () => {

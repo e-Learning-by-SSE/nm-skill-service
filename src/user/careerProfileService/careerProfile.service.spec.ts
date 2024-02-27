@@ -1,9 +1,9 @@
 import { BadRequestException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { DbTestUtils } from "../DbTestUtils";
-import { PrismaService } from "../prisma/prisma.service";
+import { DbTestUtils } from "../../DbTestUtils";
+import { PrismaService } from "../../prisma/prisma.service";
 import { CareerProfileService } from "./careerProfile.service";
-import { UserCreationDto, QualificationDto } from "./dto";
+import { UserCreationDto, QualificationDto } from "../dto";
 
 describe("CareerProfileService", () => {
     const config = new ConfigService();
