@@ -1,8 +1,8 @@
 import { ConfigService } from "@nestjs/config";
-import { DbTestUtils } from "../DbTestUtils";
-import { PrismaService } from "../prisma/prisma.service";
+import { DbTestUtils } from "../../DbTestUtils";
+import { PrismaService } from "../../prisma/prisma.service";
 import { LearningHistoryService } from "./learningHistory.service";
-import { LearningHistoryCreationDto, LearningHistoryDto } from "./dto";
+import { LearningHistoryCreationDto, LearningHistoryDto } from "../dto";
 import { NotFoundException } from "@nestjs/common";
 
 describe("CareerProfileService", () => {

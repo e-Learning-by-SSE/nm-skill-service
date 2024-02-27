@@ -2,7 +2,7 @@ import { IsDefined, IsNotEmpty } from 'class-validator';
 
 import { LearningProfile, Skill, LearningHistory } from '@prisma/client';
 import { OmitType } from '@nestjs/swagger';
-import { CareerProfileCreationDto } from './careerProfile-creation.dto';
+import { CareerProfileCreationDto } from '../../careerProfileService/dto/careerProfile-creation.dto';
 import { LearningProfileCreationDto } from './learningProfile-creation.dto';
 
 export class LearningProfileDto extends LearningProfileCreationDto {

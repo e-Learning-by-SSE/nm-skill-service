@@ -12,11 +12,11 @@ import {
 } from "./dto";
 import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { UserMgmtService } from "./user.service";
-import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
+import { CareerProfileFilterDto } from "./careerProfileService/dto/careerProfile-filter.dto";
 import { JobUpdateDto } from "./dto/job-update.dto";
-import { CareerProfileService } from "./careerProfile.service";
-import { LearningHistoryService } from "./learningHistory.service";
-import { LearningProfileService } from "./learningProfile.service";
+import { CareerProfileService } from "./careerProfileService/careerProfile.service";
+import { LearningHistoryService } from "./learningHistoryService/learningHistory.service";
+import { LearningProfileService } from "./learningProfileService/learningProfile.service";
 /**
  * Controller for managing the Users and its entities
  * @author Wenzel

@@ -6,8 +6,8 @@
 
 import { Job, Qualification } from '@prisma/client';
 import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
-import { JobCreationDto } from './job-creation.dto';
-import { QualificationCreationDto } from './qualification-creation.dto';
+import { JobCreationDto } from '../../dto/job-creation.dto';
+import { QualificationCreationDto } from '../../dto/qualification-creation.dto';
 export class CareerProfileCreationDto {
   
   /**
