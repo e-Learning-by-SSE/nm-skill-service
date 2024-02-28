@@ -1,5 +1,4 @@
 import { ConfigService } from "@nestjs/config";
-
 import { PrismaService } from "./prisma/prisma.service";
 import { Prisma, Skill, SkillMap, USERSTATUS } from "@prisma/client";
 

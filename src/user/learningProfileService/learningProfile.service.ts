@@ -4,10 +4,7 @@ import { LearningProfileCreationDto } from "./dto/learningProfile-creation.dto";
 import { LearningProfileDto } from "./dto/learningProfile.dto";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
-import {
-    PrismaClientKnownRequestError,
-    PrismaClientValidationError,
-} from "@prisma/client/runtime/library";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 /**
  * Service that manages the creation/update/deletion of learningProfile

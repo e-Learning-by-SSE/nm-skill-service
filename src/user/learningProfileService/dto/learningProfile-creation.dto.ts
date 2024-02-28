@@ -1,34 +1,33 @@
-import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsDefined, IsOptional } from "class-validator";
 
 /**
  * Creates a new Skill.
  */
 export class LearningProfileCreationDto {
-  /**
-   * Used to validate that the user is the owner of the target repository.
-   */
-  @IsOptional()
-  mediaType?: string;
+    /**
+     * Used to validate that the user is the owner of the target repository.
+     */
+    @IsOptional()
+    mediaType?: string;
 
-  @IsOptional()
-  language?: string;
+    @IsOptional()
+    language?: string;
 
-  @IsOptional()
-  semanticDensity?: number;
+    @IsOptional()
+    semanticDensity?: number;
 
-  @IsOptional()
-  semanticGravity?: number;
+    @IsOptional()
+    semanticGravity?: number;
 
-  @IsOptional()
-  processingTimePerUnit?: string;
-  
-  @IsOptional()
-  learningHistoryId?: string;
+    @IsOptional()
+    processingTimePerUnit?: string;
 
-  @IsOptional()
-  preferredDidacticMethod? :string
+    @IsOptional()
+    learningHistoryId?: string;
 
-  @IsDefined()
-  userId: string;
+    @IsOptional()
+    preferredDidacticMethod?: string;
 
+    @IsDefined()
+    userId: string;
 }

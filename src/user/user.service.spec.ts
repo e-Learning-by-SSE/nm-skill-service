@@ -16,7 +16,7 @@ import { NotFoundException } from "@nestjs/common";
 import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
-import { LearningHistoryCreationDto, LearningHistoryDto, UserCreationDto } from "./dto";
+
 describe("User Service", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);

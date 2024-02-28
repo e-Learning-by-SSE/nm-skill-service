@@ -4,22 +4,17 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-
 import {
     PrismaClientKnownRequestError,
     PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-
 import { PrismaService } from "../../prisma/prisma.service";
-
 import { CareerProfileCreationDto } from "./dto/careerProfile-creation.dto";
 import { CareerProfileDto } from "./dto/careerProfile.dto";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
-
 import { JobCreationDto } from "../dto/job-creation.dto";
 import { JobUpdateDto } from "../dto/job-update.dto";
 import { JobDto } from "../dto/job.dto";
-
 import { QualificationCreationDto } from "../dto/qualification-creation.dto";
 import { QualificationDto } from "../dto/qualification.dto";
 

@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-
 import { UserMgmtController } from "./user.controller";
 import { UserMgmtService } from "./user.service";
 import { CareerProfileService } from "./careerProfileService/careerProfile.service";

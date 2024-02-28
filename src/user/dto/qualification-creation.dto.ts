@@ -1,23 +1,22 @@
-import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsOptional } from "class-validator";
 
 /**
  * Creates a new Qualification.
  */
 export class QualificationCreationDto {
-  /**
-   * Used to validate that the user is the owner of the target repository.
-   */
-  
-  @IsOptional()
-  id: string;
+    /**
+     * Used to validate that the user is the owner of the target repository.
+     */
 
-  @IsOptional()
-  name: string;
+    @IsOptional()
+    id: string;
 
-  @IsOptional()
-  year: number;
+    @IsOptional()
+    name: string;
 
-  @IsOptional()
-  userCareerProfileId: string;
+    @IsOptional()
+    year: number;
 
+    @IsOptional()
+    userCareerProfileId: string;
 }

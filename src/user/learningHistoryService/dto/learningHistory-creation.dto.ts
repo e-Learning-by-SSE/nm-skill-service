@@ -1,6 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { IsDefined, IsNotEmpty, IsOptional } from "class-validator";
-
 import {
     LearningProfile,
     LearningProgress,
@@ -8,6 +6,7 @@ import {
     ConsumedUnitData,
     PersonalizedLearningPath,
 } from "@prisma/client";
+
 /**
  * Creates a new LearningHistory
  */

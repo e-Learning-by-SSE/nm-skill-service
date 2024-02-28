@@ -1,13 +1,9 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-
 import { PrismaService } from "../prisma/prisma.service";
 import {
-    CareerProfileCreationDto,
-    CareerProfileDto,
     CompanyCreationDto,
     CompanyDto,
     CreateLearningProgressDto,
-    LearningProfileCreationDto,
     LearningProfileDto,
     UpdateLearningProgressDto,
     UserCreationDto,
@@ -15,7 +11,6 @@ import {
     UserListDto,
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { CareerProfileFilterDto } from "./careerProfileService/dto/careerProfile-filter.dto";
 import { STATUS, USERSTATUS } from "@prisma/client";
 
 /**
@@ -50,7 +45,7 @@ export class UserMgmtService {
     async patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
         throw new Error("Method not implemented.");
     }
-    
+
     async delCompPathByID(historyId: string, compPathId: string) {
         throw new Error("Method not implemented.");
     }
@@ -63,7 +58,6 @@ export class UserMgmtService {
         throw new Error("Method not implemented.");
     }
 
-   
     async deleteUser(userId: string) {
         try {
             const user = await this.db.userProfile.delete({
@@ -250,8 +244,6 @@ export class UserMgmtService {
             throw error;
         }
     }
-
- 
 
     async editStatusForAConsumedUnitById(consumedUnitId: string, status: STATUS) {
         try {

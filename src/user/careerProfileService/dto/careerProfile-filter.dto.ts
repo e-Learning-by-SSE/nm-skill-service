@@ -1,8 +1,7 @@
-import { IsOptional, IsString, IsNumber, IsArray } from 'class-validator';
-
+import { IsOptional, IsString } from "class-validator";
 
 export class CareerProfileFilterDto {
-  @IsOptional()
-  @IsString()
-  userId?: string;
+    @IsOptional()
+    @IsString()
+    userId?: string;
 }

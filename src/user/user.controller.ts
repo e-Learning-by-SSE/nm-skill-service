@@ -79,12 +79,6 @@ export class UserMgmtController {
         return this.learningProfileService.patchLearningProfileByID(learningProfileId, dto);
     }
 
-
-
-
-
-
-
     @Post("add_LearningHistory")
     addLearningHistory(@Body() dto: LearningHistoryCreationDto) {
         return this.learningHistoryService.createLearningHistory(dto);
