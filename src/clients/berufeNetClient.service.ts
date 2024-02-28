@@ -1,38 +1,37 @@
 import axios from "axios";
 import { PrismaService } from "../prisma/prisma.service";
-import {
-    BadRequestException,
-    ForbiddenException,
-    Injectable,
-    NotFoundException,
-} from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
+
 const { JSDOM } = require("jsdom");
+
 @Injectable()
-export class JobsService {
+export class BerufeService {
     private CLIENT_SECRET_BERUFENET: string | undefined;
     private BASEURL_BERUFENET: string | undefined;
     private TIMEOUT_BERUFENET: number | 120000;
-    private axiosConfig : any;
+    private axiosConfig: any;
+
     constructor(private db: PrismaService) {
         db = db;
         this.CLIENT_SECRET_BERUFENET = process.env.CLIENT_SECRET_BERUFENET;
         this.BASEURL_BERUFENET = process.env.BASEURL_BERUFENET;
-        this.TIMEOUT_BERUFENET = Number(   process.env.TIMEOUT_BERUFENET);
+        this.TIMEOUT_BERUFENET = Number(process.env.TIMEOUT_BERUFENET);
         this.axiosConfig = {
             headers: {
                 "X-API-Key": this.CLIENT_SECRET_BERUFENET,
             },
             timeout: this.TIMEOUT_BERUFENET,
         };
-      
     }
-   
 
     async getJobsByID(jobId: string) {
         console.log(this.BASEURL_BERUFENET);
-        console.log(this.TIMEOUT_BERUFENET)
+        console.log(this.TIMEOUT_BERUFENET);
         try {
-            const response = await axios.get(`${this.BASEURL_BERUFENET}/berufe/${jobId}`, this.axiosConfig);
+            const response = await axios.get(
+                `${this.BASEURL_BERUFENET}/berufe/${jobId}`,
+                this.axiosConfig,
+            );
 
             return response.data;
         } catch (error) {
@@ -42,16 +41,18 @@ export class JobsService {
 
     async getCompetenciesByJobID(jobId: string) {
         try {
-            const response = await axios.get(`${this.BASEURL_BERUFENET}/berufe/${jobId}`, this.axiosConfig);
-            const kompetenzenMatches: any = [];
+            const response = await axios.get(
+                `${this.BASEURL_BERUFENET}/berufe/${jobId}`,
+                this.axiosConfig,
+            );
+            const competenceMatches: any = [];
             response.data.forEach((element: any) => {
                 element.infofelder.forEach((element: any) => {
                     if (element.ueberschrift == "Kompetenzen") {
                         console.log(element.ueberschrift);
-                        console.log(element.content);
-                        const inputString = '<div data-class="abschnitt"> ... '; // Your input string
+                        console.log(element.content);                    
 
-                        // Regular expression to match and extract Kompetenzen
+                        // Regular expression to match and extract competences
                         const regex =
                             /<ba-berufepool-extsysref[^>]*data-idref="(\d+)"[^>]*>([^<]+)<\/ba-berufepool-extsysref>/g;
 
@@ -60,13 +61,13 @@ export class JobsService {
                         while ((match = regex.exec(element.content)) !== null) {
                             const id = match[1];
                             const name = match[2];
-                            kompetenzenMatches.push({ id, name });
+                            competenceMatches.push({ id, name });
                         }
                     }
                 });
             });
 
-            return kompetenzenMatches;
+            return competenceMatches;
         } catch (error) {
             throw new Error(`Error making API request: ${error.message}`);
         }
@@ -74,8 +75,11 @@ export class JobsService {
 
     async getDigitalCompetenciesByJobID(jobId: string) {
         try {
-            const response = await axios.get(`${this.BASEURL_BERUFENET}/berufe/${jobId}`, this.axiosConfig);
-            let kompetenzenMatches: any = [];
+            const response = await axios.get(
+                `${this.BASEURL_BERUFENET}/berufe/${jobId}`,
+                this.axiosConfig,
+            );
+            let competenceMatches: any = [];
             response.data.forEach((element: any) => {
                 element.infofelder.forEach((element: any) => {
                     if (element.ueberschrift == "Digitalisierung") {
@@ -86,23 +90,21 @@ export class JobsService {
                         const doc = dom.window.document;
 
                         const fachwortElements = doc.querySelectorAll("ba-berufepool-fachwort");
-                        console.log(fachwortElements)
+                        console.log(fachwortElements);
                         // Extract information from each element
-                         kompetenzenMatches = Array.from(fachwortElements).map(
-                            (element: any) => {
-                                const description = element.getAttribute("description");
-                                const name = element.getAttribute("name");
-                                const textContent = element.textContent.trim();
-                                return { description, name, textContent };
-                            },
-                        );
+                        competenceMatches = Array.from(fachwortElements).map((element: any) => {
+                            const description = element.getAttribute("description");
+                            const name = element.getAttribute("name");
+                            const textContent = element.textContent.trim();
+                            return { description, name, textContent };
+                        });
 
-                        console.log(kompetenzenMatches);
+                        console.log(competenceMatches);
                     }
                 });
             });
 
-            return kompetenzenMatches;
+            return competenceMatches;
         } catch (error) {
             throw new Error(`Error making API request: ${error.message}`);
         }
@@ -187,7 +189,7 @@ export class JobsService {
 
             const firstPageResult = await this.getALLJobsByPage("0");
             const lastPage = this.extractLastPageNumber(firstPageResult);
-            const del = await this.db.berufeNetJob.deleteMany();
+            await this.db.berufeNetJob.deleteMany();
             await this.db.bkgr.deleteMany();
             await this.db.typ.deleteMany();
             while (currentPage <= lastPage) {
@@ -212,8 +214,7 @@ export class JobsService {
             // Map the API data to your Prisma data model
             const mappedJobData = {
                 id: jobData.id?.toString() || "defaultId",
-                kurzBezeichnungNeutral:
-                    jobData.kurzBezeichnungNeutral || "defaultKurzBezeichnung",
+                kurzBezeichnungNeutral: jobData.kurzBezeichnungNeutral || "defaultKurzBezeichnung",
                 bkgr: {
                     connectOrCreate: {
                         where: {

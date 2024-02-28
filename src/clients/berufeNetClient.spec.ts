@@ -1,5 +1,4 @@
-import axios from "axios";
-import { JobsService } from "./jobNetClient.service"; // Adjust the path accordingly
+import { BerufeService } from "./berufeNetClient.service"; // Adjust the path accordingly
 import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
@@ -12,7 +11,7 @@ describe("JobsService", () => {
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
-    const jobService = new JobsService(db);
+    const jobService = new BerufeService(db);
 
     beforeEach(() => {
         

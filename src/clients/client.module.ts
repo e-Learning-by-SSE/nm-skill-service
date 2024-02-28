@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { JobsNetController } from './jobNetClient.controller';
-import { JobsService } from './jobNetClient.service';
+import { BerufeNetController } from './berufeNetClient.controller';
+import { BerufeService } from './berufeNetClient.service';
 /**
  * Author: Carsten Wenzel
  */
 @Module({
-  controllers: [JobsNetController],
-  providers: [JobsService],
-  exports: [JobsService],
+  controllers: [BerufeNetController],
+  providers: [BerufeService],
+  exports: [BerufeService],
 })
 export class ClientModule {}
