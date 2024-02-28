@@ -1,4 +1,4 @@
-import { IsDefined, IsNotEmpty, IsOptional, ValidateIf } from "class-validator";
+import { IsDefined, IsNotEmpty, ValidateIf } from "class-validator";
 
 /**
  * Request to store a personal path of an learner.

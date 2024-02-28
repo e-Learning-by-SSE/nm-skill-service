@@ -1,16 +1,16 @@
-import { IsNotEmpty } from 'class-validator';
-import { EdgeDto } from './edge.dto';
-import { NodeDto } from './node.dto';
+import { IsNotEmpty } from "class-validator";
+import { EdgeDto } from "./edge.dto";
+import { NodeDto } from "./node.dto";
 
 export class GraphDto {
-  @IsNotEmpty()
-  edges: EdgeDto[];
+    @IsNotEmpty()
+    edges: EdgeDto[];
 
-  @IsNotEmpty()
-  nodes: NodeDto[];
+    @IsNotEmpty()
+    nodes: NodeDto[];
 
-  constructor(edges: EdgeDto[], nodes: NodeDto[]) {
-    this.edges = edges;
-    this.nodes = nodes;
-  }
+    constructor(edges: EdgeDto[], nodes: NodeDto[]) {
+        this.edges = edges;
+        this.nodes = nodes;
+    }
 }

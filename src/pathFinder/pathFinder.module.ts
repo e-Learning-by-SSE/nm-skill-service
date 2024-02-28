@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-
 import { PathFinderController } from "./pathFinder.controller";
 import { PathFinderService } from "./pathFinder.service";
 import { LearningUnitModule } from "../learningUnit/learningUnit.module";

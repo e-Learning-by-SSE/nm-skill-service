@@ -1,6 +1,5 @@
 import { Body, Controller, Param, Post } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-
 import { PathFinderService } from "./pathFinder.service";
 import { PathRequestDto, PathStorageRequestDto, SkillsToAnalyze } from "./dto";
 
@@ -64,10 +63,10 @@ export class PathFinderController {
      *
      * Parameters:
      * - goal (mandatory): The list of skills to be learned.
-     * 
+     *
      * Returns:
      * - If the return path is empty, then there are no learning units for the skill.
-     * 
+     *
      * @param dto Specifies the search parameters (see above)
      * @returns The list os the missing skill with the sub paths for them
      *
@@ -83,7 +82,7 @@ export class PathFinderController {
     skillAnalysis(@Body() dto: SkillsToAnalyze) {
         return this.pfService.skillAnalysis(dto);
     }
-    
+
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Post(":userId")
     storePersonalizedPath(@Param("userId") userId: string, @Body() dto: PathStorageRequestDto) {
