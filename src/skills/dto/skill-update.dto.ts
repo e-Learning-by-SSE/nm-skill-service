@@ -1,7 +1,4 @@
-import { IsDate, IsDefined, IsNotEmpty, isDate } from "class-validator";
-
-import { Skill } from "@prisma/client";
-
+import { IsDefined, IsNotEmpty } from "class-validator";
 import { SkillCreationDto } from "./skill-creation.dto";
 import { OmitType } from "@nestjs/swagger";
 
@@ -35,5 +32,4 @@ export class SkillUpdateDto extends OmitType(SkillCreationDto, ["owner", "nested
         this.parentSkills = parentSkills;
         this.repositoryId = repositoryId;
     }
-
-   }
+}

@@ -1,7 +1,5 @@
-import { IsDate, IsDefined, IsNotEmpty, isDate } from "class-validator";
-
+import { IsDefined, IsNotEmpty } from "class-validator";
 import { Skill } from "@prisma/client";
-
 import { SkillCreationDto } from "./skill-creation.dto";
 import { OmitType } from "@nestjs/swagger";
 

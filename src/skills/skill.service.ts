@@ -6,7 +6,6 @@ import {
 } from "@nestjs/common";
 import { Prisma, Skill } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-
 import { PrismaService } from "../prisma/prisma.service";
 import {
     SkillCreationDto,
