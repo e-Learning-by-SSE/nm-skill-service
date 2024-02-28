@@ -3,7 +3,6 @@ import { ApiTags } from "@nestjs/swagger";
 import { LearningHistoryService } from "./learningHistory.service";
 import { LearningHistoryCreationDto } from "./dto/learningHistory-creation.dto";
 
-
 @ApiTags("LearningHistory")
 @Controller("")
 export class LearningHistoryController {
@@ -37,5 +36,4 @@ export class LearningHistoryController {
     deleteLearningHistory(@Param("learningHistoryId") learningHistoryId: string) {
         return this.learningHistoryService.deleteLearningHistoryById(learningHistoryId);
     }
-
 }

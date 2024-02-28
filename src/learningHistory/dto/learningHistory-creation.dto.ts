@@ -1,17 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
+import { IsNotEmpty } from "class-validator";
 
 /**
  * Creates a new LearningHistory
  */
 export class LearningHistoryCreationDto {
-  @IsNotEmpty()
-  userId: string;
+    @IsNotEmpty()
+    userId: string;
 
-  constructor(
-    userId: string,
-    ) {
-    this.userId = userId;
-  
-  }
+    constructor(userId: string) {
+        this.userId = userId;
+    }
 }

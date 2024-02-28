@@ -58,15 +58,15 @@ export class LearningHistoryService {
 
     async deleteLearningHistoryById(historyId: string) {
         try {
-            const lhistory = await this.db.learningHistory.delete({
+            const lHistory = await this.db.learningHistory.delete({
                 where: { id: historyId },
             });
 
-            if (!lhistory) {
+            if (!lHistory) {
                 throw new NotFoundException("No learningHistory found.");
             }
 
-            return LearningHistoryDto.createFromDao(lhistory);
+            return LearningHistoryDto.createFromDao(lHistory);
         } catch (error) {
             throw error;
         }

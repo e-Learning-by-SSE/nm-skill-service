@@ -215,7 +215,7 @@ export class EventMgmtService {
                 }
             }
 
-            // A MLS teacher adds a MLS user ID to a Task (specifically to its taskTodos array), meaning the user has to complete this task
+            // A MLS teacher adds a MLS user ID to a Task (specifically to its taskToDos array), meaning the user has to complete this task
             // A taskTodo object contains the individual learning progress per user
             //TODO: Wait until user profile is finished.
             case MlsActionEntity.TaskToDo: {

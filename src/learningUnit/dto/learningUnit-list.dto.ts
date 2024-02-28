@@ -1,8 +1,7 @@
-import { IsDefined } from 'class-validator';
-
-import { SearchLearningUnitDto } from './learningUnit.dto';
+import { IsDefined } from "class-validator";
+import { SearchLearningUnitDto } from "./learningUnit.dto";
 
 export class SearchLearningUnitListDto {
-  @IsDefined()
-  learningUnits: SearchLearningUnitDto[] = [];
+    @IsDefined()
+    learningUnits: SearchLearningUnitDto[] = [];
 }

@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-
 import { LearningPathMgmtController } from "./learningPath.controller";
 import { LearningPathMgmtService } from "./learningPath.service";
 import { LearningUnitModule } from "../learningUnit/learningUnit.module";

@@ -1,11 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { ApiTags, ApiQuery } from "@nestjs/swagger"; // Import ApiQuery decorator
-
 import { SearchLearningUnitCreationDto, LearningUnitFilterDto } from "./dto";
-
 import { LearningUnitMgmtService } from "./learningUnit.service";
-import { LIFECYCLE } from "@prisma/client";
-import { MLSEvent } from "../events/dtos";
 
 @ApiTags("Learning-units")
 @Controller("learning-units")
@@ -34,14 +30,12 @@ export class SearchLearningUnitController {
         return this.learningUnitService.createLearningUnit(dto);
     }
     @Get("/")
-   
     @ApiQuery({
         name: "owners",
         required: false,
         type: [String],
         description: "Filter by owners",
     })
-    
     @ApiQuery({
         name: "teachingGoals",
         required: false,

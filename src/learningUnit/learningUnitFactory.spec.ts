@@ -1,5 +1,4 @@
 import { ConfigService } from "@nestjs/config";
-
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 import { LearningUnitFactory } from "./learningUnitFactory";

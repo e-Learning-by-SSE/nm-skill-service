@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-
 import { SearchLearningUnitCreationDto } from "./dto";
 import { LearningUnitFactory } from "./learningUnitFactory";
 import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";

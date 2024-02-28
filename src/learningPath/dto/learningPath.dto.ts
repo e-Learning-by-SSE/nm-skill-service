@@ -1,5 +1,4 @@
 import { IsDate, IsDefined, IsNotEmpty } from "class-validator";
-
 import { LearningPath, Skill, LIFECYCLE } from "@prisma/client";
 
 export class LearningPathDto {
