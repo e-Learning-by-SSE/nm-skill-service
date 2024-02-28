@@ -301,16 +301,16 @@ model CareerProfile {
 }
 
 model ConsumedUnitData {
-  id                  String               @id @default(cuid())
-  actualPocessingTime String
-  testPerformance     Decimal              @db.Decimal(5, 2)
-  consumedLU          LearningUnit         @relation("consumedLU", fields: [consumedLUId], references: [id])
-  consumedLUId        String // relation scalar field 
-  lbData              LearningBehaviorData @relation(fields: [lbDataId], references: [id])
-  lbDataId            String
-  status              STATUS               @default(STARTED)
-  date                DateTime
-  startedBy           LearningHistory[]    @relation("startedBy")
+  id                   String               @id @default(cuid())
+  actualProcessingTime String
+  testPerformance      Decimal              @db.Decimal(5, 2)
+  consumedLU           LearningUnit         @relation("consumedLU", fields: [consumedLUId], references: [id])
+  consumedLUId         String // relation scalar field 
+  lbData               LearningBehaviorData @relation(fields: [lbDataId], references: [id])
+  lbDataId             String
+  status               STATUS               @default(STARTED)
+  date                 DateTime
+  startedBy            LearningHistory[]    @relation("startedBy")
 }
 
 // Stores an individual learning path for a user,

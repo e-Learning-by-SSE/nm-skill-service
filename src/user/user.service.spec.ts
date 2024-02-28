@@ -59,7 +59,7 @@ describe("User Service", () => {
 
             consumedUnit = await db.consumedUnitData.create({
                 data: {
-                    actualPocessingTime: "2 hours",
+                    actualProcessingTime: "2 hours",
                     testPerformance: 0.85,
                     consumedLUId: result.id,
                     lbDataId: learningBehaviorData.id,

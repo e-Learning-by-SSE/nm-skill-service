@@ -24,6 +24,17 @@ describe("CareerProfileService", () => {
             const userProfile = await dbUtils.createUserProfile();
             const dto: LearningHistoryCreationDto = {
                 userId: userProfile.id,
+                id: "",
+                user: {
+                    id: "",
+                    name: "",
+                    companyId: null,
+                    status: "ACTIVE"
+                },
+                startedLearningUnits: [],
+                learnedSkills: [],
+                learningProfile: [],
+                personalPaths: []
             };
 
             // Test precondition: No history entries exist
@@ -43,6 +54,17 @@ describe("CareerProfileService", () => {
             const invalidUserId = "non-existent-user"; // An invalid user ID
             const invalidDto: LearningHistoryCreationDto = {
                 userId: invalidUserId,
+                id: "",
+                user: {
+                    id: "",
+                    name: "",
+                    companyId: null,
+                    status: "ACTIVE"
+                },
+                startedLearningUnits: [],
+                learnedSkills: [],
+                learningProfile: [],
+                personalPaths: []
             };
 
             // Act and Assert: Call the createLearningHistory method and expect it to throw an error

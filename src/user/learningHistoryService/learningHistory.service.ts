@@ -68,7 +68,7 @@ export class LearningHistoryService {
                 throw new NotFoundException("No learning History found.");
             }
 
-            return profile; // Hier die CompPath zurueckgeben
+            return profile; // Return the CompPath here
         } catch (error) {
             // Handle any other errors or rethrow them as needed
             throw error;
