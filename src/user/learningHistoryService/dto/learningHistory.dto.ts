@@ -68,8 +68,3 @@ export class LearningHistoryDto {
         );
     }
 }
-
-// Anmerkung: ToDo: 4 Ordner, in die dann userservice geht und für jeden ausgegliederten services (learningHistory, careerProfile, learningProfile)
-// Als Unterordner von "user"
-
-// Commit, asap, wenn Grundfunktion geht
