@@ -152,9 +152,10 @@ export class EventMgmtService {
                                     userProfile,
                                 );
 
-                            //When the user profile is not in our database    
+                                //When the user profile is not in our database
                             } catch (exception) {
-                                if (exception instanceof ForbiddenException) {  //TODO Change to NotFound?
+                                if (exception instanceof ForbiddenException) {
+                                    //TODO Change to NotFound?
 
                                     //Create a new user profile in our system with the new values from MLS (this can happen if we missed a post request or the update is manually triggered by MLS)
                                     userProfile = this.createUserProfileDTOFromMLSEvent(mlsEvent);

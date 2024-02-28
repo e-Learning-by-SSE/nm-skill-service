@@ -10,7 +10,6 @@ import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exceptio
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 import { LIFECYCLE, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
-import { UserDto } from "../user/dto";
 
 describe("Event Service", () => {
     //Required Classes
@@ -345,6 +344,5 @@ describe("Event Service", () => {
             // Assert: Check that the createdEntry is valid and matches the expected data
             expect((createdEntry as UserCreationDto).id).toEqual("non-existent");
         });
-
     });
 });
