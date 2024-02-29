@@ -10,12 +10,10 @@ import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
  * Controller for managing the career profiles
  * ToDo: Is the profile only accessible via its user profile, or do we need access to all / specific career profiles?
  */
-@ApiTags("Career Profile")
+@ApiTags("CareerProfile")
 @Controller("career-profiles")
-export class UserMgmtController {
-    constructor(
-        private careerService: CareerProfileService,
-    ) {}
+export class CareerProfileController {
+    constructor(private careerService: CareerProfileService) {}
 
     // Filter: Includes careerProfile.dto.ts
     /**
@@ -34,7 +32,6 @@ export class UserMgmtController {
         return this.careerService.getCareerProfileByFilter(filter);
     }
 
-    
     @Post("")
     addCareerProfile(@Body() dto: CareerProfileCreationDto) {
         return this.careerService.createCareerProfile(dto);

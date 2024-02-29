@@ -3,11 +3,10 @@ import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LearningHistoryService } from "./learningHistory.service";
 import { LearningHistoryCreationDto } from "./dto/learningHistory-creation.dto";
 
-@ApiTags("Learning History")
+@ApiTags("LearningHistory")
 @Controller("learning-history")
 export class LearningHistoryController {
     constructor(private learningHistoryService: LearningHistoryService) {}
-
 
     /**learningHistoryId
      * Creates a new learningHistory and returns it
@@ -38,18 +37,17 @@ export class LearningHistoryController {
     deleteLearningHistory(@Param("learningHistoryId") learningHistoryId: string) {
         return this.learningHistoryService.deleteLearningHistoryById(learningHistoryId);
     }
-   
+
     /**
      * Fetch all Computed Paths for a given LearningHistoryId
-     * @param learningHistoryId  
-     * @returns 
+     * @param learningHistoryId
+     * @returns
      */
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Get(":learningHistoryId/getComputedPaths")
     async getCompPathsIdsByHistoryById(@Param("learningHistoryId") historyId: string) {
         return this.learningHistoryService.getCompPathsIdsByHistoryById(historyId);
     }
-
 
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Get(":history_id/:comp_path_id")
@@ -75,6 +73,9 @@ export class LearningHistoryController {
         @Param("history_id") historyId: string,
         @Param("comp_path_id") compPathId: string,
     ) {
-        return this.learningHistoryService.patchCompPathViaLearningProfileByID(historyId, compPathId);
+        return this.learningHistoryService.patchCompPathViaLearningProfileByID(
+            historyId,
+            compPathId,
+        );
     }
 }

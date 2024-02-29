@@ -1,23 +1,17 @@
 import { Controller, Get, Post, Body, Param, Delete, Patch } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { LearningProfileCreationDto, LearningProfileDto } from "../dto";
-import { UserMgmtService } from "../user.service";
 import { LearningProfileService } from "./learningProfile.service";
 
-
 /**
- * Controller for managing the users's learning profiles 
+ * Controller for managing the users's learning profiles
  * ToDo: Should be accessible only via user?
  * @author Wenzel, Sauer, Gerling
  */
-@ApiTags("Learning Profiles")
+@ApiTags("LearningProfiles")
 @Controller("learning-profiles")
-export class UserMgmtController {
-    constructor(
-        private userService: UserMgmtService,
-        private learningProfileService: LearningProfileService,
-    ) {}
-
+export class LearningProfileController {
+    constructor(private learningProfileService: LearningProfileService) {}
 
     @Post("")
     addLearningProfile(@Body() dto: LearningProfileCreationDto) {
@@ -41,6 +35,4 @@ export class UserMgmtController {
     ) {
         return this.learningProfileService.patchLearningProfileByID(learningProfileId, dto);
     }
-
 }
-
