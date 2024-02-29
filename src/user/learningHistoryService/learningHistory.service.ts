@@ -89,5 +89,21 @@ export class LearningHistoryService {
         } catch (error) {
             throw error;
         }
+    }    
+
+
+
+    async delCompPathByID(historyId: string, compPathId: string) {
+        throw new Error("Method not implemented.");
     }
+
+    async getCompPathByID(historyId: string, compPathId: string) {
+        throw new Error("Method not implemented.");
+    }
+
+    async patchCompPathViaLearningProfileByID(learningProfileId: string, userProfileId: string) {
+        throw new Error("Method not implemented.");
+    }    
+
+
 }

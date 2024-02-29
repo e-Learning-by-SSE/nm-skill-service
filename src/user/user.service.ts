@@ -42,21 +42,6 @@ export class UserMgmtService {
         }
     }
 
-    async patchCompPathByID(historyId: string, compPathId: string, dto: LearningProfileDto) {
-        throw new Error("Method not implemented.");
-    }
-
-    async delCompPathByID(historyId: string, compPathId: string) {
-        throw new Error("Method not implemented.");
-    }
-
-    async getCompPathByID(historyId: string, compPathId: string) {
-        throw new Error("Method not implemented.");
-    }
-
-    async patchCompPathViaLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
-        throw new Error("Method not implemented.");
-    }
 
     async deleteUser(userId: string) {
         try {
