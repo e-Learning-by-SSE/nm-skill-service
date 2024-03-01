@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { UserCreationDto, CompanyCreationDto, CreateLearningProgressDto } from "./dto";
+import { UserCreationDto, CompanyCreationDto} from "./dto";
 import { UserMgmtService } from "./user.service";
 
 /**
@@ -64,13 +64,14 @@ export class UserMgmtController {
         return this.userService.findProgressForUserId(id);
     }
 
+    //ToDo: Do we need this? Should happen via events?
     @Post(":id/learning-progress")
     async createLearningProgress(
         @Param("id") userId: string,
-        @Body() createLearningProgressDto: CreateLearningProgressDto,
+        @Body() skillId: string,
     ) {
         // Create a new learning progress entry for a user
-        return this.userService.createProgressForUserId(userId, createLearningProgressDto);
+        return this.userService.createProgressForUserId(userId, skillId);
     }
 
     @Delete(":id/learning-progress")
