@@ -221,24 +221,49 @@ export class EventMgmtService {
             case MlsActionEntity.TaskToDo: {
                 LoggerUtil.logInfo("EventService::TaskToDoNotYetImplemented", mlsEvent.id);
                 // When a TaskTodo is updated in the MLS system, update our user profile accordingly
-                // Currently only when TaskTodo is finished? To update our learning history?
                 if (mlsEvent.method === MlsActionType.PUT) {
-                    // Reaction: From TaskToDo get:
-                    /* task, (IRI)
-                    user, (IRI)
-                    TaskToDoInfo.status, (==FINISHED)
-                    scoredPoints,
-                    maxPoints
-                    --> Update user profile: if (FINISHED && scorePoints/maxPoints >= 0.5) {skill is considered to be acquired} */
 
-                    //ToDo: We need the complete TaskToDo entity. When are the put events triggered?
-                    //TaskToDoInfo (via TaskToDo): status
-                    //TaskToDo: taskTodoInfo
+                    LoggerUtil.logInfo("EventService::getTaskToDo", mlsEvent.id);
 
-                    //We don't have a taskToDo DTO, this should be done in the learning history
-                    //const taskToDo = await this.taskToDoService.patchTaskToDo(mlsEvent.id, taskTodoDto);
+                    //Try to read the required values. 
+                    //If field not existing or not a number, variables will be NaN or undefined and the condition evaluates to false
+                    const scoredPoints = +mlsEvent.payload["scoredPoints" as keyof JSON]; //The + is used for parsing to a number
+                    const maxPoints = +mlsEvent.payload["maxPoints" as keyof JSON];   // caution: can be 0?
+                    const todoInfo = mlsEvent.payload["taskTodoInfo" as keyof JSON]; 
+                    const FINISHED = todoInfo["status" as keyof typeof todoInfo]; 
 
-                    return "Nothing changed yet";
+
+                    console.log(scoredPoints);
+                    console.log(maxPoints);
+                    console.log(FINISHED);
+
+                    //Check conditions for acquisition
+                    if (FINISHED && (scoredPoints/maxPoints >= this.configService.get("PASSING_THRESHOLD"))){
+                        console.log("Threshold passed");
+                        LoggerUtil.logInfo("EventService::LearnSkill", mlsEvent.id);
+
+                        //Get the id of the user that finished the task
+                        const userID = ""+mlsEvent.payload["user" as keyof JSON]?.toString(); 
+                        //Get the id of the finished task
+                        const taskID = ""+mlsEvent.payload["task" as keyof JSON]?.toString();
+
+                        console.log("user"+userID);
+                        console.log("skill"+taskID);
+
+                        //ToDo: Create mapping from task (learning unit) to acquired skills
+                        const skillID = "getViaTaskID"
+
+                        //Create a new learning progress entry (that matches user and skill and saves the date of the acquisition)
+                        const learningProgressDto = await this.userService.createProgressForUserId(userID, skillID);
+
+                        console.log("User "+learningProgressDto.userId+" acquired: "+learningProgressDto.skillId)
+                        return "Skill acquired!";
+
+                    } else {
+                        console.log("Nothing relevant happened")
+                        return "Nothing relevant happened"
+                    }
+                    
                 } else {
                     throw new ForbiddenException(
                         "TaskToDoEvent: Method for this action type not implemented.",

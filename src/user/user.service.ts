@@ -88,7 +88,8 @@ export class UserMgmtService {
     }
 
     /**
-     * When a user acquires a skill, create a learning progress object for them.
+     * When a user acquires a skill, create a learning progress object for them (matches skill and user).
+     * Currently, the same skill can be acquired multiple times. Every time there is a new learning progress entry created.
      * @param lProgressDto
      * @returns
      */
@@ -99,7 +100,8 @@ export class UserMgmtService {
             });
             return createEntry;
         } catch (error) {
-            throw new Error("Error creating learning progress.");
+            console.error(error);
+            throw new ForbiddenException("Error creating learning progress");
         }
     }
 
