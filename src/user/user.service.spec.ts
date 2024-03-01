@@ -12,7 +12,7 @@ import {
     UserProfile,
 } from "@prisma/client";
 import { Skill } from "@prisma/client";
-import { NotFoundException } from "@nestjs/common";
+import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 
@@ -210,7 +210,7 @@ describe("User Service", () => {
             // Act and Assert: Call the createProgressForUserId method and expect it to throw an error
             await expect(
                 userService.createProgressForUserId(invalidUserId, skill1.id),
-            ).rejects.toThrowError("Error creating learning progress.");
+            ).rejects.toThrowError(ForbiddenException);
         });
     });
 
