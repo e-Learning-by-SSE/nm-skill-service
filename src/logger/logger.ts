@@ -1,60 +1,68 @@
 import pino from "pino";
 import pretty from "pino-pretty";
 
-var fs = require("fs");
-
-function fileExists(filePath: string) {
-    try {
-        return fs.statSync(filePath)();
-    } catch (err) {
-        return false;
-    }
-}
-const logsDirectory = "./logs/";
-
-const logFilePath = logsDirectory + "log.txt";
-if (!fs.existsSync(logsDirectory)) {
-    fs.mkdirSync(logsDirectory);
-}
-
-if (!fileExists(logFilePath)) {
-    fs.writeFile(logFilePath, "", (err: Error) => {
-        if (err) {
-            console.error("Error in Logger can't writing to file:", err);
-        } else {
-            console.log("File for Logger created successfully.");
-        }
-    });
-}
-
-const stream = pretty({
-    colorize: true,
-    colorizeObjects: false,
-    singleLine: true,
-});
-
 class LoggerUtil {
+    /**
+     * How much output is required?
+     */
     private static LOG_LEVEL = process.env.LOG_LEVEL;
-    private static SAVE_LOG_TO_FILE: boolean = LoggerUtil.stringToBoolean(
-        process.env.SAVE_LOG_TO_FILE,
-    );
+    /**
+     * Save output to file (if true), else it is printed to console
+     */
+    private static SAVE_LOG_TO_FILE: boolean = this.stringToBoolean(process.env.SAVE_LOG_TO_FILE);
+    /**
+     * For customizing the output format
+     */
+    private static stream = pretty({
+        colorize: true,
+        colorizeObjects: false,
+        singleLine: true,
+    });
+    /**
+     * Helper for writing to files
+     */
+    private static fs = require("fs");
+    /**
+     * Directory and path for the log file, only used when SAVE_LOG_TO_FILE is true
+     */
+    private static logsDirectory = "./logs/";
+    private static logFilePath = this.logsDirectory + "log.txt";
+
+    constructor() {}
+
+    /**
+     * Creates the necessary folder and file for logging.
+     * Do this only if logging is activated.
+     */
+    static setupLogFiles() {
+        if (this.SAVE_LOG_TO_FILE) {
+            //Create a new logging directory if not existing
+            if (!this.fs.existsSync(this.logsDirectory)) {
+                this.fs.mkdirSync(this.logsDirectory);
+            }
+
+            //Create the file
+            this.fs.writeFile(this.logFilePath, "", (err: Error) => {
+                if (err) {
+                    console.error("Error in Logger can't writing to file:", err);
+                } else {
+                    console.log("File for Logger created successfully.");
+                }
+            });
+        }
+    }
 
     private static transport = pino.transport({
         targets: [
             {
                 level: LoggerUtil.LOG_LEVEL,
-
                 target: "pino/file",
-                options: { destination: logFilePath },
+                options: this.SAVE_LOG_TO_FILE ? { destination: this.logFilePath } : "", //Only access file if required
             },
         ],
     });
 
-    private static logger = pino(
-        this.SAVE_LOG_TO_FILE ? this.transport : { level: LoggerUtil.LOG_LEVEL },
-        stream,
-    );
-    constructor() {}
+    private static logger = pino(this.transport, this.stream);
 
     static stringToBoolean(value: string | undefined): boolean {
         return value?.toLowerCase() === "true" || false;
@@ -73,4 +81,6 @@ class LoggerUtil {
     }
 }
 
+//Create the necessary folders and files
+LoggerUtil.setupLogFiles();
 export default LoggerUtil;
