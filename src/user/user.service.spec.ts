@@ -13,7 +13,6 @@ import {
 } from "@prisma/client";
 import { Skill } from "@prisma/client";
 import { NotFoundException } from "@nestjs/common";
-import { CreateLearningProgressDto } from "./dto/learningProgress-creation.dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 
@@ -195,33 +194,26 @@ describe("User Service", () => {
         it("should create a learning progress entry", async () => {
             // Arrange: Define test data
             const userId = userProf.id; // Replace with a valid user ID
-            const createLearningProgressDto: CreateLearningProgressDto = {
-                skillId: skill1.id,
-            };
 
             // Act: Call the createProgressForUserId method
-            const createdEntry = await userService.createProgressForUserId(
-                userId,
-                createLearningProgressDto,
-            );
+            const createdEntry = await userService.createProgressForUserId(userId, skill1.id);
 
             // Assert: Check that the createdEntry is valid and matches the expected data
-            expect(createdEntry).toBeDefined();
-            // Add more assertions based on your DTO and data structure
+            expect(createdEntry.userId).toEqual(userId);
+            expect(createdEntry.skillId).toEqual(skill1.id);
         });
 
         it("should handle errors when creating a learning progress entry", async () => {
             // Arrange: Define test data that may cause an error
             const invalidUserId = "non-existent-user"; // An invalid user ID
-            const createLearningProgressDto: CreateLearningProgressDto = {
-                skillId: skill1.id,
-            };
+
             // Act and Assert: Call the createProgressForUserId method and expect it to throw an error
             await expect(
-                userService.createProgressForUserId(invalidUserId, createLearningProgressDto),
+                userService.createProgressForUserId(invalidUserId, skill1.id),
             ).rejects.toThrowError("Error creating learning progress.");
         });
     });
+
     describe("findProgressForUserId", () => {
         let userProf: UserProfile;
         let skillMap1: SkillMap;
@@ -259,6 +251,8 @@ describe("User Service", () => {
 
             // Assert: Check that progressEntries is an array and contains expected data
             expect(Array.isArray(progressEntries)).toBe(true);
+            expect(progressEntries[0].skillId).toEqual(skill1.id);
+            expect(progressEntries[0].userId).toEqual(userId);
             // Add more assertions based on your data structure
         });
 

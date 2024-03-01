@@ -1,17 +1,9 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import {
-    CompanyCreationDto,
-    CompanyDto,
-    CreateLearningProgressDto,
-    LearningProfileDto,
-    UpdateLearningProgressDto,
-    UserCreationDto,
-    UserDto,
-    UserListDto,
-} from "./dto";
+import { CompanyCreationDto, CompanyDto, UserCreationDto, UserDto, UserListDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { STATUS, USERSTATUS } from "@prisma/client";
+import { LearningProgressCreationDto } from "./dto/learningProgressCreation.dto";
 
 /**
  * Service that manages the creation/update/deletion Users
@@ -41,7 +33,6 @@ export class UserMgmtService {
             throw error;
         }
     }
-
 
     async deleteUser(userId: string) {
         try {
@@ -79,22 +70,32 @@ export class UserMgmtService {
 
         return dao;
     }
+
+    /**
+     * ToDo: What is the use case? Re-acquisition of the same skill?
+     * @param userId 
+     * @param updateLearningProgressDto 
+     */
     async updateLearningProgress(
         userId: string,
-        updateLearningProgressDto: UpdateLearningProgressDto,
+        skillId: string
     ) {
         try {
+            console.log("Update of learning progress is not yet (?) implemented.")
         } catch (error) {
             throw new Error("Error updating learning progress.");
         }
     }
-    async createProgressForUserId(
-        userId: string,
-        createLearningProgressDto: CreateLearningProgressDto,
-    ) {
+
+    /**
+     * When a user acquires a skill, create a learning progress object for them.
+     * @param lProgressDto
+     * @returns
+     */
+    async createProgressForUserId(userId: string, skillId: string) {
         try {
             const createEntry = await this.db.learningProgress.create({
-                data: { userId, ...createLearningProgressDto },
+                data: { userId: userId, skillId: skillId },
             });
             return createEntry;
         } catch (error) {
