@@ -244,7 +244,7 @@ model UserProfile {
   status           USERSTATUS            @default(ACTIVE) // (active, inactive)  setzen des Values bei User-Events (create / delete)
   job              Job?
 
-  //feedbacks Feedback[] //Feedbacks given by the user, one to many relation (not implemented as onDelete relation is not working properly)
+  //feedbacks Feedback[] //Feedbacks given by the user, one to many relation (not implemented as we also allow anonymous feedbacks)
 
   @@unique([companyId, name]) // unique Schluessel noch bearbeiten
   @@map("user")
@@ -386,6 +386,11 @@ model Company {
   jobs       Job[]
 }
 
+// Stores the feedback (evaluation) from a user given to a learning unit
+//
+// Requested by:
+// - Part of AP 6.3 (user validation of the platform)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/30
 model Feedback {
   id                  String       @id @default(cuid())
   //user                UserProfile?  @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: SetDefault)  //Set author to anonymous when user is deleted (requires user with id: Anonymous)
