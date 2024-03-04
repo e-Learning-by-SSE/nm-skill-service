@@ -1,7 +1,10 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty, IsOptional } from "class-validator";
 import { ACCESS_RIGHTS, SkillMap } from "@prisma/client";
 import { SkillRepositorySelectionDto } from "./skill-repository-selection.dto";
 
+/**
+ * Represents a skill repository (for reading).
+ */
 export class SkillRepositoryDto extends SkillRepositorySelectionDto {
     @IsNotEmpty()
     owner: string;
@@ -9,35 +12,26 @@ export class SkillRepositoryDto extends SkillRepositorySelectionDto {
     @IsNotEmpty()
     id: string;
 
+    @IsOptional()
     taxonomy?: string;
+
+    @IsOptional()
     description?: string;
+
+    @IsOptional()
     access_rights?: ACCESS_RIGHTS;
-    constructor(
-        id: string,
-        owner: string,
-        name: string,
-        version: string | null,
-        taxonomy: string | null,
-        description: string | null,
-        access_right: ACCESS_RIGHTS | null,
-    ) {
-        super(name, version);
-        this.id = id;
-        this.owner = owner;
-        this.taxonomy = taxonomy ?? undefined;
-        this.description = description ?? undefined;
-        this.access_rights = access_right ?? undefined;
-    }
 
     static createFromDao(repository: SkillMap): SkillRepositoryDto {
-        return new SkillRepositoryDto(
-            repository.id,
-            repository.ownerId,
-            repository.name,
-            repository.version,
-            repository.taxonomy,
-            repository.description,
-            repository.access_rights,
-        );
+        const dto: SkillRepositoryDto = {
+            id: repository.id,
+            owner: repository.ownerId,
+            name: repository.name,
+            version: repository.version,
+            taxonomy: repository.taxonomy,
+            description: repository.description ?? undefined,
+            access_rights: repository.access_rights,
+        };
+
+        return dto;
     }
 }

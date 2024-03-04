@@ -27,9 +27,7 @@ import { SkillUpdateDto } from "./dto/skill-update.dto";
  */
 @Injectable()
 export class SkillMgmtService {
-    constructor(private db: PrismaService) {
-        db = db;
-    }
+    constructor(private db: PrismaService) {}
 
     /**
      * Retrieve all skills from the database, including their nestedSkills and parentSkills,
@@ -59,14 +57,6 @@ export class SkillMgmtService {
 
         // Return the skillList containing the skills hierarchy
         return skillList;
-    }
-
-    /**
-     * getCommonElements
-     */
-    public getCommonElements(arrayA: string[], arrayB: string[]): string[] {
-        // Filter elements that are present in both arrays
-        return arrayA.filter((elementA) => arrayB.includes(elementA));
     }
 
     public async findSkillRepositories(
