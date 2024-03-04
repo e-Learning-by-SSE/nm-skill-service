@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from "@nestjs/common";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import {
     SkillCreationDto,
     SkillRepositorySearchDto,
     SkillRepositoryCreationDto,
     SkillSearchDto,
-    SkillRepositoryDto,
+    SkillRepositoryUpdateDto,
 } from "./dto";
 import { SkillMgmtService } from "./skill.service";
 import { Prisma } from "@prisma/client";
@@ -201,11 +201,14 @@ export class SkillMgmtController {
      * @param dto The repository description
      * @returns The adapted repository.
      */
-    @Post("repository/adapt")
-    async adaptRepo(@Body() dto: SkillRepositoryDto) {
+    @Patch(":repositoryId")
+    async adaptRepo(
+        @Param("repositoryId") repositoryId: string,
+        @Body() dto: SkillRepositoryUpdateDto,
+    ) {
         try {
-            LoggerUtil.logInfo("Skill::adaptRepo", { dto });
-            const result = await this.skillService.adaptRepository(dto);
+            LoggerUtil.logInfo("Skill::adaptRepo", { repositoryId: repositoryId, dto });
+            const result = await this.skillService.adaptRepository(repositoryId, dto);
             LoggerUtil.logInfo("Skill::adaptRepo", { response: result });
             return result;
         } catch (error) {

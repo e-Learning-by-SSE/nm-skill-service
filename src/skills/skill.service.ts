@@ -17,6 +17,7 @@ import {
     ResolvedSkillRepositoryDto,
     SkillDto,
     ResolvedSkillListDto,
+    SkillRepositoryUpdateDto,
 } from "./dto";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
 import { SkillUpdateDto } from "./dto/skill-update.dto";
@@ -234,13 +235,14 @@ export class SkillMgmtService {
         return deletedRepo;
     }
 
-    async adaptRepository(dto: SkillRepositoryDto) {
+    async adaptRepository(repositoryId: string, dto: SkillRepositoryUpdateDto) {
         const dao = await this.db.skillMap
             .update({
                 where: {
-                    id: dto.id,
+                    id: repositoryId,
                 },
                 data: {
+                    ownerId: dto.owner,
                     access_rights: dto.access_rights,
                     description: dto.description,
                     name: dto.name,
@@ -253,14 +255,16 @@ export class SkillMgmtService {
                 if (error instanceof PrismaClientKnownRequestError) {
                     // Specified Repository not found
                     if (error.code === "P2025") {
-                        throw new NotFoundException(`Specified repository not found: ${dto.id}`);
+                        throw new NotFoundException(
+                            `Specified repository not found: ${repositoryId}`,
+                        );
                     }
                 }
                 throw error;
             });
 
         if (!dao) {
-            throw new NotFoundException(`Specified repository not found: ${dto.id}`);
+            throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
         }
 
         const result: UnresolvedSkillRepositoryDto = {

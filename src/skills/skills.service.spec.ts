@@ -9,6 +9,7 @@ import {
     SkillRepositoryCreationDto,
     SkillRepositoryDto,
     SkillRepositoryListDto,
+    SkillRepositoryUpdateDto,
 } from "./dto";
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { ACCESS_RIGHTS, Skill, SkillMap } from "@prisma/client";
@@ -859,19 +860,18 @@ describe("Skill Service", () => {
         beforeEach(async () => {
             // Set up any necessary mocks or database state here
             await dbUtils.wipeDb();
-        });
 
-        it("should update a repository with the provided data", async () => {
-            // Arrange: Create a SkillMap with initial data
+            // Create a SkillMap with initial data
             defaultSkillMap = await dbUtils.createSkillMap(
                 "User-1",
                 "Initial Name",
                 "Initial Description",
             );
+        });
 
-            const updatedDto: SkillRepositoryDto = {
-                owner: "User-1",
-                id: defaultSkillMap.id,
+        it("Valid data -> data changed", async () => {
+            const updatedDto: SkillRepositoryUpdateDto = {
+                owner: "Updated Owner",
                 access_rights: ACCESS_RIGHTS.PUBLIC,
                 description: "Updated Description",
                 name: "Updated Name",
@@ -880,37 +880,174 @@ describe("Skill Service", () => {
             };
 
             // Act: Call the adaptRepository method to update the repository
-            const updatedRepository = await skillService.adaptRepository(updatedDto);
-
-            // Assert: Check that the repository was updated with the provided data
-            expect(updatedRepository).toMatchObject(updatedDto);
-
-            // Verify that the database reflects the updates
-            const retrievedRepository = await skillService.getSkillRepository(
-                defaultSkillMap.ownerId,
+            const updatedRepository = await skillService.adaptRepository(
                 defaultSkillMap.id,
+                updatedDto,
             );
 
-            expect(retrievedRepository.ownerId).toEqual(updatedDto.owner);
-            expect(retrievedRepository.name).toEqual(updatedDto.name);
-            expect(retrievedRepository.description).toEqual(updatedDto.description);
+            // Assert: Check that the repository was updated with the provided data
+            const expectedResult: SkillRepositoryDto = {
+                id: defaultSkillMap.id,
+                owner: updatedDto.owner!,
+                name: updatedDto.name!,
+                description: updatedDto.description,
+                access_rights: updatedDto.access_rights,
+                taxonomy: updatedDto.taxonomy,
+                version: updatedDto.version,
+            };
+            expect(updatedRepository).toMatchObject(expectedResult);
         });
 
-        it("should throw NotFoundException when the repository is not found", async () => {
+        describe("Partial Updates", () => {
+            let expectedPartialUpdateResult: SkillRepositoryDto;
+
+            beforeEach(async () => {
+                // Set up any necessary mocks or database state here
+                await dbUtils.wipeDb();
+
+                // Create a SkillMap with initial data
+                defaultSkillMap = await dbUtils.createSkillMap(
+                    "User-1",
+                    "Initial Name",
+                    "Initial Description",
+                );
+
+                // Simplifies the expected result for partial updates
+                expectedPartialUpdateResult = {
+                    id: defaultSkillMap.id,
+                    owner: defaultSkillMap.ownerId,
+                    name: defaultSkillMap.name,
+                    description: defaultSkillMap.description!,
+                    access_rights: defaultSkillMap.access_rights,
+                    taxonomy: defaultSkillMap.taxonomy,
+                    version: defaultSkillMap.version,
+                };
+            });
+
+            it("Owner", async () => {
+                const updatedDto: SkillRepositoryUpdateDto = {
+                    owner: "New Owner",
+                };
+
+                // Act: Change only a single attribute
+                const updatedRepository = await skillService.adaptRepository(
+                    defaultSkillMap.id,
+                    updatedDto,
+                );
+
+                // Assert: Check that the repository was updated with the provided data
+                const expectedResult: SkillRepositoryDto = {
+                    ...expectedPartialUpdateResult,
+                    owner: updatedDto.owner!,
+                };
+                expect(updatedRepository).toMatchObject(expectedResult);
+            });
+
+            it("Name", async () => {
+                const updatedDto: SkillRepositoryUpdateDto = {
+                    name: "New Name",
+                };
+
+                // Act: Change only a single attribute
+                const updatedRepository = await skillService.adaptRepository(
+                    defaultSkillMap.id,
+                    updatedDto,
+                );
+
+                // Assert: Check that the repository was updated with the provided data
+                const expectedResult: SkillRepositoryDto = {
+                    ...expectedPartialUpdateResult,
+                    name: updatedDto.name!,
+                };
+                expect(updatedRepository).toMatchObject(expectedResult);
+            });
+
+            it("Description", async () => {
+                const updatedDto: SkillRepositoryUpdateDto = {
+                    description: "New Description",
+                };
+
+                // Act: Change only a single attribute
+                const updatedRepository = await skillService.adaptRepository(
+                    defaultSkillMap.id,
+                    updatedDto,
+                );
+
+                // Assert: Check that the repository was updated with the provided data
+                const expectedResult: SkillRepositoryDto = {
+                    ...expectedPartialUpdateResult,
+                    description: updatedDto.description!,
+                };
+                expect(updatedRepository).toMatchObject(expectedResult);
+            });
+
+            it("Taxonomy", async () => {
+                const updatedDto: SkillRepositoryUpdateDto = {
+                    taxonomy: "New Taxonomy",
+                };
+
+                // Act: Change only a single attribute
+                const updatedRepository = await skillService.adaptRepository(
+                    defaultSkillMap.id,
+                    updatedDto,
+                );
+
+                // Assert: Check that the repository was updated with the provided data
+                const expectedResult: SkillRepositoryDto = {
+                    ...expectedPartialUpdateResult,
+                    taxonomy: updatedDto.taxonomy!,
+                };
+                expect(updatedRepository).toMatchObject(expectedResult);
+            });
+
+            it("Version", async () => {
+                const updatedDto: SkillRepositoryUpdateDto = {
+                    version: "New Version",
+                };
+
+                // Act: Change only a single attribute
+                const updatedRepository = await skillService.adaptRepository(
+                    defaultSkillMap.id,
+                    updatedDto,
+                );
+
+                // Assert: Check that the repository was updated with the provided data
+                const expectedResult: SkillRepositoryDto = {
+                    ...expectedPartialUpdateResult,
+                    version: updatedDto.version!,
+                };
+                expect(updatedRepository).toMatchObject(expectedResult);
+            });
+
+            it("Access Rights", async () => {
+                const updatedDto: SkillRepositoryUpdateDto = {
+                    access_rights: "COMPANY",
+                };
+
+                // Act: Change only a single attribute
+                const updatedRepository = await skillService.adaptRepository(
+                    defaultSkillMap.id,
+                    updatedDto,
+                );
+
+                // Assert: Check that the repository was updated with the provided data
+                const expectedResult: SkillRepositoryDto = {
+                    ...expectedPartialUpdateResult,
+                    access_rights: updatedDto.access_rights!,
+                };
+                expect(updatedRepository).toMatchObject(expectedResult);
+            });
+        });
+
+        it("Invalid ID -> NotFoundException", async () => {
             // Arrange: Attempt to update a non-existent repository
-            const nonExistentRepositoryDto: SkillRepositoryDto = {
-                owner: "any Owner",
-                id: "non-existent-repo-id",
-                access_rights: ACCESS_RIGHTS.PUBLIC,
-                description: "Updated Description",
-                name: "Updated Name",
-                taxonomy: "Updated Taxonomy",
-                version: "Updated Version",
+            const nonExistentRepositoryDto: SkillRepositoryUpdateDto = {
+                owner: "A new Owner",
             };
 
             // Act and Assert: Call the adaptRepository method and expect a NotFoundException
             await expect(
-                skillService.adaptRepository(nonExistentRepositoryDto),
+                skillService.adaptRepository("non-existent-repo-id", nonExistentRepositoryDto),
             ).rejects.toThrowError(NotFoundException);
         });
     });
