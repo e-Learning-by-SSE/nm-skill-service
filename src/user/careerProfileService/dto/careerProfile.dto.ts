@@ -1,33 +1,94 @@
-import { IsDefined, IsNotEmpty, IsOptional } from 'class-validator';
-import { OmitType } from '@nestjs/swagger';
-import { CareerProfileCreationDto } from './careerProfile-creation.dto';
-import { LearningProfileCreationDto } from '../../learningProfileService/dto/learningProfile-creation.dto';
-import { CareerProfile } from '@prisma/client';
+import { IsDefined, IsNotEmpty, IsOptional } from "class-validator";
+import { CareerProfile, UserProfile, Skill, Company, Job, Qualification } from "@prisma/client";
 
-export class CareerProfileDto extends CareerProfileCreationDto {
-  @IsNotEmpty()
-  id: string;
+export class CareerProfileDto {
+    @IsNotEmpty()
+    id: string;
+    @IsDefined()
+    userId?: string;
+    @IsOptional()
+    user?: UserProfile;
+    @IsOptional()
+    jobHistory?: string[]; //// ConsumedUnitData
+    @IsOptional()
+    professionalInterests?: string;
+    @IsOptional()
+    qualifications?: string[];
+    @IsOptional()
+    selfReportedSkills?: string[];
+    @IsOptional()
+    verifiedSkills?: string[];
+    @IsOptional()
+    pastCompanies?: string[];
+    @IsOptional()
+    currentCompany?: string;
+    @IsOptional()
+    currentCompanyId?: string;
+    @IsOptional()
+    currentJobIdAtBerufeNet?: string;
 
-  @IsOptional()
-  description?: string;
-  
+    constructor(
+        id: string,
+        userId: string,
+        user?: UserProfile | null,
+        jobHistory?: string[] | null,
+        professionalInterests?: string | null,
+        qualifications?: string[] | null,
+        selfReportedSkills?: string[] | null,
+        verifiedSkills?: string[] | null,
+        pastCompanies?: string[] | null,
+        currentCompany?: string | null,
+        currentCompanyId?: string | null,
+        currentJobIdAtBerufeNet?: string | null,
+    ) {
+        this.id = id;
+        this.userId = userId;
+        this.user = user ?? undefined;
+        this.jobHistory = jobHistory ?? undefined;
+        this.professionalInterests = professionalInterests ?? undefined;
+        this.qualifications = qualifications ?? undefined;
+        this.selfReportedSkills = selfReportedSkills ?? undefined;
+        this.verifiedSkills = verifiedSkills ?? undefined;
+        this.pastCompanies = pastCompanies ?? undefined;
+        this.currentCompany = currentCompany ?? undefined;
+        this.currentCompanyId = currentCompanyId ?? undefined;
+        this.currentJobIdAtBerufeNet = currentJobIdAtBerufeNet ?? undefined;
+    }
 
-  constructor(id: string, professionalInterests: string, userId: string, currentCompanyId?: string | null, currentJobIdAtBerufeNet?: string | null) {
-    super();
-    
-    this.id = id;
-    this.professionalInterests = professionalInterests;
-    this.currentCompanyId = currentCompanyId ?? undefined;
-    this.currentJobIdAtBerufeNet = currentJobIdAtBerufeNet ?? undefined;
-    this.userId = userId;
-  }
+    static createFromDao(
+        cp: CareerProfile,
+        user?: UserProfile,
+        jobHistory?: Job[],
+        professionalInterests?: string,
+        qualifications?: Qualification[],
+        selfReportedSkills?: Skill[],
+        verifiedSkills?: Skill[],
+        pastCompanies?: Company[],
+        currentCompany?: Company,
+        currentCompanyID?: string,
+        currentJobIdAtBerufeNet?: string,
+    ): CareerProfileDto {
+        const jobHistoryAsArrayOfIds = jobHistory?.map((element) => element.id) || [];
+        const qualificationsAsArrayOfIds = qualifications?.map((element) => element.id) || [];
+        const selfReportedSkillsAsArrayOfIds =
+            selfReportedSkills?.map((element) => element.id) || [];
+        const verifiedSkillsAsArrayOfIds = verifiedSkills?.map((element) => element.id) || [];
+        const pastCompaniesAsArrayOfIds = pastCompanies?.map((element) => element.id) || [];
+        const currentCompanyObject = currentCompany?.id || "";
 
-  /**
-   * Creates a new SkillDto from a DB result, but won't consider parents/children.
-   * @param skill The DB result which shall be converted to a DTO
-   * @returns The corresponding DTO, but without parents/children
-   */
-  static createFromDao(cp: CareerProfile): CareerProfileDto {
-    return new CareerProfileDto(cp.id, cp.professionalInterests, cp.userId, cp.currentCompanyId, cp.currentJobIdAtBerufeNet);
-  }
+        return new CareerProfileDto(
+            cp.id,
+            cp.userId,
+            user,
+            jobHistoryAsArrayOfIds,
+            professionalInterests,
+            qualificationsAsArrayOfIds,
+            selfReportedSkillsAsArrayOfIds,
+            verifiedSkillsAsArrayOfIds,
+            pastCompaniesAsArrayOfIds,
+            currentCompanyObject,
+            currentCompanyID,
+            currentJobIdAtBerufeNet,
+        );
+    }
 }
