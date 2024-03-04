@@ -1,3 +1,5 @@
+// Tests für alle Methoden / Negativtests 
+
 import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
