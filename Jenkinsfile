@@ -56,7 +56,7 @@ pipeline {
                 stage('Test') {
                     environment {
                         DB_URL = "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
-                        SAVE_LOG_TO_FILE = true
+                        SAVE_LOG_TO_FILE = false
                         LOG_LEVEL = "info"
                     }
                     steps {
