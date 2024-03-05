@@ -48,7 +48,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.Other,
                 method: MlsActionType.PUT,
-                id: "string",
+                id: "invalidEntity",
                 payload: JSON.parse("{}"),
             };
 
@@ -63,7 +63,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.Task,
                 method: MlsActionType.Other,
-                id: "string",
+                id: "invalidMethodTask",
                 payload: JSON.parse("{}"),
             };
 
@@ -78,7 +78,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.User,
                 method: MlsActionType.Other,
-                id: "string",
+                id: "invalidMethodUsers",
                 payload: JSON.parse("{}"),
             };
 
@@ -93,7 +93,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDo,
                 method: MlsActionType.POST,
-                id: "string",
+                id: "invalidMethodTaskToDo",
                 payload: JSON.parse("{}"),
             };
 
@@ -108,7 +108,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.Task,
                 method: MlsActionType.DELETE,
-                id: "not relevant",
+                id: "DeleteNotDraft",
                 payload: JSON.parse('{"lifecycle":"ACTIVE"}'),
             };
 
@@ -123,7 +123,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.User,
                 method: MlsActionType.PUT,
-                id: "not relevant",
+                id: "DeleteUnknownStateUser",
                 payload: JSON.parse('{"state":"invalidValue"}'),
             };
 
@@ -138,7 +138,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.User,
                 method: MlsActionType.PUT,
-                id: "not relevant",
+                id: "UpdateUnknownStateUser",
                 payload: JSON.parse('{"noState":"notRelevant"}'),
             };
 
@@ -153,7 +153,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDo,
                 method: MlsActionType.PUT,
-                id: "not relevant",
+                id: "GetSkillFromNonExistingTask",
                 payload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"testEventId", "task":"non-existing"}',
                 ),
@@ -179,7 +179,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDo,
                 method: MlsActionType.PUT,
-                id: "not relevant",
+                id: "NoSkillInTask",
                 payload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"' +
                         userID +
@@ -199,7 +199,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDo,
                 method: MlsActionType.PUT,
-                id: "not relevant",
+                id: "ScoredPointsBelowThreshold",
                 payload: JSON.parse(
                     '{"scoredPoints":"4", "maxPoints":10, "taskTodoInfo":{"status":"FINISHED"}, "user":"notRelevant", "task":"notRelevant"}',
                 ),
@@ -217,7 +217,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDo,
                 method: MlsActionType.PUT,
-                id: "not relevant",
+                id: "StatusIsNotFinished",
                 payload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"NotFINISHED"}, "user":"notRelevant", "task":"notRelevant"}',
                 ),
@@ -250,7 +250,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDo,
                 method: MlsActionType.PUT,
-                id: "not relevant",
+                id: "LearnSkillByNonExistentUser",
                 payload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"non-existent", "task":"' +
                         luID +
@@ -269,7 +269,7 @@ describe("Event Service", () => {
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDo,
                 method: MlsActionType.PUT,
-                id: "not relevant",
+                id: "TaskToDoWithInvalidPayload",
                 payload: JSON.parse("{}"),
             };
 
@@ -510,7 +510,7 @@ describe("Event Service", () => {
             const validMLSPostEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDo,
                 method: MlsActionType.PUT,
-                id: "test1",
+                id: "validTaskToDo",
                 payload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"' +
                         userID +
@@ -572,7 +572,7 @@ describe("Event Service", () => {
             const validMLSPostEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDo,
                 method: MlsActionType.PUT,
-                id: "test1",
+                id: "validTaskToDo2",
                 payload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"' +
                         userID +

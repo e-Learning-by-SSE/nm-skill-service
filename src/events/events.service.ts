@@ -221,10 +221,10 @@ export class EventMgmtService {
             // A taskTodo object contains the individual learning progress per user
             //TODO: Wait until user profile is finished.
             case MlsActionEntity.TaskToDo: {
-                LoggerUtil.logInfo("EventService::TaskToDoNotYetImplemented", mlsEvent.id);
+                LoggerUtil.logInfo("EventService::TaskToDoEvent", mlsEvent.id);
                 // When a TaskTodo is updated in the MLS system, update our user profile accordingly
                 if (mlsEvent.method === MlsActionType.PUT) {
-                    LoggerUtil.logInfo("EventService::getTaskToDo", mlsEvent.id);
+                    LoggerUtil.logInfo("EventService::getTaskToDoPUT", mlsEvent.id);
 
                     //Try to read the required values.
                     //If field not existing or not a number, variables will be NaN or undefined and the condition evaluates to false
@@ -234,14 +234,14 @@ export class EventMgmtService {
                     const FINISHED = todoInfo["status" as keyof typeof todoInfo];
 
                     LoggerUtil.logInfo(
-                        "EventService::getTaskToDo:PointsAndStatus: scored(" +
+                        "EventService::getTaskToDo:PointsAndStatus",
+                        "scored(" +
                             scoredPoints +
                             ") max(" +
                             maxPoints +
                             ") status(" +
                             FINISHED +
                             ")",
-                        mlsEvent.id,
                     );
 
                     //Check conditions for acquisition
@@ -250,7 +250,7 @@ export class EventMgmtService {
                         scoredPoints / maxPoints >= this.configService.get("PASSING_THRESHOLD")
                     ) {
                         LoggerUtil.logInfo(
-                            "EventService::LearnSkill: Threshold passed",
+                            "EventService::TaskToDoLearnSkill: Threshold passed",
                             mlsEvent.id,
                         );
 
@@ -259,6 +259,11 @@ export class EventMgmtService {
                         //Get the id of the finished task
                         const taskID = "" + mlsEvent.payload["task" as keyof JSON]?.toString();
 
+                        LoggerUtil.logInfo(
+                            "EventService::TaskToDoLearnSkill:getIDs",
+                            "User: " + userID + " Task: " + taskID,
+                        );
+
                         try {
                             //Load the learning unit (MLS task equivalent) from our DB
                             const lu = await this.learningUnitFactory.loadLearningUnit(taskID);
@@ -266,14 +271,8 @@ export class EventMgmtService {
                             const skills = lu.teachingGoals;
 
                             LoggerUtil.logInfo(
-                                "EventService::LearnSkill: user(" +
-                                    userID +
-                                    ") LU(" +
-                                    taskID +
-                                    ") skills(" +
-                                    skills.toString() +
-                                    ")",
-                                mlsEvent.id,
+                                "EventService::TaskToDoGetSkill",
+                                "LU: " + lu.toString() + " Skills: " + skills.toString(),
                             );
 
                             // Collect the learned skills matched with the user
@@ -292,31 +291,36 @@ export class EventMgmtService {
                                 learningProgressList.push(learningProgressDto);
 
                                 LoggerUtil.logInfo(
-                                    "EventService::LearnSkill:SkillAcquired (" +
-                                        learningProgressDto.userId +
+                                    "EventService::TaskToDoLearnSkill:SkillAcquired",
+                                    learningProgressDto.userId +
                                         "," +
                                         learningProgressDto.skillId +
                                         ")",
-                                    mlsEvent.id,
                                 );
                             }
 
+                            LoggerUtil.logInfo("EventService::TaskToDoLearnSkill:Finished");
+
                             //Return the array with all learned skills (list of learning progress objects)
                             return learningProgressList;
-                        
-                        //When user, learning unit, or skill id are not existent in our DB    
+
+                            //When user, learning unit, or skill id are not existent in our DB
                         } catch (error) {
                             console.error(error);
+                            LoggerUtil.logInfo("EventService::TaskToDoLearnSkill:Error", error);
                             throw new ForbiddenException(
                                 "No skill(s) acquired, learning unit not existent or has no skills",
                             );
                         }
-                     
-                    //When we get irrelevant events, like an unsuccessful attempt    
+
+                        //When we get irrelevant events, like an unsuccessful attempt
                     } else {
+                        LoggerUtil.logInfo(
+                            "EventService::TaskToDoLearnSkill:NothingRelevant",
+                            mlsEvent.id,
+                        );
                         return "Nothing relevant happened";
                     }
-                    
                 } else {
                     throw new ForbiddenException(
                         "TaskToDoEvent: Method for this action type not implemented.",
