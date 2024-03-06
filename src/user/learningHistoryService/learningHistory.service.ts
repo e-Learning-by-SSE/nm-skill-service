@@ -58,24 +58,6 @@ export class LearningHistoryService {
         }
     }
 
-    async getCompPathsIdsByHistoryById(historyId: string) {
-        try {
-            const profile = await this.db.learningHistory.findUnique({
-                where: { id: historyId },
-            });
-
-            if (!profile) {
-                throw new NotFoundException("No learning History found.");
-            }
-
-            return profile;   // Hier die CompPath zurueckgeben
-
-        } catch (error) {
-            // Handle any other errors or rethrow them as needed
-            throw error;
-        }
-    }
-
     async deleteLearningHistoryById(historyId: string) {
         try {
             const lHistory = await this.db.learningHistory.delete({
@@ -87,6 +69,108 @@ export class LearningHistoryService {
             }
 
             return LearningHistoryDto.createFromDao(lHistory);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Delete a personalizedLearningPath with a specific ID from a learningHistory with a specific ID
+    async delCompPathByID(historyId: string, compPathId: string) {
+        try {
+            const learningHistory = await this.db.learningHistory.findUnique({
+                where: { id: historyId },
+                include: { personalPaths: true }, // Include personalPaths relation
+            });
+
+            if (!learningHistory) {
+                throw new Error(`LearningHistory with id ${historyId} not found`);
+            }
+
+            const personalPathToDelete = learningHistory.personalPaths.find(
+                (path) => path.id === compPathId,
+            );
+
+            if (!personalPathToDelete) {
+                throw new Error(`PersonalPath with id ${compPathId} not found in LearningHistory`);
+            }
+
+            await this.db.personalizedLearningPath.delete({
+                where: { id: compPathId },
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Return a personalizedLearningPath with a specific ID from a learningHistory with a specific ID
+    async getCompPathByID(historyId: string, compPathId: string) {
+        try {
+            const learningHistory = await this.db.learningHistory.findUnique({
+                where: { id: historyId },
+                include: { personalPaths: true }, // Include personalPaths relation
+            });
+
+            if (!learningHistory) {
+                throw new Error(`LearningHistory with id ${historyId} not found`);
+            }
+
+            const personalPathToReturn = learningHistory.personalPaths.find(
+                (path) => path.id === compPathId,
+            );
+
+            if (!personalPathToReturn) {
+                throw new Error(`PersonalPath with id ${compPathId} not found in LearningHistory`);
+            }
+
+            return personalPathToReturn;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Return all personalizedLearningPath(es) "personalPaths" from a learningHistory with a specific ID
+    async getCompPathsIdsByHistoryById(historyId: string) {
+        try {
+            const learningHistory = await this.db.learningHistory.findUnique({
+                where: { id: historyId },
+                include: { personalPaths: true }, // Include personalPaths relation
+            });
+
+            if (!learningHistory) {
+                throw new Error(`LearningHistory with id ${historyId} not found`);
+            }
+
+            return learningHistory.personalPaths;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Patch a personalizedLearningPath with a specific ID in "personalPaths" for a learningHistory with a specific ID
+    async patchCompPathAtLearningHistoryByID(historyId: string, compPathId:string, dto: LearningHistoryDto) {
+        try {
+            const existingLearningHistory = await this.db.learningHistory.findUnique({
+                where: { id: historyId },
+                include: { personalPaths: true }, // Include personalPaths relation
+            });
+
+            if (!existingLearningHistory) {
+                throw new Error(`LearningHistory with id ${historyId} not found`);
+            }
+
+            const personalPathToUpdate = existingLearningHistory.personalPaths.find(
+                (path) => path.id === compPathId,
+            );
+
+            // update the "personalPath" with a new array of personalizedLearningPath IDs or keep the existing entry:
+            const updatedLearningHistory = await this.db.learningHistory.update({
+                where: { id: historyId },
+                data: {
+                   // personalPaths: dto.personalPaths || existingLearningHistory.personalPaths,
+                },
+            });
+
+            return LearningHistoryDto.createFromDao(updatedLearningHistory);
         } catch (error) {
             throw error;
         }

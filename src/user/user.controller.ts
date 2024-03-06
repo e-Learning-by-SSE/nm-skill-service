@@ -236,7 +236,6 @@ export class UserMgmtController {
         return this.learningHistoryService.getLearningHistoryById(historyId);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("learning-history/:history_id")
     async getCompPathsIdsByHistoryById(@Param("history_id") historyId: string) {
         // Fetch all Computed Paths for a given LearningHistoryId
@@ -249,7 +248,6 @@ export class UserMgmtController {
         return this.learningHistoryService.createLearningHistory(createLearningHistoryDto);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Get("/learning-history/:history_id/:comp_path_id")
     getCompPathByID(
         @Param("history_id") historyId: string,
@@ -258,7 +256,6 @@ export class UserMgmtController {
         return this.userService.getCompPathByID(historyId, compPathId);
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Delete("/learning-history/:history_id/:comp_path_id")
     delCompPathByID(
         @Param("history_id") historyId: string,
@@ -269,13 +266,14 @@ export class UserMgmtController {
 
     @ApiOperation({ summary: "Experimental (WIP)" })
     @Patch("/learning-history/:history_id/:comp_path_id")
-    patchCompPathByID(
+    patchCompPathAtLearningHistoryByID(
         @Param("history_id") historyId: string,
         @Param("comp_path_id") compPathId: string,
         @Body() dto: LearningProfileDto,
     ) {
         return this.userService.patchCompPathByID(historyId, compPathId, dto);
     }
+
 }
 
 /**
