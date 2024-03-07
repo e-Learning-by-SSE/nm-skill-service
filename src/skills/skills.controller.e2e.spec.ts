@@ -307,31 +307,31 @@ describe("Skill Controller Tests", () => {
         });
     });
 
-    // describe("/resolve", () => {
-    //     describe(":repositoryId", () => {
-    //         it("Resolve Skill Map with Skills & Nested Skill", () => {
-    //             // Expected result
-    //             const expectedObject = ResolvedSkillRepositoryDto.createFromDao(skillMapWithSkills);
-    //             expectedObject.skills = [
-    //                 {
-    //                     ...ResolvedSkillDto.createFromDao(skill2),
-    //                     nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)],
-    //                 },
-    //                 ResolvedSkillDto.createFromDao(skill3),
-    //             ].sort((a, b) => a.id.localeCompare(b.id));
-    //             delete expectedObject.description;
+    describe("/resolve", () => {
+        //     describe(":repositoryId", () => {
+        //         it("Resolve Skill Map with Skills & Nested Skill", () => {
+        //             // Expected result
+        //             const expectedObject = ResolvedSkillRepositoryDto.createFromDao(skillMapWithSkills);
+        //             expectedObject.skills = [
+        //                 {
+        //                     ...ResolvedSkillDto.createFromDao(skill2),
+        //                     nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)],
+        //                 },
+        //                 ResolvedSkillDto.createFromDao(skill3),
+        //             ].sort((a, b) => a.id.localeCompare(b.id));
+        //             delete expectedObject.description;
 
-    //             // Test: Resolve Skill Map
-    //             return request(app.getHttpServer())
-    //                 .get(`/skill-repositories/resolve/${skillMapWithSkills.id}`)
-    //                 .expect(200)
-    //                 .expect((res) => {
-    //                     const result = res.body as ResolvedSkillRepositoryDto;
-    //                     result.skills.sort((a, b) => a.id.localeCompare(b.id));
-    //                     expect(result).toMatchObject(expectedObject);
-    //                 });
-    //         });
-    //     });
+        //             // Test: Resolve Skill Map
+        //             return request(app.getHttpServer())
+        //                 .get(`/skill-repositories/resolve/${skillMapWithSkills.id}`)
+        //                 .expect(200)
+        //                 .expect((res) => {
+        //                     const result = res.body as ResolvedSkillRepositoryDto;
+        //                     result.skills.sort((a, b) => a.id.localeCompare(b.id));
+        //                     expect(result).toMatchObject(expectedObject);
+        //                 });
+        //         });
+        //     });
 
         describe("/findSkills", () => {
             it("Search for Skills by Name", () => {
