@@ -11,10 +11,14 @@ import { SkillMgmtService } from "./skill.service";
 import { Prisma } from "@prisma/client";
 import { SkillUpdateDto } from "./dto/skill-update.dto";
 import LoggerUtil from "../logger/logger";
+import { SkillRepositoryService } from "./skill-repository.service";
 @ApiTags("Skill")
 @Controller("skill-repositories")
 export class SkillMgmtController {
-    constructor(private skillService: SkillMgmtService) {}
+    constructor(
+        private skillService: SkillMgmtService,
+        private repositoryService: SkillRepositoryService,
+    ) {}
 
     @Get("/getAllSkills/")
     getAllSkills() {
@@ -35,7 +39,7 @@ export class SkillMgmtController {
                 ? { contains: dto.name, mode: "insensitive" }
                 : null;
 
-            return this.skillService.findSkillRepositories(
+            return this.repositoryService.findSkillRepositories(
                 dto?.page ?? null,
                 dto?.pageSize ?? null,
                 dto?.owner ?? null,
@@ -58,7 +62,7 @@ export class SkillMgmtController {
         try {
             LoggerUtil.logInfo("Skill::listRepositories", { ownerId: owner });
             // SE: I do not expect so many repositories per user that we need pagination here
-            return this.skillService.findSkillRepositories(null, null, owner, null, null);
+            return this.repositoryService.findSkillRepositories(null, null, owner, null, null);
         } catch (error) {
             LoggerUtil.logError("Skill::listRepositories", error);
             throw error;
@@ -74,7 +78,7 @@ export class SkillMgmtController {
     async loadRepository(@Param("repositoryId") repositoryId: string) {
         try {
             LoggerUtil.logInfo("Skill::loadRepository", { repositoryId: repositoryId });
-            return this.skillService.loadSkillRepository(repositoryId);
+            return this.repositoryService.loadSkillRepository(repositoryId);
         } catch (error) {
             LoggerUtil.logError("Skill::loadRepository", error);
             throw error;
@@ -108,29 +112,29 @@ export class SkillMgmtController {
         }
     }
 
+    // /**
+    //  * Returns one resolved repository and its elements.
+    //  * Skills and their relations are resolved at the server.
+    //  * @returns The repositories of the specified user.
+    //  */
+    // @ApiOperation({ deprecated: true })
+    // @Get("resolve/:repositoryId")
+    // async loadResolvedRepository(@Param("repositoryId") repositoryId: string) {
+    //     try {
+    //         LoggerUtil.logInfo("Skill::loadResolvedRepository", { repositoryId: repositoryId });
+    //         const result = await this.repositoryService.loadResolvedSkillRepository(repositoryId);
+    //         LoggerUtil.logInfo("Skill::loadResolvedRepository", { response: result });
+    //         return result;
+    //     } catch (error) {
+    //         LoggerUtil.logError("Skill::loadResolvedRepository", error);
+    //         throw error;
+    //     }
+    // }
+
     /**
-     * Returns one resolved repository and its elements.
-     * Skills and their relations are resolved at the server.
-     * @returns The repositories of the specified user.
+     * Lists all skills.
+     * @returns List of all skills.
      */
-    @ApiOperation({ deprecated: true })
-    @Get("resolve/:repositoryId")
-    async loadResolvedRepository(@Param("repositoryId") repositoryId: string) {
-        try {
-            LoggerUtil.logInfo("Skill::loadResolvedRepository", { repositoryId: repositoryId });
-            const result = await this.skillService.loadResolvedSkillRepository(repositoryId);
-            LoggerUtil.logInfo("Skill::loadResolvedRepository", { response: result });
-            return result;
-        } catch (error) {
-            LoggerUtil.logError("Skill::loadResolvedRepository", error);
-            throw error;
-        }
-    }
-    /**
-   * Lists all skills.
-   
-   * @returns List of all skills.
-   */
     @ApiOperation({ deprecated: true })
     @Post("resolve/findSkills")
     async findSkillsResolved(@Body() dto: SkillSearchDto) {
@@ -167,7 +171,7 @@ export class SkillMgmtController {
     async createRepository(@Body() dto: SkillRepositoryCreationDto) {
         try {
             LoggerUtil.logInfo("Skill::createRepository", dto);
-            const result = await this.skillService.createRepository(dto);
+            const result = await this.repositoryService.createRepository(dto);
             LoggerUtil.logInfo("Skill::createRepository", { response: result });
             return result;
         } catch (error) {
@@ -208,7 +212,7 @@ export class SkillMgmtController {
     ) {
         try {
             LoggerUtil.logInfo("Skill::adaptRepo", { repositoryId: repositoryId, dto });
-            const result = await this.skillService.adaptRepository(repositoryId, dto);
+            const result = await this.repositoryService.adaptRepository(repositoryId, dto);
             LoggerUtil.logInfo("Skill::adaptRepo", { response: result });
             return result;
         } catch (error) {
@@ -221,7 +225,7 @@ export class SkillMgmtController {
     async deleteRepo(@Param("repositoryId") repositoryId: string) {
         try {
             LoggerUtil.logInfo("Skill::deleteRepo", { repositoryId: repositoryId });
-            const result = await this.skillService.deleteRepository(repositoryId);
+            const result = await this.repositoryService.deleteRepository(repositoryId);
             LoggerUtil.logInfo("Skill::deleteRepo", { response: result });
             return result;
         } catch (error) {
