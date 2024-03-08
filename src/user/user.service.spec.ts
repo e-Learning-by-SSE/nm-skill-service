@@ -6,7 +6,6 @@ import {
     ConsumedUnitData,
     LearningProgress,
     LearningUnit,
-    PersonalizedLearningPath,
     STATUS,
     SkillMap,
     UserProfile,
@@ -44,6 +43,12 @@ describe("User Service", () => {
                     id: "testId",
                 },
             });
+
+            const learningHistory = await db.learningHistory.create({
+                data: {
+                    userId: userProf.id,
+                },
+            });
             const creationDto = SearchLearningUnitCreationDto.createForTesting({
                 title: "Awesome Title",
             });
@@ -58,9 +63,10 @@ describe("User Service", () => {
 
             consumedUnit = await db.consumedUnitData.create({
                 data: {
-                    actualProcessingTime: "2 hours",
+                    historyId: learningHistory.id,
+                    actualProcessingTime: 2 * 60 * 60,
                     testPerformance: 0.85,
-                    consumedLUId: result.id,
+                    unitId: result.id,
                     lbDataId: learningBehaviorData.id,
                     status: "STARTED",
                     date: new Date(),
@@ -272,9 +278,8 @@ describe("User Service", () => {
         });
         it("should check status for units in the path", async () => {
             // Arrange: Create test data
-            let factory: LearningUnitFactory;
+            const factory: LearningUnitFactory = new LearningUnitFactory(db);
 
-            factory = new LearningUnitFactory(db);
             const userProf = await db.userProfile.create({
                 data: {
                     name: "TestUser",
@@ -288,26 +293,32 @@ describe("User Service", () => {
                     id: userProf.id,
                 },
             });
-            const creationDto = SearchLearningUnitCreationDto.createForTesting({
+            const creationDto1 = SearchLearningUnitCreationDto.createForTesting({
                 title: "Awesome Title123",
                 id: "123",
             });
-            const creationDto1 = SearchLearningUnitCreationDto.createForTesting({
+            const creationDto2 = SearchLearningUnitCreationDto.createForTesting({
                 title: "Awesome Title1234",
                 id: "1234",
             });
-            const lu1 = await factory.createLearningUnit(creationDto);
-            const lu = await factory.createLearningUnit(creationDto1);
-            const learningPath: PersonalizedLearningPath = await db.personalizedLearningPath.create(
-                {
-                    data: {
-                        userProfileId: userHistory.id,
-                        unitSequence: {
-                            connect: [{ id: lu.id }, { id: lu1.id }], // Connect learning units
-                        },
+            const lu1 = await factory.createLearningUnit(creationDto1);
+            const lu2 = await factory.createLearningUnit(creationDto2);
+
+            const consumedUnits = await dbUtils.createConsumedUnitData(userHistory.id, [
+                lu1.id,
+                lu2.id,
+            ]);
+            const learningPath = await db.personalizedLearningPath.create({
+                data: {
+                    learningHistoryId: userHistory.id,
+                    unitSequence: {
+                        create: [
+                            { unitId: consumedUnits[0].id, position: 0 },
+                            { unitId: consumedUnits[1].id, position: 1 },
+                        ], // Connect learning units
                     },
                 },
-            );
+            });
 
             const learningPathFromDB = await db.personalizedLearningPath.findUnique({
                 where: {
@@ -315,16 +326,19 @@ describe("User Service", () => {
                 },
                 include: { unitSequence: true },
             });
+
             // Act: Call the checkStatusForUnitsInPathOfLearningHistory method
             const result = await userService.checkStatusForUnitsInPathOfLearningHistory(
-                userProf.id,
+                userHistory.id,
+                learningPath.id,
             );
+
             if (learningPathFromDB) {
                 // Assert: Check the result and database state
-                expect(result.unitStatus).toHaveLength(learningPathFromDB.unitSequence.length);
+                expect(result).toHaveLength(learningPathFromDB.unitSequence.length);
             }
-            result.unitStatus.forEach((unitStatus) => {
-                expect(unitStatus).toHaveProperty("unitId");
+            result.forEach((unitStatus) => {
+                expect(unitStatus).toHaveProperty("unit");
                 expect(unitStatus).toHaveProperty("status");
             });
         });
@@ -335,7 +349,10 @@ describe("User Service", () => {
 
             // Act and Assert: Call the method and expect it to throw NotFoundException
             await expect(
-                userService.checkStatusForUnitsInPathOfLearningHistory(invalidLearningHistoryId),
+                userService.checkStatusForUnitsInPathOfLearningHistory(
+                    invalidLearningHistoryId,
+                    invalidLearningHistoryId,
+                ),
             ).rejects.toThrowError(NotFoundException);
         });
 

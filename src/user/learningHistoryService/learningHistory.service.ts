@@ -75,6 +75,31 @@ export class LearningHistoryService {
         }
     }
 
+    /**
+     * Creates a new blank learning history for the specified learning units.
+     * @param historyId The LearningHistory where to add the consumed unit data.
+     * @param unitIds The IDs of the learning units for which history data shall be created for
+     * @returns The created (blank) history data for the consumed units
+     */
+    private async createConsumedUnitData(historyId: string, unitIds: string[]) {
+        // Creates ConsumedUnits and returns the number of created items
+        await this.db.consumedUnitData.createMany({
+            data: unitIds.map((unitId) => ({
+                historyId: historyId,
+                unitId: unitId,
+            })),
+            skipDuplicates: true,
+        });
+
+        // Returns the created items
+        return this.db.consumedUnitData.findMany({
+            where: {
+                historyId: historyId,
+                unitId: { in: unitIds },
+            },
+        });
+    }
+
     async deleteLearningHistoryById(historyId: string) {
         try {
             const lHistory = await this.db.learningHistory.delete({

@@ -260,50 +260,42 @@ export class PathFinderService {
         }
 
         // Create the personalized path
-        let newPath: PersonalizedLearningPath & {
-            unitSequence: LearningUnit[];
-            pathTeachingGoals: PrismaSkill[];
-            userProfile: LearningHistory & { user: UserProfile };
-        };
-        try {
-            newPath = await this.db.personalizedLearningPath.create({
-                data: {
-                    userProfileId: learningHistory.id,
-                    learningPathId: dto.originPathId,
-                    pathTeachingGoals: {
-                        connect: goals.map((goal) => ({ id: goal })),
-                    },
-                    unitSequence: {
-                        connect: dto.units.map((unit) => ({ id: unit })),
-                    },
-                    lifecycle: "CREATED",
+        const newPath = await this.db.personalizedLearningPath.create({
+            data: {
+                learningHistoryId: learningHistory.id,
+                learningPathId: dto.originPathId,
+                pathTeachingGoals: {
+                    connect: goals.map((goal) => ({ id: goal })),
                 },
-                include: {
-                    unitSequence: true,
-                    pathTeachingGoals: true,
-                    userProfile: {
-                        include: {
-                            user: true,
-                        },
+                unitSequence: {
+                    create: dto.units.map((unitId, index) => ({
+                        unitId: unitId,
+                        position: index,
+                    })),
+                },
+
+                lifecycle: "CREATED",
+            },
+            include: {
+                unitSequence: {
+                    include: {
+                        unit: true,
+                    },
+                    orderBy: {
+                        position: "asc",
                     },
                 },
-            });
-        } catch (error) {
-            throw error;
-        }
+                pathTeachingGoals: true,
+                learningHistory: {
+                    include: {
+                        user: true,
+                    },
+                },
+            },
+        });
 
         if (!newPath) {
             throw new NotFoundException(`Could not store path: ${dto}`);
-        }
-
-        // Create ordered path to track progress
-        for (let i = 0; i < dto.units.length; i++) {
-            this.db.learningPathProgress.create({
-                data: {
-                    personalPathId: newPath.id,
-                    unitId: dto.units[i],
-                },
-            });
         }
 
         return PathStorageResponseDto.createFromDao(newPath);
