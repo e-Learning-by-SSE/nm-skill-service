@@ -208,11 +208,10 @@ model LearningUnit {
   // learningHistoryId String?
   orga_id  String             @default("")
 
-  usedInProposed PersonalizedLearningPath[] @relation("proposedUnitsOfLearningPath")
   lifecycle      LIFECYCLE                  @default(DRAFT)
 
   feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
-  progress  LearningPathProgress[]
+  // progress  LearningPathProgress[]
 
   @@unique([id])
 }
@@ -300,49 +299,74 @@ model CareerProfile {
   userId                  String          @unique // relation scalar field 
 }
 
-model ConsumedUnitData {
-  id                   String               @id @default(cuid())
-  actualProcessingTime String
-  testPerformance      Decimal              @db.Decimal(5, 2)
-  consumedLU           LearningUnit         @relation("consumedLU", fields: [consumedLUId], references: [id])
-  consumedLUId         String // relation scalar field 
-  lbData               LearningBehaviorData @relation(fields: [lbDataId], references: [id])
-  lbDataId             String
-  status               STATUS               @default(STARTED)
-  date                 DateTime
-  startedBy            LearningHistory[]    @relation("startedBy")
-}
-
 // Stores an individual learning path for a user,
 // this may origin by selecting (and indivdualizing) a pre-defined path (course) of a teacher
 // or by creating an individual path to learn specific skills (e.g., after searching for them)
 //
 // Requested by MLS:
 // - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/43
+// 
+// Built the following relationship:
+// ┌─────────────────┐   * ┌───────────────────────────┐     *┌────────────────┐
+// │ LearningHistory ├────►│ PersonalizedLearningPath  ├─────►│ PathSequence   │
+// │ userId          │     │ origin*                   │      │ position: Int  │
+// └──────┬──────────┘     └───────────────────────────┘      └────────┬───────┘  
+//        │                 * ┌─────────────────────┐ 1                │
+//        └──────────────────►│ ConsumedUnitData    │◄─────────────────┘
+//                            │ unit: LearningUnit  │
+//                            │ state               │
+//                            └─────────────────────┘               
+// LearningHistory: Stores the complete learning history of a user
+// PersonalizedLearningPath: Stores one personalized learning path of a user, which may have multiple ones
+// PathSequence: Stores the order of LearningUnits within a personalized learning path
+// ConsumedUnitData: Stores the consumed LearningUnits of a personalized learning path (LearningUnit + State)
+//                   May also stored without a personalized learning path (e.g., for search results)
 model PersonalizedLearningPath {
   id                String                @id @default(cuid())
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
-  pathTeachingGoals Skill[]               @relation("proposedpathGoals")
-  unitSequence      LearningUnit[]        @relation("proposedUnitsOfLearningPath")
-  userProfile       LearningHistory       @relation(fields: [userProfileId], references: [id])
-  userProfileId     String
+  unitSequence      PathSequence[]
+  learningHistory   LearningHistory       @relation(fields: [learningHistoryId], references: [id])
+  learningHistoryId String
+  
+  // Origin either are path or custom goals
   learningPath      LearningPath?         @relation(fields: [learningPathId], references: [id])
   learningPathId    String?               @unique
-  progress          LearningPathProgress?
+  pathTeachingGoals Skill[]               @relation("proposedpathGoals")
+
+  // progress          LearningPathProgress?
   lifecycle         LIFECYCLE             @default(CREATED)
 
   @@map("personalPaths")
 }
 
-model LearningPathProgress {
-  id             String                   @id @default(cuid())
-  personalPath   PersonalizedLearningPath @relation(fields: [personalPathId], references: [id])
-  personalPathId String                   @unique
-  unit           LearningUnit             @relation(fields: [unitId], references: [id])
-  unitId         String                   @unique
+model PathSequence {
+  id          String                   @id @default(cuid())
+  position    Int
+  path        PersonalizedLearningPath @relation(fields: [pathId], references: [id])
+  pathId      String
+  unit        ConsumedUnitData         @relation(fields: [unitId], references: [id])
+  unitId      String
 
-  @@map("pathProgress")
+  @@unique([pathId, position])        // Position must be unique in a path
+  @@map("pathSequence")
+}
+
+model ConsumedUnitData {
+  id                   String               @id @default(cuid())
+  actualProcessingTime Int                  @default(0)                                                  // Duration in seconds
+  testPerformance      Decimal              @db.Decimal(5, 2) @default(0.0)
+  unit                 LearningUnit         @relation("consumedLU", fields: [unitId], references: [id])
+  unitId               String               
+  lbData               LearningBehaviorData? @relation(fields: [lbDataId], references: [id])             // Will be empty before the user starts the learning unit
+  lbDataId             String?
+  status               STATUS               @default(OPEN)
+  date                 DateTime             @default(now())
+  startedBy            LearningHistory      @relation("startedBy", fields: [historyId], references: [id])
+  historyId            String
+  path                 PathSequence[]
+
+  @@map("consumedUnits")
 }
 
 model LearningBehaviorData {

@@ -27,6 +27,7 @@ export class DbTestUtils {
     public async wipeDb() {
         // User Profiles
         await this.db.learningProgress.deleteMany();
+        await this.db.pathSequence.deleteMany();
         await this.db.personalizedLearningPath.deleteMany();
         await this.db.consumedUnitData.deleteMany();
         await this.db.learningHistory.deleteMany();
@@ -129,6 +130,29 @@ export class DbTestUtils {
             include: {
                 requirements: true,
                 pathTeachingGoals: true,
+            },
+        });
+    }
+
+    /**
+     * Creates a new blank learning history for the specified learning units.
+     * @param historyId The LearningHistory where to add the consumed unit data.
+     * @param unitIds The IDs of the learning units for which history data shall be created for
+     * @returns The created (blank) history data for the consumed units
+     */
+    async createConsumedUnitData(historyId: string, unitIds: string[]) {
+        await this.db.consumedUnitData.createMany({
+            data: unitIds.map((unitId) => ({
+                historyId: historyId,
+                unitId: unitId,
+            })),
+            skipDuplicates: true,
+        });
+
+        return this.db.consumedUnitData.findMany({
+            where: {
+                historyId: historyId,
+                unitId: { in: unitIds },
             },
         });
     }

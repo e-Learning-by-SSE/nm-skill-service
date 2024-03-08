@@ -5,7 +5,9 @@ import {
     PersonalizedLearningPath,
     Skill,
     UserProfile,
+    STATUS,
 } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import { IsDefined, IsNotEmpty, IsOptional } from "class-validator";
 
 /**
@@ -47,18 +49,33 @@ export class PathStorageResponseDto {
 
     static createFromDao(
         dao: PersonalizedLearningPath & {
-            unitSequence: LearningUnit[];
+            unitSequence: {
+                id: string;
+                position: number;
+                unit: {
+                    id: string;
+                    actualProcessingTime: number;
+                    testPerformance: Decimal;
+                    unitId: string;
+                    lbDataId: string | null;
+                    status: STATUS;
+                    date: Date;
+                    historyId: string;
+                };
+            }[];
             pathTeachingGoals: Skill[];
-            userProfile: LearningHistory & { user: UserProfile };
+            learningHistory: LearningHistory & { user: UserProfile };
         },
     ): PathStorageResponseDto {
-        const dto = new PathStorageResponseDto();
-        dto.userId = dao.userProfile.userId;
-        dto.learningHistoryId = dao.userProfile.id;
-        dto.pathId = dao.id;
-        dto.units = dao.unitSequence.map((u) => u.id);
-        dto.originPathId = dao.learningPathId ?? undefined;
-        dto.goal = dao.pathTeachingGoals.map((t) => t.id);
+        const dto: PathStorageResponseDto = {
+            userId: dao.learningHistory.userId,
+            learningHistoryId: dao.learningHistory.id,
+            pathId: dao.id,
+            units: dao.unitSequence.map((u) => u.id),
+            originPathId: dao.learningPathId ?? undefined,
+            goal: dao.pathTeachingGoals.map((t) => t.id),
+            lifecycle: dao.lifecycle,
+        };
 
         return dto;
     }

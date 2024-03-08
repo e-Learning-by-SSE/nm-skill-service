@@ -73,15 +73,12 @@ export class UserMgmtService {
 
     /**
      * ToDo: What is the use case? Re-acquisition of the same skill?
-     * @param userId 
-     * @param updateLearningProgressDto 
+     * @param userId
+     * @param updateLearningProgressDto
      */
-    async updateLearningProgress(
-        userId: string,
-        skillId: string
-    ) {
+    async updateLearningProgress(userId: string, skillId: string) {
         try {
-            console.log("Update of learning progress is not yet (?) implemented.")
+            console.log("Update of learning progress is not yet (?) implemented.");
         } catch (error) {
             throw new Error("Error updating learning progress.");
         }
@@ -100,7 +97,6 @@ export class UserMgmtService {
             });
             return createEntry;
         } catch (error) {
-            console.error(error);
             throw new ForbiddenException("Error creating learning progress");
         }
     }
@@ -284,7 +280,7 @@ export class UserMgmtService {
 
         const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
             data: {
-                userProfileId: userID,
+                learningHistoryId: userID,
                 unitSequence: {
                     connect: learningUnitsIds.map((id) => ({ id })),
                 },
@@ -296,49 +292,32 @@ export class UserMgmtService {
 
         return { createdPersonalizedLearningPath };
     }
-    async checkStatusForUnitsInPathOfLearningHistory(learningHistoryId: string) {
-        try {
-            // Find the learning path associated with the specified learning history
-            const learningPath = await this.db.personalizedLearningPath.findFirst({
-                where: {
-                    userProfileId: learningHistoryId,
+    async checkStatusForUnitsInPathOfLearningHistory(learningHistoryId: string, pathId: string) {
+        // Find the learning path associated with the specified learning history
+        const learningPath = await this.db.personalizedLearningPath.findUnique({
+            where: {
+                learningHistoryId: learningHistoryId,
+                id: pathId,
+            },
+            include: {
+                unitSequence: {
+                    include: {
+                        unit: true,
+                    },
                 },
-                include: {
-                    unitSequence: true,
-                },
-            });
+            },
+        });
 
-            if (!learningPath) {
-                throw new NotFoundException(
-                    "Learning path not found for the given learning history.",
-                );
-            }
-
-            const unitSequence = learningPath.unitSequence;
-
-            const unitStatus = await Promise.all(
-                unitSequence.map(async (unit) => {
-                    const consumedUnit = await this.db.consumedUnitData.findFirst({
-                        where: {
-                            consumedLUId: unit.id,
-                            startedBy: {
-                                some: {
-                                    id: learningHistoryId,
-                                },
-                            },
-                        },
-                    });
-                    return {
-                        unitId: unit.id,
-                        status: consumedUnit ? consumedUnit.status : null,
-                    };
-                }),
+        if (!learningPath) {
+            throw new NotFoundException(
+                `Learning path ${pathId} not found for the given learning history ${learningHistoryId}.`,
             );
-
-            return { unitStatus };
-        } catch (error) {
-            throw error;
         }
+
+        return learningPath.unitSequence.map((unit) => ({
+            unit: unit.unit,
+            status: unit.unit.status,
+        }));
     }
 
     /**
