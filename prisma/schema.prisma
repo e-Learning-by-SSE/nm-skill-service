@@ -179,6 +179,8 @@ model Nugget {
 // - Requested in class diagram (Seafile\ConceptsAndDesigns\Diagram_08_2023)
 model LearningUnit {
   id          String   @id @default(cuid())
+  parent      LearningUnit[] @relation("parent")
+  children    LearningUnit[] @relation("parent")
   resource    String   @default("") // Should point to the actual ressource
   language    String
   title       String

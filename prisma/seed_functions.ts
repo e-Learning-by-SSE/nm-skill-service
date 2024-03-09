@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 type LearningUnitType = {
   id: string;
+  parent: string[];
   name: string;
   description: string;
   requirements: string[];
@@ -17,9 +18,15 @@ type LearningUnitType = {
 export async function createLearningObjects(learningObjectives: LearningUnitType) {
   // Avoid Deadlocks -> Run all in sequence
   for (const unit of learningObjectives) {
+
+    const parent = unit.parent?.map((i) => ({ id: i }));
+
     await prisma.learningUnit.create({
       data: {
         id: unit.id,
+        parent: {
+            connect: parent,
+        },
         lifecycle: unit.lifecycle,
         orga_id: unit.orga_id,
         title: unit.name,
