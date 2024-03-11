@@ -11,7 +11,7 @@ describe("CareerProfileService", () => {
     const dbUtils = DbTestUtils.getInstance();
 
     // Object under test
-    const historyService = new LearningHistoryService(db);
+    const historyService = new LearningHistoryService(db, config);
 
     beforeEach(async () => {
         // Wipe DB before test
@@ -29,12 +29,12 @@ describe("CareerProfileService", () => {
                     id: "",
                     name: "",
                     companyId: null,
-                    status: "ACTIVE"
+                    status: "ACTIVE",
                 },
                 startedLearningUnits: [],
                 learnedSkills: [],
                 learningProfile: [],
-                personalPaths: []
+                personalPaths: [],
             };
 
             // Test precondition: No history entries exist
@@ -59,12 +59,12 @@ describe("CareerProfileService", () => {
                     id: "",
                     name: "",
                     companyId: null,
-                    status: "ACTIVE"
+                    status: "ACTIVE",
                 },
                 startedLearningUnits: [],
                 learnedSkills: [],
                 learningProfile: [],
-                personalPaths: []
+                personalPaths: [],
             };
 
             // Act and Assert: Call the createLearningHistory method and expect it to throw an error

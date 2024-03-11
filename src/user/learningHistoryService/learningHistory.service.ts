@@ -1,10 +1,11 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
-import { LearningHistoryCreationDto } from "./dto/learningHistory-creation.dto";
+import { LearningHistoryDto, LearningHistoryCreationDto, ConsumedUnitDataUpdateDto } from "./dto";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
-import { LearningHistoryDto } from "./dto/learningHistory.dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { STATUS } from "@prisma/client";
+import { ConfigService } from "@nestjs/config";
 
 /**
  * Service that manages the creation/update/deletion of learningHistory
@@ -12,7 +13,11 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
  */
 @Injectable()
 export class LearningHistoryService {
-    constructor(private db: PrismaService) {}
+    private passingThreshold: number;
+    constructor(private db: PrismaService, private config: ConfigService) {
+        // We ensure that all defined environment variables are set
+        this.passingThreshold = this.config.get("PASSING_THRESHOLD")!;
+    }
 
     /**
      * Returns the specified feedback.
@@ -77,6 +82,11 @@ export class LearningHistoryService {
 
     /**
      * Creates a new blank learning history for the specified learning units.
+     *
+     * This may be called when:
+     * - A user selects a computed/suggested learning path and starts learning
+     * - A user selects one or more learning units to learn independently of any paths
+     *
      * @param historyId The LearningHistory where to add the consumed unit data.
      * @param unitIds The IDs of the learning units for which history data shall be created for
      * @returns The created (blank) history data for the consumed units
@@ -98,6 +108,47 @@ export class LearningHistoryService {
                 unitId: { in: unitIds },
             },
         });
+    }
+
+    /**
+     * Updates the status of a consumed unit, when an user learns the unit.
+     * Will automatically create a new ConsumedUnitData entry if none exists yet.
+     * @param historyId The LearningHistory where to add the consumed unit data.
+     * @param dto The changes to apply, undefined entries will be ignored.
+     */
+    async modifyConsumedUnitData(historyId: string, dto: ConsumedUnitDataUpdateDto) {
+        // Compute progress:
+        let state: STATUS = STATUS.OPEN;
+        if (dto.testPerformance) {
+            if (dto.testPerformance >= this.passingThreshold) {
+                state = STATUS.FINISHED;
+            } else if (dto.actualProcessingTime) {
+                state = STATUS.STARTED;
+            }
+        }
+
+        const updatedUnit = await this.db.consumedUnitData.upsert({
+            where: {
+                unitId_historyId: {
+                    historyId: historyId,
+                    unitId: dto.unitId,
+                },
+            },
+            create: {
+                historyId: historyId,
+                unitId: dto.unitId,
+                actualProcessingTime: dto.actualProcessingTime,
+                testPerformance: dto.testPerformance,
+                status: state,
+            },
+            update: {
+                actualProcessingTime: dto.actualProcessingTime,
+                testPerformance: dto.testPerformance,
+                status: state,
+            },
+        });
+
+        return updatedUnit;
     }
 
     async deleteLearningHistoryById(historyId: string) {

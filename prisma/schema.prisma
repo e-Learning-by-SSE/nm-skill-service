@@ -366,6 +366,7 @@ model ConsumedUnitData {
   historyId            String
   path                 PathSequence[]
 
+  @@unique([unitId, historyId])
   @@map("consumedUnits")
 }
 
