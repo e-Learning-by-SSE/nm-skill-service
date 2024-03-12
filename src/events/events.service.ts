@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+    UnprocessableEntityException,
+} from "@nestjs/common";
 
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto";
@@ -218,23 +223,35 @@ export class EventMgmtService {
             }
 
             // A MLS teacher adds a MLS user ID to a Task (specifically to its taskToDos array), meaning the user has to complete this task
-            // A taskTodo object contains the individual learning progress per user
-            //TODO: Wait until user profile is finished.
-            case MlsActionEntity.TaskToDo: {
-                LoggerUtil.logInfo("EventService::TaskToDoEvent", mlsEvent.id);
-                // When a TaskTodo is updated in the MLS system, update our user profile accordingly
+            // A taskTodo object contains the individual learning progress per user (and a taskTodoInfo object)
+            // A taskTodoInfo contains even more fine-grained updates of the learning progress.
+            // We need to listen to taskTodoInfo PUT events, as the change of the status to FINISHED is happening only there
+            // We get a payload for the taskTodoInfo, and a taskTodoPayload for the payload of the taskTodo object (due to MLS implementation constraints)
+            case MlsActionEntity.TaskToDoInfo: {
+                LoggerUtil.logInfo("EventService::TaskToDoInfoEvent", mlsEvent.id);
+                // When a TaskTodoInfo is updated in the MLS system, update our user profile accordingly
                 if (mlsEvent.method === MlsActionType.PUT) {
-                    LoggerUtil.logInfo("EventService::getTaskToDoPUT", mlsEvent.id);
+                    LoggerUtil.logInfo("EventService::getTaskToDoInfoPUT", mlsEvent.id);
+
+                    // Make sure taskTodoPayload is existent and not empty
+                    if (!mlsEvent.taskTodoPayload) {
+                        LoggerUtil.logInfo(
+                            "EventService::TaskToDoInfoLearnSkill:Error",
+                            "taskTodoPayload is empty/undefined!",
+                        );
+                        throw new UnprocessableEntityException(
+                            "TaskTodoPayload is empty/undefined!",
+                        );
+                    }
 
                     //Try to read the required values.
-                    //If field not existing or not a number, variables will be NaN or undefined and the condition evaluates to false
-                    const scoredPoints = +mlsEvent.payload["scoredPoints" as keyof JSON]; //The + is used for parsing to a number
-                    const maxPoints = +mlsEvent.payload["maxPoints" as keyof JSON]; // caution: can be 0?
-                    const todoInfo = mlsEvent.payload["taskTodoInfo" as keyof JSON] ?? "";
-                    const FINISHED = todoInfo["status" as keyof typeof todoInfo];
+                    //If field not existing or not a number, variables will be NaN or undefined and the condition evaluates to false (the ! is necessary to force typescript to access the object, though)
+                    const scoredPoints = +mlsEvent.taskTodoPayload!["scoredPoints" as keyof JSON]; //The + is used for parsing to a number
+                    const maxPoints = +mlsEvent.taskTodoPayload!["maxPoints" as keyof JSON]; // caution: can be 0
+                    const FINISHED = mlsEvent.payload["status" as keyof JSON];
 
                     LoggerUtil.logInfo(
-                        "EventService::getTaskToDo:PointsAndStatus",
+                        "EventService::getTaskToDoInfo:PointsAndStatus",
                         "scored(" +
                             scoredPoints +
                             ") max(" +
@@ -247,20 +264,23 @@ export class EventMgmtService {
                     //Check conditions for acquisition
                     if (
                         FINISHED == "FINISHED" &&
-                        scoredPoints / maxPoints >= this.configService.get("PASSING_THRESHOLD")
+                        (maxPoints == 0 || //Because some tasks have no points and are finished successfully every time
+                            scoredPoints / maxPoints >= this.configService.get("PASSING_THRESHOLD"))
                     ) {
                         LoggerUtil.logInfo(
-                            "EventService::TaskToDoLearnSkill: Threshold passed",
+                            "EventService::TaskToDoInfoLearnSkill: Threshold passed",
                             mlsEvent.id,
                         );
 
                         //Get the id of the user that finished the task
-                        const userID = "" + mlsEvent.payload["user" as keyof JSON]?.toString();
+                        const userID =
+                            "" + mlsEvent.taskTodoPayload!["user" as keyof JSON]?.toString();
                         //Get the id of the finished task
-                        const taskID = "" + mlsEvent.payload["task" as keyof JSON]?.toString();
+                        const taskID =
+                            "" + mlsEvent.taskTodoPayload!["task" as keyof JSON]?.toString();
 
                         LoggerUtil.logInfo(
-                            "EventService::TaskToDoLearnSkill:getIDs",
+                            "EventService::TaskToDoInfoLearnSkill:getIDs",
                             "User: " + userID + " Task: " + taskID,
                         );
 
@@ -271,7 +291,7 @@ export class EventMgmtService {
                             const skills = lu.teachingGoals;
 
                             LoggerUtil.logInfo(
-                                "EventService::TaskToDoGetSkill",
+                                "EventService::TaskToDoInfoGetSkill",
                                 "LU: " + lu.toString() + " Skills: " + skills.toString(),
                             );
 
@@ -291,7 +311,7 @@ export class EventMgmtService {
                                 learningProgressList.push(learningProgressDto);
 
                                 LoggerUtil.logInfo(
-                                    "EventService::TaskToDoLearnSkill:SkillAcquired",
+                                    "EventService::TaskToDoInfoLearnSkill:SkillAcquired",
                                     learningProgressDto.userId +
                                         "," +
                                         learningProgressDto.skillId +
@@ -299,7 +319,7 @@ export class EventMgmtService {
                                 );
                             }
 
-                            LoggerUtil.logInfo("EventService::TaskToDoLearnSkill:Finished");
+                            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Finished");
 
                             //Return the array with all learned skills (list of learning progress objects)
                             return learningProgressList;
@@ -307,7 +327,7 @@ export class EventMgmtService {
                             //When user, learning unit, or skill id are not existent in our DB
                         } catch (error) {
                             console.error(error);
-                            LoggerUtil.logInfo("EventService::TaskToDoLearnSkill:Error", error);
+                            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Error", error);
                             throw new ForbiddenException(
                                 "No skill(s) acquired, learning unit not existent or has no skills",
                             );
@@ -316,21 +336,21 @@ export class EventMgmtService {
                         //When we get irrelevant events, like an unsuccessful attempt
                     } else {
                         LoggerUtil.logInfo(
-                            "EventService::TaskToDoLearnSkill:NothingRelevant",
+                            "EventService::TaskToDoInfoLearnSkill:NothingRelevant",
                             mlsEvent.id,
                         );
                         return "Nothing relevant happened";
                     }
                 } else {
                     throw new ForbiddenException(
-                        "TaskToDoEvent: Method for this action type not implemented.",
+                        "TaskToDoInfoEvent: Method for this action type not implemented.",
                     );
                 }
             }
 
-            //TODO: What about taskTodoInfo? It is existing in the Excel table, but not in Miro
-            case MlsActionEntity.TaskToDoInfo: {
-                LoggerUtil.logInfo("EventService::TaskToDoInfoNotYetImplemented", mlsEvent.id);
+            //We do not handle taskToDo events, as they contain taskToDoInfo objects (and the last update is only for the taskToDoInfo object)
+            case MlsActionEntity.TaskToDo: {
+                LoggerUtil.logInfo("EventService::TaskToDoNotRelevant", mlsEvent.id);
                 break;
             }
 

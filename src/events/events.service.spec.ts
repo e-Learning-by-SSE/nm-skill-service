@@ -11,6 +11,7 @@ import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-
 import { LIFECYCLE, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
 import { LearningProgressDto } from "../user/dto";
+import { UnprocessableEntityException } from "@nestjs/common";
 
 describe("Event Service", () => {
     //Required Classes
@@ -88,16 +89,16 @@ describe("Event Service", () => {
             );
         });
 
-        it("should throw errors when getting invalid method types for valid entities (taskTodo)", async () => {
-            // Arrange: Create events with invalid action types for taskTodo
+        it("should throw errors when getting invalid method types for valid entities (taskTodoInfo)", async () => {
+            // Arrange: Create events with invalid action types for taskTodoInfo
             const invalidMLSEvent: MLSEvent = {
-                entityType: MlsActionEntity.TaskToDo,
+                entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.POST,
-                id: "invalidMethodTaskToDo",
+                id: "invalidMethodTaskToDoInfo",
                 payload: JSON.parse("{}"),
             };
 
-            // Act and assert: Call the getEvent method with a non-existing action type for taskTodo
+            // Act and assert: Call the getEvent method with a non-existing action type for taskTodoInfo
             await expect(eventService.getEvent(invalidMLSEvent)).rejects.toThrow(
                 ForbiddenException,
             );
@@ -151,11 +152,14 @@ describe("Event Service", () => {
         it("should throw errors when trying to get skills from a non-existing task (learning unit)", async () => {
             // Arrange: Create events with missing state attribute for a user update
             const invalidMLSEvent: MLSEvent = {
-                entityType: MlsActionEntity.TaskToDo,
+                entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "GetSkillFromNonExistingTask",
                 payload: JSON.parse(
-                    '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"testEventId", "task":"non-existing"}',
+                    '{"status":"FINISHED"}',
+                ),
+                taskTodoPayload: JSON.parse(
+                    '{"scoredPoints":"1", "maxPoints":1, "user":"testEventId", "task":"non-existing"}',
                 ),
             };
 
@@ -177,11 +181,13 @@ describe("Event Service", () => {
             const luID = learningUnit.id;
 
             const invalidMLSEvent: MLSEvent = {
-                entityType: MlsActionEntity.TaskToDo,
+                entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "NoSkillInTask",
-                payload: JSON.parse(
-                    '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"' +
+                payload: JSON.parse('{"status":"FINISHED"}',
+                ),
+                taskTodoPayload: JSON.parse(
+                    '{"scoredPoints":"1", "maxPoints":1, "user":"' +
                         userID +
                         '", "task":"' +
                         luID +
@@ -197,11 +203,14 @@ describe("Event Service", () => {
         it("should do nothing when the scored points are below the threshold", async () => {
             // Arrange: Create events with points below threshold
             const invalidMLSEvent: MLSEvent = {
-                entityType: MlsActionEntity.TaskToDo,
+                entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "ScoredPointsBelowThreshold",
                 payload: JSON.parse(
-                    '{"scoredPoints":"4", "maxPoints":10, "taskTodoInfo":{"status":"FINISHED"}, "user":"notRelevant", "task":"notRelevant"}',
+                    '{"status":"FINISHED"}',
+                ),
+                taskTodoPayload: JSON.parse(
+                    '{"scoredPoints":"4", "maxPoints":10, "user":"notRelevant", "task":"notRelevant"}',
                 ),
             };
 
@@ -215,11 +224,14 @@ describe("Event Service", () => {
         it("should do nothing when the status is not finished", async () => {
             // Arrange: Create events with other status than finished
             const invalidMLSEvent: MLSEvent = {
-                entityType: MlsActionEntity.TaskToDo,
+                entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "StatusIsNotFinished",
                 payload: JSON.parse(
-                    '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"NotFINISHED"}, "user":"notRelevant", "task":"notRelevant"}',
+                    '{"status":"NotFINISHED"}',
+                ),
+                taskTodoPayload: JSON.parse(
+                    '{"scoredPoints":"1", "maxPoints":1, "user":"notRelevant", "task":"notRelevant"}',
                 ),
             };
 
@@ -248,11 +260,14 @@ describe("Event Service", () => {
             const luID = learningUnit.id;
 
             const invalidMLSEvent: MLSEvent = {
-                entityType: MlsActionEntity.TaskToDo,
+                entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "LearnSkillByNonExistentUser",
                 payload: JSON.parse(
-                    '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"non-existent", "task":"' +
+                    '{"status":"FINISHED"}',
+                ),
+                taskTodoPayload: JSON.parse(
+                    '{"scoredPoints":"1", "maxPoints":1, "user":"non-existent", "task":"' +
                         luID +
                         '"}',
                 ),
@@ -264,13 +279,14 @@ describe("Event Service", () => {
             );
         });
 
-        it("should throw errors when getting a put event for a TaskToDo with invalid payload", async () => {
+        it("should throw errors when getting a put event for a TaskToDoInfo with invalid payload", async () => {
             // Arrange: Create events with invalid payload
             const invalidMLSEvent: MLSEvent = {
-                entityType: MlsActionEntity.TaskToDo,
+                entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
-                id: "TaskToDoWithInvalidPayload",
+                id: "TaskToDoInfoWithInvalidPayload",
                 payload: JSON.parse("{}"),
+                taskTodoPayload: JSON.parse("{}"),
             };
 
             // Act: Call the getEvent PUT method with invalid payload
@@ -278,6 +294,21 @@ describe("Event Service", () => {
 
             // Assert: Check that the output is as expected
             expect(result).toEqual("Nothing relevant happened");
+        });
+
+        it("should throw errors when getting a put event for a TaskToDoInfo with missing taskTodoPayload", async () => {
+            // Arrange: Create events with missing taskTodoPayload
+            const invalidMLSEvent: MLSEvent = {
+                entityType: MlsActionEntity.TaskToDoInfo,
+                method: MlsActionType.PUT,
+                id: "TaskToDoInfoWithMissingTaskTodoPayload",
+                payload: JSON.parse("{}"),
+            };
+
+            // Assert and Call: Check that the output is as expected
+            await expect(eventService.getEvent(invalidMLSEvent)).rejects.toThrow(
+                UnprocessableEntityException,
+            );
         });
     });
 
@@ -481,7 +512,7 @@ describe("Event Service", () => {
     });
 
     /**
-     * Positive tests for the event handling API for MLS taskToDo events (when a user does something with a task), testing all kinds of valid inputs.
+     * Positive tests for the event handling API for MLS taskToDoInfo events (when a user does something with a task), testing all kinds of valid inputs.
      */
     describe("successful task finish", () => {
         it("should create a valid learning progress linking user and skill", async () => {
@@ -508,11 +539,14 @@ describe("Event Service", () => {
 
             //Create a valid MLS event
             const validMLSPostEvent: MLSEvent = {
-                entityType: MlsActionEntity.TaskToDo,
+                entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
-                id: "validTaskToDo",
+                id: "validTaskToDoInfo",
                 payload: JSON.parse(
-                    '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"' +
+                    '{"status":"FINISHED"}',
+                ),
+                taskTodoPayload: JSON.parse(
+                    '{"scoredPoints":"1", "maxPoints":1, "user":"' +
                         userID +
                         '", "task":"' +
                         luID +
@@ -531,6 +565,57 @@ describe("Event Service", () => {
                 expect(entry.userId).toEqual(userID);
             }
         });
+
+        it("should create a valid learning progress for a task with 0 max points", async () => {
+            // Arrange: Define test data and create event input
+
+            //We need an existing user, skill (requires a skillMap), and a learning unit teaching the skill
+            const userProfile = await dbUtils.createUserProfile("Test Name");
+            const skillMap = await dbUtils.createSkillMap("owner", "Default Skill Map for Testing");
+            const goalSkill = await dbUtils.createSkill(
+                skillMap,
+                "Taught Skill",
+                [],
+                "Description",
+                1,
+            );
+
+            const teachingGoals = [goalSkill];
+            const learningUnit = await dbUtils.createLearningUnit("Test LU with 0 max points", teachingGoals, []);
+
+            //We need the Ids for validation
+            const userID = userProfile.id;
+            const skillID = goalSkill.id;
+            const luID = learningUnit.id;
+
+            //Create a valid MLS event
+            const validMLSPostEvent: MLSEvent = {
+                entityType: MlsActionEntity.TaskToDoInfo,
+                method: MlsActionType.PUT,
+                id: "validTaskToDoInfoWith0MaxPoints",
+                payload: JSON.parse(
+                    '{"status":"FINISHED"}',
+                ),
+                taskTodoPayload: JSON.parse(
+                    '{"scoredPoints":"0", "maxPoints":0, "user":"' +
+                        userID +
+                        '", "task":"' +
+                        luID +
+                        '"}',
+                ),
+            };
+
+            // Act: Call the getEvent method
+            const createdEntry = await eventService.getEvent(validMLSPostEvent);
+
+            // Assert: Check that the createdEntry is valid and matches the expected data
+            // Here, we expect an array of learning progress DTOs
+            for (const entry of createdEntry as Array<LearningProgressDto>) {
+                //Skill id and user id should match the input
+                expect(entry.skillId).toEqual(skillID);
+                expect(entry.userId).toEqual(userID);
+            }
+        });        
 
         it("should create several valid learning progress objects linking user and different skills", async () => {
             // Arrange: Define test data and create event input
@@ -570,11 +655,14 @@ describe("Event Service", () => {
 
             //Create a valid MLS event
             const validMLSPostEvent: MLSEvent = {
-                entityType: MlsActionEntity.TaskToDo,
+                entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
-                id: "validTaskToDo2",
+                id: "validTaskToDoInfo2",
                 payload: JSON.parse(
-                    '{"scoredPoints":"1", "maxPoints":1, "taskTodoInfo":{"status":"FINISHED"}, "user":"' +
+                    '{"status":"FINISHED"}',
+                ),
+                taskTodoPayload: JSON.parse(
+                    '{"scoredPoints":"1", "maxPoints":1, "user":"' +
                         userID +
                         '", "task":"' +
                         luID +
