@@ -1,6 +1,11 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
-import { LearningHistoryDto, LearningHistoryCreationDto, ConsumedUnitDataUpdateDto } from "./dto";
+import {
+    LearningHistoryDto,
+    LearningHistoryCreationDto,
+    ConsumedUnitUpdateDto,
+    ConsumedUnitDto,
+} from "./dto";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -116,8 +121,8 @@ export class LearningHistoryService {
      * @param historyId The LearningHistory where to add the consumed unit data.
      * @param dto The changes to apply, undefined entries will be ignored.
      */
-    async modifyConsumedUnitData(historyId: string, dto: ConsumedUnitDataUpdateDto) {
-        // Compute progress:
+    async updateConsumedUnitData(historyId: string, dto: ConsumedUnitUpdateDto) {
+        // Compute progress
         let state: STATUS = STATUS.OPEN;
         if (dto.testPerformance) {
             if (dto.testPerformance >= this.passingThreshold) {
@@ -128,12 +133,14 @@ export class LearningHistoryService {
         }
 
         const updatedUnit = await this.db.consumedUnitData.upsert({
+            // Check if exist
             where: {
                 unitId_historyId: {
                     historyId: historyId,
                     unitId: dto.unitId,
                 },
             },
+            // Create if not exist
             create: {
                 historyId: historyId,
                 unitId: dto.unitId,
@@ -141,14 +148,20 @@ export class LearningHistoryService {
                 testPerformance: dto.testPerformance,
                 status: state,
             },
+            // Update if exist
             update: {
                 actualProcessingTime: dto.actualProcessingTime,
                 testPerformance: dto.testPerformance,
                 status: state,
             },
+            include: {
+                path: true,
+            },
         });
 
-        return updatedUnit;
+        // TODO SE: Update learned skills if status == FINISHED
+
+        return ConsumedUnitDto.createFromDao(updatedUnit);
     }
 
     async deleteLearningHistoryById(historyId: string) {

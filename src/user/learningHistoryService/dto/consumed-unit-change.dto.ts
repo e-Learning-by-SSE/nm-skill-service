@@ -3,7 +3,7 @@ import { IsInt, IsOptional, IsString, Min } from "class-validator";
 /**
  * DTO for updating the learning progress for a LearningUnit (ConsumedUnit).
  */
-export class ConsumedUnitDataUpdateDto {
+export class ConsumedUnitUpdateDto {
     /**
      * Processing time in seconds.
      */
