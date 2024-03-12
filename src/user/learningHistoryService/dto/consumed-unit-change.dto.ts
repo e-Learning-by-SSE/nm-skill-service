@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, Min } from "class-validator";
+import { IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 
 /**
  * DTO for updating the learning progress for a LearningUnit (ConsumedUnit).
@@ -17,6 +17,7 @@ export class ConsumedUnitUpdateDto {
      */
     @IsOptional()
     @Min(0)
+    @Max(1)
     testPerformance?: number;
 
     /**

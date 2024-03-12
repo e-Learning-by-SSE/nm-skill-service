@@ -18,6 +18,7 @@ export class ConsumedUnitDto extends ConsumedUnitUpdateDto {
     /**
      * Optional list of personal learning paths at which the unit is included.
      */
+    @IsDefined()
     learningPaths: string[];
 
     static createFromDao(
