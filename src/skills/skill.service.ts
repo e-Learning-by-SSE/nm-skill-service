@@ -37,8 +37,22 @@ export class SkillMgmtService {
 
         const skills = await this.db.skill.findMany({
             include: {
-                nestedSkills: true,
-                parentSkills: true,
+                nestedSkills: {
+                    select: {
+                        id: true,
+                    },
+                    orderBy: {
+                        createdAt: "asc",
+                    },
+                },
+                parentSkills: {
+                    select: {
+                        id: true,
+                    },
+                    orderBy: {
+                        createdAt: "asc",
+                    },
+                },
             },
         });
         // Check if no skills were found, and throw an exception if so
@@ -104,8 +118,22 @@ export class SkillMgmtService {
                     },
                 },
                 include: {
-                    nestedSkills: true,
-                    parentSkills: true, // Include nestedSkills in the response
+                    nestedSkills: {
+                        select: {
+                            id: true,
+                        },
+                        orderBy: {
+                            createdAt: "asc",
+                        },
+                    },
+                    parentSkills: {
+                        select: {
+                            id: true,
+                        },
+                        orderBy: {
+                            createdAt: "asc",
+                        },
+                    },
                 },
             });
             return SkillDto.createFromDao(skill);
@@ -144,8 +172,22 @@ export class SkillMgmtService {
                 id: skillId,
             },
             include: {
-                nestedSkills: true,
-                parentSkills: true,
+                nestedSkills: {
+                    select: {
+                        id: true,
+                    },
+                    orderBy: {
+                        createdAt: "asc",
+                    },
+                },
+                parentSkills: {
+                    select: {
+                        id: true,
+                    },
+                    orderBy: {
+                        createdAt: "asc",
+                    },
+                },
             },
         });
 
@@ -266,7 +308,17 @@ export class SkillMgmtService {
         const skills = await this.db.skill.findMany({
             ...query,
             include: {
-                nestedSkills: true,
+                nestedSkills: {
+                    select: {
+                        id: true,
+                    },
+                    orderBy: {
+                        createdAt: "asc",
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: "asc",
             },
         });
 
@@ -488,8 +540,22 @@ export class SkillMgmtService {
                 parentSkills: this.updateQuery(dto.parentSkills),
             },
             include: {
-                nestedSkills: true,
-                parentSkills: true,
+                nestedSkills: {
+                    select: {
+                        id: true,
+                    },
+                    orderBy: {
+                        createdAt: "asc",
+                    },
+                },
+                parentSkills: {
+                    select: {
+                        id: true,
+                    },
+                    orderBy: {
+                        createdAt: "asc",
+                    },
+                },
                 pathTeachingGoals: true,
             },
         });
