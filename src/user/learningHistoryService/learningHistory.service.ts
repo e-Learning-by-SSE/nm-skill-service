@@ -25,7 +25,7 @@ export class LearningHistoryService {
     }
 
     /**
-     * Returns the specified feedback.
+     * Returns the specified LearningHistory.
      * @param learningHistoryId The ID of the requested learningHistory
      * @returns Either the learningHistory with the specified ID, or null?
      */
