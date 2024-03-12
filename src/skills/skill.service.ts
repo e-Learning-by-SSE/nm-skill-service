@@ -442,53 +442,50 @@ export class SkillMgmtService {
         return true;
     }
 
-    async adaptSkill(dto: SkillUpdateDto) {
+    /**
+     * Creates an update query, but considers:
+     * - null: The field shall be deleted (reset to default)
+     * - undefined: The field shall not be changed
+     * - value: The field shall be updated to the given value
+     * @param ids The list of IDs that shall be updated (or undefined if no update shall be performed)
+     * @returns The Prisma update query
+     */
+    private updateQuery(ids?: string[] | null) {
+        if (ids === null) {
+            return { set: [] };
+        } else if (ids === undefined) {
+            return undefined;
+        } else {
+            return { set: ids.map((item) => ({ id: item })) };
+        }
+    }
+
+    async updateSkill(dto: SkillUpdateDto) {
         // Check if the skill is already in use
         const isUsed = await this.isSkillUsed(dto.id);
         if (isUsed) {
-            throw new BadRequestException("Skill is already used and cannot be modified.");
+            throw new ForbiddenException("Skill is already used and cannot be modified.");
         }
 
         // Validate the nestedSkills to ensure they exist and won't create a cycle
-        const nestedSkillsExist = await this.checkNestedSkillsExist(dto.nestedSkills);
-        if (!nestedSkillsExist) {
-            throw new BadRequestException(
-                "One or more specified nested skills do not exist or would create a cyclic relationship.",
-            );
+        if (dto.nestedSkills) {
+            const nestedSkillsExist = await this.checkNestedSkillsExist(dto.nestedSkills);
+            if (!nestedSkillsExist) {
+                throw new ForbiddenException(
+                    "One or more specified nested skills do not exist or would create a cyclic relationship.",
+                );
+            }
         }
 
-        await this.db.skill.update({
-            where: { id: dto.id },
-            data: {
-                nestedSkills: { set: [] },
-                parentSkills: { set: [] },
-            },
-        });
-        const existingSkill = await this.db.skill.findUnique({
-            where: { id: dto.id },
-            include: { nestedSkills: true, parentSkills: true },
-        });
-        if (!existingSkill) {
-            throw new BadRequestException("Skill not found");
-        }
         // Update the skill with the provided data, including nestedSkills
         const updatedSkill = await this.db.skill.update({
             where: { id: dto.id },
             data: {
-                name: dto.name ?? existingSkill.name,
-                level: dto.level ?? existingSkill.level,
-                description: dto.description ?? existingSkill.description,
-
-                nestedSkills: {
-                    connect:
-                        dto.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })) ??
-                        existingSkill.nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
-                },
-                parentSkills: {
-                    connect:
-                        dto.parentSkills.map((nestedSkillId) => ({ id: nestedSkillId })) ??
-                        existingSkill.parentSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
-                },
+                name: dto.name,
+                level: dto.level,
+                description: dto.description,
+                nestedSkills: this.updateQuery(dto.nestedSkills),
+                parentSkills: this.updateQuery(dto.parentSkills),
             },
             include: {
                 nestedSkills: true,
@@ -499,6 +496,7 @@ export class SkillMgmtService {
 
         return SkillDto.createFromDao(updatedSkill);
     }
+
     isValidDate(dateString: any) {
         const date = new Date(dateString);
 

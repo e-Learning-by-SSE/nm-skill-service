@@ -3,7 +3,6 @@ import { SkillMgmtService } from "./skill.service";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import {
-    ResolvedSkillRepositoryDto,
     SkillCreationDto,
     ResolvedSkillDto,
     SkillRepositoryCreationDto,

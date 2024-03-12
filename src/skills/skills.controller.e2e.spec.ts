@@ -9,7 +9,6 @@ import { validate } from "class-validator";
 import {
     ResolvedSkillDto,
     ResolvedSkillListDto,
-    ResolvedSkillRepositoryDto,
     SkillCreationDto,
     SkillDto,
     SkillListDto,

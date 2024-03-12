@@ -280,7 +280,7 @@ export class SkillMgmtController {
     async adaptSkill(@Body() dto: SkillUpdateDto) {
         try {
             LoggerUtil.logInfo("Skill::adaptSkill", dto);
-            const result = await this.skillService.adaptSkill(dto);
+            const result = await this.skillService.updateSkill(dto);
             LoggerUtil.logInfo("Skill::adaptSkill", { response: result });
             return result;
         } catch (error) {
