@@ -1149,7 +1149,7 @@ describe("Skill Service", () => {
         it("Update used skill -> ForbiddenException", async () => {
             // Arrange: Create a skill and associate it with a learning unit
             const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
-            dbUtils.createLearningUnit("Learning Unit 1", [skill], []);
+            await dbUtils.createLearningUnit("Learning Unit 1", [skill], []);
 
             // Act: Change name of used skill
             const result = skillService.updateSkill(skill.id, { name: "New Name" });
