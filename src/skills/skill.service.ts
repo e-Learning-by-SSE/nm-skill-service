@@ -484,9 +484,9 @@ export class SkillMgmtService {
         }
     }
 
-    async updateSkill(dto: SkillUpdateDto) {
+    async updateSkill(skillId: string, dto: SkillUpdateDto) {
         // Check if the skill is already in use
-        const isUsed = await this.isSkillUsed(dto.id);
+        const isUsed = await this.isSkillUsed(skillId);
         if (isUsed) {
             throw new ForbiddenException("Skill is already used and cannot be modified.");
         }
@@ -503,7 +503,7 @@ export class SkillMgmtService {
 
         // Update the skill with the provided data, including nestedSkills
         const updatedSkill = await this.db.skill.update({
-            where: { id: dto.id },
+            where: { id: skillId },
             data: {
                 name: dto.name,
                 level: dto.level,
@@ -517,13 +517,137 @@ export class SkillMgmtService {
             },
         });
 
+        if (dto.repositoryId && dto.repositoryId !== updatedSkill.repositoryId) {
+            return await this.moveSkillToRepository(skillId, dto.repositoryId);
+        }
+
         return SkillDto.createFromDao(updatedSkill);
     }
 
-    isValidDate(dateString: any) {
-        const date = new Date(dateString);
+    /**
+     * Moves a skill and all of its children to a new repository.
+     * @param skillId The ID of the skill to move
+     * @param newRepositoryId The ID of the repository to move the skill to
+     * @returns The list of moved skills
+     * @throws {NotFoundException} If the specified skill does not exist
+     * @throws {ForbiddenException} If the skill or any of its children is already used or has an additional parent
+     */
+    public async moveSkillToRepository(skillId: string, newRepositoryId: string) {
+        /**
+         * Apply multiple operations as a single transaction:
+         * https://www.prisma.io/docs/orm/prisma-client/queries/transactions#interactive-transactions
+         */
+        const movedSkills = await this.db.$transaction(async (tx) => {
+            /*
+             * Identify the current repository of the skill and load all skills of this repository
+             * to check if skill and its children can be moved
+             */
+            const skill = await tx.skill.findUnique({
+                where: { id: skillId },
+                include: {
+                    nestedSkills: true,
+                    parentSkills: true,
+                },
+            });
 
-        // Check if the date is valid and the string is not 'Invalid Date'
-        return !isNaN(date.getTime());
+            if (!skill) {
+                throw new NotFoundException(`Skill with ID ${skillId} not found`);
+            }
+
+            // Load all skills of the same repository
+            const skillsOfRepository = new Map<
+                string,
+                Skill & {
+                    nestedSkills: Skill[];
+                    parentSkills: Skill[];
+                }
+            >();
+            (
+                await tx.skill.findMany({
+                    where: { repositoryId: skill.repositoryId },
+                    include: {
+                        nestedSkills: true,
+                        parentSkills: true,
+                    },
+                })
+            ).forEach((s) => skillsOfRepository.set(s.id, s));
+
+            // Identify all children of the skill
+            const childSkills = new Map<
+                string,
+                Skill & {
+                    nestedSkills: Skill[];
+                    parentSkills: Skill[];
+                }
+            >();
+            const queue = [skill];
+            while (queue.length > 0) {
+                const currentSkill = queue.pop();
+                if (currentSkill) {
+                    childSkills.set(currentSkill.id, currentSkill);
+                    currentSkill.nestedSkills.forEach((child) => {
+                        const nestedSkill = skillsOfRepository.get(child.id);
+                        if (nestedSkill) {
+                            queue.push(nestedSkill);
+                        }
+                    });
+                }
+            }
+
+            /*
+             * Sanity check 1: The skill to move is top-level and none of the children
+             * has an additional parent outside of the determined structure
+             */
+            const childrenWithFurtherParents: string[] = [];
+            for (const child of childSkills.values()) {
+                if (child.parentSkills.some((parent) => !childSkills.has(parent.id))) {
+                    childrenWithFurtherParents.push(child.id);
+                }
+            }
+            if (childrenWithFurtherParents.length > 0) {
+                throw new ForbiddenException(
+                    `Skills ${childrenWithFurtherParents.join(
+                        ", ",
+                    )} are nested below a Skill which shall not be moved.`,
+                );
+            }
+
+            // Sanity check 2: None of the skills should be used by a learning unit
+            const skillsInUse: string[] = [];
+            for (const child of childSkills.values()) {
+                if (await this.isSkillUsed(child.id)) {
+                    skillsInUse.push(child.id);
+                }
+            }
+            if (skillsInUse.length > 0) {
+                throw new ForbiddenException(
+                    `Skills ${skillsInUse.join(", ")} are already used and cannot be moved.`,
+                );
+            }
+
+            // Move the skill and its children to the new repository
+            await tx.skill.updateMany({
+                where: {
+                    id: {
+                        in: [...childSkills.keys()],
+                    },
+                },
+                data: { repositoryId: newRepositoryId },
+            });
+
+            // Return the moved skills
+            return await tx.skill.findMany({
+                where: {
+                    id: {
+                        in: [...childSkills.keys()],
+                    },
+                },
+                include: INCLUDE_CHILDREN_AND_PARENTS,
+            });
+        });
+
+        const skillList = new SkillListDto();
+        skillList.skills = movedSkills.map((skill) => SkillDto.createFromDao(skill));
+        return skillList;
     }
 }
