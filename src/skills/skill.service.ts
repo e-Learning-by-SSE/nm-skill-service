@@ -16,6 +16,7 @@ import {
 } from "./dto";
 import { SkillUpdateDto } from "./dto/skill-update.dto";
 import { SkillRepositoryService } from "./skill-repository.service";
+import { findCycles } from "../../nm-skill-lib/src";
 
 /**
  * Used multiple times to include nestedSkills and parentSkills and
@@ -427,47 +428,6 @@ export class SkillMgmtService {
         });
     }
 
-    async checkNestedSkillsExist(nestedSkillIds?: string[]) {
-        if (!nestedSkillIds) {
-            return true;
-        }
-
-        const skillMap = new Map<string, boolean>(); // To track visited skills
-        const skillsToCheck = [...nestedSkillIds]; // Copy of validSkillIds for processing
-
-        while (skillsToCheck.length > 0) {
-            const skillId = skillsToCheck.pop();
-
-            // Check if the skill has already been visited, indicating a cyclic relationship
-            if (skillId && skillMap.has(skillId)) {
-                return false; // Cyclic relationship detected
-            }
-
-            // Mark the skill as visited
-            if (skillId) {
-                skillMap.set(skillId, true);
-            }
-
-            // Query the database to check if the skill exists
-            if (skillId) {
-                const skill = await this.db.skill.findUnique({
-                    where: { id: skillId },
-                    include: { nestedSkills: true },
-                });
-
-                // If the skill doesn't exist, return false
-                if (!skill) {
-                    return false;
-                }
-
-                // Add the nested skills of the current skill to the list for further checking
-                skillsToCheck.push(...skill.nestedSkills.map((nestedSkill) => nestedSkill.id));
-            }
-        }
-
-        return true;
-    }
-
     /**
      * Creates an update query, but considers:
      * - null: The field shall be deleted (reset to default)
@@ -493,30 +453,46 @@ export class SkillMgmtService {
             throw new ForbiddenException("Skill is already used and cannot be modified.");
         }
 
-        // Validate the nestedSkills to ensure they exist and won't create a cycle
-        if (dto.nestedSkills) {
-            const nestedSkillsExist = await this.checkNestedSkillsExist(dto.nestedSkills);
-            if (!nestedSkillsExist) {
+        // Update the skill with the provided data as transaction
+        const updatedSkill = await this.db.$transaction(async (tx) => {
+            // Apply update
+            const updatedSkill = await tx.skill.update({
+                where: { id: skillId },
+                data: {
+                    name: dto.name,
+                    level: dto.level,
+                    description: dto.description,
+                    nestedSkills: this.updateQuery(dto.nestedSkills),
+                    parentSkills: this.updateQuery(dto.parentSkills),
+                },
+                include: {
+                    ...INCLUDE_CHILDREN_AND_PARENTS,
+                    pathTeachingGoals: true,
+                },
+            });
+
+            // Check if the update would create a cyclic relationship between skills
+            const allSkills = await tx.skill.findMany({
+                where: {
+                    repositoryId: updatedSkill.repositoryId,
+                },
+                include: {
+                    nestedSkills: true,
+                    parentSkills: true,
+                },
+            });
+            const allSkillDtos = allSkills.map((skill) => SkillDto.createFromDao(skill));
+            const errors = findCycles(allSkillDtos);
+
+            if (errors.length > 0) {
+                // Rollback transaction and throw an exception
                 throw new ForbiddenException(
-                    "One or more specified nested skills do not exist or would create a cyclic relationship.",
+                    "The update would create a cyclic relationship between skills.",
                 );
             }
-        }
 
-        // Update the skill with the provided data, including nestedSkills
-        const updatedSkill = await this.db.skill.update({
-            where: { id: skillId },
-            data: {
-                name: dto.name,
-                level: dto.level,
-                description: dto.description,
-                nestedSkills: this.updateQuery(dto.nestedSkills),
-                parentSkills: this.updateQuery(dto.parentSkills),
-            },
-            include: {
-                ...INCLUDE_CHILDREN_AND_PARENTS,
-                pathTeachingGoals: true,
-            },
+            // Return the updated skill and close transaction if no error occurred
+            return updatedSkill;
         });
 
         if (dto.repositoryId && dto.repositoryId !== updatedSkill.repositoryId) {

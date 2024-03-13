@@ -1196,7 +1196,7 @@ describe("Skill Service", () => {
             expect(result).rejects.toThrowError(ForbiddenException);
         });
 
-        it.skip("Update to create cycle -> ForbiddenException", async () => {
+        it("Update to create cycle (by Parent) -> ForbiddenException", async () => {
             // Arrange: Create a nested skill structure
             const skill1 = await dbUtils.createSkill(defaultSkillMap, "Skill 1");
             const nestedSkill = await dbUtils.createSkill(defaultSkillMap, "Nested Skill", [
@@ -1206,6 +1206,20 @@ describe("Skill Service", () => {
             // Act: Change name of non-existing skill
             const result = skillService.updateSkill(skill1.id, {
                 parentSkills: [nestedSkill.id],
+            });
+
+            // Assert: Ensure that operation was rejected by a NotFoundException
+            expect(result).rejects.toThrowError(ForbiddenException);
+        });
+
+        it("Update to create cycle (by Child) -> ForbiddenException", async () => {
+            // Arrange: Create a nested skill structure
+            const parentSkill = await dbUtils.createSkill(defaultSkillMap, "Parent Skill");
+            const skill1 = await dbUtils.createSkill(defaultSkillMap, "Skill 1", [parentSkill.id]);
+
+            // Act: Change name of non-existing skill
+            const result = skillService.updateSkill(skill1.id, {
+                nestedSkills: [parentSkill.id],
             });
 
             // Assert: Ensure that operation was rejected by a NotFoundException
