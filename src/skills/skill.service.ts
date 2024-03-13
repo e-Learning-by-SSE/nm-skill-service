@@ -18,6 +18,29 @@ import { SkillUpdateDto } from "./dto/skill-update.dto";
 import { SkillRepositoryService } from "./skill-repository.service";
 
 /**
+ * Used multiple times to include nestedSkills and parentSkills and
+ * order them by their creation date to enforce a consistent order.
+ */
+const INCLUDE_CHILDREN_AND_PARENTS: Prisma.SkillInclude = {
+    nestedSkills: {
+        select: {
+            id: true,
+        },
+        orderBy: {
+            createdAt: "asc",
+        },
+    },
+    parentSkills: {
+        select: {
+            id: true,
+        },
+        orderBy: {
+            createdAt: "asc",
+        },
+    },
+};
+
+/**
  * Service that manages the creation/update/deletion of skills.
  * @author Wenzel
  * @author El-Sharkawy
@@ -36,24 +59,7 @@ export class SkillMgmtService {
         // Retrieve skills from the database, including nestedSkills and parentSkills
 
         const skills = await this.db.skill.findMany({
-            include: {
-                nestedSkills: {
-                    select: {
-                        id: true,
-                    },
-                    orderBy: {
-                        createdAt: "asc",
-                    },
-                },
-                parentSkills: {
-                    select: {
-                        id: true,
-                    },
-                    orderBy: {
-                        createdAt: "asc",
-                    },
-                },
-            },
+            include: INCLUDE_CHILDREN_AND_PARENTS,
         });
         // Check if no skills were found, and throw an exception if so
         if (skills.length == 0) {
@@ -117,24 +123,7 @@ export class SkillMgmtService {
                         connect: nestedSkills.map((nestedSkillId) => ({ id: nestedSkillId })),
                     },
                 },
-                include: {
-                    nestedSkills: {
-                        select: {
-                            id: true,
-                        },
-                        orderBy: {
-                            createdAt: "asc",
-                        },
-                    },
-                    parentSkills: {
-                        select: {
-                            id: true,
-                        },
-                        orderBy: {
-                            createdAt: "asc",
-                        },
-                    },
-                },
+                include: INCLUDE_CHILDREN_AND_PARENTS,
             });
             return SkillDto.createFromDao(skill);
         } catch (error) {
@@ -171,24 +160,7 @@ export class SkillMgmtService {
             where: {
                 id: skillId,
             },
-            include: {
-                nestedSkills: {
-                    select: {
-                        id: true,
-                    },
-                    orderBy: {
-                        createdAt: "asc",
-                    },
-                },
-                parentSkills: {
-                    select: {
-                        id: true,
-                    },
-                    orderBy: {
-                        createdAt: "asc",
-                    },
-                },
-            },
+            include: INCLUDE_CHILDREN_AND_PARENTS,
         });
 
         if (!dao) {
@@ -540,22 +512,7 @@ export class SkillMgmtService {
                 parentSkills: this.updateQuery(dto.parentSkills),
             },
             include: {
-                nestedSkills: {
-                    select: {
-                        id: true,
-                    },
-                    orderBy: {
-                        createdAt: "asc",
-                    },
-                },
-                parentSkills: {
-                    select: {
-                        id: true,
-                    },
-                    orderBy: {
-                        createdAt: "asc",
-                    },
-                },
+                ...INCLUDE_CHILDREN_AND_PARENTS,
                 pathTeachingGoals: true,
             },
         });
