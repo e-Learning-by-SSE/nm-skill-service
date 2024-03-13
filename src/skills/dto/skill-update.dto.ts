@@ -20,7 +20,7 @@ export class SkillUpdateDto {
      * - If specified: Replace all parent skills with the specified ones
      */
     @IsOptional()
-    parentSkills?: string[];
+    parentSkills?: string[] | null;
 
     /**
      * Moves this and all nested skills to the specified repository.

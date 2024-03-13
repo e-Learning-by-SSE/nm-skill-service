@@ -1146,6 +1146,36 @@ describe("Skill Service", () => {
                 expect(updatedSkill).toMatchObject(expectedResult);
             });
 
+            it("Clear Nested Skills", async () => {
+                const nested1 = await dbUtils.createSkill(defaultSkillMap, "Nested 1");
+                const nested2 = await dbUtils.createSkill(defaultSkillMap, "Nested 2");
+                const updatedDto: SkillUpdateDto = {
+                    nestedSkills: [nested1.id, nested2.id],
+                };
+
+                // Precondition: Check that the nested skills were added
+                let updatedSkill = await skillService.updateSkill(skill.id, updatedDto);
+                let expectedResult: SkillDto = {
+                    ...expectedPartialUpdateResult,
+                    nestedSkills: updatedDto.nestedSkills!,
+                };
+                expect(updatedSkill).toMatchObject(expectedResult);
+
+                // Act: Clear nested skills
+                const clearedDto: SkillUpdateDto = {
+                    nestedSkills: null,
+                };
+
+                updatedSkill = await skillService.updateSkill(skill.id, clearedDto);
+
+                // Assert: Check that nested skills were cleared
+                expectedResult = {
+                    ...expectedPartialUpdateResult,
+                    nestedSkills: [],
+                };
+                expect(updatedSkill).toMatchObject(expectedResult);
+            });
+
             it("Parent Skills", async () => {
                 const skill2 = await dbUtils.createSkill(defaultSkillMap, "Skill 2");
 
@@ -1160,6 +1190,36 @@ describe("Skill Service", () => {
                 const expectedResult: SkillDto = {
                     ...expectedPartialUpdateResult,
                     parentSkills: updatedDto.parentSkills!,
+                };
+                expect(updatedSkill).toMatchObject(expectedResult);
+            });
+
+            it("Clear Parent Skills", async () => {
+                const skill2 = await dbUtils.createSkill(defaultSkillMap, "Skill 2");
+
+                const updatedDto: SkillUpdateDto = {
+                    parentSkills: [skill2.id],
+                };
+
+                // Precondition: Check that the parent skills were added
+                let updatedSkill = await skillService.updateSkill(skill.id, updatedDto);
+                let expectedResult: SkillDto = {
+                    ...expectedPartialUpdateResult,
+                    parentSkills: updatedDto.parentSkills!,
+                };
+                expect(updatedSkill).toMatchObject(expectedResult);
+
+                // Act: Clear parent skills
+                const clearedDto: SkillUpdateDto = {
+                    parentSkills: null,
+                };
+
+                updatedSkill = await skillService.updateSkill(skill.id, clearedDto);
+
+                // Assert: Check that parent skills were cleared
+                expectedResult = {
+                    ...expectedPartialUpdateResult,
+                    parentSkills: [],
                 };
                 expect(updatedSkill).toMatchObject(expectedResult);
             });
