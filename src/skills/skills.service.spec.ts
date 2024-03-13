@@ -10,6 +10,7 @@ import {
     SkillRepositoryListDto,
     SkillRepositoryUpdateDto,
     SkillDto,
+    SkillListDto,
 } from "./dto";
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { ACCESS_RIGHTS, Skill, SkillMap } from "@prisma/client";
@@ -1110,26 +1111,7 @@ describe("Skill Service", () => {
                 expect(updatedSkill).toMatchObject(expectedResult);
             });
 
-            it("Nested Skills", async () => {
-                const nested1 = await dbUtils.createSkill(defaultSkillMap, "Nested 1");
-                const nested2 = await dbUtils.createSkill(defaultSkillMap, "Nested 2");
-
-                const updatedDto: SkillUpdateDto = {
-                    nestedSkills: [nested1.id, nested2.id],
-                };
-
-                // Act: Change only a single attribute
-                const updatedSkill = await skillService.updateSkill(skill.id, updatedDto);
-
-                // Assert: Check that the skill was updated with the provided data
-                const expectedResult: SkillDto = {
-                    ...expectedPartialUpdateResult,
-                    nestedSkills: [nested1.id, nested2.id],
-                };
-                expect(updatedSkill).toMatchObject(expectedResult);
-            });
-
-            it("Nested Skills", async () => {
+            it("Description", async () => {
                 const updatedDto: SkillUpdateDto = {
                     description: "New Description",
                 };
@@ -1144,6 +1126,62 @@ describe("Skill Service", () => {
                 };
                 expect(updatedSkill).toMatchObject(expectedResult);
             });
+
+            it("Nested Skills", async () => {
+                const nested1 = await dbUtils.createSkill(defaultSkillMap, "Nested 1");
+                const nested2 = await dbUtils.createSkill(defaultSkillMap, "Nested 2");
+
+                const updatedDto: SkillUpdateDto = {
+                    nestedSkills: [nested1.id, nested2.id],
+                };
+
+                // Act: Change only a single attribute
+                const updatedSkill = await skillService.updateSkill(skill.id, updatedDto);
+
+                // Assert: Check that the skill was updated with the provided data
+                const expectedResult: SkillDto = {
+                    ...expectedPartialUpdateResult,
+                    nestedSkills: updatedDto.nestedSkills!,
+                };
+                expect(updatedSkill).toMatchObject(expectedResult);
+            });
+
+            it("Parent Skills", async () => {
+                const skill2 = await dbUtils.createSkill(defaultSkillMap, "Skill 2");
+
+                const updatedDto: SkillUpdateDto = {
+                    parentSkills: [skill2.id],
+                };
+
+                // Act: Change only a single attribute
+                const updatedSkill = await skillService.updateSkill(skill.id, updatedDto);
+
+                // Assert: Check that the skill was updated with the provided data
+                const expectedResult: SkillDto = {
+                    ...expectedPartialUpdateResult,
+                    parentSkills: updatedDto.parentSkills!,
+                };
+                expect(updatedSkill).toMatchObject(expectedResult);
+            });
+
+            it("RepositoryId", async () => {
+                const trgSkillMap = await dbUtils.createSkillMap("User-1", "2nd SkillMap");
+
+                // Act: Change repository
+                const updatedDto: SkillUpdateDto = {
+                    repositoryId: trgSkillMap.id,
+                };
+                const updatedSkill = await skillService.updateSkill(skill.id, updatedDto);
+
+                // Assert: Check that the skill was moved to the new repository
+                const expectedResult: SkillDto = {
+                    ...expectedPartialUpdateResult,
+                    repositoryId: updatedDto.repositoryId!,
+                };
+                const expectedSkillList = new SkillListDto();
+                expectedSkillList.skills = [expectedResult];
+                expect(updatedSkill).toMatchObject(expectedSkillList);
+            });
         });
 
         it("Update used skill -> ForbiddenException", async () => {
@@ -1155,6 +1193,22 @@ describe("Skill Service", () => {
             const result = skillService.updateSkill(skill.id, { name: "New Name" });
 
             // Assert: Ensure that operation was rejected by a ForbiddenException
+            expect(result).rejects.toThrowError(ForbiddenException);
+        });
+
+        it.skip("Update to create cycle -> ForbiddenException", async () => {
+            // Arrange: Create a nested skill structure
+            const skill1 = await dbUtils.createSkill(defaultSkillMap, "Skill 1");
+            const nestedSkill = await dbUtils.createSkill(defaultSkillMap, "Nested Skill", [
+                skill1.id,
+            ]);
+
+            // Act: Change name of non-existing skill
+            const result = skillService.updateSkill(skill1.id, {
+                parentSkills: [nestedSkill.id],
+            });
+
+            // Assert: Ensure that operation was rejected by a NotFoundException
             expect(result).rejects.toThrowError(ForbiddenException);
         });
     });

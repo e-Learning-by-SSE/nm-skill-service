@@ -427,11 +427,13 @@ export class SkillMgmtService {
         });
     }
 
-    async checkNestedSkillsExist(nestedSkillIds: (string | undefined)[]): Promise<boolean> {
-        const validSkillIds = nestedSkillIds.filter((id) => typeof id === "string");
+    async checkNestedSkillsExist(nestedSkillIds?: string[]) {
+        if (!nestedSkillIds) {
+            return true;
+        }
 
         const skillMap = new Map<string, boolean>(); // To track visited skills
-        const skillsToCheck = [...validSkillIds]; // Copy of validSkillIds for processing
+        const skillsToCheck = [...nestedSkillIds]; // Copy of validSkillIds for processing
 
         while (skillsToCheck.length > 0) {
             const skillId = skillsToCheck.pop();
