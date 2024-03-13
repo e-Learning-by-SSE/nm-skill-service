@@ -1,12 +1,9 @@
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { IsOptional } from "class-validator";
 
 /**
  * Updates an existing Skill.
  */
 export class SkillUpdateDto {
-    @IsNotEmpty()
-    id: string;
-
     /**
      * Specifies nested child skills:
      * - If undefined: No change
@@ -25,12 +22,11 @@ export class SkillUpdateDto {
     @IsOptional()
     parentSkills?: string[];
 
-    // /**
-    //  * Moves this and all nested skills to the specified repsotory.
-    //  * TODO SE: Not implemented yet
-    //  */
-    // @IsOptional()
-    // repositoryId?: string;
+    /**
+     * Moves this and all nested skills to the specified repository.
+     */
+    @IsOptional()
+    repositoryId?: string;
 
     /**
      * Renames the skill.

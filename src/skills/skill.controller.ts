@@ -271,20 +271,30 @@ export class SkillMgmtController {
         }
     }
     /**
-     * Adapts a skill at the specified repository and returns the adapted skill.
+     * Updates a skill as follows:
+     * - First: It will update all values of the skill (name, level, description, nestedSkills, parentSkills)
+     * - Second: It will move the skill to another repository, if a new repositoryId is specified
+     * <br> - In this case, all nested skills will be moved to the new repository as well
+     * <br> - None of the skills may be used in a learning unit
+     * <br> - None of the skills may have an additional parent, which is not moved to the new repository
+     *
+     * For the update the following rules apply:
+     * - If a value is undefined, it will not be changed
+     * - If a value is null, it will be cleared / set to default
+     * - If a value is specified, it will be set to the specified value
      * @param repositoryId The repository at which the skill shall be added to.
      * @param dto The skill description
-     * @returns The created skill.
+     * @returns The updated skill or in case of a movement operation all affected skills
      */
-    @Put("/skill/adapt_skill")
-    async adaptSkill(@Body() dto: SkillUpdateDto) {
+    @Patch("/skill/:skillId")
+    async updateSkill(@Param("skillId") skillId: string, @Body() dto: SkillUpdateDto) {
         try {
-            LoggerUtil.logInfo("Skill::adaptSkill", dto);
-            const result = await this.skillService.updateSkill(dto);
-            LoggerUtil.logInfo("Skill::adaptSkill", { response: result });
+            LoggerUtil.logInfo("Skill::updateSkill", dto);
+            const result = await this.skillService.updateSkill(skillId, dto);
+            LoggerUtil.logInfo("Skill::updateSkill", { response: result });
             return result;
         } catch (error) {
-            LoggerUtil.logError("Skill::adaptSkill", error);
+            LoggerUtil.logError("Skill::updateSkill", error);
             throw error;
         }
     }

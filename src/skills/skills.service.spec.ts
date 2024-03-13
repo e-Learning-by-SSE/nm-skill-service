@@ -619,73 +619,6 @@ describe("Skill Service", () => {
         });
     });
 
-    // describe("loadResolvedSkillRepository", () => {
-    //     let defaultSkillMap: SkillMap;
-
-    //     beforeEach(async () => {
-    //         defaultSkillMap = await dbUtils.createSkillMap("User-1", "Test", "A Description");
-    //     });
-
-    //     it("2 Top-Level Skills + Multiple Nested", async () => {
-    //         // Precondition: One skill exists
-    //         const skill1 = await dbUtils.createSkill(defaultSkillMap, "Skill 1");
-    //         const skill2 = await dbUtils.createSkill(defaultSkillMap, "Skill 2", [skill1.id]);
-    //         const skill3 = await dbUtils.createSkill(
-    //             defaultSkillMap,
-    //             "Skill 3",
-    //             [skill1.id, skill2.id],
-    //             "This skill is nested below Skill 1 AND Skill 2",
-    //         );
-    //         const skill4 = await dbUtils.createSkill(defaultSkillMap, "Skill 4");
-    //         await expect(db.skill.aggregate({ _count: true })).resolves.toEqual({ _count: 4 });
-
-    //         // Test: Load skill
-    //         const result = repositoryService.loadResolvedSkillRepository(defaultSkillMap.id);
-
-    //         // Expected result: DTO representation of skill, without parent and nested skills
-    //         const expectedSkill3: Partial<ResolvedSkillDto> = {
-    //             id: skill3.id,
-    //             name: skill3.name,
-    //             level: skill3.level,
-    //             description: skill3.description ?? undefined,
-    //             nestedSkills: [],
-    //         };
-    //         const expectedSkill2: Partial<ResolvedSkillDto> = {
-    //             id: skill2.id,
-    //             name: skill2.name,
-    //             level: skill2.level,
-    //             description: skill2.description ?? undefined,
-    //             nestedSkills: [expect.objectContaining(expectedSkill3)],
-    //         };
-    //         const expectedSkill1: Partial<ResolvedSkillDto> = {
-    //             id: skill1.id,
-    //             name: skill1.name,
-    //             level: skill1.level,
-    //             description: skill1.description ?? undefined,
-    //             nestedSkills: [
-    //                 expect.objectContaining(expectedSkill2),
-    //                 expect.objectContaining(expectedSkill3),
-    //             ],
-    //         };
-    //         const expectedSkill4: Partial<ResolvedSkillDto> = {
-    //             id: skill4.id,
-    //             name: skill4.name,
-    //             level: skill4.level,
-    //             description: skill1.description ?? undefined,
-    //             nestedSkills: [],
-    //         };
-    //         const expectedSkillMap: Partial<ResolvedSkillRepositoryDto> = {
-    //             id: defaultSkillMap.id,
-    //             name: defaultSkillMap.name,
-    //             skills: [
-    //                 expect.objectContaining(expectedSkill1),
-    //                 expect.objectContaining(expectedSkill4),
-    //             ],
-    //         };
-    //         await expect(result).resolves.toMatchObject(expectedSkillMap);
-    //     });
-    // });
-
     describe("deleteSkillWithCheck", () => {
         it("should delete a skill without children or usage", async () => {});
 
@@ -1129,6 +1062,79 @@ describe("Skill Service", () => {
 
             // Assert: Ensure that the skill is used
             expect(used).toBe(true);
+        });
+    });
+
+    describe("moveSkillToRepository", () => {
+        let [originMap, destMap]: SkillMap[] = [];
+        let trgSkill: Skill;
+
+        beforeEach(async () => {
+            originMap = await dbUtils.createSkillMap(
+                "User-1",
+                "Origin Map",
+                "The origin skill map",
+            );
+            destMap = await dbUtils.createSkillMap(
+                "User-1",
+                "Destination Map",
+                "The target of the movement operation",
+            );
+
+            // Arrange: Create a skill in the origin repository
+            trgSkill = await dbUtils.createSkill(originMap, "Skill 1");
+        });
+
+        it("No children; no parents; no usage -> success", async () => {
+            // Act: Move the skill to the destination repository
+            const result = await skillService.moveSkillToRepository(trgSkill.id, destMap.id);
+
+            // Assert: Ensure that the skill was moved successfully
+            const resultSkill = await db.skill.findUnique({ where: { id: trgSkill.id } });
+            expect(resultSkill!.repositoryId).toBe(destMap.id);
+            expect(result.skills.length).toBe(1);
+            expect(result.skills[0].repositoryId).toBe(destMap.id);
+        });
+
+        it("Multiple moveable children; no parents; no usage -> success", async () => {
+            // Arrange: Create nested skills in the origin repository
+            const nestedSkill1 = await dbUtils.createSkill(originMap, "Nested 1", [trgSkill.id]);
+            await dbUtils.createSkill(originMap, "Nested 2", [nestedSkill1.id]);
+
+            // Act: Move the skill to the destination repository
+            const result = await skillService.moveSkillToRepository(trgSkill.id, destMap.id);
+
+            // Assert: Ensure that the skill was moved successfully
+            const resultSkill = await db.skill.findUnique({ where: { id: trgSkill.id } });
+            expect(resultSkill!.repositoryId).toBe(destMap.id);
+            expect(result.skills.length).toBe(3);
+            result.skills.forEach((skill) => {
+                expect(skill.repositoryId).toBe(destMap.id);
+            });
+        });
+
+        it("Multiple children; additional parents; no usage -> ForbiddenException", async () => {
+            // Arrange: Create nested skills in the origin repository + additional parent
+            const skill2 = await dbUtils.createSkill(originMap, "Skill 2");
+            const nestedSkill1 = await dbUtils.createSkill(originMap, "Nested 1", [trgSkill.id]);
+            await dbUtils.createSkill(originMap, "Nested 2", [nestedSkill1.id, skill2.id]);
+
+            // Act: Move the skill to the destination repository
+            const result = skillService.moveSkillToRepository(trgSkill.id, destMap.id);
+
+            // Assert: Ensure that operation was rejected
+            await expect(result).rejects.toThrowError(ForbiddenException);
+        });
+
+        it("No children; no parents; usage in LearningUnit -> ForbiddenException", async () => {
+            // Arrange: Use the skill in a learning unit
+            await dbUtils.createLearningUnit("Learning Unit 1", [trgSkill], []);
+
+            // Act: Move the skill to the destination repository
+            const result = skillService.moveSkillToRepository(trgSkill.id, destMap.id);
+
+            // Assert: Ensure that operation was rejected
+            await expect(result).rejects.toThrowError(ForbiddenException);
         });
     });
 });
