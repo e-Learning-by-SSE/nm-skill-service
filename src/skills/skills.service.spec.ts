@@ -1242,6 +1242,22 @@ describe("Skill Service", () => {
                 expectedSkillList.skills = [expectedResult];
                 expect(updatedSkill).toMatchObject(expectedSkillList);
             });
+
+            it("Clear Description", async () => {
+                const updatedDto: SkillUpdateDto = {
+                    description: null,
+                };
+
+                // Act: Clear description
+                const updatedSkill = await skillService.updateSkill(skill.id, updatedDto);
+
+                // Assert: Check that the description was cleared
+                const expectedResult: SkillDto = {
+                    ...expectedPartialUpdateResult,
+                    description: undefined,
+                };
+                expect(updatedSkill).toMatchObject(expectedResult);
+            });
         });
 
         it("Update used skill -> ForbiddenException", async () => {
