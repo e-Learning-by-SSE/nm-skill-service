@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Body, Param, Delete } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
-import { UserCreationDto, CompanyCreationDto} from "./dto";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { UserCreationDto, CompanyCreationDto } from "./dto";
 import { UserMgmtService } from "./user.service";
+import { USERSTATUS } from "@prisma/client";
 
 /**
  * Controller for managing the Users and its entities
@@ -13,27 +14,29 @@ export class UserMgmtController {
     constructor(private userService: UserMgmtService) {}
 
     /**
-     * Lists all users-profiles.
+     * Returns a list with all users-profiles.
      * @returns List of all user-profiles.
      */
     @Get("")
     listUsers() {
-        return this.userService.loadAllUsers();
+        return this.userService.getAllUserProfiles();
     }
 
     /**
      * Creates an empty user profile for learners.
      * @param dto The user description
      * @returns The created user profile.
+     * @todo: Clarify if needed, user profiles are created via the event handling
      */
     @Post("")
+    @ApiOperation({ deprecated: true })
     addUser(@Body() dto: UserCreationDto) {
         return this.userService.createUser(dto);
     }
 
     /**
      * Returns the specified user-profile.
-     * @param userId The ID of the user, that shall be returned
+     * @param userId The ID of the user, whose profile shall be returned
      * @returns The specified user-profile.
      */
 
@@ -50,7 +53,7 @@ export class UserMgmtController {
 
     @Delete(":user_profile_id")
     deleteUserProfiles(@Param("user_profile_id") userId: string) {
-        return this.userService.setProfileToInactive(userId);
+        return this.userService.patchUserState(userId, USERSTATUS.INACTIVE);
     }
 
     @Post("add_company")
@@ -64,12 +67,9 @@ export class UserMgmtController {
         return this.userService.findProgressForUserId(id);
     }
 
-    //ToDo: Do we need this? Should happen via events?
+    //@todo: Do we need this? Should happen via events?
     @Post(":id/learning-progress")
-    async createLearningProgress(
-        @Param("id") userId: string,
-        @Body() skillId: string,
-    ) {
+    async createLearningProgress(@Param("id") userId: string, @Body() skillId: string) {
         // Create a new learning progress entry for a user
         return this.userService.createProgressForUserId(userId, skillId);
     }

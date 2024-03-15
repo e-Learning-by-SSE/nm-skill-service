@@ -3,37 +3,179 @@ import { PrismaService } from "../prisma/prisma.service";
 import { CompanyCreationDto, CompanyDto, UserCreationDto, UserDto, UserListDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { STATUS, USERSTATUS } from "@prisma/client";
-import { LearningProgressCreationDto } from "./dto/learningProgressCreation.dto";
+import LoggerUtil from "../logger/logger";
 
 /**
  * Service that manages the creation/update/deletion Users
- * @author Wenzel
+ * @author Wenzel, Sauer, Gerling
  */
 @Injectable()
 export class UserMgmtService {
     constructor(private db: PrismaService) {}
 
-    async setProfileToInactive(userId: string) {
+    /**
+     * Creates a new user and saves it into the DB
+     * @param dto Specifies the user to be created
+     * @returns The newly created user
+     * @todo: This needs still a revision and further testing
+     */
+    async createUser(dto: UserCreationDto) {
+        // Create and return user
         try {
-            const user = await this.db.userProfile.update({
-                where: {
-                    id: userId,
+            //Create DB data
+            const user = await this.db.userProfile.create({
+                data: {
+                    id: dto.id,
+                    name: dto.name,
+                    status: USERSTATUS.ACTIVE, //New users start active
+
+                    ...(dto.companyId && { company: { connect: { id: dto.companyId } } }), //Extend with these infos if existing
+                    //Create the respective objects and connect them via the user profile id
+                    learningHistory: {
+                        create: { id: dto.id }, //Is this correct? This would set the user id as lH id?
+                    },
+                    learningBehavior: {
+                        create: { id: dto.id },
+                    },
+                    careerProfile: {
+                        create: { id: dto.id, currentCompanyId: dto.companyId },
+                    },
+                    learningProfile: {
+                        create: { id: dto.id, semanticDensity: 0, semanticGravity: 0 },
+                    },
                 },
-                data: { status: USERSTATUS.INACTIVE },
+                include: { company: true },
             });
 
-            return UserDto.createFromDao(user);
+            //Return a DTO based on the newly created DB entry
+            //If a company was specified
+            if (user.company) {
+                LoggerUtil.logInfo(
+                    "UserService::createUser",
+                    "Created user profile with company and user id: " + dto.id,
+                );
+                return UserDto.createFromDao(user, undefined, undefined, user.company);
+
+                //Otherwise create without a company
+            } else {
+                LoggerUtil.logInfo(
+                    "UserService::createUser",
+                    "Created user profile without company and user id: " + dto.id,
+                );
+                return UserDto.createFromDao(user);
+            }
+
+            //Error handling if user profile could not be created
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 // unique field already exists
-                if (error.code === "P2025") {
-                    throw new ForbiddenException("User not exists in System");
+                if (error.code === "P2002") {
+                    const exception = new ForbiddenException("User " + dto.id + " already exists");
+                    LoggerUtil.logError("UserService::createUser", exception);
+                    throw exception;
                 }
             }
-            throw error;
+            const exception = new ForbiddenException("User " + dto.id + " could not be created");
+            LoggerUtil.logError("UserService::createUser", exception);
+            throw exception;
         }
     }
 
+    //@todo: Why is this split up into 2 functions?
+    private async loadUser(userId: string) {
+        const user = await this.db.userProfile.findUnique({
+            where: {
+                id: userId,
+            },
+            include: {
+                company: true,
+                learningProfile: true,
+                careerProfile: true,
+                learningProgress: true,
+                learningHistory: true,
+                learningBehavior: true,
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException("Specified user not found: " + userId);
+        }
+
+        return user;
+    }
+
+    /**
+     * Loads the user with userId from the DB and returns it as DTO
+     * @param userId The id of the user profile to be returned
+     * @returns A user profile DTO
+     */
+    public async getUser(userId: string) {
+        const dao = await this.loadUser(userId);
+
+        if (!dao) {
+            const exception = new NotFoundException(`Specified user not found: ${userId}`);
+            LoggerUtil.logError("UserService::getUser", exception);
+            throw exception;
+        }
+
+        LoggerUtil.logInfo("UserService::getUser", "Returning user profile with id: " + userId);
+        return UserDto.createFromDao(dao);
+    }
+
+    /**
+     * Returns all existing user profiles.
+     * @returns A list with all existing user profiles.
+     */
+    public async getAllUserProfiles() {
+        //Get all user objects from the DB
+        const users = await this.db.userProfile.findMany();
+
+        //Throw an exception if there are no user objects
+        if (!users) {
+            const exception = new NotFoundException("Can not find any users");
+            LoggerUtil.logError("UserService::getAllUserProfiles", exception);
+            throw exception;
+        }
+
+        //Create a list with all user objects (as DTOs)
+        const userList = new UserListDto();
+        userList.users = users.map((user) => UserDto.createFromDao(user));
+
+        LoggerUtil.logInfo(
+            "UserService::getAllUserProfiles",
+            "Returning list of all user profiles: " + userList.toString(),
+        );
+
+        return userList;
+    }
+
+    /**
+     * Changes the user state. Triggered by an MLS event (PUT or DELETE).
+     * @param userId The ID of the user to be changed.
+     * @param userState The new user state. True: Active, False: Inactive (for deleted users).
+     * @returns updatedUser The user with userID and the new state userState.
+     */
+    async patchUserState(userId: string, userState: USERSTATUS) {
+        try {
+            const updatedUser = await this.db.userProfile.update({
+                where: { id: "" + userId },
+                data: {
+                    status: userState, //Only change the state
+                },
+            });
+
+            LoggerUtil.logInfo(
+                "UserService::patchUserState",
+                "User " + userId + " was set to " + userState,
+            );
+            return updatedUser;
+        } catch (error) {
+            LoggerUtil.logError("UserService::patchUserState", error);
+            throw new ForbiddenException("User id " + userId + " does not exist in the database");
+        }
+    }
+
+    //@todo: Do we still need this for administrative purposes?
     async deleteUser(userId: string) {
         try {
             const user = await this.db.userProfile.delete({
@@ -118,96 +260,6 @@ export class UserMgmtService {
         }
     }
 
-    /**
-     * Adds a new user
-     * @param dto Specifies the user to be created
-     * @returns The newly created user
-     */
-    async createUser(dto: UserCreationDto) {
-        // Create and return user
-        try {
-            const user = await this.db.userProfile.create({
-                data: {
-                    id: dto.id,
-                    name: dto.name,
-                    status: USERSTATUS.ACTIVE,
-
-                    ...(dto.companyId && { company: { connect: { id: dto.companyId } } }),
-                    learningHistory: {
-                        create: { id: dto.id },
-                    },
-                    learningBehavior: {
-                        create: { id: dto.id },
-                    },
-                    careerProfile: {
-                        create: { id: dto.id, currentCompanyId: dto.companyId },
-                    },
-                    learningProfile: {
-                        create: { id: dto.id, semanticDensity: 0, semanticGravity: 0 },
-                    },
-                },
-                include: { company: true },
-            });
-            if (user.company) {
-                return UserDto.createFromDao(user, undefined, undefined, user.company);
-            } else {
-                return UserDto.createFromDao(user);
-            }
-        } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
-                if (error.code === "P2002") {
-                    throw new ForbiddenException("User already exists");
-                }
-            }
-            throw new ForbiddenException("User could not be created");
-        }
-    }
-
-    private async loadUser(userId: string) {
-        const user = await this.db.userProfile.findUnique({
-            where: {
-                id: userId,
-            },
-            include: {
-                company: true,
-                learningProfile: true,
-                careerProfile: true,
-                learningProgress: true,
-                learningHistory: true,
-                learningBehavior: true,
-            },
-        });
-
-        if (!user) {
-            throw new NotFoundException("Specified user not found: " + userId);
-        }
-
-        return user;
-    }
-
-    public async getUser(userId: string) {
-        const dao = await this.loadUser(userId);
-
-        if (!dao) {
-            throw new NotFoundException(`Specified user not found: ${userId}`);
-        }
-
-        return UserDto.createFromDao(dao);
-    }
-
-    public async loadAllUsers() {
-        const users = await this.db.userProfile.findMany();
-
-        if (!users) {
-            throw new NotFoundException("Can not find any users");
-        }
-
-        const userList = new UserListDto();
-        userList.users = users.map((user) => UserDto.createFromDao(user));
-
-        return users;
-    }
     async createComp(dto: CompanyCreationDto) {
         // Create and return company
         try {
@@ -318,25 +370,5 @@ export class UserMgmtService {
             unit: unit.unit,
             status: unit.unit.status,
         }));
-    }
-
-    /**
-     * Changes the user state. Triggered by an MLS event (PUT or DELETE).
-     * @param userId The ID of the user to be changed.
-     * @param userState The new user state. True: Active, False: Inactive.
-     * @returns updatedUser The user with userID and the new state userState.
-     */
-    async patchUserState(userId: string, userState: USERSTATUS) {
-        try {
-            const updatedUser = await this.db.userProfile.update({
-                where: { id: "" + userId },
-                data: {
-                    status: userState, //Only change the state
-                },
-            });
-            return updatedUser;
-        } catch (error) {
-            throw new ForbiddenException("User could not be updated (non-existing user)");
-        }
     }
 }
