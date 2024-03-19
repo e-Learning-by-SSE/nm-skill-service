@@ -123,10 +123,10 @@ export class UserMgmtService {
     }
 
     /**
-     * Returns all existing user profiles.
+     * Returns all existing user profiles. Currently not used/required.
      * @returns A list with all existing user profiles.
      */
-    public async getAllUserProfiles() {
+/*     public async getAllUserProfiles() {
         //Get all user objects from the DB
         const users = await this.db.userProfile.findMany();
 
@@ -147,7 +147,7 @@ export class UserMgmtService {
         );
 
         return userList;
-    }
+    } */
 
     /**
      * Changes the user state. Triggered by an MLS event (PUT or DELETE).
@@ -175,8 +175,8 @@ export class UserMgmtService {
         }
     }
 
-    //@todo: Do we still need this for administrative purposes?
-    async deleteUser(userId: string) {
+    //Maybe we still need this for administrative purposes later
+/*     async deleteUser(userId: string) {
         try {
             const user = await this.db.userProfile.delete({
                 where: {
@@ -194,7 +194,7 @@ export class UserMgmtService {
             }
             throw error;
         }
-    }
+    } */
 
     async deleteProgressForId(id: string) {
         const recordToDelete = await this.db.learningProgress.findUnique({
