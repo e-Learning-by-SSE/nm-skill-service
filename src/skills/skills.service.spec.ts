@@ -1004,10 +1004,10 @@ describe("Skill Service", () => {
             const skill = await dbUtils.createSkill(skillMap1, "Skill A");
 
             // Act: Check if the skill is used
-            const used = await skillService.isSkillUsed(skill.id);
+            const used = await skillService.isSkillUsed([skill.id]);
 
             // Assert: Ensure that the skill is not used
-            await expect(used).toBe(false);
+            expect(used).toBe(false);
         });
 
         it("should return true if the skill is used in at least one learning unit", async () => {
@@ -1018,10 +1018,10 @@ describe("Skill Service", () => {
                 },
             }); // Arrange: Create a skill and associate it with a learning unit
             const skill = await dbUtils.createSkill(skillMap1, "Skill A");
-            const learningUnit = await dbUtils.createLearningUnit("Learning Unit 1", [skill], []);
+            await dbUtils.createLearningUnit("Learning Unit 1", [skill], []);
 
             // Act: Check if the skill is used
-            const used = await skillService.isSkillUsed(skill.id);
+            const used = await skillService.isSkillUsed([skill.id]);
 
             // Assert: Ensure that the skill is used
             expect(used).toBe(true);
@@ -1035,10 +1035,10 @@ describe("Skill Service", () => {
                 },
             }); // Arrange: Create skills and a learning unit with the skill as a requirement
             const skill = await dbUtils.createSkill(skillMap1, "Skill A");
-            const learningUnit = await dbUtils.createLearningUnit("Learning Unit 1", [], [skill]);
+            await dbUtils.createLearningUnit("Learning Unit 1", [], [skill]);
 
             // Act: Check if the skill is used
-            const used = await skillService.isSkillUsed(skill.id);
+            const used = await skillService.isSkillUsed([skill.id]);
 
             // Assert: Ensure that the skill is used
             expect(used).toBe(true);
@@ -1260,16 +1260,50 @@ describe("Skill Service", () => {
             });
         });
 
-        it("Update used skill -> ForbiddenException", async () => {
-            // Arrange: Create a skill and associate it with a learning unit
-            const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
-            await dbUtils.createLearningUnit("Learning Unit 1", [skill], []);
+        describe("Update used skills", () => {
+            it("Update used skill -> ForbiddenException", async () => {
+                // Arrange: Create a skill and associate it with a learning unit
+                const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
+                await dbUtils.createLearningUnit("Learning Unit 1", [skill], []);
 
-            // Act: Change name of used skill
-            const result = skillService.updateSkill(skill.id, { name: "New Name" });
+                // Act: Change name of used skill
+                const result = skillService.updateSkill(skill.id, { name: "New Name" });
 
-            // Assert: Ensure that operation was rejected by a ForbiddenException
-            expect(result).rejects.toThrowError(ForbiddenException);
+                // Assert: Ensure that operation was rejected by a ForbiddenException
+                expect(result).rejects.toThrowError(ForbiddenException);
+            });
+
+            it("One new child is in use -> ForbiddenException", async () => {
+                // Arrange: Create a skills and associate one of the skills with a learning unit
+                const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
+                const newNested1 = await dbUtils.createSkill(defaultSkillMap, "Nested Skill 1");
+                const newNested2 = await dbUtils.createSkill(defaultSkillMap, "Nested Skill 2");
+                await dbUtils.createLearningUnit("Learning Unit 1", [newNested2], []);
+
+                // Act: Add skills as nested skills
+                const result = skillService.updateSkill(skill.id, {
+                    nestedSkills: [newNested1.id, newNested2.id],
+                });
+
+                // Assert: Ensure that operation was rejected by a ForbiddenException
+                expect(result).rejects.toThrowError(ForbiddenException);
+            });
+
+            it("One new parent is in use -> ForbiddenException", async () => {
+                // Arrange: Create a skills and associate one of the skills with a learning unit
+                const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
+                const newParent1 = await dbUtils.createSkill(defaultSkillMap, "Parent Skill 1");
+                const newParent2 = await dbUtils.createSkill(defaultSkillMap, "Parent Skill 2");
+                await dbUtils.createLearningUnit("Learning Unit 1", [newParent2], []);
+
+                // Act: Add skills as parent skills
+                const result = skillService.updateSkill(skill.id, {
+                    nestedSkills: [newParent1.id, newParent2.id],
+                });
+
+                // Assert: Ensure that operation was rejected by a ForbiddenException
+                expect(result).rejects.toThrowError(ForbiddenException);
+            });
         });
 
         it("Update to create cycle (by Parent) -> ForbiddenException", async () => {

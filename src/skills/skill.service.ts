@@ -368,7 +368,7 @@ export class SkillMgmtService {
     async deleteSkillWithCheck(skillId: string): Promise<void> {
         // Check if the skill is already in use
 
-        const isUsed = await this.isSkillUsed(skillId);
+        const isUsed = await this.isSkillUsed([skillId]);
         if (isUsed) {
             throw new BadRequestException("Skill is already used and cannot be deleted.");
         }
@@ -378,7 +378,7 @@ export class SkillMgmtService {
         let childIsUsed = false;
         // Check if any Child is used i a Learning Unit
         for (const childSkill of childSkills) {
-            if (await this.isSkillUsed(childSkill.id)) {
+            if (await this.isSkillUsed([childSkill.id])) {
                 childIsUsed = true;
             }
         }
@@ -396,13 +396,13 @@ export class SkillMgmtService {
         });
     }
 
-    public async isSkillUsed(skillId: string): Promise<boolean> {
+    public async isSkillUsed(skillId: string[]): Promise<boolean> {
         // Check if the skill is used in learning units
         const learningUnits = await this.db.learningUnit.findMany({
             where: {
                 OR: [
-                    { requirements: { some: { id: skillId } } },
-                    { teachingGoals: { some: { id: skillId } } },
+                    { requirements: { some: { id: { in: skillId } } } },
+                    { teachingGoals: { some: { id: { in: skillId } } } },
                 ],
             },
         });
@@ -447,14 +447,34 @@ export class SkillMgmtService {
     }
 
     async updateSkill(skillId: string, dto: SkillUpdateDto) {
-        // Check if the skill is already in use
-        const isUsed = await this.isSkillUsed(skillId);
-        if (isUsed) {
-            throw new ForbiddenException("Skill is already used and cannot be modified.");
-        }
-
         // Update the skill with the provided data as transaction
         const updatedSkill = await this.db.$transaction(async (tx) => {
+            // Check if the skill is already in use
+            const isUsed = await this.isSkillUsed([skillId]);
+            if (isUsed) {
+                throw new ForbiddenException("Skill is already used and cannot be modified.");
+            }
+
+            // Check if the nested skills to be changed are already used
+            if (dto.nestedSkills) {
+                const isNestedUsed = await this.isSkillUsed(dto.nestedSkills);
+                if (isNestedUsed) {
+                    throw new ForbiddenException(
+                        "At least one nested skill is already used and cannot be modified.",
+                    );
+                }
+            }
+
+            // Check if the parent skills to be changed are already used
+            if (dto.parentSkills) {
+                const isNestedUsed = await this.isSkillUsed(dto.parentSkills);
+                if (isNestedUsed) {
+                    throw new ForbiddenException(
+                        "At least one parent skill is already used and cannot be modified.",
+                    );
+                }
+            }
+
             // Apply update
             const updatedSkill = await tx.skill.update({
                 where: { id: skillId },
@@ -593,7 +613,7 @@ export class SkillMgmtService {
             // Sanity check 2: None of the skills should be used by a learning unit
             const skillsInUse: string[] = [];
             for (const child of childSkills.values()) {
-                if (await this.isSkillUsed(child.id)) {
+                if (await this.isSkillUsed([child.id])) {
                     skillsInUse.push(child.id);
                 }
             }
