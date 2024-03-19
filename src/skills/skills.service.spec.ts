@@ -1270,7 +1270,7 @@ describe("Skill Service", () => {
                 const result = skillService.updateSkill(skill.id, { name: "New Name" });
 
                 // Assert: Ensure that operation was rejected by a ForbiddenException
-                expect(result).rejects.toThrowError(ForbiddenException);
+                await expect(result).rejects.toThrowError(ForbiddenException);
             });
 
             it("One new child is in use -> ForbiddenException", async () => {
@@ -1286,7 +1286,23 @@ describe("Skill Service", () => {
                 });
 
                 // Assert: Ensure that operation was rejected by a ForbiddenException
-                expect(result).rejects.toThrowError(ForbiddenException);
+                await expect(result).rejects.toThrowError(ForbiddenException);
+            });
+
+            it("One child to be removed is in use -> ForbiddenException", async () => {
+                // Arrange: Create a skills and associate one of the skills with a learning unit
+                const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
+                await dbUtils.createSkill(defaultSkillMap, "Nested 1", [skill.id]);
+                const nested2 = await dbUtils.createSkill(defaultSkillMap, "Nested 2", [skill.id]);
+                await dbUtils.createLearningUnit("Learning Unit 1", [nested2], []);
+
+                // Act: Remove a nested skill
+                const result = skillService.updateSkill(skill.id, {
+                    nestedSkills: [],
+                });
+
+                // Assert: Ensure that operation was rejected by a ForbiddenException
+                await expect(result).rejects.toThrowError(ForbiddenException);
             });
 
             it("One new parent is in use -> ForbiddenException", async () => {
@@ -1298,11 +1314,30 @@ describe("Skill Service", () => {
 
                 // Act: Add skills as parent skills
                 const result = skillService.updateSkill(skill.id, {
-                    nestedSkills: [newParent1.id, newParent2.id],
+                    parentSkills: [newParent1.id, newParent2.id],
                 });
 
                 // Assert: Ensure that operation was rejected by a ForbiddenException
-                expect(result).rejects.toThrowError(ForbiddenException);
+                await expect(result).rejects.toThrowError(ForbiddenException);
+            });
+
+            it("One parent to be removed is in use -> ForbiddenException", async () => {
+                // Arrange: Create a skills and associate one of the skills with a learning unit
+                const parent1 = await dbUtils.createSkill(defaultSkillMap, "Parent 1");
+                const parent2 = await dbUtils.createSkill(defaultSkillMap, "Parent 2");
+                const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A", [
+                    parent1.id,
+                    parent2.id,
+                ]);
+                await dbUtils.createLearningUnit("Learning Unit 1", [parent2], []);
+
+                // Act: Remove a nested skill
+                const result = skillService.updateSkill(skill.id, {
+                    parentSkills: [],
+                });
+
+                // Assert: Ensure that operation was rejected by a ForbiddenException
+                await expect(result).rejects.toThrowError(ForbiddenException);
             });
         });
 
@@ -1319,7 +1354,7 @@ describe("Skill Service", () => {
             });
 
             // Assert: Ensure that operation was rejected by a NotFoundException
-            expect(result).rejects.toThrowError(ForbiddenException);
+            await expect(result).rejects.toThrowError(ForbiddenException);
         });
 
         it("Update to create cycle (by Child) -> ForbiddenException", async () => {
@@ -1333,7 +1368,7 @@ describe("Skill Service", () => {
             });
 
             // Assert: Ensure that operation was rejected by a NotFoundException
-            expect(result).rejects.toThrowError(ForbiddenException);
+            await expect(result).rejects.toThrowError(ForbiddenException);
         });
     });
 

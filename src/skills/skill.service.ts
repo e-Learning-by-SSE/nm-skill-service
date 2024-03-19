@@ -447,6 +447,33 @@ export class SkillMgmtService {
     }
 
     async updateSkill(skillId: string, dto: SkillUpdateDto) {
+        // Auxillary function that checks deleted/added parents/nested skills if they are used
+        const updatedRelationIsInUse = async (
+            skillsOfDto: string[],
+            previousSkills: Skill[],
+            type: "nested" | "parent",
+        ) => {
+            const oldNestedSkills = previousSkills.map((skill) => skill.id);
+            const addedSkills = skillsOfDto.filter((id) => !oldNestedSkills.includes(id));
+            let isNestedUsed = await this.isSkillUsed(addedSkills);
+            if (isNestedUsed) {
+                throw new ForbiddenException(
+                    `At least one ${type} skill which shall be added is already used and cannot be modified: ${addedSkills.join(
+                        ", ",
+                    )}`,
+                );
+            }
+            const deletedSkills = oldNestedSkills.filter((id) => !skillsOfDto.includes(id));
+            isNestedUsed = await this.isSkillUsed(deletedSkills);
+            if (isNestedUsed) {
+                throw new ForbiddenException(
+                    `At least one ${type} skill which shall be removed is already used and cannot be modified: ${deletedSkills.join(
+                        ", ",
+                    )}`,
+                );
+            }
+        };
+
         // Update the skill with the provided data as transaction
         const updatedSkill = await this.db.$transaction(async (tx) => {
             // Check if the skill is already in use
@@ -455,22 +482,35 @@ export class SkillMgmtService {
                 throw new ForbiddenException("Skill is already used and cannot be modified.");
             }
 
-            // Check if the nested skills to be changed are already used
-            if (dto.nestedSkills) {
-                const isNestedUsed = await this.isSkillUsed(dto.nestedSkills);
-                if (isNestedUsed) {
-                    throw new ForbiddenException(
-                        "At least one nested skill is already used and cannot be modified.",
+            if (dto.nestedSkills || dto.parentSkills) {
+                // To check nested/parent skills to be removed and load data only once and only if needed
+                const previousState = await tx.skill.findUnique({
+                    where: { id: skillId },
+                    include: {
+                        nestedSkills: true,
+                        parentSkills: true,
+                    },
+                });
+
+                if (!previousState) {
+                    throw new NotFoundException(`Skill with ID ${skillId} not found`);
+                }
+
+                // Check if the nested skills to be changed are already used
+                if (dto.nestedSkills) {
+                    await updatedRelationIsInUse(
+                        dto.nestedSkills,
+                        previousState.nestedSkills,
+                        "nested",
                     );
                 }
-            }
 
-            // Check if the parent skills to be changed are already used
-            if (dto.parentSkills) {
-                const isNestedUsed = await this.isSkillUsed(dto.parentSkills);
-                if (isNestedUsed) {
-                    throw new ForbiddenException(
-                        "At least one parent skill is already used and cannot be modified.",
+                // Check if the parent skills to be changed are already used
+                if (dto.parentSkills) {
+                    await updatedRelationIsInUse(
+                        dto.parentSkills,
+                        previousState.parentSkills,
+                        "parent",
                     );
                 }
             }
