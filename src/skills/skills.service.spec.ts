@@ -780,7 +780,7 @@ describe("Skill Service", () => {
             await dbUtils.wipeDb();
         });
 
-        it("should throw NotFoundException when no skills are found", async () => {
+        it("No data -> NotFoundException", async () => {
             let error;
             try {
                 await skillService.loadAllSkills();

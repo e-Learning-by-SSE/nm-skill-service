@@ -77,31 +77,6 @@ export class SkillMgmtService {
         return skillList;
     }
 
-    async checkIfSkillUsedInLearningUnits(skillId: string) {
-        const learningUnitsWithSkill = await this.db.learningUnit.findMany({
-            where: {
-                OR: [
-                    {
-                        requirements: {
-                            some: {
-                                id: skillId,
-                            },
-                        },
-                    },
-                    {
-                        teachingGoals: {
-                            some: {
-                                id: skillId,
-                            },
-                        },
-                    },
-                ],
-            },
-        });
-
-        return learningUnitsWithSkill.length > 0;
-    }
-
     /**
      * Adds a new skill to a specified repository
      * @param dto Specifies the skill to be created and the repository at which it shall be created
