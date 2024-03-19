@@ -81,9 +81,14 @@ export class UserMgmtService {
         }
     }
 
-    //@todo: Why is this split up into 2 functions?
-    private async loadUser(userId: string) {
-        const user = await this.db.userProfile.findUnique({
+    /**
+     * Loads the user with userId from the DB and returns it as DTO
+     * @param userId The id of the user profile to be returned
+     * @returns A user profile DTO
+     */
+    public async getUser(userId: string) {
+        //Find the user with userId in the DB
+        const userDAO = await this.db.userProfile.findUnique({
             where: {
                 id: userId,
             },
@@ -97,29 +102,16 @@ export class UserMgmtService {
             },
         });
 
-        if (!user) {
-            throw new NotFoundException("Specified user not found: " + userId);
-        }
-
-        return user;
-    }
-
-    /**
-     * Loads the user with userId from the DB and returns it as DTO
-     * @param userId The id of the user profile to be returned
-     * @returns A user profile DTO
-     */
-    public async getUser(userId: string) {
-        const dao = await this.loadUser(userId);
-
-        if (!dao) {
+        //If the user does not exist in the DB
+        if (!userDAO) {
             const exception = new NotFoundException(`Specified user not found: ${userId}`);
             LoggerUtil.logError("UserService::getUser", exception);
             throw exception;
         }
 
+        //Return the DTO
         LoggerUtil.logInfo("UserService::getUser", "Returning user profile with id: " + userId);
-        return UserDto.createFromDao(dao);
+        return UserDto.createFromDao(userDAO);
     }
 
     /**
