@@ -5,7 +5,7 @@
 
 */
 -- DropForeignKey
-ALTER TABLE "Beruf" DROP CONSTRAINT "Beruf_bkgrId_fkey";
+ALTER TABLE IF EXISTS "Beruf" DROP CONSTRAINT "Beruf_bkgrId_fkey";
 
 -- AlterTable
 ALTER TABLE "ConsumedUnitData" RENAME COLUMN "actualPocessingTime" TO "actualProcessingTime";
@@ -20,7 +20,7 @@ ALTER TABLE "LearningProfile" ALTER COLUMN "semanticDensity" SET DEFAULT 0,
 ALTER COLUMN "semanticGravity" SET DEFAULT 0;
 
 -- DropTable
-DROP TABLE "Beruf";
+DROP TABLE IF EXISTS "Beruf";
 
 -- CreateTable
 CREATE TABLE "BerufeNetJob" (

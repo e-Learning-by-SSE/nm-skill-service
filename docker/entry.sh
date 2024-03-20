@@ -56,6 +56,8 @@ case "${DB_ACTION}" in
         # Apply only migrations
         cd /usr/src/app/
 		npx prisma migrate resolve --applied 0_init
+        # Temporary hot fix for 1.0.2 as migration was defect in 1.0.1
+        npx prisma migrate resolve --rolled-back "20240308133119_refactored_user_profile_and_event_based_profile_creation"
         npx prisma migrate deploy
 
         # Start the server
