@@ -8,12 +8,12 @@
 ALTER TABLE "Beruf" DROP CONSTRAINT "Beruf_bkgrId_fkey";
 
 -- AlterTable
-ALTER TABLE "ConsumedUnitData" RENAME COLUMN "actualPocessingTime" COLUMN "actualProcessingTime";
+ALTER TABLE "ConsumedUnitData" RENAME COLUMN "actualPocessingTime" TO "actualProcessingTime";
 
 -- AlterTable
-ALTER TABLE "Job" RENAME COLUMN "endtime" COLUMN "endTime";
-ALTER TABLE "Job" RENAME COLUMN "jobtitle" COLUMN "jobTitle";
-ALTER TABLE "Job" RENAME COLUMN "starttime" COLUMN "startTime";
+ALTER TABLE "Job" RENAME COLUMN "endtime" TO "endTime";
+ALTER TABLE "Job" RENAME COLUMN "jobtitle" TO "jobTitle";
+ALTER TABLE "Job" RENAME COLUMN "starttime" TO "startTime";
 
 -- AlterTable
 ALTER TABLE "LearningProfile" ALTER COLUMN "semanticDensity" SET DEFAULT 0,
