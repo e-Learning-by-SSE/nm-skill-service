@@ -1,72 +1,50 @@
-import { IsNotEmpty } from "class-validator";
-import {
-    CareerProfile,
-    Company,
-    Job,
-    LearningBehaviorData,
-    LearningHistory,
-    LearningProfile,
-    LearningProgress,
-    Qualification,
-    USERSTATUS,
-    UserProfile,
-} from "@prisma/client";
-import { UserCreationDto } from "./user-creation.dto";
+import { IsNotEmpty, IsOptional } from "class-validator";
+import { USERSTATUS, UserProfile } from "@prisma/client";
+import { LearningProfileDto } from "../learningProfileService/dto/learningProfile.dto";
+import { CareerProfileDto } from "../careerProfileService/dto/careerProfile.dto";
+import { LearningHistoryDto } from "../learningHistoryService/dto";
+import { LearningBehaviorDataDto } from "./learningBehaviorData.dto";
+import { LearningProgressDto } from "./learningProgress.dto";
 
-export class UserDto extends UserCreationDto {
+/**
+ * DTO for a user.
+ * Contains all relevant information about a user.
+ * @author Sauer, Gerling
+ */
+export class UserDto {
     @IsNotEmpty()
-    id: string;
+    id: string; //The unique id of the user, set by MLS
+    @IsOptional()
+    learningProfile?: LearningProfileDto;
+    @IsOptional()
+    careerProfile?: CareerProfileDto;
+    @IsOptional()
+    learningBehavior?: LearningBehaviorDataDto;
+    @IsOptional()
+    learningProgress?: LearningProgressDto;
+    @IsOptional()
+    learningHistory?: LearningHistoryDto;
+    @IsOptional()
+    status: USERSTATUS; // (active, inactive)  value set by User-Events (create / delete), default value is "active"
 
-    constructor(
-        id: string,
-        name: string | null,
-        learningProfile: string | null,
-        careerProfile: string | null,
-        company: string | null,
-        companyId: string | null,
-        learningBehavior: string | null,
-        learningProgress: string[] | null,
-        learningHistory: string | null,
-        status: USERSTATUS | null,
-        qualification: string[] | null,
-        job: string | null,
-    ) {
-        super(id, name, learningProfile, careerProfile, companyId, status, qualification, job);
-        //this.id = id;
-    }
     static createFromDao(
-        user: UserProfile,
-        learningProfile?: LearningProfile,
-        careerProfile?: CareerProfile,
-        company?: Company,
-        learningBehavior?: LearningBehaviorData,
-        learningProgress?: LearningProgress[],
-        learningHistory?: LearningHistory,
-        qualification?: Qualification[],
-        job?: Job,
+        user: UserProfile & {
+            learningProfile: LearningProfileDto;
+            careerProfile: CareerProfileDto;
+            learningBehavior: LearningBehaviorDataDto;
+            learningProgress: LearningProgressDto;
+            learningHistory: LearningHistoryDto;
+        },
     ): UserDto {
-        const learningProgressAsArrayOfIds = learningProgress?.map((element) => element.id) || [];
-        const qualificationAsArrayOfIds = qualification?.map((element) => element.id) || [];
-        const learningProfileId = learningProfile?.id || "";
-        const careerProfileId = careerProfile?.id || "";
-        const companyName = company?.id || "";
-        const learningBehaviorId = learningBehavior?.id || "";
-        const learningHistoryId = learningHistory?.id || "";
-        const jobId = job?.id || "";
-
-        return new UserDto(
-            user.id,
-            user.name,
-            learningProfileId,
-            careerProfileId,
-            companyName,
-            user.companyId,
-            learningBehaviorId,
-            learningProgressAsArrayOfIds,
-            learningHistoryId,
-            user.status,
-            qualificationAsArrayOfIds,
-            jobId,
-        );
+        const dto: UserDto = {
+            id: user.id,
+            learningProfile: user.learningProfile,
+            careerProfile: user.careerProfile,
+            learningBehavior: user.learningBehavior,
+            learningProgress: user.learningProgress,
+            learningHistory: user.learningHistory,
+            status: user.status,
+        };
+        return dto;
     }
 }

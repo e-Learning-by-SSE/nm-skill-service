@@ -208,7 +208,7 @@ model LearningUnit {
   // learningHistoryId String?
   orga_id  String             @default("")
 
-  lifecycle      LIFECYCLE                  @default(DRAFT)
+  lifecycle LIFECYCLE @default(DRAFT)
 
   feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
   // progress  LearningPathProgress[]
@@ -230,34 +230,19 @@ model PreferredOrdering {
   @@map("orderings")
 }
 
+//Maps to users (learners) in the MLS system
 model UserProfile {
-  id               String                @id @default(cuid())
-  name             String                @default("")
+  id               String                @id @default(cuid()) //This is the same as MLS id when created via event (should normally be the case)
   learningProfile  LearningProfile?
-  careerProfile    CareerProfile?
-  company          Company?              @relation(fields: [companyId], references: [id])
-  companyId        String?
+  careerProfile    CareerProfile? //Contains current and past jobs, companies, etc. Delivered by MLS.
   learningBehavior LearningBehaviorData?
   learningProgress LearningProgress[]
   learningHistory  LearningHistory?
-  status           USERSTATUS            @default(ACTIVE) // (active, inactive)  setzen des Values bei User-Events (create / delete)
-  job              Job?
+  status           USERSTATUS            @default(ACTIVE) // UserProfiles get inactive when they are deleted in MLS
 
-  //feedbacks Feedback[] //Feedbacks given by the user, one to many relation (not implemented as we also allow anonymous feedbacks)
+  //We have no relation to feedbacks here, as users should be able to give feedback anonymously
 
-  @@unique([companyId, name]) // unique Schluessel noch bearbeiten
-  @@map("user")
-}
-
-model LearningProgress {
-  id                String           @id @default(cuid())
-  Skill             Skill            @relation("learnedBy", fields: [skillId], references: [id])
-  skillId           String
-  user              UserProfile      @relation(fields: [userId], references: [id])
-  userId            String
-  createdAt         DateTime         @default(now())
-  LearningHistory   LearningHistory? @relation(fields: [learningHistoryId], references: [id])
-  learningHistoryId String?
+  @@map("user") //Maps the UserProfile model to the user table in the database
 }
 
 model LearningProfile {
@@ -274,6 +259,59 @@ model LearningProfile {
   preferredDidacticMethod String?
 }
 
+//A careerProfile belongs to a user and contains the job history, professional interests, qualifications and skills of the user
+model CareerProfile {
+  id                    String          @id @default(cuid())
+  jobHistory            Job[]
+  professionalInterests String          @default("")
+  qualifications        Qualification[]
+  selfReportedSkills    Skill[]         @relation("selfReportedSkill")
+  verifiedSkills        Skill[]         @relation("verifiedSkill")
+  user                  UserProfile     @relation(fields: [userId], references: [id])
+  userId                String          @unique // relation scalar field 
+}
+
+model Qualification {
+  id              String         @id @default(cuid())
+  name            String
+  year            Int
+  careerProfile   CareerProfile? @relation(fields: [careerProfileId], references: [id])
+  careerProfileId String?
+}
+
+model Job {
+  id               String         @id @default(cuid())
+  jobTitle         String
+  startTime        DateTime
+  endTime          DateTime // Year the job was ended, if the job is still on-going set this to NULL
+  companyId        String //From the MLS DB
+  jobIdAtBerufeNet String?
+  careerProfile    CareerProfile? @relation(fields: [careerProfileId], references: [id])
+  careerProfileId  String?
+}
+
+
+model LearningBehaviorData {
+  id           String             @id @default(cuid())
+  clickdata    String[]
+  consumedUnit ConsumedUnitData[]
+  user         UserProfile        @relation(fields: [userId], references: [id])
+  userId       String             @unique
+}
+
+model LearningProgress {
+  id                String           @id @default(cuid())
+  Skill             Skill            @relation("learnedBy", fields: [skillId], references: [id])
+  skillId           String
+  user              UserProfile      @relation(fields: [userId], references: [id])
+  userId            String
+  createdAt         DateTime         @default(now())
+  LearningHistory   LearningHistory? @relation(fields: [learningHistoryId], references: [id])
+  learningHistoryId String?
+}
+
+
+
 model LearningHistory {
   id                   String                     @id @default(cuid())
   startedLearningUnits ConsumedUnitData[]         @relation("startedBy")
@@ -282,21 +320,6 @@ model LearningHistory {
   userId               String                     @unique // relation scalar field 
   learningProfile      LearningProfile[]
   personalPaths        PersonalizedLearningPath[]
-}
-
-model CareerProfile {
-  id                      String          @id @default(cuid())
-  jobHistory              Job[]           @relation("pastJobs")
-  professionalInterests   String          @default("")
-  qualifications          Qualification[]
-  selfReportedSkills      Skill[]         @relation("selfReportedSkill")
-  verifiedSkills          Skill[]         @relation("verifiedSkill")
-  pastCompanies           Company[]       @relation("workedAt")
-  currentCompany          Company?        @relation("workingNow", fields: [currentCompanyId], references: [id])
-  currentCompanyId        String?
-  currentJobIdAtBerufeNet String?
-  user                    UserProfile     @relation(fields: [userId], references: [id])
-  userId                  String          @unique // relation scalar field 
 }
 
 // Stores an individual learning path for a user,
@@ -322,47 +345,47 @@ model CareerProfile {
 // ConsumedUnitData: Stores the consumed LearningUnits of a personalized learning path (LearningUnit + State)
 //                   May also stored without a personalized learning path (e.g., for search results)
 model PersonalizedLearningPath {
-  id                String                @id @default(cuid())
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
+  id                String          @id @default(cuid())
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
   unitSequence      PathSequence[]
-  learningHistory   LearningHistory       @relation(fields: [learningHistoryId], references: [id])
+  learningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [id])
   learningHistoryId String
-  
+
   // Origin either are path or custom goals
-  learningPath      LearningPath?         @relation(fields: [learningPathId], references: [id])
-  learningPathId    String?               @unique
-  pathTeachingGoals Skill[]               @relation("proposedpathGoals")
+  learningPath      LearningPath? @relation(fields: [learningPathId], references: [id])
+  learningPathId    String?       @unique
+  pathTeachingGoals Skill[]       @relation("proposedpathGoals")
 
   // progress          LearningPathProgress?
-  lifecycle         LIFECYCLE             @default(CREATED)
+  lifecycle LIFECYCLE @default(CREATED)
 
   @@map("personalPaths")
 }
 
 model PathSequence {
-  id          String                   @id @default(cuid())
-  position    Int
-  path        PersonalizedLearningPath @relation(fields: [pathId], references: [id])
-  pathId      String
-  unit        ConsumedUnitData         @relation(fields: [unitId], references: [id])
-  unitId      String
+  id       String                   @id @default(cuid())
+  position Int
+  path     PersonalizedLearningPath @relation(fields: [pathId], references: [id])
+  pathId   String
+  unit     ConsumedUnitData         @relation(fields: [unitId], references: [id])
+  unitId   String
 
-  @@unique([pathId, position])        // Position must be unique in a path
+  @@unique([pathId, position]) // Position must be unique in a path
   @@map("pathSequence")
 }
 
 model ConsumedUnitData {
-  id                   String               @id @default(cuid())
-  actualProcessingTime Int                  @default(0)                                                  // Duration in seconds
-  testPerformance      Decimal              @db.Decimal(5, 2) @default(0.0)
-  unit                 LearningUnit         @relation("consumedLU", fields: [unitId], references: [id])
-  unitId               String               
-  lbData               LearningBehaviorData? @relation(fields: [lbDataId], references: [id])             // Will be empty before the user starts the learning unit
+  id                   String                @id @default(cuid())
+  actualProcessingTime Int                   @default(0) // Duration in seconds
+  testPerformance      Decimal               @default(0.0) @db.Decimal(5, 2)
+  unit                 LearningUnit          @relation("consumedLU", fields: [unitId], references: [id])
+  unitId               String
+  lbData               LearningBehaviorData? @relation(fields: [lbDataId], references: [id]) // Will be empty before the user starts the learning unit
   lbDataId             String?
-  status               STATUS               @default(OPEN)
-  date                 DateTime             @default(now())
-  startedBy            LearningHistory      @relation("startedBy", fields: [historyId], references: [id])
+  status               STATUS                @default(OPEN)
+  date                 DateTime              @default(now())
+  startedBy            LearningHistory       @relation("startedBy", fields: [historyId], references: [id])
   historyId            String
   path                 PathSequence[]
 
@@ -370,46 +393,6 @@ model ConsumedUnitData {
   @@map("consumedUnits")
 }
 
-model LearningBehaviorData {
-  id           String             @id @default(cuid())
-  clickdata    String[]
-  consumedUnit ConsumedUnitData[]
-  user         UserProfile        @relation(fields: [userId], references: [id])
-  userId       String             @unique
-}
-
-model Qualification {
-  id              String         @id @default(cuid())
-  name            String
-  year            Int
-  careerProfile   CareerProfile? @relation(fields: [careerProfileId], references: [id])
-  careerProfileId String?
-}
-
-model Job {
-  id               String          @id @default(cuid())
-  jobTitle         String
-  startTime        DateTime
-  endTime          DateTime // Year the job was ended, if the job is still on-going set this to NULL
-  company          Company         @relation(fields: [companyId], references: [id]) //company at which the job was/is
-  companyId        String
-  userJobs         CareerProfile[] @relation("pastJobs")
-  user             UserProfile     @relation(fields: [userId], references: [id])
-  userId           String          @unique // relation scalar field
-  jobIdAtBerufeNet String?
-
-  // userCareerProfile   CareerProfile   @relation(fields: [userCareerProfileId], references: [id])
-  // userCareerProfileId String          @unique // relation scalar field   
-}
-
-model Company {
-  id         String          @id @default(cuid())
-  name       String          @default("")
-  workedAt   CareerProfile[] @relation("workedAt")
-  workingNow CareerProfile[] @relation("workingNow")
-  users      UserProfile[]
-  jobs       Job[]
-}
 
 // Stores the feedback (evaluation) from a user given to a learning unit
 //

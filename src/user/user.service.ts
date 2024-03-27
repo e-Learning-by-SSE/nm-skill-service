@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { CompanyCreationDto, CompanyDto, UserCreationDto, UserDto, UserListDto } from "./dto";
+import { UserCreationDto, UserDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { STATUS, USERSTATUS } from "@prisma/client";
 import LoggerUtil from "../logger/logger";
@@ -26,10 +26,8 @@ export class UserMgmtService {
             const user = await this.db.userProfile.create({
                 data: {
                     id: dto.id,
-                    name: dto.name,
                     status: USERSTATUS.ACTIVE, //New users start active
 
-                    ...(dto.companyId && { company: { connect: { id: dto.companyId } } }), //Extend with these infos if existing
                     //Create the respective objects and connect them via the user profile id
                     learningHistory: {
                         create: { id: dto.id }, //Is this correct? This would set the user id as lH id?
@@ -38,32 +36,19 @@ export class UserMgmtService {
                         create: { id: dto.id },
                     },
                     careerProfile: {
-                        create: { id: dto.id, currentCompanyId: dto.companyId },
+                        create: { id: dto.id },
                     },
                     learningProfile: {
                         create: { id: dto.id, semanticDensity: 0, semanticGravity: 0 },
                     },
                 },
-                include: { company: true },
             });
 
-            //Return a DTO based on the newly created DB entry
-            //If a company was specified
-            if (user.company) {
-                LoggerUtil.logInfo(
-                    "UserService::createUser",
-                    "Created user profile with company and user id: " + dto.id,
-                );
-                return UserDto.createFromDao(user, undefined, undefined, user.company);
-
-                //Otherwise create without a company
-            } else {
-                LoggerUtil.logInfo(
-                    "UserService::createUser",
-                    "Created user profile without company and user id: " + dto.id,
-                );
-                return UserDto.createFromDao(user);
-            }
+            LoggerUtil.logInfo(
+                "UserService::createUser",
+                "Created user profile without company and user id: " + dto.id,
+            );
+            return UserDto.createFromDao(user);
 
             //Error handling if user profile could not be created
         } catch (error) {
@@ -93,7 +78,6 @@ export class UserMgmtService {
                 id: userId,
             },
             include: {
-                company: true,
                 learningProfile: true,
                 careerProfile: true,
                 learningProgress: true,
@@ -118,7 +102,7 @@ export class UserMgmtService {
      * Returns all existing user profiles. Currently not used/required.
      * @returns A list with all existing user profiles.
      */
-/*     public async getAllUserProfiles() {
+    /*     public async getAllUserProfiles() {
         //Get all user objects from the DB
         const users = await this.db.userProfile.findMany();
 
@@ -168,7 +152,7 @@ export class UserMgmtService {
     }
 
     //Maybe we still need this for administrative purposes later
-/*     async deleteUser(userId: string) {
+    /*     async deleteUser(userId: string) {
         try {
             const user = await this.db.userProfile.delete({
                 where: {
@@ -249,27 +233,6 @@ export class UserMgmtService {
         } catch (error) {
             // Handle any other errors or rethrow them as needed
             throw new Error("Error finding learning progress.");
-        }
-    }
-
-    async createComp(dto: CompanyCreationDto) {
-        // Create and return company
-        try {
-            const comp = await this.db.company.create({
-                data: {
-                    name: dto.name,
-                },
-            });
-
-            return CompanyDto.createFromDao(comp);
-        } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
-                if (error.code === "P2002") {
-                    throw new ForbiddenException("Company already exists");
-                }
-            }
-            throw error;
         }
     }
 

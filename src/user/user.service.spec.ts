@@ -38,7 +38,6 @@ describe("User Service", () => {
             factory = new LearningUnitFactory(db);
             userProf = await db.userProfile.create({
                 data: {
-                    name: "TestUser3",
                     status: "ACTIVE",
                     id: "testId",
                 },
@@ -123,7 +122,6 @@ describe("User Service", () => {
 
             userProf = await db.userProfile.create({
                 data: {
-                    name: "TestUser",
                     status: "ACTIVE",
                     id: "testId",
                 },
@@ -184,7 +182,6 @@ describe("User Service", () => {
             await dbUtils.wipeDb();
             userProf = await db.userProfile.create({
                 data: {
-                    name: "TestUser",
                     status: "ACTIVE",
                     id: "testId",
                 },
@@ -229,7 +226,6 @@ describe("User Service", () => {
             await dbUtils.wipeDb();
             userProf = await db.userProfile.create({
                 data: {
-                    name: "TestUser",
                     status: "ACTIVE",
                     id: "testId",
                 },
@@ -282,7 +278,6 @@ describe("User Service", () => {
 
             const userProf = await db.userProfile.create({
                 data: {
-                    name: "TestUser",
                     status: "ACTIVE",
                     id: "123",
                 },
@@ -367,7 +362,6 @@ describe("User Service", () => {
             await dbUtils.wipeDb();
             userProf = await db.userProfile.create({
                 data: {
-                    name: "TestUser",
                     status: "ACTIVE",
                     id: "testId",
                 },
