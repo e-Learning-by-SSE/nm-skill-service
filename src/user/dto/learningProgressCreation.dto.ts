@@ -1,26 +1,17 @@
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { IsNotEmpty, IsString } from "class-validator";
 
 /**
  * This models a subset of the learning progress object used for its creation (as we only need to set a subset of the attributes)
  */
 export class LearningProgressCreationDto {
 
-    // The ID of the skill for which learning progress is being recorded
-    @IsNotEmpty()
+    // The ID of the skill object for which learning progress is being recorded
+    @IsNotEmpty({message: 'Skill id must not be empty' })
+    @IsString({message: 'Skill id must be a valid string' })
     skillId: string; 
 
-    // The ID of the user who acquired the skill
-    @IsNotEmpty()
-    userId: string; 
-
-    //ToDo: How to handle relation of learning progress to learning history? A progress is always part of the history, isn't it?
-    @IsOptional()
-    learningHistoryId?: string;
-
-    constructor(skillId: string, userId: string, learningHistoryId?: string){
-        this.skillId = skillId;
-        this.userId = userId;
-        this.learningHistoryId = learningHistoryId;
-    }
+    //Learned skills are part of the learning history object of a user
+    @IsNotEmpty({message: 'learningHistory id must not be empty' })
+    learningHistoryId: string;
 
 }

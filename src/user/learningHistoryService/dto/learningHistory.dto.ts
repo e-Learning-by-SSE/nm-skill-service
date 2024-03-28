@@ -1,70 +1,33 @@
-import { IsDefined, IsNotEmpty, IsOptional } from "class-validator";
-import { LearningHistory } from "@prisma/client";
+import { IsNotEmpty } from "class-validator";
 import {
-    LearningProfile,
-    LearningProgress,
-    UserProfile,
     ConsumedUnitData,
+    LearningHistory,
+    LearningProgress,
     PersonalizedLearningPath,
 } from "@prisma/client";
 
 export class LearningHistoryDto {
     @IsNotEmpty()
     id: string;
-    @IsDefined()
-    userId?: string;
-    @IsOptional()
-    user?: UserProfile;
-    @IsOptional()
-    startedLearningUnits?: string[]; //// ConsumedUnitData
-    @IsOptional()
-    learnedSkills?: string[];
-    @IsOptional()
-    learningProfile?: string[];
-    @IsOptional()
-    personalPaths?: string[];
-
-    constructor(
-        id: string,
-        userId: string,
-        user?: UserProfile | null,
-        startedLearningUnits?: string[] | null,
-        learnedSkills?: string[] | null,
-        learningProfile?: string[] | null,
-        personalPaths?: string[] | null,
-    ) {
-        this.id = id;
-        this.userId = userId;
-        this.user = user ?? undefined;
-        this.learningProfile = learningProfile ?? undefined;
-        this.startedLearningUnits = startedLearningUnits ?? undefined;
-        this.learnedSkills = learnedSkills ?? undefined;
-        this.personalPaths = personalPaths ?? undefined;
-    }
+    @IsNotEmpty()
+    userId: string;
+    startedLearningUnits: string[];
+    learnedSkills: string[];
+    personalPaths: string[];
 
     static createFromDao(
-        lh: LearningHistory,
-        user?: UserProfile,
-        learningProfile?: LearningProfile[],
-        startedLearningUnits?: ConsumedUnitData[],
-        learnedSkills?: LearningProgress[],
-        personalPaths?: PersonalizedLearningPath[],
+        learningHistory: LearningHistory & {
+            startedLearningUnits: ConsumedUnitData[];
+            learnedSkills: LearningProgress[];
+            personalPaths: PersonalizedLearningPath[];
+        },
     ): LearningHistoryDto {
-        const learningProfileUnitsAsArrayOfIds =
-            learningProfile?.map((element) => element.id) || [];
-        const startedLearningUnitsAsArrayOfIds =
-            startedLearningUnits?.map((element) => element.id) || [];
-        const learnedSkillsAsArrayOfIds = learnedSkills?.map((element) => element.id) || [];
-        const personalPathsAsArrayOfIds = personalPaths?.map((element) => element.id) || [];
-
-        return new LearningHistoryDto(
-            lh.id,
-            lh.userId,
-            user,
-            learningProfileUnitsAsArrayOfIds,
-            startedLearningUnitsAsArrayOfIds,
-            learnedSkillsAsArrayOfIds,
-            personalPathsAsArrayOfIds,
-        );
+        return {
+            id: learningHistory.id,
+            userId: learningHistory.userId,
+            startedLearningUnits: learningHistory.startedLearningUnits?.map((element) => element.id) ?? [],
+            learnedSkills: learningHistory.learnedSkills?.map((element) => element.id) ?? [],
+            personalPaths: learningHistory.personalPaths?.map((element) => element.id) ?? [],
+        };
     }
 }

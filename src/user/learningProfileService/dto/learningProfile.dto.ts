@@ -1,48 +1,53 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { LearningProfile } from "@prisma/client";
-import { LearningProfileCreationDto } from "./learningProfile-creation.dto";
-
-export class LearningProfileDto extends LearningProfileCreationDto {
+/**
+ * Models a complete learning profile
+ */
+export class LearningProfileDto {
     @IsNotEmpty()
-    id: string;
+    @IsString()
+    id: string; //Unique id
+    @IsNotEmpty()
+    @IsNumber()
+    semanticDensity: number;
+    @IsNotEmpty()
+    @IsNumber()
+    semanticGravity: number;
+    @IsNotEmpty()
+    @IsString()
+    mediaType: string;
+    @IsNotEmpty()
+    @IsString()
+    language: string;
+    @IsNotEmpty()
+    @IsString()
+    processingTimePerUnit: string;
+    @IsNotEmpty()
+    @IsString()
+    userId: string; //The user to which this learning profile belongs
+    @IsOptional()
+    @IsString()
+    preferredDidacticMethod?: string;
+    
 
-    constructor(
-        id: string,
-        semanticDensity: number | null,
-        semanticGravity: number | undefined,
-        mediaType: string | null,
-        language: string | null,
-        processingTPU: string | null,
-        learningHistoryId: string | null,
-        userId: string,
-    ) {
-        super();
-
-        this.id = id;
-        this.semanticDensity = semanticDensity ?? undefined;
-        this.semanticGravity = semanticGravity ?? undefined;
-        this.mediaType = mediaType ?? undefined;
-        this.language = language ?? undefined;
-        this.processingTimePerUnit = processingTPU ?? undefined;
-        this.learningHistoryId = learningHistoryId ?? undefined;
-        this.userId = userId;
-    }
 
     /**
-     * Creates a new SkillDto from a DB result, but won't consider parents/children.
-     * @param skill The DB result which shall be converted to a DTO
-     * @returns The corresponding DTO, but without parents/children
+     * Creates a new complete learningProfileDto from the DB
+     * @returns 
      */
-    static createFromDao(lp: LearningProfile): LearningProfileCreationDto {
-        return new LearningProfileDto(
-            lp.id,
-            lp.semanticDensity,
-            lp.semanticGravity,
-            lp.mediaType,
-            lp.language,
-            lp.processingTimePerUnit,
-            lp.learningHistoryId,
-            lp.userId,
-        );
+    static createFromDao(learningProfile: LearningProfile): LearningProfileDto {
+        return {
+            id: learningProfile.id,
+            semanticDensity: learningProfile.semanticDensity,
+            semanticGravity: learningProfile.semanticGravity,
+            mediaType: learningProfile.mediaType,
+            language: learningProfile.language,
+            processingTimePerUnit: learningProfile.processingTimePerUnit,
+            userId: learningProfile.userId,
+            preferredDidacticMethod: learningProfile.preferredDidacticMethod ?? undefined
+        };
+
     }
+
+    
 }

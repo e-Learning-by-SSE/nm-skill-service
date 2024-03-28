@@ -32,9 +32,6 @@ export class UserMgmtService {
                     learningHistory: {
                         create: { id: dto.id }, //Is this correct? This would set the user id as lH id?
                     },
-                    learningBehavior: {
-                        create: { id: dto.id },
-                    },
                     careerProfile: {
                         create: { id: dto.id },
                     },
@@ -73,17 +70,22 @@ export class UserMgmtService {
      */
     public async getUser(userId: string) {
         //Find the user with userId in the DB
-        const userDAO = await this.db.userProfile.findUnique({
+        const userDAO = await this.db.userProfile.findUnique({   
             where: {
                 id: userId,
             },
+            //Returns all user fields including learningProfile, careerProfile, and learningHistory (including its fields)
             include: {
                 learningProfile: true,
                 careerProfile: true,
-                learningProgress: true,
-                learningHistory: true,
-                learningBehavior: true,
-            },
+                learningHistory: {
+                    include: {
+                        learnedSkills: true,
+                        startedLearningUnits: true,
+                        personalPaths: true,
+                    },
+                },
+            }
         });
 
         //If the user does not exist in the DB
@@ -91,11 +93,11 @@ export class UserMgmtService {
             const exception = new NotFoundException(`Specified user not found: ${userId}`);
             LoggerUtil.logError("UserService::getUser", exception);
             throw exception;
+        } else {
+            //Return the DTO
+            LoggerUtil.logInfo("UserService::getUser", "Returning user profile with id: " + userId);
+            return UserDto.createFromDao(userDAO);
         }
-
-        //Return the DTO
-        LoggerUtil.logInfo("UserService::getUser", "Returning user profile with id: " + userId);
-        return UserDto.createFromDao(userDAO);
     }
 
     /**
@@ -211,7 +213,7 @@ export class UserMgmtService {
     async createProgressForUserId(userId: string, skillId: string) {
         try {
             const createEntry = await this.db.learningProgress.create({
-                data: { userId: userId, skillId: skillId },
+                data: { learningHistoryId: userId, skillId: skillId },  //TODO needs to change to history id
             });
             return createEntry;
         } catch (error) {
@@ -222,7 +224,7 @@ export class UserMgmtService {
     async findProgressForUserId(id: string) {
         try {
             const progressEntries = await this.db.learningProgress.findMany({
-                where: { userId: id },
+                where: { learningHistoryId: id }, //TODO needs to change to history id
             });
 
             if (progressEntries.length === 0) {

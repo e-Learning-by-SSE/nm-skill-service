@@ -204,8 +204,6 @@ model LearningUnit {
   linkToHelpMaterial String?
 
   consumed ConsumedUnitData[] @relation("consumedLU")
-  // LearningHistory   LearningHistory?   @relation(fields: [learningHistoryId], references: [id])
-  // learningHistoryId String?
   orga_id  String             @default("")
 
   lifecycle LIFECYCLE @default(DRAFT)
@@ -233,11 +231,9 @@ model PreferredOrdering {
 //Maps to users (learners) in the MLS system
 model UserProfile {
   id               String                @id @default(cuid()) //This is the same as MLS id when created via event (should normally be the case)
-  learningProfile  LearningProfile?
-  careerProfile    CareerProfile? //Contains current and past jobs, companies, etc. Delivered by MLS.
-  learningBehavior LearningBehaviorData?
-  learningProgress LearningProgress[]
-  learningHistory  LearningHistory?
+  learningProfile  LearningProfile?     //Contains preferences and experiences about a user's learning behavior
+  careerProfile    CareerProfile?         //Contains current and past jobs, companies, etc. Delivered by MLS.
+  learningHistory  LearningHistory?       //Contains the learning history of the user, including the learning units they have started and the skills they have learned
   status           USERSTATUS            @default(ACTIVE) // UserProfiles get inactive when they are deleted in MLS
 
   //We have no relation to feedbacks here, as users should be able to give feedback anonymously
@@ -245,6 +241,7 @@ model UserProfile {
   @@map("user") //Maps the UserProfile model to the user table in the database
 }
 
+//Preferences and experiences about a user's learning behavior
 model LearningProfile {
   id                      String           @id @default(cuid())
   semanticDensity         Int              @default(0)
@@ -252,12 +249,35 @@ model LearningProfile {
   mediaType               String           @default("")
   language                String           @default("")
   processingTimePerUnit   String           @default("")
-  learningHistory         LearningHistory? @relation(fields: [learningHistoryId], references: [id])
   user                    UserProfile      @relation(fields: [userId], references: [id])
   userId                  String           @unique // relation scalar field 
-  learningHistoryId       String?
   preferredDidacticMethod String?
 }
+
+//Stores the learning history of a user, including the learning units they have started and the skills they have learned
+model LearningHistory {
+  id                   String                     @id @default(cuid())
+  user                 UserProfile                @relation(fields: [userId], references: [id])
+  userId               String                     @unique // relation scalar field 
+  startedLearningUnits ConsumedUnitData[]         @relation("startedBy")
+  learnedSkills        LearningProgress[]
+  personalPaths        PersonalizedLearningPath[]
+}
+
+//Stores when a skill was learned by a user (as part of their learning history)
+model LearningProgress {
+  id                String           @id @default(cuid())
+  Skill             Skill            @relation("learnedBy", fields: [skillId], references: [id])
+  skillId           String
+  createdAt         DateTime         @default(now())
+
+  //Learned skills are part of the learning history of a user
+  LearningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [id])
+  learningHistoryId String
+}
+
+
+
 
 //A careerProfile belongs to a user and contains the job history, professional interests, qualifications and skills of the user
 model CareerProfile {
@@ -286,41 +306,12 @@ model Job {
   endTime          DateTime // Year the job was ended, if the job is still on-going set this to NULL
   companyId        String //From the MLS DB
   jobIdAtBerufeNet String?
-  careerProfile    CareerProfile? @relation(fields: [careerProfileId], references: [id])
-  careerProfileId  String?
-}
-
-
-model LearningBehaviorData {
-  id           String             @id @default(cuid())
-  clickdata    String[]
-  consumedUnit ConsumedUnitData[]
-  user         UserProfile        @relation(fields: [userId], references: [id])
-  userId       String             @unique
-}
-
-model LearningProgress {
-  id                String           @id @default(cuid())
-  Skill             Skill            @relation("learnedBy", fields: [skillId], references: [id])
-  skillId           String
-  user              UserProfile      @relation(fields: [userId], references: [id])
-  userId            String
-  createdAt         DateTime         @default(now())
-  LearningHistory   LearningHistory? @relation(fields: [learningHistoryId], references: [id])
-  learningHistoryId String?
+  careerProfile    CareerProfile @relation(fields: [careerProfileId], references: [id])
+  careerProfileId  String
 }
 
 
 
-model LearningHistory {
-  id                   String                     @id @default(cuid())
-  startedLearningUnits ConsumedUnitData[]         @relation("startedBy")
-  learnedSkills        LearningProgress[]
-  user                 UserProfile                @relation(fields: [userId], references: [id])
-  userId               String                     @unique // relation scalar field 
-  learningProfile      LearningProfile[]
-  personalPaths        PersonalizedLearningPath[]
-}
 
 // Stores an individual learning path for a user,
 // this may origin by selecting (and indivdualizing) a pre-defined path (course) of a teacher
@@ -381,8 +372,6 @@ model ConsumedUnitData {
   testPerformance      Decimal               @default(0.0) @db.Decimal(5, 2)
   unit                 LearningUnit          @relation("consumedLU", fields: [unitId], references: [id])
   unitId               String
-  lbData               LearningBehaviorData? @relation(fields: [lbDataId], references: [id]) // Will be empty before the user starts the learning unit
-  lbDataId             String?
   status               STATUS                @default(OPEN)
   date                 DateTime              @default(now())
   startedBy            LearningHistory       @relation("startedBy", fields: [historyId], references: [id])

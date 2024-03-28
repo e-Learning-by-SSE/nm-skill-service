@@ -11,18 +11,14 @@ import {
  * Creates a new LearningHistory
  */
 export class LearningHistoryCreationDto {
+
     @IsNotEmpty()
-    id: string;
-    @IsDefined()
     userId: string;
-    @IsOptional()
-    user: UserProfile;
-    @IsOptional()
+    
     startedLearningUnits: ConsumedUnitData[];
-    @IsOptional()
+    
     learnedSkills: LearningProgress[];
-    @IsOptional()
-    learningProfile: LearningProfile[];
-    @IsOptional()
+    
     personalPaths: PersonalizedLearningPath[];
+
 }

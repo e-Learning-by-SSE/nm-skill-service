@@ -18,19 +18,5 @@ export class JobCreationDto {
     @IsOptional()
     jobIdAtBerufeNet?: string;
 
-    constructor(
-        jobTitle: string,
-        startTime: Date,
-        endTime: Date,
-        companyId: string,
-        userId: string,
-        jobIdAtBerufeNet?: string,
-    ) {
-        this.jobTitle = jobTitle;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.companyId = companyId;
-        this.userId = userId;
-        this.jobIdAtBerufeNet = jobIdAtBerufeNet ?? undefined;
-    }
+
 }
