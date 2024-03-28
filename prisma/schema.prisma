@@ -282,7 +282,7 @@ model LearningProgress {
 //A careerProfile belongs to a user and contains the job history, professional interests, qualifications and skills of the user
 model CareerProfile {
   id                    String          @id @default(cuid())
-  jobHistory            Job[]
+  jobHistory            Job[]           
   professionalInterests String          @default("")
   qualifications        Qualification[]
   selfReportedSkills    Skill[]         @relation("selfReportedSkill")

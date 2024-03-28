@@ -2,10 +2,13 @@ import { IsNotEmpty, IsOptional } from "class-validator";
 import {
     CareerProfile,
     ConsumedUnitData,
+    Job,
     LearningHistory,
     LearningProfile,
     LearningProgress,
     PersonalizedLearningPath,
+    Qualification,
+    Skill,
     USERSTATUS,
     UserProfile,
 } from "@prisma/client";
@@ -32,13 +35,18 @@ export class UserDto {
     static createFromDao(
         //This part is coming from the DB
         user: UserProfile & {
-            learningProfile?: LearningProfile;
-            careerProfile?: CareerProfile;
-            learningHistory?: LearningHistory & {
+            learningProfile: LearningProfile | null;
+            careerProfile: CareerProfile & {
+                jobHistory: Job[];
+                qualifications: Qualification[];
+                selfReportedSkills: Skill[];
+                verifiedSkills: Skill[];
+            }| null;
+            learningHistory: LearningHistory  & {
                 startedLearningUnits: ConsumedUnitData[];
                 learnedSkills: LearningProgress[];
                 personalPaths: PersonalizedLearningPath[];
-            }
+            } | null;
         },
         //This is what we return (a dto object with the same structure as the DB object)
     ): UserDto {

@@ -31,11 +31,11 @@ export async function createProfiles() {
             await prisma.userProfile.create({
                 data: {
                     id: profile.id,
-                    learningProgress: {
-                        createMany: {
-                            data: profile.skills.map((skill) => ({ skillId: skill })),
-                        },
-                    },
+                   // learningProgress: {
+                   //     createMany: {
+                   //         data: profile.skills.map((skill) => ({ skillId: skill })),
+                    //    },
+                   // },
                     status: USERSTATUS.ACTIVE,
                 },
             });

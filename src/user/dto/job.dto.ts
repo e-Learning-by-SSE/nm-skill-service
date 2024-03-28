@@ -1,29 +1,27 @@
 import { IsNotEmpty } from "class-validator";
 import { Job } from "@prisma/client";
-import { JobCreationDto } from "./job-creation.dto";
 
-export class JobDto extends JobCreationDto {
+export class JobDto {
     @IsNotEmpty()
-    id!: string;
+    id: string;
+    jobTitle: string;
+    startTime: Date;
+    endTime: Date;
+    companyId: string;
+    jobIdAtBerufeNet?: string;
+    careerProfileId: string;
 
-    constructor(
-        id: string,
-        jobTitle: string,
-        startTime: Date,
-        endTime: Date,
-        companyId: string,
-        userId: string,
-    ) {
-        super(jobTitle, startTime, endTime, companyId, userId);
-        this.id = id;
-        this.jobTitle = jobTitle;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.companyId = companyId;
-        this.userId = userId;
-    }
 
-    static createFromDao(jb: Job): JobCreationDto {
-        return new JobDto(jb.id, jb.jobTitle, jb.startTime, jb.endTime, jb.companyId, jb.userId);
+
+    static createFromDao(jb: Job): JobDto {
+        return {
+            id: jb.id,
+            jobTitle: jb.jobTitle,
+            startTime: jb.startTime,
+            endTime: jb.endTime,
+            companyId: jb.companyId,
+            jobIdAtBerufeNet: jb.jobIdAtBerufeNet ?? undefined,
+            careerProfileId: jb.careerProfileId,
+        }
     }
 }

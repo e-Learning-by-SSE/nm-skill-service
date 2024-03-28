@@ -1,42 +1,37 @@
-import { IsNotEmpty, IsOptional } from "class-validator";
-import { CareerProfileCreationDto } from "./careerProfile-creation.dto";
-import { CareerProfile } from "@prisma/client";
+import { IsNotEmpty } from "class-validator";
+import { CareerProfile, Job, Qualification, Skill } from "@prisma/client";
+import { JobDto, QualificationDto } from "../../dto";
 
-export class CareerProfileDto extends CareerProfileCreationDto {
+/**
+ * Models a complete career profile
+ */
+export class CareerProfileDto {
     @IsNotEmpty()
     id: string;
+    @IsNotEmpty()
+    userId: string; //The user to which this career profile belongs
+    jobHistory: JobDto[];
+    professionalInterests: string;
+    qualifications: QualificationDto[];
+    selfReportedSkills: Skill[]; //Currently do not work with dtos here, as correct one is unclear
+    verifiedSkills: Skill[]; //Currently do not work with dtos here, as correct one is unclear
 
-    @IsOptional()
-    description?: string;
-
-    constructor(
-        id: string,
-        professionalInterests: string,
-        userId: string,
-        currentCompanyId?: string | null,
-        currentJobIdAtBerufeNet?: string | null,
-    ) {
-        super();
-
-        this.id = id;
-        this.professionalInterests = professionalInterests;
-        this.currentCompanyId = currentCompanyId ?? undefined;
-        this.currentJobIdAtBerufeNet = currentJobIdAtBerufeNet ?? undefined;
-        this.userId = userId;
-    }
-
-    /**
-     * Creates a new SkillDto from a DB result, but won't consider parents/children.
-     * @param skill The DB result which shall be converted to a DTO
-     * @returns The corresponding DTO, but without parents/children
-     */
-    static createFromDao(cp: CareerProfile): CareerProfileDto {
-        return new CareerProfileDto(
-            cp.id,
-            cp.professionalInterests,
-            cp.userId,
-            cp.currentCompanyId,
-            cp.currentJobIdAtBerufeNet,
-        );
+    static createFromDao(
+        cp: CareerProfile & {
+            jobHistory: Job[];
+            qualifications: Qualification[];
+            selfReportedSkills: Skill[];
+            verifiedSkills: Skill[];
+        },
+    ): CareerProfileDto {
+        return {
+            id: cp.id,
+            userId: cp.userId,
+            jobHistory: cp.jobHistory.map((job) => JobDto.createFromDao(job)),
+            professionalInterests: cp.professionalInterests,
+            qualifications: cp.qualifications.map((qualification) => QualificationDto.createFromDao(qualification)),
+            selfReportedSkills: cp.selfReportedSkills,
+            verifiedSkills: cp.selfReportedSkills,
+        };
     }
 }

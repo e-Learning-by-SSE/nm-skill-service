@@ -1,5 +1,4 @@
-import { LIFECYCLE, Prisma, PrismaClient } from '@prisma/client';
-import { faker } from '@faker-js/faker';
+import { LIFECYCLE, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 

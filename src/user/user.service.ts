@@ -28,16 +28,10 @@ export class UserMgmtService {
                     id: dto.id,
                     status: USERSTATUS.ACTIVE, //New users start active
 
-                    //Create the respective objects and connect them via the user profile id
-                    learningHistory: {
-                        create: { id: dto.id }, //Is this correct? This would set the user id as lH id?
-                    },
-                    careerProfile: {
-                        create: { id: dto.id },
-                    },
-                    learningProfile: {
-                        create: { id: dto.id, semanticDensity: 0, semanticGravity: 0 },
-                    },
+                    //Create the respective objects (empty by default)
+                    learningHistory: {},
+                    careerProfile: {},
+                    learningProfile: {},
                 },
             });
 
@@ -45,7 +39,7 @@ export class UserMgmtService {
                 "UserService::createUser",
                 "Created user profile without company and user id: " + dto.id,
             );
-            return UserDto.createFromDao(user);
+            return "Success";
 
             //Error handling if user profile could not be created
         } catch (error) {
@@ -70,14 +64,21 @@ export class UserMgmtService {
      */
     public async getUser(userId: string) {
         //Find the user with userId in the DB
-        const userDAO = await this.db.userProfile.findUnique({   
+        const userDAO = await this.db.userProfile.findUnique({
             where: {
                 id: userId,
             },
-            //Returns all user fields including learningProfile, careerProfile, and learningHistory (including its fields)
+            //Returns all user fields including learningProfile, careerProfile (including its fields), and learningHistory (including its fields)
             include: {
                 learningProfile: true,
-                careerProfile: true,
+                careerProfile: {
+                    include: {
+                        jobHistory: true,
+                        qualifications: true,
+                        selfReportedSkills: true,
+                        verifiedSkills: true,
+                    },
+                },
                 learningHistory: {
                     include: {
                         learnedSkills: true,
@@ -85,7 +86,7 @@ export class UserMgmtService {
                         personalPaths: true,
                     },
                 },
-            }
+            },
         });
 
         //If the user does not exist in the DB
@@ -213,7 +214,7 @@ export class UserMgmtService {
     async createProgressForUserId(userId: string, skillId: string) {
         try {
             const createEntry = await this.db.learningProgress.create({
-                data: { learningHistoryId: userId, skillId: skillId },  //TODO needs to change to history id
+                data: { learningHistoryId: userId, skillId: skillId }, //TODO needs to change to history id
             });
             return createEntry;
         } catch (error) {

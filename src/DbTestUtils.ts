@@ -31,7 +31,6 @@ export class DbTestUtils {
         await this.db.personalizedLearningPath.deleteMany();
         await this.db.consumedUnitData.deleteMany();
         await this.db.learningHistory.deleteMany();
-        await this.db.learningBehaviorData.deleteMany();
         await this.db.careerProfile.deleteMany();
         await this.db.learningProfile.deleteMany();
         await this.db.userProfile.deleteMany();
@@ -54,18 +53,6 @@ export class DbTestUtils {
 
     public getDb() {
         return this.db;
-    }
-
-    async createUserProfile(name?: string) {
-        return this.db.userProfile.create({
-            data: {
-                name,
-            },
-            include: {
-                learningProfile: true,
-                careerProfile: true,
-            },
-        });
     }
 
     async createSkill(
@@ -162,11 +149,11 @@ export class DbTestUtils {
             data: {
                 id: userId,
                 status: USERSTATUS.ACTIVE,
-                learningProgress: {
-                    createMany: {
-                        data: learningUnitIds.map((skill) => ({ skillId: skill })),
-                    },
-                },
+                //learningProgress: {
+                //    createMany: {
+                //        data: learningUnitIds.map((skill) => ({ skillId: skill })),
+                //    },
+                //},
             },
         });
     }
