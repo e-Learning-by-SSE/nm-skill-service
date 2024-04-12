@@ -90,7 +90,7 @@ model Skill {
   nestedSkills              Skill[]                    @relation("parentSkills")
   pathTeachingGoals         LearningPath[]             @relation("pathGoals")
   requirements              LearningPath[]             @relation("pathRequirements")
-  proposedpathTeachingGoals PersonalizedLearningPath[] @relation("proposedpathGoals")              
+  proposedpathTeachingGoals PersonalizedLearningPath[] @relation("proposedpathGoals")
 
   // Use in Learning Objects
   goalsOf        LearningUnit[]      @relation("teachingGoals")
@@ -132,37 +132,6 @@ model LearningPath {
   assignedProposedPathId  String[]
 
   @@map("paths")
-}
-
-// Obsolete, to be deleted in future.
-// The original intention of nuggets was to store separately elements of a learning unit
-// (e.g., introduction, learning content, exercise).
-// As we do not have realized any use case for this, we will remove this model in future.
-enum NuggetCategory {
-  ANALYZE
-  INTRODUCTION
-  CONTENT
-  EXAMPLE
-  EXERCISE
-  TEST
-}
-
-// Obsolete, to be deleted in future.
-// The original intention of nuggets was to store separately elements of a learning unit
-// (e.g., introduction, learning content, exercise).
-// As we do not have realized any use case for this, we will remove this model in future.
-model Nugget {
-  id             String         @id @default(cuid())
-  resource       String // Should point to the actual ressource
-  language       String
-  name           String?
-  isTypeOf       NuggetCategory @default(CONTENT)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  processingTime String         @default("")
-  presenter      String         @default("")
-  mediatype      String         @default("")
-  learningUnitId String?
 }
 
 // Stores SEARCH-specific meta data for a learning unit (i.e., a TASK in MLS).
@@ -226,32 +195,44 @@ model PreferredOrdering {
   @@map("orderings")
 }
 
-//Maps to users (learners) in the MLS system
+// Maps to users (learners) in the MLS system
+// Child objects should not be sent along with it, only their ids (which is the same as the user id)
+// Requested by:
+// - General concept of the project proposal
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/101
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/100
 model UserProfile {
-  id               String                @id @default(cuid()) //This is the same as MLS id when created via event (should normally be the case)
-  learningProfile  LearningProfile?     //Contains preferences and experiences about a user's learning behavior
-  careerProfile    CareerProfile?         //Contains current and past jobs, companies, etc. Delivered by MLS.
-  learningHistory  LearningHistory?       //Contains the learning history of the user, including the learning units they have started and the skills they have learned
-  status           USERSTATUS            @default(ACTIVE) // UserProfiles get inactive when they are deleted in MLS
+  id              String           @id @default(cuid()) //This is the same as MLS id when created via event (should normally be the case)
+  learningProfile LearningProfile? //Contains preferences and experiences about a user's learning behavior. One-to-one relation.
+  careerProfile   CareerProfile? //Contains current and past jobs, companies, etc. Delivered by MLS. One-to-one relation.
+  learningHistory LearningHistory? //Contains the learning history of the user, including the learning units they have started and the skills they have learned. One-to-one relation.
+  status          USERSTATUS       @default(ACTIVE) // UserProfiles get inactive when they are deleted in MLS
 
   //We have no relation to feedbacks here, as users should be able to give feedback anonymously
 
   @@map("user") //Maps the UserProfile model to the user table in the database
 }
 
-//Preferences and experiences about a user's learning behavior
+// Preferences and experiences about a user's learning behavior
+// Requested by:
+// - Concept of the project proposal (to allow personalized suggestions)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/108
 model LearningProfile {
-    user                    UserProfile      @relation(fields: [userId], references: [id]) 
-  userId                  String           @unique // User id is LearningProfile id, one to one relation 
-  semanticDensity         Float              @default(0) //From 0-1
-  semanticGravity         Float              @default(0) //From 0-1
-  mediaType               String[]           @default([]) //MIME types, order is priority
-  language                String[]           @default([])  //Standard two character (de, en), order is priority
-  processingTimePerUnit   Int           @default(0) //In minutes
-  preferredDidacticMethod String[]      @default([])
+  user                    UserProfile @relation(fields: [userId], references: [id])
+  userId                  String      @unique // User id is LearningProfile id, one to one relation 
+  semanticDensity         Float       @default(0) //From 0-1
+  semanticGravity         Float       @default(0) //From 0-1
+  mediaType               String[]    @default([]) //MIME types, order is priority
+  language                String[]    @default([]) //Standard two character (de, en), order is priority
+  processingTimePerUnit   Int         @default(0) //In minutes
+  preferredDidacticMethod String[]    @default([])
 }
 
 //Stores the learning history of a user, including the learning units they have started and the skills they have learned
+// Requested by:
+// - Concept of the project proposal (to allow personalized suggestions)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/110
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/109  
 model LearningHistory {
   userId               String                     @unique // User id is LearningHistory id, one to one relation 
   user                 UserProfile                @relation(fields: [userId], references: [id])
@@ -261,50 +242,61 @@ model LearningHistory {
 }
 
 //Stores when a skill was learned by a user (as part of their learning history)
+// Requested by:
+// - Concept of the project proposal (as part of the learningHistory)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/112
 model LearningProgress {
-  id                String           @id @default(cuid())
-  Skill             Skill            @relation("learnedBy", fields: [skillId], references: [id])
-  skillId           String
-  createdAt         DateTime         @default(now())
+  id        String   @id @default(cuid())
+  Skill     Skill    @relation("learnedBy", fields: [skillId], references: [id])
+  skillId   String
+  createdAt DateTime @default(now())
 
   //Learned skills are part of the learning history of a user
   LearningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId])
   learningHistoryId String
 }
 
-
-
-
 //A careerProfile belongs to a user and contains the job history, professional interests, qualifications and skills of the user
+// Requested by:
+// - Concept of the project proposal (to allow personalized suggestions)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/103
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/102
 model CareerProfile {
   userId                String          @unique /// User id is CareerProfile id, one to one relation 
   user                  UserProfile     @relation(fields: [userId], references: [id])
-  jobHistory            Job[]           
-  professionalInterests String[]          @default([])
+  jobHistory            Job[]
+  professionalInterests String[]        @default([])
   qualifications        Qualification[]
-  selfReportedSkills    String[]         //Only used with text matching for the recommendation algorithms
+  selfReportedSkills    String[] //Only used with text matching for the recommendation algorithms
 }
 
+// A qualification of a user, e.g., a degree or a certificate. Part of their career profile.
+// Requested by:
+// - Concept of the project proposal (to allow personalized suggestions)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/107
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/106
 model Qualification {
-  id              String         @id @default(cuid())
-  title            String
+  id              String        @id @default(cuid())
+  title           String
   date            DateTime
   careerProfile   CareerProfile @relation(fields: [careerProfileId], references: [userId])
   careerProfileId String
 }
 
+// A current or past job of a user. Part of their career profile.
+// Requested by:
+// - Concept of the project proposal (to allow personalized suggestions)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/105
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/104
 model Job {
-  id               String         @id @default(cuid())
-  jobTitle         String
-  startTime        DateTime
-  endTime          DateTime // Year the job was ended, if the job is still on-going set this to NULL
-  company       String 
-  careerProfile    CareerProfile @relation(fields: [careerProfileId], references: [userId])
-  careerProfileId  String
+  id              String        @id @default(cuid())
+  jobTitle        String
+  startTime       DateTime
+  endTime         DateTime? // Year the job was ended, if the job is still on-going set this to NULL
+  company         String
+  careerProfile   CareerProfile @relation(fields: [careerProfileId], references: [userId])
+  careerProfileId String
 }
-
-
-
 
 // Stores an individual learning path for a user,
 // this may origin by selecting (and indivdualizing) a pre-defined path (course) of a teacher
@@ -360,21 +352,20 @@ model PathSequence {
 }
 
 model ConsumedUnitData {
-  id                   String                @id @default(cuid())
-  actualProcessingTime Int                   @default(0) // Duration in seconds
-  testPerformance      Decimal               @default(0.0) @db.Decimal(5, 2)
-  unit                 LearningUnit          @relation("consumedLU", fields: [unitId], references: [id])
+  id                   String          @id @default(cuid())
+  actualProcessingTime Int             @default(0) // Duration in seconds
+  testPerformance      Decimal         @default(0.0) @db.Decimal(5, 2)
+  unit                 LearningUnit    @relation("consumedLU", fields: [unitId], references: [id])
   unitId               String
-  status               STATUS                @default(OPEN)
-  date                 DateTime              @default(now())
-  startedBy            LearningHistory       @relation("startedBy", fields: [historyId], references: [userId])
+  status               STATUS          @default(OPEN)
+  date                 DateTime        @default(now())
+  startedBy            LearningHistory @relation("startedBy", fields: [historyId], references: [userId])
   historyId            String
   path                 PathSequence[]
 
   @@unique([unitId, historyId])
   @@map("consumedUnits")
 }
-
 
 // Stores the feedback (evaluation) from a user given to a learning unit
 //
@@ -383,7 +374,6 @@ model ConsumedUnitData {
 // - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/30
 model Feedback {
   id                  String       @id @default(cuid())
-  //user                UserProfile?  @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: SetDefault)  //Set author to anonymous when user is deleted (requires user with id: Anonymous)
   userId              String       @default("Anonymous") //A feedback should have an author, but they can be anonymous (if author is deleted or we want anonymous feedback)
   learningUnit        LearningUnit @relation(fields: [learningUnitId], references: [id], onUpdate: NoAction, onDelete: Cascade) //Delete feedback if LU is deleted
   learningUnitId      String //A feedback is always given for exactly one learing unit
