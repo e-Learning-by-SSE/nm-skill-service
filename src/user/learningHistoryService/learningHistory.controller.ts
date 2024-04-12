@@ -78,4 +78,22 @@ export class LearningHistoryController {
             compPathId,
         );
     }
+
+    @Get(":id/learning-progress")
+    async getUserLearningProgress(@Param("id") id: string) {
+        // Fetch a user's learning progress by user ID
+        return this.userService.findProgressForUserId(id);
+    }
+
+    //@todo: Do we need this? Should happen via events?
+    @Post(":id/learning-progress")
+    async createLearningProgress(@Param("id") userId: string, @Body() skillId: string) {
+        // Create a new learning progress entry for a user
+        return this.userService.createProgressForUserId(userId, skillId);
+    }
+
+    @Delete(":id/learning-progress")
+    async deleteLearningProgress(@Param("id") progressId: string) {
+        return this.userService.deleteProgressForId(progressId);
+    }
 }
