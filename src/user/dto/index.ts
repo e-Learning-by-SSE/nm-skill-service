@@ -1,4 +1,4 @@
-export * from "./user.dto";
+export * from "./user-without-children.dto";
 export * from "./user-creation.dto";
 export * from "../learningProfileService/dto/learningProfile.dto";
 export * from "../careerProfileService/dto/careerProfile.dto";
