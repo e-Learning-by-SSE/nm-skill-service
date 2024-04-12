@@ -41,7 +41,6 @@ export class DbTestUtils {
         // Learning Units
         await this.db.preferredOrdering.deleteMany();
         await this.db.learningUnit.deleteMany();
-        await this.db.nugget.deleteMany();
 
         // Skills
         await this.db.skill.deleteMany();

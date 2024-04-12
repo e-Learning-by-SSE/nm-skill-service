@@ -61,7 +61,7 @@ export class UserMgmtService {
      * @param userId The id of the user profile to be returned
      * @returns A user profile DTO ${UserWithoutChildrenDto}
      */
-    public async getUser(userId: string) {
+    public async getUserById(userId: string) {
         //Find the user with userId in the DB (only top-level attributes id and status)
         const userDAO = await this.db.userProfile.findUnique({
             where: {
