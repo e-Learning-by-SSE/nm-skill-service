@@ -25,6 +25,7 @@ export class LearningProfileDto {
 
     @IsNotEmpty()
     @IsInt()
+    @Min(0, { message: "processingTimePerUnit must be at least 0" })
     processingTimePerUnit: number; // In minutes
 
     preferredDidacticMethod: string[]; //Ordered ascending by preference, method names

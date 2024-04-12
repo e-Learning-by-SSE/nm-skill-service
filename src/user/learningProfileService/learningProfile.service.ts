@@ -1,123 +1,64 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
-import { LearningProfileCreationDto } from "./dto/learningProfile-creation.dto";
 import { LearningProfileDto } from "./dto/learningProfile.dto";
-import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { LearningProfileUpdateDto } from "./dto/learningProfile-update.dto";
 
 /**
- * Service that manages the creation/update/deletion of learningProfile
+ * Service that manages the update of learningProfiles (which store the learning preferences of a user)
  * @author Sauer
  */
 @Injectable()
 export class LearningProfileService {
     constructor(private db: PrismaService) {}
 
-    async createLearningProfile(dto: LearningProfileCreationDto) {
-        // Create the learning profile and connect it to the user profile
-        try {
-            const lp = await this.db.learningProfile.create({
-                data: {
-                    semanticDensity: dto.semanticDensity,
-                    semanticGravity: dto.semanticGravity,
-                    mediaType: dto.mediaType,
-                    language: dto.language,
-                    processingTimePerUnit: dto.processingTimePerUnit,
-                    preferredDidacticMethod: dto.preferredDidacticMethod,
-                    id: dto.userId,
-                    user: {
-                        connect: {
-                            id: dto.userId,
-                        },
-                    },
-                },
-            });
-
-            return LearningProfileDto.createFromDao(lp);
-        } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                if (error.code === "P2002") {
-                    // Unique field already exists
-                    throw new ForbiddenException(
-                        `User ${dto.userId} has already a Learning Profile`,
-                    );
-                } else if (error.code === "P2025") {
-                    // Foreign key constraint failed
-                    throw new NotFoundException(`User ${dto.userId} does not exist`);
-                }
-            }
-            throw error;
-        }
-    }
+    //LearningProfiles are initially created empty together with their user profile (via the event system)
+    //Deletion of learning profiles is not planned, as they are an integral part of the user profile (which can also only be deactivated)
 
     /**
-     * Returns the specified learningHistory.
-     * @param learningHistoryId The ID of the requested learningHistory
-     * @returns Either the learningHistory with the specified ID, or null?
+     * Returns the specified learningProfile as DTO.
+     * @param learningProfileId The ID of the requested learningProfile (same as the user ID to which it belongs)
+     * @returns Either the learningProfile with the specified ID, or an exception if it does not exist
      */
-
     async getLearningProfileByID(learningProfileId: string) {
-        try {
-            const profile = await this.db.learningProfile.findUnique({
-                where: { id: learningProfileId },
+
+            const learningProfile = await this.db.learningProfile.findUnique({
+                where: { userId: learningProfileId },
             });
 
-            if (!profile) {
-                throw new NotFoundException("No learning profile found.");
+            if (!learningProfile) {
+                throw new NotFoundException("No learning profile found with id: "+ learningProfileId);
             }
 
-            return profile;
-        } catch (error) {
-            // Handle any other errors or rethrow them as needed
-            throw error;
-        }
+            //Return the learningProfile as DTO
+            return LearningProfileDto.createFromDao(learningProfile);   
     }
-    async deleteLearningProfileByID(learningProfileId: string) {
-        try {
-            const profile = await this.db.learningProfile.delete({
-                where: { id: learningProfileId },
-            });
 
-            if (!profile) {
-                throw new NotFoundException("No learning profile found : " + learningProfileId);
-            }
 
-            return profile;
-        } catch (error) {
-            throw error;
-        }
-    }
-    async patchLearningProfileByID(learningProfileId: string, dto: LearningProfileDto) {
-        try {
-            const existingLearningProfile = await this.db.learningProfile.findUnique({
-                where: { id: learningProfileId },
-            });
-
-            if (!existingLearningProfile) {
-                throw new NotFoundException("Learning profile not found.");
-            }
+    /**
+     * Updates the specified learningProfile according to the DTO.
+     * @param dto A complete or partial learningProfile with the new values
+     * @returns Success if successful, or an exception if the learningProfile does not exist
+     */
+    async updateLearningProfile(dto: LearningProfileUpdateDto) {
+            //Update the learningProfile with the specified ID according to the DTO
             const updatedLearningProfile = await this.db.learningProfile.update({
-                where: { id: learningProfileId },
+                where: { userId: dto.id },
+                //Only update the fields contained in the DTO
                 data: {
-                    semanticDensity:
-                        dto.semanticDensity !== undefined
-                            ? Number(dto.semanticDensity)
-                            : existingLearningProfile.semanticDensity,
-                    semanticGravity:
-                        dto.semanticGravity !== undefined
-                            ? Number(dto.semanticGravity)
-                            : existingLearningProfile.semanticGravity,
-                    mediaType: dto.mediaType || existingLearningProfile.mediaType,
-                    language: dto.language || existingLearningProfile.language,
-                    processingTimePerUnit:
-                        dto.processingTimePerUnit || existingLearningProfile.processingTimePerUnit,
+                    semanticDensity: dto.semanticDensity || undefined,
+                    semanticGravity: dto.semanticGravity || undefined,
+                    mediaType: dto.mediaType || undefined,
+                    language: dto.language || undefined,
+                    processingTimePerUnit: dto.processingTimePerUnit || undefined,
+                    preferredDidacticMethod: dto.preferredDidacticMethod || undefined,      
                 },
             });
 
-            return LearningProfileDto.createFromDao(updatedLearningProfile);
-        } catch (error) {
-            throw error;
-        }
+            if (!updatedLearningProfile) {
+                throw new NotFoundException("Learning profile with id: "+dto.id+" not found.");
+            }
+
+            return "Success!";
     }
 }
