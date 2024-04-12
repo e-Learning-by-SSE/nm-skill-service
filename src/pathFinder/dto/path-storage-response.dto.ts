@@ -69,7 +69,7 @@ export class PathStorageResponseDto {
     ): PathStorageResponseDto {
         const dto: PathStorageResponseDto = {
             userId: dao.learningHistory.userId,
-            learningHistoryId: dao.learningHistory.id,
+            learningHistoryId: dao.learningHistory.userId,
             pathId: dao.id,
             units: dao.unitSequence.map((u) => u.id),
             originPathId: dao.learningPathId ?? undefined,

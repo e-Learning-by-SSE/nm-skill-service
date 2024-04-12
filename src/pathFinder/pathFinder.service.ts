@@ -35,16 +35,20 @@ export class PathFinderService {
                 id: userId,
             },
             include: {
-                company: true,
+
                 learningProfile: true,
                 careerProfile: true,
-                learningProgress: {
+                learningHistory: {
                     include: {
-                        Skill: {
+                        learnedSkills: {
                             include: {
-                                nestedSkills: true,
+                                Skill: {
+                                    include: {
+                                        nestedSkills: true,
+                                    },
+                                },
                             },
-                        },
+                        },                        
                     },
                 },
             },
@@ -72,9 +76,11 @@ export class PathFinderService {
         const repositories = [...new Set(goal.map((goal) => goal.repositoryId))];
         const skills = await this.loadAllSkillsOfRepositories(repositories);
 
+        // TODO: Revise
+        
         let knowledge: Skill[] | undefined;
         if (dto.userId) {
-            const userProfile = await this.loadUser(dto.userId);
+            //const userProfile = await this.loadUser(dto.userId);
             const learnedSkills =
                 userProfile.learningProgress.map((progress) => progress.Skill) ?? [];
 
@@ -262,7 +268,7 @@ export class PathFinderService {
         // Create the personalized path
         const newPath = await this.db.personalizedLearningPath.create({
             data: {
-                learningHistoryId: learningHistory.id,
+                learningHistoryId: learningHistory.userId,
                 learningPathId: dto.originPathId,
                 pathTeachingGoals: {
                     connect: goals.map((goal) => ({ id: goal })),
