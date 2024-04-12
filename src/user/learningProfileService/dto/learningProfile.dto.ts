@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsInt, IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
 import { LearningProfile } from "@prisma/client";
 /**
  * Models a complete learning profile
@@ -6,48 +6,42 @@ import { LearningProfile } from "@prisma/client";
 export class LearningProfileDto {
     @IsNotEmpty()
     @IsString()
-    id: string; //Unique id
-    @IsNotEmpty()
-    @IsNumber()
-    semanticDensity: number;
-    @IsNotEmpty()
-    @IsNumber()
-    semanticGravity: number;
-    @IsNotEmpty()
-    @IsString()
-    mediaType: string;
-    @IsNotEmpty()
-    @IsString()
-    language: string;
-    @IsNotEmpty()
-    @IsString()
-    processingTimePerUnit: string;
-    @IsNotEmpty()
-    @IsString()
-    userId: string; //The user to which this learning profile belongs
-    @IsOptional()
-    @IsString()
-    preferredDidacticMethod?: string;
-    
+    id: string; //Unique id, same as the user id to which it belongs
 
+    @IsNotEmpty()
+    @IsNumber()
+    @Min(0, { message: "semanticDensity must be at least 0" })
+    @Max(1, { message: "semanticDensity must be at most 1" })
+    semanticDensity: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    @Min(0, { message: "semanticGravity must be at least 0" })
+    @Max(1, { message: "semanticGravity must be at most 1" })
+    semanticGravity: number;
+
+    mediaType: string[]; // Ordered ascending by preference, MIME types
+    language: string[]; //Ordered ascending by preference, ISO 639-1 codes
+
+    @IsNotEmpty()
+    @IsInt()
+    processingTimePerUnit: number; // In minutes
+
+    preferredDidacticMethod: string[]; //Ordered ascending by preference, method names
 
     /**
      * Creates a new complete learningProfileDto from the DB
-     * @returns 
+     * @returns The learningProfileDTO
      */
     static createFromDao(learningProfile: LearningProfile): LearningProfileDto {
         return {
-            id: learningProfile.id,
+            id: learningProfile.userId,
             semanticDensity: learningProfile.semanticDensity,
             semanticGravity: learningProfile.semanticGravity,
             mediaType: learningProfile.mediaType,
             language: learningProfile.language,
             processingTimePerUnit: learningProfile.processingTimePerUnit,
-            userId: learningProfile.userId,
-            preferredDidacticMethod: learningProfile.preferredDidacticMethod ?? undefined
+            preferredDidacticMethod: learningProfile.preferredDidacticMethod,
         };
-
     }
-
-    
 }
