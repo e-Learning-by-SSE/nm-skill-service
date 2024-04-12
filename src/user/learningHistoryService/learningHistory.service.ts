@@ -38,7 +38,7 @@ export class LearningHistoryService {
                 },
             });
 
-            return LearningHistoryDto.createFromDao(lh);
+            return "WIP" //LearningHistoryDto.createFromDao(lh);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 // unique field already exists
@@ -54,7 +54,7 @@ export class LearningHistoryService {
     async getLearningHistoryById(historyId: string) {
         try {
             const profile = await this.db.learningHistory.findUnique({
-                where: { id: historyId },
+                where: { userId: historyId },
             });
 
             if (!profile) {
@@ -71,7 +71,7 @@ export class LearningHistoryService {
     async getCompPathsIdsByHistoryById(historyId: string) {
         try {
             const profile = await this.db.learningHistory.findUnique({
-                where: { id: historyId },
+                where: { userId: historyId },
             });
 
             if (!profile) {
@@ -167,14 +167,14 @@ export class LearningHistoryService {
     async deleteLearningHistoryById(historyId: string) {
         try {
             const lHistory = await this.db.learningHistory.delete({
-                where: { id: historyId },
+                where: { userId: historyId },
             });
 
             if (!lHistory) {
                 throw new NotFoundException("No learningHistory found.");
             }
 
-            return LearningHistoryDto.createFromDao(lHistory);
+            return "WIP" //LearningHistoryDto.createFromDao(lHistory);
         } catch (error) {
             throw error;
         }
@@ -296,13 +296,12 @@ export class LearningHistoryService {
         }
 
         let existingUserHistory = await this.db.learningHistory.findUnique({
-            where: { id: userID },
+            where: { userId: userID },
         });
         if (!existingUserHistory) {
             existingUserHistory = await this.db.learningHistory.create({
                 data: {
                     userId: userID,
-                    id: userID,
                 },
             });
         }

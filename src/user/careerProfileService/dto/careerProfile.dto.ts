@@ -7,31 +7,26 @@ import { JobDto, QualificationDto } from "../../dto";
  */
 export class CareerProfileDto {
     @IsNotEmpty()
-    id: string;
-    @IsNotEmpty()
-    userId: string; //The user to which this career profile belongs
+    id: string; //Same as the user id to which it belongs
     jobHistory: JobDto[];
-    professionalInterests: string;
+    professionalInterests: string[];
     qualifications: QualificationDto[];
-    selfReportedSkills: Skill[]; //Currently do not work with dtos here, as correct one is unclear
-    verifiedSkills: Skill[]; //Currently do not work with dtos here, as correct one is unclear
+    selfReportedSkills: string[]; 
 
+    //TODO: Unfinished
     static createFromDao(
         cp: CareerProfile & {
             jobHistory: Job[];
             qualifications: Qualification[];
             selfReportedSkills: Skill[];
-            verifiedSkills: Skill[];
         },
     ): CareerProfileDto {
         return {
-            id: cp.id,
-            userId: cp.userId,
+            id: cp.userId,
             jobHistory: cp.jobHistory.map((job) => JobDto.createFromDao(job)),
             professionalInterests: cp.professionalInterests,
             qualifications: cp.qualifications.map((qualification) => QualificationDto.createFromDao(qualification)),
             selfReportedSkills: cp.selfReportedSkills,
-            verifiedSkills: cp.selfReportedSkills,
         };
     }
 }

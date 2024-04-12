@@ -9,13 +9,9 @@ import {
     PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { PrismaService } from "../../prisma/prisma.service";
-import { CareerProfileCreationDto } from "./dto/careerProfile-creation.dto";
 import { CareerProfileDto } from "./dto/careerProfile.dto";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
-import { JobCreationDto } from "../dto/job-creation.dto";
-import { JobUpdateDto } from "../dto/job-update.dto";
 import { JobDto } from "./dto/job.dto";
-import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { QualificationDto } from "./dto/qualification.dto";
 
 /**
@@ -26,27 +22,19 @@ import { QualificationDto } from "./dto/qualification.dto";
 export class CareerProfileService {
     constructor(private db: PrismaService) {}
 
-    async createCareerProfile(dto: CareerProfileCreationDto) {
+    async createCareerProfile(dto: CareerProfileDto) {
         try {
             const cp = await this.db.careerProfile.create({
                 data: {
+                    userId: dto.id,
                     professionalInterests: dto.professionalInterests,
-                    currentJobIdAtBerufeNet: dto.currentJobIdAtBerufeNet,
+                   //TODO: Complete
 
-                    user: {
-                        connect: {
-                            id: dto.userId,
-                        },
-                    },
-                    currentCompany: {
-                        connect: {
-                            id: dto.currentCompanyId,
-                        },
-                    },
+
                 },
             });
 
-            return CareerProfileDto.createFromDao(cp);
+            return "WIP" //CareerProfileDto.createFromDao(cp);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 // unique field already exists
@@ -58,11 +46,11 @@ export class CareerProfileService {
         }
     }
 
-    async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileCreationDto) {
+    async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileDto) {
         try {
             const existingCareerProfile = await this.db.careerProfile.findUnique({
                 where: {
-                    id: careerProfileId,
+                    userId: careerProfileId,
                 },
                 include: { jobHistory: true },
             });
@@ -73,44 +61,32 @@ export class CareerProfileService {
 
             const updatedCareerProfile = await this.db.careerProfile.update({
                 where: {
-                    id: careerProfileId,
+                    userId: careerProfileId,
                 },
                 data: {
                     professionalInterests:
                         dto.professionalInterests || existingCareerProfile.professionalInterests,
-                    currentJobIdAtBerufeNet:
-                        dto.currentJobIdAtBerufeNet ||
-                        existingCareerProfile.currentJobIdAtBerufeNet,
-                    selfReportedSkills: {
-                        connect: dto.selfReportedSkills.map((id) => ({ id })),
-                    },
-                    verifiedSkills: {
-                        connect: dto.verifiedSkills.map((id) => ({ id })),
-                    },
-                    ...(dto.currentCompanyId
-                        ? {
-                              currentCompany: {
-                                  connect: { id: dto.currentCompanyId },
-                              },
-                          }
-                        : {}),
-                    ...(dto.userId ? { user: { connect: { id: dto.userId } } } : {}),
+                    
+                    selfReportedSkills: dto.selfReportedSkills || undefined,
+                
+                   
+            
                     jobHistory: {
                         upsert: dto.jobHistory?.map((job) => ({
                             where: { id: job.id || undefined },
                             create: {
                                 jobTitle: job.jobTitle,
-                                userId: job.userId,
-                                companyId: job.companyId,
-                                startTime: job.startTime,
-                                endTime: job.endTime,
+                                id: job.id,
+                                company: job.company,
+                                startTime: job.startDate,
+                                endTime: job.endDate,
                             },
                             update: {
                                 jobTitle: job.jobTitle,
-                                userId: job.userId,
-                                companyId: job.companyId,
-                                startTime: job.startTime,
-                                endTime: job.endTime,
+                                id: job.id,
+                                company: job.company,
+                                startTime: job.startDate,
+                                endTime: job.endDate,
                             },
                         })),
                     },
@@ -118,22 +94,23 @@ export class CareerProfileService {
                         upsert: dto.qualifications?.map((qualification) => ({
                             where: { id: qualification.id || undefined },
                             create: {
-                                name: qualification.name,
-                                year: qualification.year,
-                                userId: qualification.careerProfileId,
+                                title: qualification.title,
+                                date: qualification.date,
+
+
                             },
                             update: {
-                                name: qualification.name,
-                                year: qualification.year,
-                                userId: qualification.careerProfileId,
+                                title: qualification.title,
+                                date: qualification.date,
+
                             },
                         })),
                     },
                 },
             });
-            const careerProfileDto = CareerProfileDto.createFromDao(updatedCareerProfile);
+            //const careerProfileDto = CareerProfileDto.createFromDao(updatedCareerProfile);
 
-            return careerProfileDto;
+            return "WIP" //careerProfileDto;
         } catch (error) {
             throw new Error(`Error patching career profile by ID: ${error.message}`);
         }
@@ -142,14 +119,14 @@ export class CareerProfileService {
     async deleteCareerProfileByID(careerProfileId: string) {
         try {
             const profile = await this.db.careerProfile.delete({
-                where: { id: careerProfileId },
+                where: { userId: careerProfileId },
             });
 
             if (!profile) {
                 throw new NotFoundException("No careerProfile found.");
             }
 
-            return CareerProfileDto.createFromDao(profile);
+            return "WIP" //CareerProfileDto.createFromDao(profile);
         } catch (error) {
             throw error;
         }
@@ -158,14 +135,14 @@ export class CareerProfileService {
     async getCareerProfileByID(careerProfileId: string) {
         try {
             const profile = await this.db.careerProfile.findUnique({
-                where: { id: careerProfileId },
+                where: { userId: careerProfileId },
             });
 
             if (!profile) {
                 throw new NotFoundException("No careerProfile found.");
             }
 
-            return CareerProfileDto.createFromDao(profile);
+            return "WIP" //CareerProfileDto.createFromDao(profile);
         } catch (error) {
             // Handle any other errors or rethrow them as needed
             throw error;
@@ -186,7 +163,7 @@ export class CareerProfileService {
                     throw new NotFoundException("User not found.");
                 }
 
-                return CareerProfileDto.createFromDao(career);
+                return "WIP" //CareerProfileDto.createFromDao(career);
             } else {
                 const career = await this.db.careerProfile.findMany();
 
@@ -195,9 +172,9 @@ export class CareerProfileService {
                 }
 
                 const careerProfileDtos: CareerProfileDto[] = [];
-                career.forEach((element) => {
-                    careerProfileDtos.push(CareerProfileDto.createFromDao(element));
-                });
+                //career.forEach((element) => {
+                //    careerProfileDtos.push(CareerProfileDto.createFromDao(element));
+                //});
                 return careerProfileDtos;
             }
         } catch (error) {
@@ -206,17 +183,17 @@ export class CareerProfileService {
         }
     }
 
-    async createJob(id: string, dto: JobCreationDto) {
+    async createJob(id: string, dto: JobDto) {
         // Create and return a Job
         try {
             const jb = await this.db.job.create({
                 data: {
                     jobTitle: dto.jobTitle,
-                    startTime: dto.startTime,
-                    endTime: dto.endTime,
-                    companyId: dto.companyId,
-                    userId: id,
-                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet,
+                    startTime: dto.startDate,
+                    endTime: dto.endDate,
+                    company: dto.company,
+                    careerProfile: { connect: { userId: id }
+                },
                 },
             });
 
@@ -235,11 +212,11 @@ export class CareerProfileService {
     async patchJobHistoryAtCareerProfileByID(
         careerProfileId: string,
         jobHistoryId: string,
-        dto: JobUpdateDto,
+        dto: JobDto,
     ) {
         try {
             const careerProfile = await this.db.careerProfile.findUnique({
-                where: { id: careerProfileId },
+                where: { userId: careerProfileId },
             });
 
             if (!careerProfile) {
@@ -257,10 +234,10 @@ export class CareerProfileService {
             const updatedJobHistory = await this.db.job.update({
                 where: { id: jobHistoryId },
                 data: {
-                    endTime: dto.endTime || jobHistory.endTime,
-                    startTime: dto.startTime || jobHistory.startTime,
+                    endTime: dto.endDate || jobHistory.endTime,
+                    startTime: dto.startDate || jobHistory.startTime,
                     jobTitle: dto.jobTitle || jobHistory.jobTitle,
-                    jobIdAtBerufeNet: dto.jobIdAtBerufeNet || jobHistory.jobIdAtBerufeNet,
+                    company: dto.company || jobHistory.company,
                 },
             });
 
@@ -273,7 +250,7 @@ export class CareerProfileService {
     async deleteJobHistoryAtCareerProfileByID(careerProfileId: string, jobHistoryId: string) {
         try {
             const careerProfile = await this.db.careerProfile.findUnique({
-                where: { id: careerProfileId },
+                where: { userId: careerProfileId },
             });
 
             if (!careerProfile) {
@@ -312,15 +289,14 @@ export class CareerProfileService {
             const profile = await this.db.careerProfile.create({
                 data: {
                     userId: user.id,
-                    id: user.id,
                     // Associate the qualification with the user
                 },
             });
             console.log(profile);
             const qualification = await this.db.qualification.create({
                 data: {
-                    name: dto.name,
-                    year: dto.year,
+                    title: dto.title,
+                    date: dto.date,
                     careerProfile: { connect: { userId: user.id } }, // Associate the qualification with the user
                 },
             });
@@ -361,7 +337,7 @@ export class CareerProfileService {
     async patchQualificationForCareerProfile(
         careerProfileId: string,
         qualificationId: string,
-        dto: QualificationCreationDto,
+        dto: QualificationDto,
     ) {
         try {
             // Check if the qualification exists
@@ -377,10 +353,9 @@ export class CareerProfileService {
             }
 
             // Check if the careerProfileId in dto is provided and exists
-            const newCareerProfileId = dto.userCareerProfileId;
-            const careerProfileExists = newCareerProfileId
+            const careerProfileExists = careerProfileId
                 ? await this.db.careerProfile.findUnique({
-                      where: { id: newCareerProfileId },
+                      where: { userId: careerProfileId },
                   })
                 : true; // If not provided, assume it's valid
 
@@ -395,13 +370,10 @@ export class CareerProfileService {
                     careerProfileId: careerProfileId,
                 },
                 data: {
-                    name: dto.name || existingQualification.name,
-                    year: dto.year || existingQualification.year,
+                    title: dto.title || existingQualification.title,
+                    date: dto.date || existingQualification.date,
+                }
 
-                    careerProfile: dto.userCareerProfileId
-                        ? { connect: { id: dto.userCareerProfileId } }
-                        : undefined,
-                },
             });
 
             return QualificationDto.createFromDao(updatedQualification);

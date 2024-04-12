@@ -5,23 +5,18 @@ export class JobDto {
     @IsNotEmpty()
     id: string;
     jobTitle: string;
-    startTime: Date;
-    endTime: Date;
-    companyId: string;
-    jobIdAtBerufeNet?: string;
-    careerProfileId: string;
-
+    startDate: Date;
+    endDate: Date | null;
+    company: string;
 
 
     static createFromDao(jb: Job): JobDto {
         return {
             id: jb.id,
             jobTitle: jb.jobTitle,
-            startTime: jb.startTime,
-            endTime: jb.endTime,
-            companyId: jb.companyId,
-            jobIdAtBerufeNet: jb.jobIdAtBerufeNet ?? undefined,
-            careerProfileId: jb.careerProfileId,
+            startDate: jb.startTime,
+            endDate: jb.endTime,
+            company: jb.company,
         }
     }
 }

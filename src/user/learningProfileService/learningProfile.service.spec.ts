@@ -12,7 +12,7 @@ describe("LearningProfileService", () => {
     const userService = new UserMgmtService(db);
     const learningProfileService = new LearningProfileService(db);
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         // Wipe DB before test
         await dbUtils.wipeDb();
     });

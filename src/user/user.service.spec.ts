@@ -10,7 +10,7 @@ describe("User Service", () => {
     const dbUtils = DbTestUtils.getInstance();
     const userService = new UserMgmtService(db);
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         // Wipe DB before test
         await dbUtils.wipeDb();
     });

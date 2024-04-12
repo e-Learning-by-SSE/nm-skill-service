@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Param, Delete, Patch, Query } from "@nestjs/common";
 import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import { CareerProfileService } from "./careerProfile.service";
-import { CareerProfileCreationDto, JobCreationDto } from "../dto";
-import { JobUpdateDto } from "../dto/job-update.dto";
-import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
+import { CareerProfileDto } from "./dto/careerProfile.dto";
+import { JobDto } from "./dto/job.dto";
+import { QualificationDto } from "./dto/qualification.dto";
 
 /**
  * Controller for managing the career profiles
@@ -33,7 +33,7 @@ export class CareerProfileController {
     }
 
     @Post("")
-    addCareerProfile(@Body() dto: CareerProfileCreationDto) {
+    addCareerProfile(@Body() dto: CareerProfileDto) {
         return this.careerService.createCareerProfile(dto);
     }
 
@@ -50,13 +50,13 @@ export class CareerProfileController {
     @Patch(":career_profile_id")
     patchCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
-        @Body() dto: CareerProfileCreationDto,
+        @Body() dto: CareerProfileDto,
     ) {
         return this.careerService.patchCareerProfileByID(careerProfileId, dto);
     }
 
     @Post(":career_profile_id/job_history")
-    addJob(@Param("career_profile_id") careerProfileId: string, @Body() dto: JobCreationDto) {
+    addJob(@Param("career_profile_id") careerProfileId: string, @Body() dto: JobDto) {
         return this.careerService.createJob(careerProfileId, dto);
     }
 
@@ -64,7 +64,7 @@ export class CareerProfileController {
     patchJobHistoryAtCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
         @Param("job_history_id") jobHistoryId: string,
-        @Body() dto: JobUpdateDto,
+        @Body() dto: JobDto,
     ) {
         return this.careerService.patchJobHistoryAtCareerProfileByID(
             careerProfileId,
@@ -87,7 +87,7 @@ export class CareerProfileController {
     @Post(":career_profile_id/qualifications/")
     addQualificationToCareerProfile(
         @Param("career_profile_id") careerProfileId: string,
-        @Body() dto: QualificationCreationDto,
+        @Body() dto: QualificationDto,
     ) {
         return this.careerService.createQualificationForCareerProfile(careerProfileId, dto);
     }
@@ -101,7 +101,7 @@ export class CareerProfileController {
     patchQualificationToCareerProfile(
         @Param("career_profile_id") careerProfileId: string,
         @Param("qualification_id") qualificationId: string,
-        @Body() dto: QualificationCreationDto,
+        @Body() dto: QualificationDto,
     ) {
         return this.careerService.patchQualificationForCareerProfile(
             careerProfileId,

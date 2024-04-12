@@ -279,6 +279,7 @@ model Qualification {
   id              String        @id @default(cuid())
   title           String
   date            DateTime
+  berufenetId     String?
   careerProfile   CareerProfile @relation(fields: [careerProfileId], references: [userId])
   careerProfileId String
 }

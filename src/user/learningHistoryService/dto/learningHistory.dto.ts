@@ -9,8 +9,6 @@ import {
 export class LearningHistoryDto {
     @IsNotEmpty()
     id: string;
-    @IsNotEmpty()
-    userId: string;
     startedLearningUnits: string[];
     learnedSkills: string[];
     personalPaths: string[];
@@ -23,8 +21,7 @@ export class LearningHistoryDto {
         },
     ): LearningHistoryDto {
         return {
-            id: learningHistory.id,
-            userId: learningHistory.userId,
+            id: learningHistory.userId,
             startedLearningUnits: learningHistory.startedLearningUnits?.map((element) => element.id) ?? [],
             learnedSkills: learningHistory.learnedSkills?.map((element) => element.id) ?? [],
             personalPaths: learningHistory.personalPaths?.map((element) => element.id) ?? [],
