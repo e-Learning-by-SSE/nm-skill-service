@@ -191,4 +191,161 @@ export class LearningHistoryService {
     async patchCompPathViaLearningProfileByID(learningProfileId: string, userProfileId: string) {
         throw new Error("Method not implemented.");
     }
+
+    
+    async deleteProgressForId(id: string) {
+        const recordToDelete = await this.db.learningProgress.findUnique({
+            where: {
+                id: id, // Replace with the actual record ID you want to delete
+            },
+        });
+
+        if (!recordToDelete) {
+            // The record with the specified ID doesn't exist; handle it accordingly
+            throw new NotFoundException(`Record not found: ${id}`);
+        }
+
+        const dao = await this.db.learningProgress.delete({ where: { id: id } });
+
+        return dao;
+    }
+
+    /**
+     * ToDo: What is the use case? Re-acquisition of the same skill?
+     * @param userId
+     * @param updateLearningProgressDto
+     */
+    async updateLearningProgress(userId: string, skillId: string) {
+        try {
+            console.log("Update of learning progress is not yet (?) implemented.");
+        } catch (error) {
+            throw new Error("Error updating learning progress.");
+        }
+    }
+
+    /**
+     * When a user acquires a skill, create a learning progress object for them (matches skill and user).
+     * Currently, the same skill can be acquired multiple times. Every time there is a new learning progress entry created.
+     * @param lProgressDto
+     * @returns
+     */
+    async createProgressForUserId(userId: string, skillId: string) {
+        try {
+            const createEntry = await this.db.learningProgress.create({
+                data: { learningHistoryId: userId, skillId: skillId }, //TODO needs to change to history id
+            });
+            return createEntry;
+        } catch (error) {
+            throw new ForbiddenException("Error creating learning progress");
+        }
+    }
+
+    async findProgressForUserId(id: string) {
+        try {
+            const progressEntries = await this.db.learningProgress.findMany({
+                where: { learningHistoryId: id }, //TODO needs to change to history id
+            });
+
+            if (progressEntries.length === 0) {
+                throw new NotFoundException("No learning progress found.");
+            }
+
+            return progressEntries;
+        } catch (error) {
+            // Handle any other errors or rethrow them as needed
+            throw new Error("Error finding learning progress.");
+        }
+    }
+
+    
+    async editStatusForAConsumedUnitById(consumedUnitId: string, status: STATUS) {
+        try {
+            // Find users with the given learning unit in their learning history
+
+            const consumed = await this.db.consumedUnitData.update({
+                where: {
+                    id: consumedUnitId,
+                },
+                data: {
+                    status: status,
+                },
+            });
+            return consumed;
+        } catch (error) {
+            // Handle errors
+
+            throw new NotFoundException("Unit not Found in DB ");
+        }
+    }
+
+    async createLearningPathForUser(
+        userID: string,
+        learningUnitsIds: string[],
+        pathTeachingGoalsIds: string[],
+    ) {
+        let existingUserProfile = await this.db.userProfile.findUnique({
+            where: { id: userID },
+        });
+
+        if (!existingUserProfile) {
+            existingUserProfile = await this.db.userProfile.create({
+                data: {
+                    id: userID,
+                },
+            });
+        }
+
+        let existingUserHistory = await this.db.learningHistory.findUnique({
+            where: { id: userID },
+        });
+        if (!existingUserHistory) {
+            existingUserHistory = await this.db.learningHistory.create({
+                data: {
+                    userId: userID,
+                    id: userID,
+                },
+            });
+        }
+
+        const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
+            data: {
+                learningHistoryId: userID,
+                unitSequence: {
+                    connect: learningUnitsIds.map((id) => ({ id })),
+                },
+                pathTeachingGoals: {
+                    connect: pathTeachingGoalsIds.map((id) => ({ id })),
+                },
+            },
+        });
+
+        return { createdPersonalizedLearningPath };
+    }
+    async checkStatusForUnitsInPathOfLearningHistory(learningHistoryId: string, pathId: string) {
+        // Find the learning path associated with the specified learning history
+        const learningPath = await this.db.personalizedLearningPath.findUnique({
+            where: {
+                learningHistoryId: learningHistoryId,
+                id: pathId,
+            },
+            include: {
+                unitSequence: {
+                    include: {
+                        unit: true,
+                    },
+                },
+            },
+        });
+
+        if (!learningPath) {
+            throw new NotFoundException(
+                `Learning path ${pathId} not found for the given learning history ${learningHistoryId}.`,
+            );
+        }
+
+        return learningPath.unitSequence.map((unit) => ({
+            unit: unit.unit,
+            status: unit.unit.status,
+        }));
+    }
 }

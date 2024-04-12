@@ -3,7 +3,7 @@ import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import { CareerProfileService } from "./careerProfile.service";
 import { CareerProfileCreationDto, JobCreationDto } from "../dto";
 import { JobUpdateDto } from "../dto/job-update.dto";
-import { QualificationCreationDto } from "../dto/qualification-creation.dto";
+import { QualificationCreationDto } from "./dto/qualification-creation.dto";
 import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 
 /**
