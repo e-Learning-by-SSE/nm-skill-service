@@ -90,9 +90,7 @@ model Skill {
   nestedSkills              Skill[]                    @relation("parentSkills")
   pathTeachingGoals         LearningPath[]             @relation("pathGoals")
   requirements              LearningPath[]             @relation("pathRequirements")
-  proposedpathTeachingGoals PersonalizedLearningPath[] @relation("proposedpathGoals")
-  selfReported              CareerProfile[]            @relation("selfReportedSkill")
-  verified                  CareerProfile[]            @relation("verifiedSkill")
+  proposedpathTeachingGoals PersonalizedLearningPath[] @relation("proposedpathGoals")              
 
   // Use in Learning Objects
   goalsOf        LearningUnit[]      @relation("teachingGoals")
@@ -243,22 +241,20 @@ model UserProfile {
 
 //Preferences and experiences about a user's learning behavior
 model LearningProfile {
-  id                      String           @id @default(cuid())
-  semanticDensity         Int              @default(0)
-  semanticGravity         Int              @default(0)
-  mediaType               String           @default("")
-  language                String           @default("")
-  processingTimePerUnit   String           @default("")
-  user                    UserProfile      @relation(fields: [userId], references: [id])
-  userId                  String           @unique // relation scalar field 
-  preferredDidacticMethod String?
+    user                    UserProfile      @relation(fields: [userId], references: [id]) 
+  userId                  String           @unique // User id is LearningProfile id, one to one relation 
+  semanticDensity         Float              @default(0) //From 0-1
+  semanticGravity         Float              @default(0) //From 0-1
+  mediaType               String[]           @default([]) //MIME types, order is priority
+  language                String[]           @default([])  //Standard two character (de, en), order is priority
+  processingTimePerUnit   Int           @default(0) //In minutes
+  preferredDidacticMethod String[]      @default([])
 }
 
 //Stores the learning history of a user, including the learning units they have started and the skills they have learned
 model LearningHistory {
-  id                   String                     @id @default(cuid())
+  userId               String                     @unique // User id is LearningHistory id, one to one relation 
   user                 UserProfile                @relation(fields: [userId], references: [id])
-  userId               String                     @unique // relation scalar field 
   startedLearningUnits ConsumedUnitData[]         @relation("startedBy")
   learnedSkills        LearningProgress[]
   personalPaths        PersonalizedLearningPath[]
@@ -272,7 +268,7 @@ model LearningProgress {
   createdAt         DateTime         @default(now())
 
   //Learned skills are part of the learning history of a user
-  LearningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [id])
+  LearningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId])
   learningHistoryId String
 }
 
@@ -281,22 +277,20 @@ model LearningProgress {
 
 //A careerProfile belongs to a user and contains the job history, professional interests, qualifications and skills of the user
 model CareerProfile {
-  id                    String          @id @default(cuid())
-  jobHistory            Job[]           
-  professionalInterests String          @default("")
-  qualifications        Qualification[]
-  selfReportedSkills    Skill[]         @relation("selfReportedSkill")
-  verifiedSkills        Skill[]         @relation("verifiedSkill")
+  userId                String          @unique /// User id is CareerProfile id, one to one relation 
   user                  UserProfile     @relation(fields: [userId], references: [id])
-  userId                String          @unique // relation scalar field 
+  jobHistory            Job[]           
+  professionalInterests String[]          @default([])
+  qualifications        Qualification[]
+  selfReportedSkills    String[]         //Only used with text matching for the recommendation algorithms
 }
 
 model Qualification {
   id              String         @id @default(cuid())
-  name            String
-  year            Int
-  careerProfile   CareerProfile? @relation(fields: [careerProfileId], references: [id])
-  careerProfileId String?
+  title            String
+  date            DateTime
+  careerProfile   CareerProfile @relation(fields: [careerProfileId], references: [userId])
+  careerProfileId String
 }
 
 model Job {
@@ -304,9 +298,8 @@ model Job {
   jobTitle         String
   startTime        DateTime
   endTime          DateTime // Year the job was ended, if the job is still on-going set this to NULL
-  companyId        String //From the MLS DB
-  jobIdAtBerufeNet String?
-  careerProfile    CareerProfile @relation(fields: [careerProfileId], references: [id])
+  company       String 
+  careerProfile    CareerProfile @relation(fields: [careerProfileId], references: [userId])
   careerProfileId  String
 }
 
@@ -340,7 +333,7 @@ model PersonalizedLearningPath {
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   unitSequence      PathSequence[]
-  learningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [id])
+  learningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId])
   learningHistoryId String
 
   // Origin either are path or custom goals
@@ -374,7 +367,7 @@ model ConsumedUnitData {
   unitId               String
   status               STATUS                @default(OPEN)
   date                 DateTime              @default(now())
-  startedBy            LearningHistory       @relation("startedBy", fields: [historyId], references: [id])
+  startedBy            LearningHistory       @relation("startedBy", fields: [historyId], references: [userId])
   historyId            String
   path                 PathSequence[]
 
