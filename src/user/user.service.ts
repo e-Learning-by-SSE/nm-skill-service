@@ -1,8 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { UserCreationDto, UserDto } from "./dto";
+import { UserCreationDto, UserWithoutChildrenDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { STATUS, USERSTATUS } from "@prisma/client";
+import { USERSTATUS } from "@prisma/client";
 import LoggerUtil from "../logger/logger";
 
 /**
@@ -17,7 +17,6 @@ export class UserMgmtService {
      * Creates a new user and saves it into the DB
      * @param dto Specifies the user to be created
      * @returns The newly created user
-     * @todo: This needs still a revision and further testing
      */
     async createUser(dto: UserCreationDto) {
         // Create and return user
@@ -37,7 +36,7 @@ export class UserMgmtService {
 
             LoggerUtil.logInfo(
                 "UserService::createUser",
-                "Created user profile without company and user id: " + dto.id,
+                "Created user profile with id: " + dto.id,
             );
             return "Success";
 
@@ -60,32 +59,13 @@ export class UserMgmtService {
     /**
      * Loads the user with userId from the DB and returns it as DTO
      * @param userId The id of the user profile to be returned
-     * @returns A user profile DTO
+     * @returns A user profile DTO ${UserWithoutChildrenDto}
      */
     public async getUser(userId: string) {
-        //Find the user with userId in the DB
+        //Find the user with userId in the DB (only top-level attributes id and status)
         const userDAO = await this.db.userProfile.findUnique({
             where: {
                 id: userId,
-            },
-            //Returns all user fields including learningProfile, careerProfile (including its fields), and learningHistory (including its fields)
-            include: {
-                learningProfile: true,
-                careerProfile: {
-                    include: {
-                        jobHistory: true,
-                        qualifications: true,
-                        selfReportedSkills: true,
-                        verifiedSkills: true,
-                    },
-                },
-                learningHistory: {
-                    include: {
-                        learnedSkills: true,
-                        startedLearningUnits: true,
-                        personalPaths: true,
-                    },
-                },
             },
         });
 
@@ -97,7 +77,7 @@ export class UserMgmtService {
         } else {
             //Return the DTO
             LoggerUtil.logInfo("UserService::getUser", "Returning user profile with id: " + userId);
-            return UserDto.createFromDao(userDAO);
+            return UserWithoutChildrenDto.createFromDao(userDAO);
         }
     }
 
@@ -174,159 +154,4 @@ export class UserMgmtService {
             throw error;
         }
     } */
-
-    async deleteProgressForId(id: string) {
-        const recordToDelete = await this.db.learningProgress.findUnique({
-            where: {
-                id: id, // Replace with the actual record ID you want to delete
-            },
-        });
-
-        if (!recordToDelete) {
-            // The record with the specified ID doesn't exist; handle it accordingly
-            throw new NotFoundException(`Record not found: ${id}`);
-        }
-
-        const dao = await this.db.learningProgress.delete({ where: { id: id } });
-
-        return dao;
-    }
-
-    /**
-     * ToDo: What is the use case? Re-acquisition of the same skill?
-     * @param userId
-     * @param updateLearningProgressDto
-     */
-    async updateLearningProgress(userId: string, skillId: string) {
-        try {
-            console.log("Update of learning progress is not yet (?) implemented.");
-        } catch (error) {
-            throw new Error("Error updating learning progress.");
-        }
-    }
-
-    /**
-     * When a user acquires a skill, create a learning progress object for them (matches skill and user).
-     * Currently, the same skill can be acquired multiple times. Every time there is a new learning progress entry created.
-     * @param lProgressDto
-     * @returns
-     */
-    async createProgressForUserId(userId: string, skillId: string) {
-        try {
-            const createEntry = await this.db.learningProgress.create({
-                data: { learningHistoryId: userId, skillId: skillId }, //TODO needs to change to history id
-            });
-            return createEntry;
-        } catch (error) {
-            throw new ForbiddenException("Error creating learning progress");
-        }
-    }
-
-    async findProgressForUserId(id: string) {
-        try {
-            const progressEntries = await this.db.learningProgress.findMany({
-                where: { learningHistoryId: id }, //TODO needs to change to history id
-            });
-
-            if (progressEntries.length === 0) {
-                throw new NotFoundException("No learning progress found.");
-            }
-
-            return progressEntries;
-        } catch (error) {
-            // Handle any other errors or rethrow them as needed
-            throw new Error("Error finding learning progress.");
-        }
-    }
-
-    async editStatusForAConsumedUnitById(consumedUnitId: string, status: STATUS) {
-        try {
-            // Find users with the given learning unit in their learning history
-
-            const consumed = await this.db.consumedUnitData.update({
-                where: {
-                    id: consumedUnitId,
-                },
-                data: {
-                    status: status,
-                },
-            });
-            return consumed;
-        } catch (error) {
-            // Handle errors
-
-            throw new NotFoundException("Unit not Found in DB ");
-        }
-    }
-
-    async createLearningPathForUser(
-        userID: string,
-        learningUnitsIds: string[],
-        pathTeachingGoalsIds: string[],
-    ) {
-        let existingUserProfile = await this.db.userProfile.findUnique({
-            where: { id: userID },
-        });
-
-        if (!existingUserProfile) {
-            existingUserProfile = await this.db.userProfile.create({
-                data: {
-                    id: userID,
-                },
-            });
-        }
-
-        let existingUserHistory = await this.db.learningHistory.findUnique({
-            where: { id: userID },
-        });
-        if (!existingUserHistory) {
-            existingUserHistory = await this.db.learningHistory.create({
-                data: {
-                    userId: userID,
-                    id: userID,
-                },
-            });
-        }
-
-        const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
-            data: {
-                learningHistoryId: userID,
-                unitSequence: {
-                    connect: learningUnitsIds.map((id) => ({ id })),
-                },
-                pathTeachingGoals: {
-                    connect: pathTeachingGoalsIds.map((id) => ({ id })),
-                },
-            },
-        });
-
-        return { createdPersonalizedLearningPath };
-    }
-    async checkStatusForUnitsInPathOfLearningHistory(learningHistoryId: string, pathId: string) {
-        // Find the learning path associated with the specified learning history
-        const learningPath = await this.db.personalizedLearningPath.findUnique({
-            where: {
-                learningHistoryId: learningHistoryId,
-                id: pathId,
-            },
-            include: {
-                unitSequence: {
-                    include: {
-                        unit: true,
-                    },
-                },
-            },
-        });
-
-        if (!learningPath) {
-            throw new NotFoundException(
-                `Learning path ${pathId} not found for the given learning history ${learningHistoryId}.`,
-            );
-        }
-
-        return learningPath.unitSequence.map((unit) => ({
-            unit: unit.unit,
-            status: unit.unit.status,
-        }));
-    }
 }
