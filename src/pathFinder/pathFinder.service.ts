@@ -12,13 +12,6 @@ import {
 } from "./dto";
 import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
-import {
-    LearningHistory,
-    LearningUnit,
-    PersonalizedLearningPath,
-    Skill as PrismaSkill,
-    UserProfile,
-} from "@prisma/client";
 
 /**
  * Service for Graph requests
@@ -35,7 +28,6 @@ export class PathFinderService {
                 id: userId,
             },
             include: {
-
                 learningProfile: true,
                 careerProfile: true,
                 learningHistory: {
@@ -48,7 +40,7 @@ export class PathFinderService {
                                     },
                                 },
                             },
-                        },                        
+                        },
                     },
                 },
             },
@@ -77,12 +69,13 @@ export class PathFinderService {
         const skills = await this.loadAllSkillsOfRepositories(repositories);
 
         // TODO: Revise
-        
+
         let knowledge: Skill[] | undefined;
         if (dto.userId) {
-            //const userProfile = await this.loadUser(dto.userId);
+            // Consider already learned Skills of the user
+            const userProfile = await this.loadUser(dto.userId);
             const learnedSkills =
-                userProfile.learningProgress.map((progress) => progress.Skill) ?? [];
+                userProfile.learningHistory?.learnedSkills.map((progress) => progress.Skill) ?? [];
 
             // DTO not required, but its constructor ensures that all required fields are handled
             // For instance: Repository, nested Skills, ...

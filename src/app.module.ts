@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { PrismaModule } from "./prisma/prisma.module";
 import { SkillModule } from "./skills/skill.module";
-import { DynamicNuggetModuleModule } from "./nugget/nugget.module";
 import { LearningPathModule } from "./learningPath/learningPath.module";
 import { LearningUnitModule } from "./learningUnit/learningUnit.module";
 import { validate } from "./config/env.validation";
@@ -21,7 +20,6 @@ import { ClientModule } from "./clients/client.module";
         }),
         PrismaModule,
         SkillModule,
-        DynamicNuggetModuleModule,
         LearningPathModule,
         LearningUnitModule,
         PathFinderModule,

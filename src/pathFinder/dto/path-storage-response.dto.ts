@@ -51,20 +51,9 @@ export class PathStorageResponseDto {
         dao: PersonalizedLearningPath & {
             unitSequence: {
                 id: string;
-                position: number;
-                unit: {
-                    id: string;
-                    actualProcessingTime: number;
-                    testPerformance: Decimal;
-                    unitId: string;
-                    lbDataId: string | null;
-                    status: STATUS;
-                    date: Date;
-                    historyId: string;
-                };
             }[];
             pathTeachingGoals: Skill[];
-            learningHistory: LearningHistory & { user: UserProfile };
+            learningHistory: LearningHistory;
         },
     ): PathStorageResponseDto {
         const dto: PathStorageResponseDto = {
