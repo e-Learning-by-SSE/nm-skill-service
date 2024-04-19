@@ -86,10 +86,9 @@ export class CareerProfileController {
 
     @Post(":career_profile_id/qualifications/")
     addQualificationToCareerProfile(
-        @Param("career_profile_id") careerProfileId: string,
         @Body() dto: QualificationDto,
     ) {
-        return this.careerService.createQualificationForCareerProfile(careerProfileId, dto);
+        return this.careerService.createQualificationForCareerProfile(dto);
     }
 
     @Get(":career_profile_id/qualifications/:qualification_id")
@@ -112,11 +111,9 @@ export class CareerProfileController {
 
     @Delete(":career_profile_id/qualifications/:qualification_id")
     deleteQualificationToCareerProfile(
-        @Param("career_profile_id") careerProfileId: string,
         @Param("qualification_id") qualificationId: string,
     ) {
         return this.careerService.deleteQualificationForCareerProfile(
-            careerProfileId,
             qualificationId,
         );
     }
