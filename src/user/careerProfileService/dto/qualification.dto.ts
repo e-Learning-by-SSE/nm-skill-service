@@ -10,6 +10,8 @@ export class QualificationDto {
     date: Date;
     @IsOptional()
     berufenetID?: string;
+    @IsNotEmpty()
+    careerProfileId: string;
 
     /**
      * Creates a new QualificationDto from a DB result
@@ -22,6 +24,7 @@ export class QualificationDto {
             title: qualification.title,
             date: qualification.date,
             berufenetID: qualification.berufenetId || undefined,
+            careerProfileId: qualification.careerProfileId,
         };
     }
 }

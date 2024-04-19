@@ -218,7 +218,7 @@ model UserProfile {
 // - Concept of the project proposal (to allow personalized suggestions)
 // - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/108
 model LearningProfile {
-  user                    UserProfile @relation(fields: [userId], references: [id])
+  user                    UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                  String      @unique // User id is LearningProfile id, one to one relation 
   semanticDensity         Float       @default(0) //From 0-1
   semanticGravity         Float       @default(0) //From 0-1
@@ -235,7 +235,7 @@ model LearningProfile {
 // - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/109  
 model LearningHistory {
   userId               String                     @unique // User id is LearningHistory id, one to one relation 
-  user                 UserProfile                @relation(fields: [userId], references: [id])
+  user                 UserProfile                @relation(fields: [userId], references: [id], onDelete: Cascade)
   startedLearningUnits ConsumedUnitData[]         @relation("startedBy")
   learnedSkills        LearningProgress[]
   personalPaths        PersonalizedLearningPath[]
@@ -252,7 +252,7 @@ model LearningProgress {
   createdAt DateTime @default(now())
 
   //Learned skills are part of the learning history of a user
-  LearningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId])
+  LearningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId], onDelete: Cascade)
   learningHistoryId String
 }
 
@@ -263,7 +263,7 @@ model LearningProgress {
 // - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/102
 model CareerProfile {
   userId                String          @unique /// User id is CareerProfile id, one to one relation 
-  user                  UserProfile     @relation(fields: [userId], references: [id])
+  user                  UserProfile     @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobHistory            Job[]
   professionalInterests String[]        @default([])
   qualifications        Qualification[]
@@ -280,7 +280,7 @@ model Qualification {
   title           String
   date            DateTime
   berufenetId     String?
-  careerProfile   CareerProfile @relation(fields: [careerProfileId], references: [userId])
+  careerProfile   CareerProfile @relation(fields: [careerProfileId], references: [userId], onDelete: Cascade)
   careerProfileId String
 }
 
@@ -295,7 +295,7 @@ model Job {
   startTime       DateTime
   endTime         DateTime? // Year the job was ended, if the job is still on-going set this to NULL
   company         String
-  careerProfile   CareerProfile @relation(fields: [careerProfileId], references: [userId])
+  careerProfile   CareerProfile @relation(fields: [careerProfileId], references: [userId], onDelete: Cascade)
   careerProfileId String
 }
 
@@ -326,7 +326,7 @@ model PersonalizedLearningPath {
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   unitSequence      PathSequence[]
-  learningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId])
+  learningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId], onDelete: Cascade)
   learningHistoryId String
 
   // Origin either are path or custom goals
@@ -343,7 +343,7 @@ model PersonalizedLearningPath {
 model PathSequence {
   id       String                   @id @default(cuid())
   position Int
-  path     PersonalizedLearningPath @relation(fields: [pathId], references: [id])
+  path     PersonalizedLearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
   pathId   String
   unit     ConsumedUnitData         @relation(fields: [unitId], references: [id])
   unitId   String

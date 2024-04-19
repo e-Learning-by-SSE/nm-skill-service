@@ -276,46 +276,25 @@ export class CareerProfileService {
         }
     }
 
-    async createQualificationForCareerProfile(id: string, dto: QualificationDto) {
-        try {
-            // Ensure that the user with the given ID exists
-            const user = await this.db.userProfile.findUnique({
-                where: { id },
-            });
-
-            if (!user) {
-                throw new BadRequestException("User not found");
-            }
-            const profile = await this.db.careerProfile.create({
-                data: {
-                    userId: user.id,
-                    // Associate the qualification with the user
-                },
-            });
-            console.log(profile);
+    async createQualificationForCareerProfile(dto: QualificationDto) {
+        try {            
             const qualification = await this.db.qualification.create({
                 data: {
+                    id: dto.id,     //Do we want to set the id ourselves?
                     title: dto.title,
                     date: dto.date,
-                    careerProfile: { connect: { userId: user.id } }, // Associate the qualification with the user
+                    careerProfileId: dto.careerProfileId,
                 },
             });
-            console.log(qualification);
+
             return QualificationDto.createFromDao(qualification);
         } catch (error) {
             throw new BadRequestException(`Failed to create qualification: ${error.message}`);
         }
     }
 
-    async deleteQualificationForCareerProfile(careerProfileId: string, qualificationId: string) {
+    async deleteQualificationForCareerProfile(qualificationId: string) {
         try {
-            const qualification = await this.db.qualification.findUnique({
-                where: { id: qualificationId, careerProfileId: careerProfileId },
-            });
-
-            if (!qualification) {
-                throw new NotFoundException("Qualification not found");
-            }
             const deletedQualification = await this.db.qualification.delete({
                 where: {
                     id: qualificationId,
@@ -326,14 +305,13 @@ export class CareerProfileService {
                 throw new BadRequestException("Qualification not found for deletion.");
             }
 
-            return QualificationDto.createFromDao(deletedQualification);
+            return "Successfully deleted qualification with id: ${qualificationId}";
         } catch (error) {
-            if (error instanceof PrismaClientValidationError) {
-                throw new BadRequestException(`Validation error: ${error.message}`);
-            }
-            throw new BadRequestException(`Failed to delete qualification: ${error.message}`);
+            console.error(error);
+            return "Failed to delete qualification with id: ${qualificationId}"
         }
     }
+
     async patchQualificationForCareerProfile(
         careerProfileId: string,
         qualificationId: string,

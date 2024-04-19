@@ -30,9 +30,9 @@ export class DbTestUtils {
         await this.db.pathSequence.deleteMany();
         await this.db.personalizedLearningPath.deleteMany();
         await this.db.consumedUnitData.deleteMany();
-        await this.db.learningHistory.deleteMany();
-        await this.db.careerProfile.deleteMany();
-        await this.db.learningProfile.deleteMany();
+        //await this.db.learningHistory.deleteMany(); These should all be removed with their user profile
+        //await this.db.careerProfile.deleteMany();
+        //await this.db.learningProfile.deleteMany();
         await this.db.userProfile.deleteMany();
 
         // Learning Paths
