@@ -22,15 +22,15 @@ export class UserMgmtService {
         // Create and return user
         try {
             //Create DB data
-            const user = await this.db.userProfile.create({
+            await this.db.userProfile.create({
                 data: {
                     id: dto.id,
                     status: USERSTATUS.ACTIVE, //New users start active
 
-                    //Create the respective objects (empty by default)
-                    learningHistory: {},
-                    careerProfile: {},
-                    learningProfile: {},
+                    //Create the respective objects with their default values. Their id is the userId.
+                    learningHistory: { create: {} },
+                    careerProfile: { create: {} },
+                    learningProfile: { create: {} },
                 },
             });
 
