@@ -10,13 +10,15 @@ import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exceptio
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 import { LIFECYCLE, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
-import { LearningProgressDto } from "../user/dto";
+import { LearningProgressDto, UserWithoutChildrenDto } from "../user/dto";
+import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 
 describe("Event Service", () => {
     //Required Classes
     const config = new ConfigService();
     const db = new PrismaService(config);
     const userService = new UserMgmtService(db);
+    const learningHistoryService = new LearningHistoryService(db, config);
     const learningUnitFactory = new LearningUnitFactory(db);
     const learningUnitService = new LearningUnitMgmtService(learningUnitFactory);
     const dbUtils = DbTestUtils.getInstance();
@@ -26,6 +28,7 @@ describe("Event Service", () => {
         learningUnitService,
         learningUnitFactory,
         userService,
+        learningHistoryService,
         config,
     );
 
@@ -169,11 +172,10 @@ describe("Event Service", () => {
             // Arrange: Create events with missing skill in the LU
 
             //We need an existing user and a learning unit missing the skill
-            const userProfile = await dbUtils.createUserProfile("Test Name");
             const learningUnit = await dbUtils.createLearningUnit("Test LU", [], []);
 
             //We need the Ids for validation
-            const userID = userProfile.id;
+            const userID = "testUserId";
             const luID = learningUnit.id;
 
             const invalidMLSEvent: MLSEvent = {
@@ -404,17 +406,18 @@ describe("Event Service", () => {
 
             const expectedUserDto: UserCreationDto = {
                 id: validMLSPostEvent.id,
-                name: "Test Name",
-                status: USERSTATUS.ACTIVE, //Initially, users are created as active users
+                //Initially, users are created as active users, so no status given
             };
 
             // Act: Call the getEvent method
-            let createdEntry = await eventService.getEvent(validMLSPostEvent);
+            await eventService.getEvent(validMLSPostEvent);
+            
+            //Load the user from the DB
+            let createdEntry = await userService.getUserById(expectedUserDto.id);
 
             // Assert: Check that the createdEntry is valid and matches the expected data (we cannot check object equality as the created DTO contains way more values)
-            expect((createdEntry as UserCreationDto).id).toEqual(expectedUserDto.id);
-            expect((createdEntry as UserCreationDto).name).toEqual(expectedUserDto.name);
-            expect((createdEntry as UserCreationDto).status).toEqual(expectedUserDto.status);
+            expect((createdEntry as UserWithoutChildrenDto).id).toEqual(expectedUserDto.id);
+            expect((createdEntry as UserWithoutChildrenDto).status).toEqual(USERSTATUS.ACTIVE);
 
             // Arrange: Define an update event
             const validMLSPutEvent: MLSEvent = {
@@ -425,12 +428,13 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            createdEntry = await eventService.getEvent(validMLSPutEvent);
+            await eventService.getEvent(validMLSPutEvent);
+            //Load the user from the DB
+            createdEntry = await userService.getUserById(expectedUserDto.id);
 
             // Assert: Check that the createdEntry is valid and matches the expected data (updated state, other selected values unchanged)
-            expect((createdEntry as UserCreationDto).id).toEqual(expectedUserDto.id);
-            expect((createdEntry as UserCreationDto).name).toEqual(expectedUserDto.name);
-            expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.INACTIVE);
+            expect((createdEntry as UserWithoutChildrenDto).id).toEqual(expectedUserDto.id);
+            expect((createdEntry as UserWithoutChildrenDto).status).toEqual(USERSTATUS.INACTIVE);
 
             //Update again as preparation for next test and to test the other branch
             const validMLSPutEvent2: MLSEvent = {
@@ -441,12 +445,13 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            createdEntry = await eventService.getEvent(validMLSPutEvent2);
+            await eventService.getEvent(validMLSPutEvent2);
+            //Load the user from the DB
+            createdEntry = await userService.getUserById(expectedUserDto.id);            
 
             // Assert: Check that the createdEntry is valid and matches the expected data (updated state, other selected values unchanged)
-            expect((createdEntry as UserCreationDto).id).toEqual(expectedUserDto.id);
-            expect((createdEntry as UserCreationDto).name).toEqual(expectedUserDto.name);
-            expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.ACTIVE);
+            expect((createdEntry as UserWithoutChildrenDto).id).toEqual(expectedUserDto.id);
+            expect((createdEntry as UserWithoutChildrenDto).status).toEqual(USERSTATUS.ACTIVE);
 
             // Arrange: Define a delete event
             const validMLSDeleteEvent: MLSEvent = {
@@ -457,10 +462,12 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            createdEntry = await eventService.getEvent(validMLSDeleteEvent);
+            await eventService.getEvent(validMLSDeleteEvent);
+            //Load the user from the DB
+            createdEntry = await userService.getUserById(expectedUserDto.id);
 
             // Assert: Check that the user unit is successfully deleted (in our case this means setting status to inactive)
-            expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.INACTIVE);
+            expect((createdEntry as UserWithoutChildrenDto).status).toEqual(USERSTATUS.INACTIVE);
         });
 
         it("should create a new user profile when receiving a PUT event for a non-existent one (when manually triggered in MLS for import)", async () => {
@@ -473,10 +480,13 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            const createdEntry = await eventService.getEvent(MlsPUTEvent);
+            await eventService.getEvent(MlsPUTEvent);
+
+            //Load the user from the DB
+            const createdEntry = await userService.getUserById(MlsPUTEvent.id);
 
             // Assert: Check that the createdEntry is valid and matches the expected data
-            expect((createdEntry as UserCreationDto).id).toEqual("non-existent");
+            expect((createdEntry as UserWithoutChildrenDto).id).toEqual(MlsPUTEvent.id);
         });
     });
 
@@ -488,7 +498,8 @@ describe("Event Service", () => {
             // Arrange: Define test data and create event input
 
             //We need an existing user, skill (requires a skillMap), and a learning unit teaching the skill
-            const userProfile = await dbUtils.createUserProfile("Test Name");
+            const userID = "testUserId";
+            await userService.createUser({ id: userID });
             const skillMap = await dbUtils.createSkillMap("owner", "Default Skill Map for Testing");
             const goalSkill = await dbUtils.createSkill(
                 skillMap,
@@ -502,7 +513,6 @@ describe("Event Service", () => {
             const learningUnit = await dbUtils.createLearningUnit("Test LU", teachingGoals, []);
 
             //We need the Ids for validation
-            const userID = userProfile.id;
             const skillID = goalSkill.id;
             const luID = learningUnit.id;
 
@@ -528,7 +538,7 @@ describe("Event Service", () => {
             for (const entry of createdEntry as Array<LearningProgressDto>) {
                 //Skill id and user id should match the input
                 expect(entry.skillId).toEqual(skillID);
-                expect(entry.userId).toEqual(userID);
+                expect(entry.learningHistoryId).toEqual(userID);
             }
         });
 
@@ -536,7 +546,8 @@ describe("Event Service", () => {
             // Arrange: Define test data and create event input
 
             //We need an existing user, skills (requires a skillMap), and a learning unit teaching the skills
-            const userProfile = await dbUtils.createUserProfile("Test Name");
+            const userID = "testUserId";
+            await userService.createUser({ id: userID });
             const skillMap = await dbUtils.createSkillMap("owner", "Default Skill Map for Testing");
             const goalSkill1 = await dbUtils.createSkill(
                 skillMap,
@@ -564,7 +575,6 @@ describe("Event Service", () => {
             const learningUnit = await dbUtils.createLearningUnit("Test LU", teachingGoals, []);
 
             //We need the Ids for validation
-            const userID = userProfile.id;
             const idArray = [goalSkill1.id, goalSkill2.id, goalSkill3.id];
             const luID = learningUnit.id;
 
@@ -594,7 +604,7 @@ describe("Event Service", () => {
             for (const entry of createdEntry as Array<LearningProgressDto>) {
                 //Skill id and user id should match the input
                 expect(entry.skillId).toEqual(idArray[i]);
-                expect(entry.userId).toEqual(userID);
+                expect(entry.learningHistoryId).toEqual(userID);
                 i++;
             }
         });

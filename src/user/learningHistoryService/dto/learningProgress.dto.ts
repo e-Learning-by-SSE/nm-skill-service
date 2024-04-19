@@ -21,7 +21,7 @@ export class LearningProgressDto {
     @IsNotEmpty()
     createdAt: Date;
 
-    //Learned skills are part of the learning history object of a user
+    //Learned skills are part of the learning history object of a user. Id is the same as the user's id.
     @IsNotEmpty()
     learningHistoryId: string;
 

@@ -235,6 +235,7 @@ export class LearningHistoryService {
             });
             return createEntry;
         } catch (error) {
+            console.error("Error creating learning progress", error);
             throw new ForbiddenException("Error creating learning progress");
         }
     }

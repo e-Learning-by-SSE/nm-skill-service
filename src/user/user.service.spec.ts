@@ -3,6 +3,7 @@ import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserMgmtService } from "./user.service";
 import { USERSTATUS } from "@prisma/client";
+import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 
 describe("User Service", () => {
     const config = new ConfigService();
@@ -11,7 +12,7 @@ describe("User Service", () => {
     const userService = new UserMgmtService(db);
 
     beforeAll(async () => {
-        // Wipe DB before test
+        // Wipe DB before test suite (not before each test, as we build upon the created DB entries)
         await dbUtils.wipeDb();
     });
 
@@ -45,18 +46,15 @@ describe("User Service", () => {
         });
 
         it("should not create a user if it already exists", async () => {
-            // Arrange: Create a user object
+            // Arrange: Create a user object (which is already in the db)
             const expectedUser = {
                 id: "testUser",
             };
 
-            // Act: Create the (already existing) user and save it to the DB
-            await userService.createUser(expectedUser);
-
-            // Assert: Check if the user creation was rejected correctly
+            // Act and Assert: Check if the user creation was rejected correctly
             expect(async () => {
                 await userService.createUser(expectedUser);
-            }).rejects.toThrow();
+            }).rejects.toThrow(ForbiddenException);
         });
 
         it("should update a user", async () => {
