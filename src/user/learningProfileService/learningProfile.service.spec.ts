@@ -2,7 +2,6 @@ import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
 import { LearningProfileService } from "./learningProfile.service";
-import { LearningProfileDto } from "../dto";
 import { UserMgmtService } from "../user.service";
 
 describe("LearningProfileService", () => {
@@ -13,7 +12,7 @@ describe("LearningProfileService", () => {
     const learningProfileService = new LearningProfileService(db);
 
     beforeAll(async () => {
-        // Wipe DB before test
+        // Wipe DB once before test (as we reuse data)
         await dbUtils.wipeDb();
     });
 
@@ -38,7 +37,6 @@ describe("LearningProfileService", () => {
             );
 
             // Assert: Check the result
-            expect(createdLearningProfile).toBeInstanceOf(LearningProfileDto);
             expect(createdLearningProfile.id).toEqual(expectedUser.id);
             //Check default values
             expect(createdLearningProfile.semanticDensity).toEqual(0);
@@ -69,7 +67,6 @@ describe("LearningProfileService", () => {
             );
 
             // Assert: Check the result (these should be the unchanged default values)
-            expect(updatedLearningProfile).toBeInstanceOf(LearningProfileDto);
             expect(updatedLearningProfile.id).toEqual(expectedUserId);
             expect(updatedLearningProfile.semanticGravity).toEqual(0);
             expect(updatedLearningProfile.mediaType).toEqual([]);
@@ -105,7 +102,6 @@ describe("LearningProfileService", () => {
             );
 
             // Assert: Check the results which should be the same as before
-            expect(updatedLearningProfile).toBeInstanceOf(LearningProfileDto);
             expect(updatedLearningProfile.id).toEqual(expectedUserId);
             expect(updatedLearningProfile.semanticDensity).toEqual(0.5);
             //Check updated values

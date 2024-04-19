@@ -41,6 +41,18 @@ export class LearningProfileService {
      * @returns Success if successful, or an exception if the learningProfile does not exist
      */
     async updateLearningProfile(dto: LearningProfileUpdateDto) {
+
+            //Check values again
+            if (dto.semanticDensity && (dto.semanticDensity < 0 || dto.semanticDensity > 1)) {
+                throw new Error("semanticDensity must be between 0 and 1");
+            }
+            if (dto.semanticGravity && (dto.semanticGravity < 0 || dto.semanticGravity > 1)) {
+                throw new Error("semanticGravity must be between 0 and 1");
+            }
+            if (dto.processingTimePerUnit && (dto.processingTimePerUnit < 0 || dto.processingTimePerUnit % 1 !== 0)) {
+                throw new Error("processingTimePerUnit must be at least 0 and a whole number (minutes)");
+            }
+
             //Update the learningProfile with the specified ID according to the DTO
             const updatedLearningProfile = await this.db.learningProfile.update({
                 where: { userId: dto.id },
