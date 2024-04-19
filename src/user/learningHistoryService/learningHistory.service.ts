@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
-    LearningHistoryDto,
     LearningHistoryCreationDto,
     ConsumedUnitUpdateDto,
     ConsumedUnitDto,

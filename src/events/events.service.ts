@@ -9,6 +9,7 @@ import { USERSTATUS, LIFECYCLE } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
 import LoggerUtil from "../logger/logger";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
+import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 
 /**
  * Triggers actions when certain events related to tasks (like creating a TaskTodo) occur in the MLS system
@@ -22,6 +23,7 @@ export class EventMgmtService {
         private learningUnitService: LearningUnitMgmtService,
         private learningUnitFactory: LearningUnitFactory,
         private userService: UserMgmtService,
+        private learningHistoryService: LearningHistoryService,
         private configService: ConfigService,
     ) {}
 
@@ -282,7 +284,7 @@ export class EventMgmtService {
                             for (const skill of skills) {
                                 //Create a new learning progress entry (that matches user and skill and saves the date of the acquisition)
                                 let learningProgressDto =
-                                    await this.userService.createProgressForUserId(
+                                    await this.learningHistoryService.createProgressForUserId(
                                         userID,
                                         skill.id,
                                     );
@@ -292,7 +294,7 @@ export class EventMgmtService {
 
                                 LoggerUtil.logInfo(
                                     "EventService::TaskToDoLearnSkill:SkillAcquired",
-                                    learningProgressDto.userId +
+                                    learningProgressDto.id +
                                         "," +
                                         learningProgressDto.skillId +
                                         ")",
@@ -381,8 +383,7 @@ export class EventMgmtService {
         //Create DTO
         const userDto: UserCreationDto = {
             id: mlsEvent.id,
-            name: mlsEvent.payload["name" as keyof JSON]?.toString(),
-            status: USERSTATUS.ACTIVE, //Initially, users are created as active users. They only become inactive when deleted.
+            //Initially, users are created as active users. They only become inactive when deleted.
         };
         LoggerUtil.logInfo("EventService::createUserDTO", userDto);
 

@@ -1,8 +1,7 @@
-import { IsDefined, IsNotEmpty, IsOptional } from "class-validator";
+import { IsNotEmpty } from "class-validator";
 import {
-    LearningProfile,
     LearningProgress,
-    UserProfile,
+
     ConsumedUnitData,
     PersonalizedLearningPath,
 } from "@prisma/client";
@@ -15,10 +14,10 @@ export class LearningHistoryCreationDto {
     @IsNotEmpty()
     userId: string;
     
-    startedLearningUnits: ConsumedUnitData[];
+    startedLearningUnits: string[];
     
-    learnedSkills: LearningProgress[];
+    learnedSkills: string[];
     
-    personalPaths: PersonalizedLearningPath[];
+    personalPaths: string[];
 
 }
