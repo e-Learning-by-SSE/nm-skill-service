@@ -1,37 +1,29 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { PrismaService } from "../prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import LoggerUtil from "../logger/logger";
 
 const { JSDOM } = require("jsdom");
 
 @Injectable()
 export class BerufeService {
-    private CLIENT_SECRET_BERUFENET: string | undefined;
-    private BASEURL_BERUFENET: string | undefined;
-    private TIMEOUT_BERUFENET: number | 120000;
-    private axiosConfig: any;
+    private baseUrl: string;
+    private axiosConfig: AxiosRequestConfig;
 
-    constructor(private db: PrismaService) {
-        db = db;
-        this.CLIENT_SECRET_BERUFENET = process.env.CLIENT_SECRET_BERUFENET;
-        this.BASEURL_BERUFENET = process.env.BASEURL_BERUFENET;
-        this.TIMEOUT_BERUFENET = Number(process.env.TIMEOUT_BERUFENET);
+    constructor(private db: PrismaService, config: ConfigService) {
+        this.baseUrl = config.get("BERUFENET_BASEURL") ?? "https://api.berufenet.arbeitsagentur.de";
         this.axiosConfig = {
             headers: {
-                "X-API-Key": this.CLIENT_SECRET_BERUFENET,
+                "X-API-Key": config.get("BERUFENET_CLIENT_SECRET"),
             },
-            timeout: this.TIMEOUT_BERUFENET,
+            timeout: config.get("BERUFENET_TIMEOUT"),
         };
     }
 
     async getJobsByID(jobId: string) {
-        console.log(this.BASEURL_BERUFENET);
-        console.log(this.TIMEOUT_BERUFENET);
         try {
-            const response = await axios.get(
-                `${this.BASEURL_BERUFENET}/berufe/${jobId}`,
-                this.axiosConfig,
-            );
+            const response = await axios.get(`${this.baseUrl}/berufe/${jobId}`, this.axiosConfig);
 
             return response.data;
         } catch (error) {
@@ -41,16 +33,13 @@ export class BerufeService {
 
     async getCompetenciesByJobID(jobId: string) {
         try {
-            const response = await axios.get(
-                `${this.BASEURL_BERUFENET}/berufe/${jobId}`,
-                this.axiosConfig,
-            );
+            const response = await axios.get(`${this.baseUrl}/berufe/${jobId}`, this.axiosConfig);
             const competenceMatches: any = [];
             response.data.forEach((element: any) => {
                 element.infofelder.forEach((element: any) => {
                     if (element.ueberschrift == "Kompetenzen") {
-                        console.log(element.ueberschrift);
-                        console.log(element.content);                    
+                        // console.log(element.ueberschrift);
+                        // console.log(element.content);
 
                         // Regular expression to match and extract competences
                         const regex =
@@ -75,16 +64,13 @@ export class BerufeService {
 
     async getDigitalCompetenciesByJobID(jobId: string) {
         try {
-            const response = await axios.get(
-                `${this.BASEURL_BERUFENET}/berufe/${jobId}`,
-                this.axiosConfig,
-            );
+            const response = await axios.get(`${this.baseUrl}/berufe/${jobId}`, this.axiosConfig);
             let competenceMatches: any = [];
             response.data.forEach((element: any) => {
                 element.infofelder.forEach((element: any) => {
                     if (element.ueberschrift == "Digitalisierung") {
-                        console.log(element.ueberschrift);
-                        console.log(element.content);
+                        // console.log(element.ueberschrift);
+                        // console.log(element.content);
 
                         const dom = new JSDOM(element.content);
                         const doc = dom.window.document;
@@ -110,33 +96,26 @@ export class BerufeService {
         }
     }
 
-    async getJobsByPageAndSearchString(page: string, suchwoerter: string): Promise<any> {
-        const apiKey = "d672172b-f3ef-4746-b659-227c39d95acf";
-        const baseUrl = "https://rest.arbeitsagentur.de/infosysbub/bnet/pc/v1";
-        const searchQuery = suchwoerter;
-
-        const url = `${baseUrl}/berufe?suchwoerter=${searchQuery}&page=${page}`;
-
+    async getJobsByPageAndSearchString(page: string, searchQuery: string): Promise<any> {
         try {
-            const response = await axios.get(url, {
-                headers: {
-                    "X-API-Key": apiKey,
-                },
-                timeout: 60000, // 60 seconds timeout, similar to the curl -m option
-            });
+            const response = await axios.get(
+                `${this.baseUrl}/berufe?suchwoerter=${searchQuery}&page=${page}`,
+                this.axiosConfig,
+            );
 
             const data = response.data;
-            console.log(data);
             return data;
         } catch (error) {
             console.error(`Error making API request: ${error.message}`);
         }
     }
-    async getALLJobsByPage(page: string): Promise<any> {
-        const url = `${this.BASEURL_BERUFENET}/berufe?suchwoerter=*&page=${page}`;
 
+    async getALLJobsByPage(page: string): Promise<any> {
         try {
-            const response = await axios.get(url, this.axiosConfig);
+            const response = await axios.get(
+                `${this.baseUrl}/berufe?suchwoerter=*&page=${page}`,
+                this.axiosConfig,
+            );
 
             return response.data;
         } catch (error) {

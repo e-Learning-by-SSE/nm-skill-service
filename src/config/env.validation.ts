@@ -1,5 +1,19 @@
 import { Transform, plainToInstance } from "class-transformer";
-import { IsBoolean, IsDefined, IsEnum, IsNotEmpty, IsNumber, Max, Min, isNotEmpty, isNumber, max, validateSync } from "class-validator";
+import {
+    IsBoolean,
+    IsDefined,
+    IsEnum,
+    IsNotEmpty,
+    IsNumber,
+    IsUrl,
+    Max,
+    Min,
+    isNotEmpty,
+    isNumber,
+    isURL,
+    max,
+    validateSync,
+} from "class-validator";
 
 /**
  * Validation Schema for the configuration file.
@@ -54,12 +68,6 @@ export class EnvironmentVariables {
     CLIENT_SECRET: string;
 
     @IsNotEmpty()
-    BASEURL_BERUFENET: string;
-
-    @IsNotEmpty()
-    CLIENT_SECRET_BERUFENET: string;
-
-    @IsNotEmpty()
     DB_URL: string =
         "postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?schema=public";
 
@@ -69,14 +77,12 @@ export class EnvironmentVariables {
 
     @IsEnum(LOG_ACTION)
     @IsNotEmpty()
-    LOG_LEVEL :string;
+    LOG_LEVEL: string;
 
-   
-    
     @IsDefined()
-    @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)
+    @Transform(({ value }) => (value === "true" ? true : value === "false" ? false : value))
     @IsBoolean()
-    SAVE_LOG_TO_FILE :string;
+    SAVE_LOG_TO_FILE: string;
 
     @IsNumber()
     @IsNotEmpty()
@@ -84,7 +90,17 @@ export class EnvironmentVariables {
     @Min(0)
     PASSING_THRESHOLD: number;
 
+    @IsNotEmpty()
+    BERUFENET_CLIENT_SECRET: string;
 
+    @IsUrl()
+    @IsNotEmpty()
+    BERUFENET_BASEURL: string;
+
+    @IsNumber()
+    @IsNotEmpty()
+    @Min(1)
+    BERUFENET_TIMEOUT: number = 120000;
 }
 
 export function validate(config: Record<string, unknown>) {
