@@ -1,22 +1,38 @@
-import { IsNotEmpty } from "class-validator";
+import { IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { Job } from "@prisma/client";
 
+/**
+ * Models a complete job (currently we use this DTO for creation/update/deletion)
+ */
 export class JobDto {
+    @IsOptional()
+    @IsString()
+    id?: string;
+    @IsString()
     @IsNotEmpty()
-    id: string;
     jobTitle: string;
+    @IsDate()
+    @IsNotEmpty()
     startDate: Date;
-    endDate: Date | null;
+    @IsDate()
+    @IsOptional()
+    endDate?: Date;
+    @IsString()
+    @IsNotEmpty()
     company: string;
 
-
-    static createFromDao(jb: Job): JobDto {
+    /**
+     * Creates a new JobDto from a DB result
+     * @param jobDao The DB result which shall be converted to a DTO
+     * @returns The corresponding DTO
+     */
+    static createFromDao(jobDao: Job): JobDto {
         return {
-            id: jb.id,
-            jobTitle: jb.jobTitle,
-            startDate: jb.startTime,
-            endDate: jb.endTime,
-            company: jb.company,
-        }
+            id: jobDao.id,
+            jobTitle: jobDao.jobTitle,
+            startDate: jobDao.startTime,
+            endDate: jobDao.endTime || undefined,
+            company: jobDao.company,
+        };
     }
 }

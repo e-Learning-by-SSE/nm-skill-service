@@ -1,17 +1,22 @@
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { Qualification } from "@prisma/client";
 
+/**
+ * Models a complete qualification (currently we use this DTO for creation/update/deletion)
+ */
 export class QualificationDto {
     @IsNotEmpty()
+    @IsOptional()
     id: string;
     @IsNotEmpty()
+    @IsString()
     title: string;
     @IsNotEmpty()
+    @IsDate()
     date: Date;
     @IsOptional()
+    @IsString()
     berufenetID?: string;
-    @IsNotEmpty()
-    careerProfileId: string;
 
     /**
      * Creates a new QualificationDto from a DB result
@@ -24,7 +29,6 @@ export class QualificationDto {
             title: qualification.title,
             date: qualification.date,
             berufenetID: qualification.berufenetId || undefined,
-            careerProfileId: qualification.careerProfileId,
         };
     }
 }

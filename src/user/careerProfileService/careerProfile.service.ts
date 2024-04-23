@@ -10,178 +10,90 @@ import {
 } from "@prisma/client/runtime/library";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CareerProfileDto } from "./dto/careerProfile.dto";
-import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 import { JobDto } from "./dto/job.dto";
 import { QualificationDto } from "./dto/qualification.dto";
+import { CareerProfileUpdateDto } from "./dto/careerProfileUpdate.dto";
 
 /**
- * Service that manages the creation/update/deletion of careerProfile
- * @author Sauer
+ * Service that manages the creation/update/deletion of careerProfiles and their child objects
+ * @author Sauer, Gerling
  */
 @Injectable()
 export class CareerProfileService {
     constructor(private db: PrismaService) {}
 
-    async createCareerProfile(dto: CareerProfileDto) {
+    /**
+     * Returns all career profiles (including child objects) of all users
+     * @returns A list of all career profiles (including child objects) of all users
+     */
+    async getAllCareerProfiles() {
         try {
-            const cp = await this.db.careerProfile.create({
-                data: {
-                    userId: dto.id,
-                    professionalInterests: dto.professionalInterests,
-                   //TODO: Complete
-
-
+            const profiles = await this.db.careerProfile.findMany({
+                include: {
+                    jobHistory: true,
+                    qualifications: true,
                 },
             });
 
-            return "WIP" //CareerProfileDto.createFromDao(cp);
+            return profiles.map((profile) => CareerProfileDto.createFromDao(profile));
         } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
-                if (error.code === "P2002") {
-                    throw new ForbiddenException("Career Profile could not be created");
-                }
-            }
-            throw error;
+            throw new ForbiddenException(`Error retrieving career profiles: ${error.message}`);
         }
     }
 
-    async patchCareerProfileByID(careerProfileId: string, dto: CareerProfileDto) {
-        try {
-            const existingCareerProfile = await this.db.careerProfile.findUnique({
-                where: {
-                    userId: careerProfileId,
-                },
-                include: { jobHistory: true },
-            });
-
-            if (!existingCareerProfile) {
-                throw new NotFoundException("Career profile not found.");
-            }
-
-            const updatedCareerProfile = await this.db.careerProfile.update({
-                where: {
-                    userId: careerProfileId,
-                },
-                data: {
-                    professionalInterests:
-                        dto.professionalInterests || existingCareerProfile.professionalInterests,
-                    
-                    selfReportedSkills: dto.selfReportedSkills || undefined,
-                
-                   
-            
-                    jobHistory: {
-                        upsert: dto.jobHistory?.map((job) => ({
-                            where: { id: job.id || undefined },
-                            create: {
-                                jobTitle: job.jobTitle,
-                                id: job.id,
-                                company: job.company,
-                                startTime: job.startDate,
-                                endTime: job.endDate,
-                            },
-                            update: {
-                                jobTitle: job.jobTitle,
-                                id: job.id,
-                                company: job.company,
-                                startTime: job.startDate,
-                                endTime: job.endDate,
-                            },
-                        })),
-                    },
-                    qualifications: {
-                        upsert: dto.qualifications?.map((qualification) => ({
-                            where: { id: qualification.id || undefined },
-                            create: {
-                                title: qualification.title,
-                                date: qualification.date,
-
-
-                            },
-                            update: {
-                                title: qualification.title,
-                                date: qualification.date,
-
-                            },
-                        })),
-                    },
-                },
-            });
-            //const careerProfileDto = CareerProfileDto.createFromDao(updatedCareerProfile);
-
-            return "WIP" //careerProfileDto;
-        } catch (error) {
-            throw new Error(`Error patching career profile by ID: ${error.message}`);
-        }
-    }
-
-    async deleteCareerProfileByID(careerProfileId: string) {
-        try {
-            const profile = await this.db.careerProfile.delete({
-                where: { userId: careerProfileId },
-            });
-
-            if (!profile) {
-                throw new NotFoundException("No careerProfile found.");
-            }
-
-            return "WIP" //CareerProfileDto.createFromDao(profile);
-        } catch (error) {
-            throw error;
-        }
-    }
-
+    /**
+     * Returns the career profile of the user with the specified id (which is the same as the career profile id)
+     * @param careerProfileId The id of the user whose career profile shall be retrieved
+     * @returns A career profile DTO for the specified user (and with the specified career profile id)
+     */
     async getCareerProfileByID(careerProfileId: string) {
         try {
-            const profile = await this.db.careerProfile.findUnique({
-                where: { userId: careerProfileId },
+            const careerProfile = await this.db.careerProfile.findUnique({
+                where: {
+                    userId: careerProfileId,
+                },
+                include: {
+                    jobHistory: true,
+                    qualifications: true,
+                },
             });
 
-            if (!profile) {
-                throw new NotFoundException("No careerProfile found.");
+            if (!careerProfile) {
+                throw new NotFoundException("Career profile with id "+careerProfileId+" not found.");
             }
 
-            return "WIP" //CareerProfileDto.createFromDao(profile);
-        } catch (error) {
-            // Handle any other errors or rethrow them as needed
-            throw error;
+            return CareerProfileDto.createFromDao(careerProfile);
+        } catch (error) {   
+            throw new ForbiddenException(`Error retrieving career profile by ID: ${error.message}`);
         }
     }
-    async getCareerProfileByFilter(filter: CareerProfileFilterDto): Promise<any> {
+
+    
+    /**
+     * Update the non-object values of the career profile (of the user) with the specified id
+     * @param id The id of the user whose career profile shall be updated
+     * @param dto The career profile update DTO with the new values
+     * @returns The updated career profile
+     */
+    async patchCareerProfileByID(id: string, dto: CareerProfileUpdateDto) {
         try {
-            if (filter.userId && filter.userId.length != 0) {
-                // Use Prisma's findUnique method to retrieve a user based on the provided filter
-                const career = await this.db.careerProfile.findUnique({
-                    where: {
-                        // Only include the filter property if it is provided in the DTO
-                        userId: filter.userId,
-                    },
-                });
+            const updatedCareerProfile = await this.db.careerProfile.update({
+                where: { userId: id },
+                data: {
+                    professionalInterests: dto.professionalInterests,
+                    selfReportedSkills: dto.selfReportedSkills,
+                },
+            });
 
-                if (!career) {
-                    throw new NotFoundException("User not found.");
-                }
-
-                return "WIP" //CareerProfileDto.createFromDao(career);
-            } else {
-                const career = await this.db.careerProfile.findMany();
-
-                if (!career) {
-                    throw new NotFoundException("User not found.");
-                }
-
-                const careerProfileDtos: CareerProfileDto[] = [];
-                //career.forEach((element) => {
-                //    careerProfileDtos.push(CareerProfileDto.createFromDao(element));
-                //});
-                return careerProfileDtos;
-            }
+            return updatedCareerProfile;
         } catch (error) {
-            // Handle errors appropriately, you can log or rethrow the error
-            throw new Error(`Error getting user by filter: ${error.message}`);
+            throw new ForbiddenException(`Error updating career profile by ID: ${error.message}`);
         }
     }
+      
+
+
+
 
     async createJob(id: string, dto: JobDto) {
         // Create and return a Job
@@ -283,7 +195,7 @@ export class CareerProfileService {
                     id: dto.id,     //Do we want to set the id ourselves?
                     title: dto.title,
                     date: dto.date,
-                    careerProfileId: dto.careerProfileId,
+                    careerProfile: { connect: { userId: dto.id }} //Connect to career profile (TDB)
                 },
             });
 

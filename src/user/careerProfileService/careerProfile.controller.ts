@@ -1,52 +1,43 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, Query } from "@nestjs/common";
-import { ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Controller, Get, Post, Body, Param, Delete, Patch } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { CareerProfileService } from "./careerProfile.service";
-import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
 import { CareerProfileDto } from "./dto/careerProfile.dto";
 import { JobDto } from "./dto/job.dto";
 import { QualificationDto } from "./dto/qualification.dto";
 
 /**
- * Controller for managing the career profiles
- * ToDo: Is the profile only accessible via its user profile, or do we need access to all / specific career profiles?
+ * Controller for managing the career profiles of users
  */
 @ApiTags("CareerProfile")
 @Controller("career-profiles")
 export class CareerProfileController {
     constructor(private careerService: CareerProfileService) {}
 
-    // Filter: Includes careerProfile.dto.ts
     /**
-     * If we specify a user ID, we get their career profile(s). Otherwise, get all profiles.
-     * @param filter
-     * @returns
+     * Return all existing career profiles. Used for ai stuff.
+     * @returns All currently existing career profiles (including their child objects) from all users.
      */
     @Get("")
-    @ApiQuery({
-        name: "userId",
-        required: false,
-        type: String,
-        description: "Filter by userId",
-    })
-    getCareerProfileByFilter(@Query() filter: CareerProfileFilterDto) {
-        return this.careerService.getCareerProfileByFilter(filter);
+    getAllCareerProfiles() {
+        return this.careerService.getAllCareerProfiles();
     }
 
-    @Post("")
-    addCareerProfile(@Body() dto: CareerProfileDto) {
-        return this.careerService.createCareerProfile(dto);
-    }
-
+    /**
+     * Returns the requested career profile
+     * @param careerProfileId The career profile of the user with the same id
+     * @returns The career profile DTO for the specified user / with the specified id
+     */
     @Get(":career_profile_id")
     getCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
         return this.careerService.getCareerProfileByID(careerProfileId);
     }
 
-    @Delete(":career_profile_id")
-    delCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
-        return this.careerService.deleteCareerProfileByID(careerProfileId);
-    }
-
+    /**
+     * Allows a user to update their career profile
+     * @param careerProfileId The id of the career profile to update (and of the belonging user)
+     * @param dto The new data for the career profile
+     * @returns A success message if successful
+     */
     @Patch(":career_profile_id")
     patchCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
@@ -54,6 +45,7 @@ export class CareerProfileController {
     ) {
         return this.careerService.patchCareerProfileByID(careerProfileId, dto);
     }
+
 
     @Post(":career_profile_id/job_history")
     addJob(@Param("career_profile_id") careerProfileId: string, @Body() dto: JobDto) {
