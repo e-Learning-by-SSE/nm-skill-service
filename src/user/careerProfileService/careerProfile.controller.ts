@@ -36,7 +36,7 @@ export class CareerProfileController {
      * Allows a user to update their career profile
      * @param careerProfileId The id of the career profile to update (and of the belonging user)
      * @param dto The new data for the career profile
-     * @returns A success message if successful
+     * @returns The updated part of the career profile
      */
     @Patch(":career_profile_id")
     patchCareerProfileByID(
@@ -47,32 +47,45 @@ export class CareerProfileController {
     }
 
 
+    /**
+     * Creates a new job object and adds it to the user's job history and their career profile
+     * @param careerProfileId Id of the user and its career profile (both are the same) to which the job shall be added
+     * @param dto The job data to add
+     * @returns A success message if successful
+     */
     @Post(":career_profile_id/job_history")
     addJob(@Param("career_profile_id") careerProfileId: string, @Body() dto: JobDto) {
-        return this.careerService.createJob(careerProfileId, dto);
+        return this.careerService.addJobToJobHistoryAtCareerProfile(careerProfileId, dto);
     }
 
-    @Patch(":career_profile_id/:job_history_id")
+    /**
+     * Updates the values of an existing job in the job history of a user
+     * @param jobId The id of the job to update
+     * @param dto The new data for the job
+     * @returns A success message if successful
+     */
+    @Patch(":career_profile_id/:job_history:/job_id")
     patchJobHistoryAtCareerProfileByID(
-        @Param("career_profile_id") careerProfileId: string,
-        @Param("job_history_id") jobHistoryId: string,
-        @Body() dto: JobDto,
+        @Param("job_id") jobId: string,
+        @Body() jobDto: JobDto,
     ) {
-        return this.careerService.patchJobHistoryAtCareerProfileByID(
-            careerProfileId,
-            jobHistoryId,
-            dto,
+        return this.careerService.updateJobInCareerProfile(
+            jobId,
+            jobDto,
         );
     }
 
-    @Delete(":career_profile_id/:job_history_id")
+    /**
+     * Deletes an existing job from the job history (and career profile) of a user
+     * @param jobId The job to be removed from the job history
+     * @returns A success message if successful
+     */
+    @Delete(":career_profile_id/:job_history:/job_id")
     deleteJobHistoryAtCareerProfileByID(
-        @Param("career_profile_id") careerProfileId: string,
-        @Param("job_history_id") jobHistoryId: string,
+        @Param("job_id") jobId: string,
     ) {
-        return this.careerService.deleteJobHistoryAtCareerProfileByID(
-            careerProfileId,
-            jobHistoryId,
+        return this.careerService.deleteJobFromHistoryInCareerProfile(
+            jobId,
         );
     }
 
@@ -83,10 +96,6 @@ export class CareerProfileController {
         return this.careerService.createQualificationForCareerProfile(dto);
     }
 
-    @Get(":career_profile_id/qualifications/:qualification_id")
-    getQualificationForCareerProfile(@Param("qualification_id") qualificationId: string) {
-        return this.careerService.getQualificationForCareerProfile(qualificationId);
-    }
 
     @Patch(":career_profile_id/qualifications/:qualification_id")
     patchQualificationToCareerProfile(

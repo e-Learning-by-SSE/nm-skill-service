@@ -94,97 +94,75 @@ export class CareerProfileService {
 
 
 
+    /**
+     * Adds a new job to the job history of the user with the specified id
+     * @param careerProfileId The id of the user and its career profile (both are the same) to which the job shall be added
+     * @param dto The job data to add
+     * @returns A success message if successful
+     */
+    async addJobToJobHistoryAtCareerProfile(careerProfileId: string, dto: JobDto) {
 
-    async createJob(id: string, dto: JobDto) {
-        // Create and return a Job
         try {
-            const jb = await this.db.job.create({
+            await this.db.job.create({
                 data: {
+                    id: dto.id,     //Optionally used when desired, can be undefined
                     jobTitle: dto.jobTitle,
                     startTime: dto.startDate,
-                    endTime: dto.endDate,
+                    endTime: dto.endDate, //Can be undefined
                     company: dto.company,
-                    careerProfile: { connect: { userId: id }
+                    careerProfile: { connect: { userId: careerProfileId }
                 },
                 },
             });
 
-            return JobDto.createFromDao(jb);
+            return "Successfully added job to job history of user with id: ${careerProfileId}";
         } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
-                if (error.code === "P2002") {
-                    throw new ForbiddenException("Job already exists");
-                }
-            }
-            throw error;
+            throw new ForbiddenException(`Failed to add job to job history: ${error.message}`);
         }
     }
 
-    async patchJobHistoryAtCareerProfileByID(
-        careerProfileId: string,
-        jobHistoryId: string,
+
+    /**
+     * Updates the values of an existing job in the job history of a user
+     * @param jobId The id of the job to update
+     * @param dto The new data for the job
+     * @returns A success message if successful
+     */
+    async updateJobInCareerProfile(
+        jobId: string,
         dto: JobDto,
     ) {
         try {
-            const careerProfile = await this.db.careerProfile.findUnique({
-                where: { userId: careerProfileId },
-            });
-
-            if (!careerProfile) {
-                throw new NotFoundException("Career profile not found");
-            }
-
-            const jobHistory = await this.db.job.findUnique({
-                where: { id: jobHistoryId },
-            });
-
-            if (!jobHistory) {
-                throw new NotFoundException("Job history entry not found");
-            }
-
-            const updatedJobHistory = await this.db.job.update({
-                where: { id: jobHistoryId },
+            await this.db.job.update({
+                where: { id: jobId },
                 data: {
-                    endTime: dto.endDate || jobHistory.endTime,
-                    startTime: dto.startDate || jobHistory.startTime,
-                    jobTitle: dto.jobTitle || jobHistory.jobTitle,
-                    company: dto.company || jobHistory.company,
+                    endTime: dto.endDate,
+                    startTime: dto.startDate,
+                    jobTitle: dto.jobTitle,
+                    company: dto.company,
                 },
             });
 
-            return updatedJobHistory;
+            return "Successfully updated job in job history";
         } catch (error) {
-            throw error;
+            throw new ForbiddenException(`Failed to update job in job history: ${error.message}`);
         }
     }
 
-    async deleteJobHistoryAtCareerProfileByID(careerProfileId: string, jobHistoryId: string) {
+    /**
+     * Deletes a job from the job history of a user
+     * @param jobId The id of the job to delete
+     * @returns A success message if successful
+     */
+    async deleteJobFromHistoryInCareerProfile(jobId: string) {
         try {
-            const careerProfile = await this.db.careerProfile.findUnique({
-                where: { userId: careerProfileId },
-            });
-
-            if (!careerProfile) {
-                throw new NotFoundException("Career profile not found");
-            }
-            const jobHistory = await this.db.job.findUnique({
-                where: { id: jobHistoryId },
-            });
-
-            if (!jobHistory) {
-                throw new NotFoundException("Job history entry not found");
-            }
-
             await this.db.job.delete({
-                where: { id: jobHistoryId },
+                where: { id: jobId },
             });
 
             return { success: true, message: "Job history entry deleted successfully" };
         } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-            }
-            throw error;
+            throw new ForbiddenException(`Failed to delete job from job history: ${error.message}`);
         }
     }
 

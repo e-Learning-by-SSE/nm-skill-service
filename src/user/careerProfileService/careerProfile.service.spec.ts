@@ -5,16 +5,12 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { CareerProfileService } from "./careerProfile.service";
 import { UserCreationDto, QualificationDto } from "../dto";
 import { UserMgmtService } from "../user.service";
-import exp from "constants";
 
 describe("CareerProfileService", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const userService = new UserMgmtService(db);
     const dbUtils = DbTestUtils.getInstance();
-    // Reused for tests
-    const userId = "TestUser123";
-    const qualificationId = "321";
 
     // Test object
     const careerService = new CareerProfileService(db);
@@ -31,6 +27,8 @@ describe("CareerProfileService", () => {
     });
 
     describe("createGetAndUpdateASimpleCareerProfile", () => {
+        //Reused test data
+        const userId = "TestUser1";
         it("should create a new (empty) career profile for a user", async () => {
             // Arrange: Prepare test data
             const user: UserCreationDto = { id: userId };
@@ -56,7 +54,7 @@ describe("CareerProfileService", () => {
 
             // Act: Update the career profile again
             updatedCareerProfile = await careerService.patchCareerProfileByID(userId, {
-                professionalInterests: ["AI", "ML", "SE"], 
+                professionalInterests: ["AI", "ML", "SE"],
                 selfReportedSkills: ["Python", "Java"],
             });
 
@@ -99,15 +97,120 @@ describe("CareerProfileService", () => {
 
             // Assert: Check that both career profiles are returned
             expect(careerProfiles).toHaveLength(3);
-            expect(careerProfiles[0].id).toEqual(userId);   //Created in the first test
+            expect(careerProfiles[0].id).toEqual(userId); //Created in the first test
             expect(careerProfiles[1].id).toEqual("user1");
             expect(careerProfiles[2].id).toEqual("user2");
         });
+    });
 
+    describe("createAndUpdateJobForCareerProfile", () => {
+        const userId = "TestUser2";
+        it("should create an empty job history for a user", async () => {
+            // Arrange: Prepare test data
+            const user: UserCreationDto = { id: userId };
+            await userService.createUser(user);
 
+            // Assert: Check that the job history is empty and existing
+            const careerProfile = await careerService.getCareerProfileByID(userId);
+            expect(careerProfile.jobHistory).toHaveLength(0);
+        });
+
+        it("should create a new job for a user", async () => {
+            // Arrange: Prepare test data
+            const jobDto = {
+                jobId: "TestJob1",
+                jobTitle: "Software Developer",
+                startDate: new Date("2020"),
+                company: "TestCompany",
+            };
+
+            // Act: Call the addJobToJobHistoryAtCareerProfile method
+            await careerService.addJobToJobHistoryAtCareerProfile(userId, jobDto);
+
+            // Get the user's job history from the database
+            const careerProfile = await careerService.getCareerProfileByID(userId);
+            const jobHistory = careerProfile.jobHistory;
+
+            expect(jobHistory).toHaveLength(1);
+            const job = jobHistory[0];
+            expect(job.jobTitle).toEqual(jobDto.jobTitle);
+            expect(job.startDate).toEqual(jobDto.startDate);
+            expect(job.company).toEqual(jobDto.company);
+        });
+
+        it("should update an existing job for a user", async () => {
+            // Arrange: Prepare test data
+            const updatedJobDto = {
+                id: "TestJob1",
+                jobTitle: "Software Developer",
+                startDate: new Date("2020"),
+                endDate: new Date("2021"),
+                company: "TestCompany",
+            };
+            // Act: Update the job
+            await careerService.updateJobInCareerProfile(updatedJobDto.id, updatedJobDto);
+
+            // Get the user's job history from the database
+            const careerProfile = await careerService.getCareerProfileByID(userId);
+            const jobHistory = careerProfile.jobHistory;
+
+            expect(jobHistory).toHaveLength(1);
+            const job = jobHistory[0];
+            expect(job.jobTitle).toEqual(updatedJobDto.jobTitle);
+            expect(job.startDate).toEqual(updatedJobDto.startDate);
+            expect(job.endDate).toEqual(updatedJobDto.endDate);
+            expect(job.company).toEqual(updatedJobDto.company);
+        });
+
+        it("should handle errors when updating a non-existing job", async () => {
+            // Arrange: Prepare invalid test data
+            const updatedJobDto = {
+                id: "non-existent-job",
+                jobTitle: "123",
+                startDate: new Date("2020"),
+                company: "TestCompany",
+            };
+
+            // Act and Assert: Call the updateJobInCareerProfile method and expect it to throw an error
+            await expect(
+                careerService.updateJobInCareerProfile(updatedJobDto.id, updatedJobDto),
+            ).rejects.toThrowError(ForbiddenException);
+        });
+
+        it("should handle errors when adding a job to a non-existing career profile", async () => {
+            // Arrange: Prepare invalid test data
+            const invalidUserId = "non-existent-user";
+            const jobDto = {
+                jobId: "TestJob2",
+                jobTitle: "Software Developer",
+                startDate: new Date("2020"),
+                company: "TestCompany",
+            };
+
+            // Act and Assert: Call the addJobToJobHistoryAtCareerProfile method and expect it to throw an error
+            await expect(
+                careerService.addJobToJobHistoryAtCareerProfile(invalidUserId, jobDto),
+            ).rejects.toThrowError(ForbiddenException);
+        });
+
+        it("should delete a job for a user", async () => {
+            // Arrange: Prepare test data
+            const jobId = "TestJob1"; //Same as the job created in the first test
+
+            // Act: Delete the job
+            await careerService.deleteJobFromHistoryInCareerProfile(jobId);
+
+            // Get the user's job history from the database
+            const careerProfile = await careerService.getCareerProfileByID(userId);
+            const jobHistory = careerProfile.jobHistory;
+
+            expect(jobHistory).toHaveLength(0);
+        });
     });
 
     describe("createAndDeleteQualificationForCareerProfile", () => {
+        const userId = "TestUser3";
+        const qualificationId = "TestQualification1";
         it("should create a new qualification for a user", async () => {
             // Arrange: Prepare test data
             const user: UserCreationDto = { id: userId };
@@ -117,7 +220,7 @@ describe("CareerProfileService", () => {
                 title: "Bachelor of Science",
                 date: new Date("2020"),
                 //careerProfileId: userId, //Same as user id
-                id: qualificationId, 
+                id: qualificationId,
             };
 
             // Act: Call the createQualificationForCareerProfile method
@@ -170,5 +273,4 @@ describe("CareerProfileService", () => {
             ).rejects.toThrowError(BadRequestException);
         });
     });
-
 });
