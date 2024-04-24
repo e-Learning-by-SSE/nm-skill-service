@@ -23,7 +23,7 @@ export class CareerProfileController {
     }
 
     /**
-     * Returns the requested career profile
+     * Returns the requested career profile including all child objects (sorted ascending by (start)date)
      * @param careerProfileId The career profile of the user with the same id
      * @returns The career profile DTO for the specified user / with the specified id
      */

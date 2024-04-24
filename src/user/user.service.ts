@@ -42,15 +42,9 @@ export class UserMgmtService {
 
             //Error handling if user profile could not be created
         } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
-                if (error.code === "P2002") {
-                    const exception = new ForbiddenException("User " + dto.id + " already exists");
-                    LoggerUtil.logError("UserService::createUser", exception);
-                    throw exception;
-                }
-            }
-            const exception = new ForbiddenException("User " + dto.id + " could not be created");
+            const exception = new ForbiddenException(
+                "User " + dto.id + " could not be created: " + error.message,
+            );
             LoggerUtil.logError("UserService::createUser", exception);
             throw exception;
         }

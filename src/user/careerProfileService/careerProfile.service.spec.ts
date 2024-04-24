@@ -208,6 +208,43 @@ describe("CareerProfileService", () => {
 
             expect(jobHistory).toHaveLength(0);
         });
+
+        it("should add several jobs to a user's job history and return them ascending by start date", async () => {
+            // Arrange: Prepare test data
+            const jobDto1 = {
+                id: "TestJob2",
+                jobTitle: "Software Developer",
+                startDate: new Date("1999"),
+                company: "TestCompany2",
+            };
+            const jobDto2 = {
+                id: "TestJob3",
+                jobTitle: "Software Developer",
+                startDate: new Date("1995"),
+                company: "TestCompany3",
+            };
+            const jobDto3 = {
+                id: "TestJob4",
+                jobTitle: "Software Developer",
+                startDate: new Date("2011"),
+                company: "TestCompany4",
+            };
+
+            // Act: Add the jobs to the user's job history
+            await careerService.addJobToJobHistoryAtCareerProfile(userId, jobDto1);
+            await careerService.addJobToJobHistoryAtCareerProfile(userId, jobDto2);
+            await careerService.addJobToJobHistoryAtCareerProfile(userId, jobDto3);
+
+            // Get the user's job history from the database
+            const careerProfile = await careerService.getCareerProfileByID(userId);
+            const jobHistory = careerProfile.jobHistory;
+
+            // Assert: Check that the jobs have been added and are sorted by start date
+            expect(jobHistory).toHaveLength(3);
+            expect(jobHistory[0]).toEqual(jobDto2);
+            expect(jobHistory[1]).toEqual(jobDto1);
+            expect(jobHistory[2]).toEqual(jobDto3);
+        });
     });
 
     describe("createUpdateAndDeleteQualificationForCareerProfile", () => {
@@ -310,6 +347,40 @@ describe("CareerProfileService", () => {
                 .qualifications;
             // Assert: Check that the qualification has been deleted
             expect(userQualifications).toHaveLength(0);
+        });
+
+        it("should add several qualifications to a user's qualifications and return them ascending by date", async () => {
+            // Arrange: Prepare test data
+            const qualificationDto1: QualificationDto = {
+                title: "Bachelor of Science",
+                date: new Date("1999"),
+                id: "TestQualification2",
+            };
+            const qualificationDto2: QualificationDto = {
+                title: "Master of Science",
+                date: new Date("1995"),
+                id: "TestQualification3",
+            };
+            const qualificationDto3: QualificationDto = {
+                title: "PhD",
+                date: new Date("2011"),
+                id: "TestQualification4",
+            };
+
+            // Act: Add the qualifications to the user's qualifications
+            await careerService.addQualificationToCareerProfile(userId, qualificationDto1);
+            await careerService.addQualificationToCareerProfile(userId, qualificationDto2);
+            await careerService.addQualificationToCareerProfile(userId, qualificationDto3);
+
+            // Get the updated career profile from the DB and its qualifications
+            const careerProfile = await careerService.getCareerProfileByID(userId);
+            const userQualifications = careerProfile.qualifications;
+
+            // Assert: Check that the qualifications have been added and are sorted by date
+            expect(userQualifications).toHaveLength(3);
+            expect(userQualifications[0]).toEqual(qualificationDto2);
+            expect(userQualifications[1]).toEqual(qualificationDto1);
+            expect(userQualifications[2]).toEqual(qualificationDto3);
         });
     });
 });

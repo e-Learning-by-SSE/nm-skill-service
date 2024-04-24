@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { UserMgmtService } from "./user.service";
 import { USERSTATUS } from "@prisma/client";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
+import { NotFoundException } from "@nestjs/common";
 
 describe("User Service", () => {
     const config = new ConfigService();
@@ -92,7 +93,7 @@ describe("User Service", () => {
                     expectedUser.id,
                     expectedUser.status as USERSTATUS,
                 );
-            }).rejects.toThrow();
+            }).rejects.toThrow(ForbiddenException);
         });
 
         it("should not update a user with an invalid status", async () => {
@@ -108,7 +109,7 @@ describe("User Service", () => {
                     expectedUser.id,
                     expectedUser.status as USERSTATUS,
                 );
-            }).rejects.toThrow();
+            }).rejects.toThrow(ForbiddenException);
         });
 
         it("should not update a user with an empty status", async () => {
@@ -124,7 +125,17 @@ describe("User Service", () => {
                     expectedUser.id,
                     expectedUser.status as USERSTATUS,
                 );
-            }).rejects.toThrow();
+            }).rejects.toThrow(ForbiddenException);
+        });
+
+        it("should not return a non-existing user", async () => {
+            // Arrange: Create a user object with a non-existing ID
+            const nonExistentUserId = "nonExistingTestUser";
+
+            // Act and Assert: Check if the user update was rejected correctly
+            await expect(userService.getUserById(nonExistentUserId)).rejects.toThrow(
+                NotFoundException,
+            );
         });
     });
 });

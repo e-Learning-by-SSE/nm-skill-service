@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
 import { LearningProfileDto } from "./dto/learningProfile.dto";
-import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { LearningProfileUpdateDto } from "./dto/learningProfile-update.dto";
+import { ForbiddenException } from "@nestjs/common";
 
 /**
  * Service that manages the update of learningProfiles (which store the learning preferences of a user)
@@ -21,17 +21,20 @@ export class LearningProfileService {
      * @returns Either the learningProfile with the specified ID, or an exception if it does not exist
      */
     async getLearningProfileByID(learningProfileId: string) {
-
+        try {
             const learningProfile = await this.db.learningProfile.findUnique({
                 where: { userId: learningProfileId },
             });
 
             if (!learningProfile) {
-                throw new NotFoundException("No learning profile found with id: "+ learningProfileId);
+                throw new ForbiddenException("No learning profile found with id "+learningProfileId);
             }
-
+            
             //Return the learningProfile as DTO
             return LearningProfileDto.createFromDao(learningProfile);   
+        } catch (error) {
+            throw new ForbiddenException("Error retrieving learning profile with id "+learningProfileId+": "+error.message);
+        }
     }
 
 
@@ -53,8 +56,9 @@ export class LearningProfileService {
                 throw new Error("processingTimePerUnit must be at least 0 and a whole number (minutes)");
             }
 
+            try{
             //Update the learningProfile with the specified ID according to the DTO
-            const updatedLearningProfile = await this.db.learningProfile.update({
+            await this.db.learningProfile.update({
                 where: { userId: dto.id },
                 //Only update the fields contained in the DTO
                 data: {
@@ -66,11 +70,10 @@ export class LearningProfileService {
                     preferredDidacticMethod: dto.preferredDidacticMethod || undefined,      
                 },
             });
-
-            if (!updatedLearningProfile) {
-                throw new NotFoundException("Learning profile with id: "+dto.id+" not found.");
-            }
-
             return "Success!";
+        } catch (error) {   
+            throw new ForbiddenException("Error updating learning profile: "+error.message);
+        }
+            
     }
 }

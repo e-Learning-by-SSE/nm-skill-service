@@ -1,13 +1,4 @@
-import {
-    BadRequestException,
-    ForbiddenException,
-    Injectable,
-    NotFoundException,
-} from "@nestjs/common";
-import {
-    PrismaClientKnownRequestError,
-    PrismaClientValidationError,
-} from "@prisma/client/runtime/library";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CareerProfileDto } from "./dto/careerProfile.dto";
 import { JobDto } from "./dto/job.dto";
@@ -30,8 +21,14 @@ export class CareerProfileService {
         try {
             const profiles = await this.db.careerProfile.findMany({
                 include: {
-                    jobHistory: true,
-                    qualifications: true,
+                    jobHistory: {
+                        orderBy: {
+                          startTime: 'asc',
+                        }},
+                    qualifications: {
+                        orderBy: {
+                          date: 'asc',
+                        }},
                 },
             });
 
@@ -53,22 +50,29 @@ export class CareerProfileService {
                     userId: careerProfileId,
                 },
                 include: {
-                    jobHistory: true,
-                    qualifications: true,
+                    jobHistory: {
+                        orderBy: {
+                          startTime: 'asc',
+                        }},
+                    qualifications: {
+                        orderBy: {
+                          date: 'asc',
+                        }},
                 },
             });
 
             if (!careerProfile) {
-                throw new NotFoundException("Career profile with id "+careerProfileId+" not found.");
+                throw new NotFoundException(
+                    "Career profile with id " + careerProfileId + " not found.",
+                );
             }
 
             return CareerProfileDto.createFromDao(careerProfile);
-        } catch (error) {   
+        } catch (error) {
             throw new ForbiddenException(`Error retrieving career profile by ID: ${error.message}`);
         }
     }
 
-    
     /**
      * Update the non-object values of the career profile (of the user) with the specified id
      * @param id The id of the user whose career profile shall be updated
@@ -90,9 +94,6 @@ export class CareerProfileService {
             throw new ForbiddenException(`Error updating career profile by ID: ${error.message}`);
         }
     }
-      
-
-
 
     /**
      * Adds a new job to the job history of the user with the specified id
@@ -101,17 +102,15 @@ export class CareerProfileService {
      * @returns A success message if successful
      */
     async addJobToJobHistoryAtCareerProfile(careerProfileId: string, dto: JobDto) {
-
         try {
             await this.db.job.create({
                 data: {
-                    id: dto.id,     //Optionally used when desired, can be undefined
+                    id: dto.id, //Optionally used when desired, can be undefined
                     jobTitle: dto.jobTitle,
                     startTime: dto.startDate,
                     endTime: dto.endDate, //Can be undefined
                     company: dto.company,
-                    careerProfile: { connect: { userId: careerProfileId }
-                },
+                    careerProfile: { connect: { userId: careerProfileId } },
                 },
             });
 
@@ -121,17 +120,13 @@ export class CareerProfileService {
         }
     }
 
-
     /**
      * Updates the values of an existing job in the job history of a user
      * @param jobId The id of the job to update
      * @param dto The new data for the job
      * @returns A success message if successful
      */
-    async updateJobInCareerProfile(
-        jobId: string,
-        dto: JobDto,
-    ) {
+    async updateJobInCareerProfile(jobId: string, dto: JobDto) {
         try {
             await this.db.job.update({
                 where: { id: jobId },
@@ -173,13 +168,13 @@ export class CareerProfileService {
      * @returns A success message if successful
      */
     async addQualificationToCareerProfile(careerProfileId: string, dto: QualificationDto) {
-        try {            
+        try {
             await this.db.qualification.create({
                 data: {
-                    id: dto.id,     //Optional, can be undefined
+                    id: dto.id, //Optional, can be undefined
                     title: dto.title,
                     date: dto.date,
-                    careerProfile: { connect: { userId: careerProfileId }} //Connect to career profile with the given id
+                    careerProfile: { connect: { userId: careerProfileId } }, //Connect to career profile with the given id
                 },
             });
 
@@ -188,7 +183,6 @@ export class CareerProfileService {
             throw new ForbiddenException(`Failed to create qualification: ${error.message}`);
         }
     }
-
 
     /**
      * Updates an existing qualification in the career profile of a user
@@ -226,7 +220,6 @@ export class CareerProfileService {
             return "Successfully deleted qualification from career profile";
         } catch (error) {
             throw new ForbiddenException(`Failed to delete qualification: ${error.message}`);
-        }   
+        }
     }
-
 }
