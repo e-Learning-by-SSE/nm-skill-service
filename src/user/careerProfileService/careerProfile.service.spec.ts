@@ -104,7 +104,9 @@ describe("CareerProfileService", () => {
     });
 
     describe("createAndUpdateJobForCareerProfile", () => {
+        //Test data reused across the test cases
         const userId = "TestUser2";
+        const jobId = "TestJob1";
         it("should create an empty job history for a user", async () => {
             // Arrange: Prepare test data
             const user: UserCreationDto = { id: userId };
@@ -118,7 +120,7 @@ describe("CareerProfileService", () => {
         it("should create a new job for a user", async () => {
             // Arrange: Prepare test data
             const jobDto = {
-                jobId: "TestJob1",
+                id: jobId,
                 jobTitle: "Software Developer",
                 startDate: new Date("2020"),
                 company: "TestCompany",
@@ -136,12 +138,14 @@ describe("CareerProfileService", () => {
             expect(job.jobTitle).toEqual(jobDto.jobTitle);
             expect(job.startDate).toEqual(jobDto.startDate);
             expect(job.company).toEqual(jobDto.company);
+            expect(job.endDate).toBeUndefined(); //End date should be undefined
+            expect(job.id).toEqual(jobDto.id);
         });
 
         it("should update an existing job for a user", async () => {
             // Arrange: Prepare test data
             const updatedJobDto = {
-                id: "TestJob1",
+                id: jobId,
                 jobTitle: "Software Developer",
                 startDate: new Date("2020"),
                 endDate: new Date("2021"),
@@ -181,7 +185,7 @@ describe("CareerProfileService", () => {
             // Arrange: Prepare invalid test data
             const invalidUserId = "non-existent-user";
             const jobDto = {
-                jobId: "TestJob2",
+                id: "TestJob2",
                 jobTitle: "Software Developer",
                 startDate: new Date("2020"),
                 company: "TestCompany",
@@ -194,10 +198,7 @@ describe("CareerProfileService", () => {
         });
 
         it("should delete a job for a user", async () => {
-            // Arrange: Prepare test data
-            const jobId = "TestJob1"; //Same as the job created in the first test
-
-            // Act: Delete the job
+            // Act: Delete the job created in the first test
             await careerService.deleteJobFromHistoryInCareerProfile(jobId);
 
             // Get the user's job history from the database
