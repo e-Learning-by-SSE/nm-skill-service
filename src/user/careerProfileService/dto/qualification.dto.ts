@@ -5,9 +5,9 @@ import { Qualification } from "@prisma/client";
  * Models a complete qualification (currently we use this DTO for creation/update/deletion)
  */
 export class QualificationDto {
-    @IsNotEmpty()
+    @IsString()
     @IsOptional()
-    id: string;
+    id?: string;
     @IsNotEmpty()
     @IsString()
     title: string;

@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException } from "@nestjs/common";
+import { ForbiddenException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
@@ -158,6 +158,7 @@ describe("CareerProfileService", () => {
             const careerProfile = await careerService.getCareerProfileByID(userId);
             const jobHistory = careerProfile.jobHistory;
 
+            // Assert: Check that the job has been updated
             expect(jobHistory).toHaveLength(1);
             const job = jobHistory[0];
             expect(job.jobTitle).toEqual(updatedJobDto.jobTitle);
@@ -209,69 +210,106 @@ describe("CareerProfileService", () => {
         });
     });
 
-    describe("createAndDeleteQualificationForCareerProfile", () => {
+    describe("createUpdateAndDeleteQualificationForCareerProfile", () => {
         const userId = "TestUser3";
         const qualificationId = "TestQualification1";
-        it("should create a new qualification for a user", async () => {
+
+        it("should create an empty qualification list for a newly created user", async () => {
             // Arrange: Prepare test data
             const user: UserCreationDto = { id: userId };
             await userService.createUser(user);
 
+            // Assert: Check that the qualification list is empty and existing
+            const careerProfile = await careerService.getCareerProfileByID(userId);
+            expect(careerProfile.qualifications).toHaveLength(0);
+        });
+
+        it("should create a new qualification for a user", async () => {
+            // Arrange: Prepare test data
             const qualificationDto: QualificationDto = {
                 title: "Bachelor of Science",
                 date: new Date("2020"),
-                //careerProfileId: userId, //Same as user id
                 id: qualificationId,
             };
 
-            // Act: Call the createQualificationForCareerProfile method
-            const createdQualification = await careerService.createQualificationForCareerProfile(
-                qualificationDto,
-            );
+            // Act: Create and add the qualification to the career profile
+            await careerService.addQualificationToCareerProfile(userId, qualificationDto);
 
-            // Assert: Check the result and database state
-            expect(createdQualification.title).toEqual(qualificationDto.title);
-            expect(createdQualification.date).toEqual(qualificationDto.date);
+            // Get the updated career profile from the DB and its qualifications
+            const careerProfile = await careerService.getCareerProfileByID(userId);
+            const userQualifications = careerProfile.qualifications;
 
-            // Check the database state to ensure the qualification is created
-            let userQualifications = await db.qualification.findMany({
-                where: {
-                    careerProfileId: userId,
-                    id: qualificationId,
-                },
-            });
+            // Assert: Check that the qualification has been added
             expect(userQualifications).toHaveLength(1);
             expect(userQualifications[0].title).toEqual(qualificationDto.title);
             expect(userQualifications[0].date).toEqual(qualificationDto.date);
+        });
 
-            // Act: Call the deleteQualificationForCareerProfile method
-            await careerService.deleteQualificationForCareerProfile(qualificationId);
+        it("should update an existing qualification for a user", async () => {
+            // Arrange: Prepare test data
+            const updatedQualificationDto: QualificationDto = {
+                title: "Bachelor of Science",
+                date: new Date("2021"),
+                id: qualificationId,
+            };
 
-            // Check the database state to ensure the qualification is deleted
-            userQualifications = await db.qualification.findMany({
-                where: {
-                    careerProfileId: userId,
-                    id: qualificationId,
-                },
-            });
-            expect(userQualifications).toHaveLength(0);
+            // Act: Update the qualification
+            await careerService.updateQualificationInCareerProfile(
+                qualificationId,
+                updatedQualificationDto,
+            );
+
+            // Get the updated career profile from the DB and its qualifications
+            const careerProfile = await careerService.getCareerProfileByID(userId);
+            const userQualifications = careerProfile.qualifications;
+
+            // Assert: Check that the qualification has been updated
+            expect(userQualifications).toHaveLength(1);
+            expect(userQualifications[0].title).toEqual(updatedQualificationDto.title);
+            expect(userQualifications[0].date).toEqual(updatedQualificationDto.date);
+        });
+
+        it("should handle errors when updating a non-existing qualification", async () => {
+            // Arrange: Prepare invalid test data
+            const updatedQualificationDto: QualificationDto = {
+                title: "Bachelor of Science",
+                date: new Date("2021"),
+                id: "non-existent-qualification",
+            };
+
+            // Act and Assert: Call the updateQualificationInCareerProfile method and expect it to throw an error
+            await expect(
+                careerService.updateQualificationInCareerProfile(
+                    updatedQualificationDto.id!,
+                    updatedQualificationDto,
+                ),
+            ).rejects.toThrowError(ForbiddenException);
         });
 
         it("should handle errors when creating a qualification for a non-existing user", async () => {
             // Arrange: Prepare invalid test data
             const invalidUserId = "non-existent-user";
-            // Do not create a user
             const qualificationDto: QualificationDto = {
                 title: "Bachelor of Science",
                 date: new Date("2020"),
-                //careerProfileId: invalidUserId,
                 id: "does not matter",
             };
 
             // Act and Assert: Call the createQualificationForCareerProfile method and expect it to throw an error
             await expect(
-                careerService.createQualificationForCareerProfile(qualificationDto),
-            ).rejects.toThrowError(BadRequestException);
+                careerService.addQualificationToCareerProfile(invalidUserId, qualificationDto),
+            ).rejects.toThrowError(ForbiddenException);
+        });
+
+        it("should delete a qualification for a user", async () => {
+            // Act: Delete the qualification created in the first test
+            await careerService.deleteQualificationFromCareerProfile(qualificationId);
+
+            // Try to get the qualification from the Database
+            const userQualifications = (await careerService.getCareerProfileByID(userId))
+                .qualifications;
+            // Assert: Check that the qualification has been deleted
+            expect(userQualifications).toHaveLength(0);
         });
     });
 });

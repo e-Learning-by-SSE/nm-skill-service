@@ -166,115 +166,67 @@ export class CareerProfileService {
         }
     }
 
-    async createQualificationForCareerProfile(dto: QualificationDto) {
+    /**
+     * Adds a new qualification to the career profile of a user
+     * @param careerProfileId The id of the user and its career profile (both are the same) to which the qualification shall be added
+     * @param dto The qualification to add
+     * @returns A success message if successful
+     */
+    async addQualificationToCareerProfile(careerProfileId: string, dto: QualificationDto) {
         try {            
-            const qualification = await this.db.qualification.create({
+            await this.db.qualification.create({
                 data: {
-                    id: dto.id,     //Do we want to set the id ourselves?
+                    id: dto.id,     //Optional, can be undefined
                     title: dto.title,
                     date: dto.date,
-                    careerProfile: { connect: { userId: dto.id }} //Connect to career profile (TDB)
+                    careerProfile: { connect: { userId: careerProfileId }} //Connect to career profile with the given id
                 },
             });
 
-            return QualificationDto.createFromDao(qualification);
+            return "Successfully added qualification to career profile";
         } catch (error) {
-            throw new BadRequestException(`Failed to create qualification: ${error.message}`);
+            throw new ForbiddenException(`Failed to create qualification: ${error.message}`);
         }
     }
 
-    async deleteQualificationForCareerProfile(qualificationId: string) {
+
+    /**
+     * Updates an existing qualification in the career profile of a user
+     * @param qualificationId The id of the qualification to update
+     * @param dto The new data for the qualification
+     * @returns A success message if successful
+     */
+    async updateQualificationInCareerProfile(qualificationId: string, dto: QualificationDto) {
         try {
-            const deletedQualification = await this.db.qualification.delete({
-                where: {
-                    id: qualificationId,
-                },
-            });
-
-            if (!deletedQualification) {
-                throw new BadRequestException("Qualification not found for deletion.");
-            }
-
-            return "Successfully deleted qualification with id: ${qualificationId}";
-        } catch (error) {
-            console.error(error);
-            return "Failed to delete qualification with id: ${qualificationId}"
-        }
-    }
-
-    async patchQualificationForCareerProfile(
-        careerProfileId: string,
-        qualificationId: string,
-        dto: QualificationDto,
-    ) {
-        try {
-            // Check if the qualification exists
-            const existingQualification = await this.db.qualification.findUnique({
-                where: {
-                    id: qualificationId,
-                    careerProfileId: careerProfileId,
-                },
-            });
-
-            if (!existingQualification) {
-                throw new NotFoundException("Qualification not found for update.");
-            }
-
-            // Check if the careerProfileId in dto is provided and exists
-            const careerProfileExists = careerProfileId
-                ? await this.db.careerProfile.findUnique({
-                      where: { userId: careerProfileId },
-                  })
-                : true; // If not provided, assume it's valid
-
-            if (!careerProfileExists) {
-                throw new NotFoundException("Career profile not found.");
-            }
-
-            // Update the qualification
-            const updatedQualification = await this.db.qualification.update({
-                where: {
-                    id: qualificationId,
-                    careerProfileId: careerProfileId,
-                },
+            await this.db.qualification.update({
+                where: { id: qualificationId },
                 data: {
-                    title: dto.title || existingQualification.title,
-                    date: dto.date || existingQualification.date,
-                }
-
-            });
-
-            return QualificationDto.createFromDao(updatedQualification);
-        } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
-                throw new NotFoundException("Qualification not found");
-            }
-
-            if (error instanceof PrismaClientValidationError) {
-                throw new BadRequestException(`Validation error: ${error.message}`);
-            }
-
-            throw new BadRequestException(`Failed to update qualification: ${error.message}`);
-        }
-    }
-    async getQualificationForCareerProfile(qualificationId: string) {
-        try {
-            const qualification = await this.db.qualification.findUnique({
-                where: {
-                    id: qualificationId,
+                    title: dto.title,
+                    date: dto.date,
                 },
             });
 
-            if (!qualification) {
-                throw new BadRequestException("Qualification not found.");
-            }
-
-            return QualificationDto.createFromDao(qualification);
+            return "Successfully updated qualification in career profile";
         } catch (error) {
-            if (error instanceof PrismaClientValidationError) {
-                throw new BadRequestException(`Validation error: ${error.message}`);
-            }
-            throw new BadRequestException(`Failed to retrieve qualification: ${error.message}`);
+            throw new ForbiddenException(`Failed to update qualification: ${error.message}`);
         }
     }
+
+    /**
+     * Deletes an existing qualification from the career profile of a user
+     * @param qualificationId The id of the qualification to delete
+     * @returns A success message if successful
+     */
+    async deleteQualificationFromCareerProfile(qualificationId: string) {
+        try {
+            await this.db.qualification.delete({
+                where: { id: qualificationId },
+            });
+
+            return "Successfully deleted qualification from career profile";
+        } catch (error) {
+            throw new ForbiddenException(`Failed to delete qualification: ${error.message}`);
+        }   
+    }
+
 }
