@@ -2,8 +2,7 @@ import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator"
 import { PrismaService } from "../../prisma/prisma.service";
 import {
     LearningHistoryCreationDto,
-    ConsumedUnitUpdateDto,
-    ConsumedUnitDto,
+    LearningUnitInstanceDto,
 } from "./dto";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
@@ -95,9 +94,9 @@ export class LearningHistoryService {
      * @param unitIds The IDs of the learning units for which history data shall be created for
      * @returns The created (blank) history data for the consumed units
      */
-    private async createConsumedUnitData(historyId: string, unitIds: string[]) {
+    private async createLearningUnitInstance(historyId: string, unitIds: string[]) {
         // Creates ConsumedUnits and returns the number of created items
-        await this.db.consumedUnitData.createMany({
+        await this.db.learningUnitInstance.createMany({
             data: unitIds.map((unitId) => ({
                 historyId: historyId,
                 unitId: unitId,
@@ -106,9 +105,8 @@ export class LearningHistoryService {
         });
 
         // Returns the created items
-        return this.db.consumedUnitData.findMany({
+        return this.db.learningUnitInstance.findMany({
             where: {
-                historyId: historyId,
                 unitId: { in: unitIds },
             },
         });
@@ -120,28 +118,24 @@ export class LearningHistoryService {
      * @param historyId The LearningHistory where to add the consumed unit data.
      * @param dto The changes to apply, undefined entries will be ignored.
      */
-    async updateConsumedUnitData(historyId: string, dto: ConsumedUnitUpdateDto) {
+    async updateLearningUnitInstance(historyId: string, dto: LearningUnitInstanceDto) {
         // Compute progress
         let state: STATUS = STATUS.OPEN;
         if (dto.testPerformance) {
             if (dto.testPerformance >= this.passingThreshold) {
                 state = STATUS.FINISHED;
             } else if (dto.actualProcessingTime) {
-                state = STATUS.STARTED;
+                state = STATUS.IN_PROGRESS;
             }
         }
 
-        const updatedUnit = await this.db.consumedUnitData.upsert({
+        const updatedUnit = await this.db.learningUnitInstance.upsert({
             // Check if exist
             where: {
-                unitId_historyId: {
-                    historyId: historyId,
                     unitId: dto.unitId,
-                },
             },
             // Create if not exist
             create: {
-                historyId: historyId,
                 unitId: dto.unitId,
                 actualProcessingTime: dto.actualProcessingTime,
                 testPerformance: dto.testPerformance,
@@ -160,7 +154,7 @@ export class LearningHistoryService {
 
         // TODO SE: Update learned skills if status == FINISHED
 
-        return ConsumedUnitDto.createFromDao(updatedUnit);
+        return LearningUnitInstanceDto.createFromDao(updatedUnit);
     }
 
     async deleteLearningHistoryById(historyId: string) {
@@ -193,7 +187,7 @@ export class LearningHistoryService {
 
     
     async deleteProgressForId(id: string) {
-        const recordToDelete = await this.db.learningProgress.findUnique({
+        const recordToDelete = await this.db.learnedSkill.findUnique({
             where: {
                 id: id, // Replace with the actual record ID you want to delete
             },
@@ -204,7 +198,7 @@ export class LearningHistoryService {
             throw new NotFoundException(`Record not found: ${id}`);
         }
 
-        const dao = await this.db.learningProgress.delete({ where: { id: id } });
+        const dao = await this.db.learnedSkill.delete({ where: { id: id } });
 
         return dao;
     }
@@ -230,7 +224,7 @@ export class LearningHistoryService {
      */
     async createProgressForUserId(userId: string, skillId: string) {
         try {
-            const createEntry = await this.db.learningProgress.create({
+            const createEntry = await this.db.learnedSkill.create({
                 data: { learningHistoryId: userId, skillId: skillId }, //TODO needs to change to history id
             });
             return createEntry;
@@ -242,7 +236,7 @@ export class LearningHistoryService {
 
     async findProgressForUserId(id: string) {
         try {
-            const progressEntries = await this.db.learningProgress.findMany({
+            const progressEntries = await this.db.learnedSkill.findMany({
                 where: { learningHistoryId: id }, //TODO needs to change to history id
             });
 
@@ -258,11 +252,11 @@ export class LearningHistoryService {
     }
 
     
-    async editStatusForAConsumedUnitById(consumedUnitId: string, status: STATUS) {
+    async editStatusForALearningUnitInstanceById(consumedUnitId: string, status: STATUS) {
         try {
             // Find users with the given learning unit in their learning history
 
-            const consumed = await this.db.consumedUnitData.update({
+            const consumed = await this.db.learningUnitInstance.update({
                 where: {
                     id: consumedUnitId,
                 },

@@ -1,28 +1,24 @@
 import { IsNotEmpty } from "class-validator";
 import {
-    ConsumedUnitData,
+    LearnedSkill,
     LearningHistory,
-    LearningProgress,
     PersonalizedLearningPath,
 } from "@prisma/client";
 
 export class LearningHistoryDto {
     @IsNotEmpty()
     id: string;
-    startedLearningUnits: string[];
     learnedSkills: string[];
     personalPaths: string[];
 
     static createFromDao(
         learningHistory: LearningHistory & {
-            startedLearningUnits: ConsumedUnitData[];
-            learnedSkills: LearningProgress[];
+            learnedSkills: LearnedSkill[];
             personalPaths: PersonalizedLearningPath[];
         },
     ): LearningHistoryDto {
         return {
             id: learningHistory.userId,
-            startedLearningUnits: learningHistory.startedLearningUnits?.map((element) => element.id) ?? [],
             learnedSkills: learningHistory.learnedSkills?.map((element) => element.id) ?? [],
             personalPaths: learningHistory.personalPaths?.map((element) => element.id) ?? [],
         };

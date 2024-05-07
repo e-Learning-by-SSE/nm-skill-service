@@ -35,7 +35,7 @@ describe("Feedback Service", () => {
             await userService.createUser({id: userId});
 
             //Create test learning unit
-            const unit = await dbUtils.createLearningUnit("TestUnit", [], []);
+            const unit = await dbUtils.createLearningUnit([], []);
             const learningUnitId = unit.id; // Replace with a valid learning unit ID
 
             //Create test feedback dto
@@ -86,7 +86,7 @@ describe("Feedback Service", () => {
             await userService.createUser({id: userId});
 
             //Create test learning unit
-            const unit = await dbUtils.createLearningUnit("TestUnit2", [], []);
+            const unit = await dbUtils.createLearningUnit([], []);
             const learningUnitId = unit.id; // Replace with a valid learning unit ID
 
             //Create test feedback dto and DB entry

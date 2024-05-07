@@ -10,7 +10,7 @@ import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exceptio
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 import { LIFECYCLE, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
-import { LearningProgressDto, UserWithoutChildrenDto } from "../user/dto";
+import { LearnedSkillDto, UserWithoutChildrenDto } from "../user/dto";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 
 describe("Event Service", () => {
@@ -172,7 +172,7 @@ describe("Event Service", () => {
             // Arrange: Create events with missing skill in the LU
 
             //We need an existing user and a learning unit missing the skill
-            const learningUnit = await dbUtils.createLearningUnit("Test LU", [], []);
+            const learningUnit = await dbUtils.createLearningUnit([], []);
 
             //We need the Ids for validation
             const userID = "testUserId";
@@ -244,7 +244,7 @@ describe("Event Service", () => {
                 "Description",
                 1,
             );
-            const learningUnit = await dbUtils.createLearningUnit("Test LU", [goalSkill], []);
+            const learningUnit = await dbUtils.createLearningUnit([goalSkill], []);
 
             //We need the Ids for validation
             const luID = learningUnit.id;
@@ -300,9 +300,7 @@ describe("Event Service", () => {
 
             const expectedLearningUnitDto: SearchLearningUnitCreationDto = {
                 id: validMLSPostEvent.id,
-                title: "Test Title",
                 targetAudience: [],
-                description: "Test description",
                 contentCreator: "Test creator",
                 teachingGoals: [],
                 requiredSkills: [],
@@ -315,12 +313,6 @@ describe("Event Service", () => {
             // Assert: Check that the createdEntry is valid and matches the expected data (we cannot check object equality as the created DTO contains way more values)
             expect((createdEntry as SearchLearningUnitCreationDto).id).toEqual(
                 expectedLearningUnitDto.id,
-            );
-            expect((createdEntry as SearchLearningUnitCreationDto).title).toEqual(
-                expectedLearningUnitDto.title,
-            );
-            expect((createdEntry as SearchLearningUnitCreationDto).description).toEqual(
-                expectedLearningUnitDto.description,
             );
             expect((createdEntry as SearchLearningUnitCreationDto).contentCreator).toEqual(
                 expectedLearningUnitDto.contentCreator,
@@ -340,16 +332,15 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.Task,
                 method: MlsActionType.PUT,
                 id: "test1",
-                payload: JSON.parse('{"description":"Updated test description"}'),
+                payload: JSON.parse('{"contentCreator":"Updated test contentCreator"}'),
             };
 
             // Act: Call the getEvent method
             createdEntry = await eventService.getEvent(validMLSPutEvent);
 
-            // Assert: Check that the createdEntry is valid and matches the expected data (updated description, other selected values unchanged)
-            expect((createdEntry as SearchLearningUnitCreationDto).description).toEqual(
-                "Updated test description",
-            );
+            // Assert: Check that the createdEntry is valid and matches the expected data (updated contentCreator, other selected values unchanged)
+
+            expect((createdEntry as SearchLearningUnitCreationDto).contentCreator).toEqual(expectedLearningUnitDto.contentCreator);
             expect((createdEntry as SearchLearningUnitCreationDto).teachingGoals).toEqual(
                 expectedLearningUnitDto.teachingGoals,
             );
@@ -510,7 +501,7 @@ describe("Event Service", () => {
             );
 
             const teachingGoals = [goalSkill];
-            const learningUnit = await dbUtils.createLearningUnit("Test LU", teachingGoals, []);
+            const learningUnit = await dbUtils.createLearningUnit(teachingGoals, []);
 
             //We need the Ids for validation
             const skillID = goalSkill.id;
@@ -535,7 +526,7 @@ describe("Event Service", () => {
 
             // Assert: Check that the createdEntry is valid and matches the expected data
             // Here, we expect an array of learning progress DTOs
-            for (const entry of createdEntry as Array<LearningProgressDto>) {
+            for (const entry of createdEntry as Array<LearnedSkillDto>) {
                 //Skill id and user id should match the input
                 expect(entry.skillId).toEqual(skillID);
                 expect(entry.learningHistoryId).toEqual(userID);
@@ -572,7 +563,7 @@ describe("Event Service", () => {
             );
 
             const teachingGoals = [goalSkill1, goalSkill2, goalSkill3];
-            const learningUnit = await dbUtils.createLearningUnit("Test LU", teachingGoals, []);
+            const learningUnit = await dbUtils.createLearningUnit(teachingGoals, []);
 
             //We need the Ids for validation
             const idArray = [goalSkill1.id, goalSkill2.id, goalSkill3.id];
@@ -601,7 +592,7 @@ describe("Event Service", () => {
             let i = 0;
 
             // Here, we expect an array of learning progress DTOs
-            for (const entry of createdEntry as Array<LearningProgressDto>) {
+            for (const entry of createdEntry as Array<LearnedSkillDto>) {
                 //Skill id and user id should match the input
                 expect(entry.skillId).toEqual(idArray[i]);
                 expect(entry.learningHistoryId).toEqual(userID);

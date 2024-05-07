@@ -45,6 +45,7 @@ enum ACCESS_RIGHTS {
   COMPANY
 }
 
+// For the teacher's view
 enum LIFECYCLE {
   DRAFT
   POOL
@@ -55,12 +56,13 @@ enum LIFECYCLE {
   CREATED
 }
 
+// For the student's view
 enum STATUS {
   OPEN
-  STARTED
   IN_PROGRESS
   FINISHED
-  DELETED
+  FAILED // Finished but not enough points for success
+  RESTARTED // Only for learning units / tasks
 }
 
 enum USERSTATUS {
@@ -97,7 +99,7 @@ model Skill {
   requirementsOf LearningUnit[]      @relation("requirements")
   suggestedBy    PreferredOrdering[] @relation("suggestedSkills")
 
-  learnedBy LearningProgress[] @relation("learnedBy")
+  learnedBy LearnedSkill[] @relation("learnedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -106,57 +108,46 @@ model Skill {
   @@map("skills")
 }
 
-// Stores a pre-defined learning path (course) of a teacher,
-// with requirements (starting point / what needs a learner to know before starting the path)
-// and teaching goals (what is the goal of the path to learn)
-//
-// Requested by:
-// - Part of the core concept of the project proposal to provide comptency-based & individualizeable learning paths
-// - Requested in class diagram (Seafile\ConceptsAndDesigns\Diagram_08_2023)
-// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/25
-// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/26
-// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/27
-model LearningPath {
-  id                      String                     @id @default(cuid())
-  owner                   String
-  title                   String?
-  targetAudience          String[]
-  description             String?
-  createdAt               DateTime                   @default(now())
-  updatedAt               DateTime                   @updatedAt
-  pathTeachingGoals       Skill[]                    @relation("pathGoals")
-  requirements            Skill[]                    @relation("pathRequirements")
-  recommendedUnitSequence Json?
-  lifecycle               LIFECYCLE                  @default(DRAFT)
-  assignedProposedPath    PersonalizedLearningPath[]
-  assignedProposedPathId  String[]
+// Softconstraints per LearningUnit & Path to support orderings defined by content creators 
+// Used in skills and learning units
+model PreferredOrdering {
+  id String @id @default(cuid())
 
-  @@map("paths")
+  // TODO SE: Currently without weight, check if we need some (supported by algorithm)
+  suggestedSkills Skill[]       @relation("suggestedSkills") //Optional skills to be learned before this learning unit
+  learningUnit    LearningUnit? @relation(fields: [learningUnitId], references: [id])
+  learningUnitId  String?
+  orderId         String //Path id
+
+  @@unique([learningUnitId, orderId])
+  @@map("orderings")
 }
 
 // Stores SEARCH-specific meta data for a learning unit (i.e., a TASK in MLS).
 // This data is used by the planning algorithm to find the best fitting learning units / learning path.
+// A learning unit may teach skills, have requirements, and may be part of a learning path.
 //
-// Items to be deleted in future (as they are not used by the algorithm & already stored in MLS):
-// - title
-// - description
-// 
 // Requested by:
 // - Part of the core concept of the project proposal to provide comptency-based & individualizeable learning paths
 // - Requested in class diagram (Seafile\ConceptsAndDesigns\Diagram_08_2023)
 model LearningUnit {
-  id          String   @id @default(cuid())
-  resource    String   @default("") // Should point to the actual ressource
-  language    String
-  title       String
-  description String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String    @id @default(cuid())
+  resource  String    @default("") // Should point to the actual ressource
+  language  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  orga_id   String    @default("")
+  lifecycle LIFECYCLE @default(DRAFT) //Teacher view
 
-  requirements  Skill[]             @relation("requirements")
-  teachingGoals Skill[]             @relation("teachingGoals")
+  concreteInstances LearningUnitInstance[] @relation("instanciatedLU") //Instances beeing part of learning pathes (from users), one to many relation
+
+  feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
+
+  requirements  Skill[] @relation("requirements") // Skills required to understand the learning unit
+  teachingGoals Skill[] @relation("teachingGoals") // Skills taught by the learning unit
+
   // Softconstraints (Ordering)
-  orderings     PreferredOrdering[]
+  orderings PreferredOrdering[]
 
   // Search-specific meta data
   processingTime     String   @default("")
@@ -170,29 +161,132 @@ model LearningUnit {
   contextTags        String[]
   linkToHelpMaterial String?
 
-  consumed ConsumedUnitData[] @relation("consumedLU")
-  orga_id  String             @default("")
-
-  lifecycle LIFECYCLE @default(DRAFT)
-
-  feedbacks Feedback[] //Feedbacks given for the learning unit, one to many relation 
-  // progress  LearningPathProgress[]
-
   @@unique([id])
 }
 
-// Softconstraints per LearningUnit & Path to support orderings defined by content creators 
-model PreferredOrdering {
-  id String @id @default(cuid())
+// Stores a concrete instance of a learning unit (including its state, points, and to which concrete path it belongs). 
+model LearningUnitInstance {
+  id                   String         @id @default(cuid())
+  actualProcessingTime Int            @default(0) // Duration in seconds
+  testPerformance      Decimal        @default(0.0) @db.Decimal(5, 2) // Percentage of points achieved (max 5 digits, max 2 decimal places)
+  unit                 LearningUnit   @relation("instanciatedLU", fields: [unitId], references: [id])
+  unitId               String // A LearningUnitInstance belongs to exactly one learning unit  
+  status               STATUS         @default(OPEN) //Learner's view
+  date                 DateTime       @default(now())
+  path                 PathSequence[]
 
-  // TODO SE: Currently without weight, check if we need some (supported by algorithm)
-  suggestedSkills Skill[]       @relation("suggestedSkills")
-  learningUnit    LearningUnit? @relation(fields: [learningUnitId], references: [id])
-  learningUnitId  String?
-  orderId         String
+  @@unique([unitId])
+  @@map("consumedUnits") //Table in the postgres database
+}
 
-  @@unique([learningUnitId, orderId])
-  @@map("orderings")
+// Maps the instance of a learning unit to a personalized learning path (and its position in it). 
+// Required because a learningUnitInstance can be part of multiple paths (but we need a unique position in each path).
+model PathSequence {
+  id       String                   @id @default(cuid())
+  position Int // The position of the learning unit in the path
+  path     PersonalizedLearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  pathId   String // The id of the personalized learning path where the learning unit is part of
+  unit     LearningUnitInstance     @relation(fields: [unitId], references: [id])
+  unitId   String // The id of the concrete learning unit instance
+
+  @@unique([pathId, position]) // Position must be unique in a path
+  @@map("pathSequence")
+}
+
+// Stores an individual learning path for a user,
+// this may origin by selecting (and indivdualizing) a pre-defined path (course) of a teacher
+// or by creating an individual path to learn specific skills (e.g., after searching for them)
+//
+// Requested by MLS:
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/43
+// 
+// Built the following relationship:
+// ┌─────────────────┐   * ┌───────────────────────────┐     *┌────────────────┐
+// │ LearningHistory ├────►│ PersonalizedLearningPath  ├─────►│ PathSequence   │
+// │ userId          │     │ origin*                   │      │ position: Int  │
+// └─────────────────┘     └───────────────────────────┘      └────────┬───────┘  
+//                            ┌─────────────────────┐ 1                │
+//                            │ LearningUnitInstance│◄─────────────────┘
+//                            │ unit: LearningUnit  │
+//                            │ state               │
+//                            └─────────────────────┘               
+// LearningHistory: Stores the complete learning history of a user
+// PersonalizedLearningPath: Stores one personalized learning path of a user, which may have multiple ones
+// PathSequence: Stores the order of LearningUnits within a personalized learning path
+// ConsumedUnitData: Stores the consumed LearningUnits of a personalized learning path (LearningUnit + State)
+//                   May also stored without a personalized learning path (e.g., for search results)
+model PersonalizedLearningPath {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  unitSequence PathSequence[] // The sequence of learning units in the path (including their position)
+
+  learningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId], onDelete: Cascade)
+  learningHistoryId String // A personalized path belongs to exactly one learning history of a user
+
+  // Origin either are path or custom goals
+  learningPath   LearningPath? @relation(fields: [learningPathId], references: [id])
+  learningPathId String?       @unique // Existent if the path is based on a learning path (source = path)
+
+  pathTeachingGoals Skill[] @relation("proposedpathGoals") // Has entries if the learning path is created by a user (source = goals)
+
+  // Status of the path          
+  lifecycle LIFECYCLE @default(CREATED) //Teacher view
+  status    STATUS    @default(OPEN) //Student view
+
+  @@map("personalPaths")
+}
+
+// Stores a pre-defined learning path (course) of a teacher,
+// with requirements (starting point / what needs a learner to know before starting the path)
+// and teaching goals (what is the goal of the path to learn)
+//
+// Requested by:
+// - Part of the core concept of the project proposal to provide comptency-based & individualizeable learning paths
+// - Requested in class diagram (Seafile\ConceptsAndDesigns\Diagram_08_2023)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/25
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/26
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/27
+model LearningPath {
+  id             String   @id @default(cuid())
+  owner          String
+  title          String?
+  targetAudience String[]
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lifecycle      LIFECYCLE @default(DRAFT)
+
+  // Not the same as the sum of the contained learning units
+  pathTeachingGoals Skill[] @relation("pathGoals")
+  requirements      Skill[] @relation("pathRequirements") //Requirements outside of the contained learning units (what do I need to know before starting the course)
+
+  recommendedUnitSequence Json? // Order of the learning units (proposed by the teacher, required by MLS)
+
+  assignedProposedPath   PersonalizedLearningPath[] // In which personalized paths is this path used?
+  assignedProposedPathId String[]
+
+  @@map("paths")
+}
+
+// Stores the feedback (evaluation) from a user given to a learning unit
+//
+// Requested by:
+// - Part of AP 6.3 (user validation of the platform)
+// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/30
+model Feedback {
+  id                  String       @id @default(cuid())
+  userId              String       @default("Anonymous") //A feedback should have an author, but they can be anonymous (if author is deleted or we want anonymous feedback)
+  learningUnit        LearningUnit @relation(fields: [learningUnitId], references: [id], onUpdate: NoAction, onDelete: Cascade) //Delete feedback if LU is deleted
+  learningUnitId      String //A feedback is always given for exactly one learing unit
+  learningValue       Int          @default(1) //How much did the user learn?
+  presentation        Int          @default(1) //How well was the content presented?
+  comprehensiveness   Int          @default(1) //How easily understandable was the content?
+  structure           Int          @default(1) //How well was the content structured (including length)?
+  overallRating       Int          @default(1) //How is the overall rating for the learning unit/task?
+  optionalTextComment String?      @default("") //Optional textual comment, e.g., what could be better, what was great?
+  createdAt           DateTime     @default(now())
 }
 
 // Maps to users (learners) in the MLS system
@@ -228,24 +322,25 @@ model LearningProfile {
   preferredDidacticMethod String[]    @default([])
 }
 
-//Stores the learning history of a user, including the learning units they have started and the skills they have learned
+//Stores the learning history of a user, including the learning paths they have started and the skills they have learned
 // Requested by:
 // - Concept of the project proposal (to allow personalized suggestions)
+// - Refined in the meeting at 07.05.2024
 // - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/110
 // - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/109  
 model LearningHistory {
-  userId               String                     @unique // User id is LearningHistory id, one to one relation 
-  user                 UserProfile                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  startedLearningUnits ConsumedUnitData[]         @relation("startedBy")
-  learnedSkills        LearningProgress[]
-  personalPaths        PersonalizedLearningPath[]
+  userId        String                     @unique // User id is LearningHistory id, one to one relation 
+  user          UserProfile                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  learnedSkills LearnedSkill[] // Skills only (and their aquisition date)
+  personalPaths PersonalizedLearningPath[] // All pathes in which the user is enrolled (and their state). Allows mapping to the contained learning units (and their state).
 }
 
-//Stores when a skill was learned by a user (as part of their learning history)
+// Stores when a skill was learned by a user (as part of their learning history)
+// Triggeredy by MLS events. A skill can be learned within a path, but also by finishing a learning unit only (therefore we have here a separate list of learning skills)
 // Requested by:
 // - Concept of the project proposal (as part of the learningHistory)
 // - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/112
-model LearningProgress {
+model LearnedSkill {
   id        String   @id @default(cuid())
   Skill     Skill    @relation("learnedBy", fields: [skillId], references: [id])
   skillId   String
@@ -254,6 +349,8 @@ model LearningProgress {
   //Learned skills are part of the learning history of a user
   LearningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId], onDelete: Cascade)
   learningHistoryId String
+
+  @@map("LearningProgress")
 }
 
 //A careerProfile belongs to a user and contains the job history, professional interests, qualifications and skills of the user
@@ -299,94 +396,7 @@ model Job {
   careerProfileId String
 }
 
-// Stores an individual learning path for a user,
-// this may origin by selecting (and indivdualizing) a pre-defined path (course) of a teacher
-// or by creating an individual path to learn specific skills (e.g., after searching for them)
-//
-// Requested by MLS:
-// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/43
-// 
-// Built the following relationship:
-// ┌─────────────────┐   * ┌───────────────────────────┐     *┌────────────────┐
-// │ LearningHistory ├────►│ PersonalizedLearningPath  ├─────►│ PathSequence   │
-// │ userId          │     │ origin*                   │      │ position: Int  │
-// └──────┬──────────┘     └───────────────────────────┘      └────────┬───────┘  
-//        │                 * ┌─────────────────────┐ 1                │
-//        └──────────────────►│ ConsumedUnitData    │◄─────────────────┘
-//                            │ unit: LearningUnit  │
-//                            │ state               │
-//                            └─────────────────────┘               
-// LearningHistory: Stores the complete learning history of a user
-// PersonalizedLearningPath: Stores one personalized learning path of a user, which may have multiple ones
-// PathSequence: Stores the order of LearningUnits within a personalized learning path
-// ConsumedUnitData: Stores the consumed LearningUnits of a personalized learning path (LearningUnit + State)
-//                   May also stored without a personalized learning path (e.g., for search results)
-model PersonalizedLearningPath {
-  id                String          @id @default(cuid())
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  unitSequence      PathSequence[]
-  learningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId], onDelete: Cascade)
-  learningHistoryId String
-
-  // Origin either are path or custom goals
-  learningPath      LearningPath? @relation(fields: [learningPathId], references: [id])
-  learningPathId    String?       @unique
-  pathTeachingGoals Skill[]       @relation("proposedpathGoals")
-
-  // progress          LearningPathProgress?
-  lifecycle LIFECYCLE @default(CREATED)
-
-  @@map("personalPaths")
-}
-
-model PathSequence {
-  id       String                   @id @default(cuid())
-  position Int
-  path     PersonalizedLearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
-  pathId   String
-  unit     ConsumedUnitData         @relation(fields: [unitId], references: [id])
-  unitId   String
-
-  @@unique([pathId, position]) // Position must be unique in a path
-  @@map("pathSequence")
-}
-
-model ConsumedUnitData {
-  id                   String          @id @default(cuid())
-  actualProcessingTime Int             @default(0) // Duration in seconds
-  testPerformance      Decimal         @default(0.0) @db.Decimal(5, 2)
-  unit                 LearningUnit    @relation("consumedLU", fields: [unitId], references: [id])
-  unitId               String
-  status               STATUS          @default(OPEN)
-  date                 DateTime        @default(now())
-  startedBy            LearningHistory @relation("startedBy", fields: [historyId], references: [userId])
-  historyId            String
-  path                 PathSequence[]
-
-  @@unique([unitId, historyId])
-  @@map("consumedUnits")
-}
-
-// Stores the feedback (evaluation) from a user given to a learning unit
-//
-// Requested by:
-// - Part of AP 6.3 (user validation of the platform)
-// - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/30
-model Feedback {
-  id                  String       @id @default(cuid())
-  userId              String       @default("Anonymous") //A feedback should have an author, but they can be anonymous (if author is deleted or we want anonymous feedback)
-  learningUnit        LearningUnit @relation(fields: [learningUnitId], references: [id], onUpdate: NoAction, onDelete: Cascade) //Delete feedback if LU is deleted
-  learningUnitId      String //A feedback is always given for exactly one learing unit
-  learningValue       Int          @default(1) //How much did the user learn?
-  presentation        Int          @default(1) //How well was the content presented?
-  comprehensiveness   Int          @default(1) //How easily understandable was the content?
-  structure           Int          @default(1) //How well was the content structured (including length)?
-  overallRating       Int          @default(1) //How is the overall rating for the learning unit/task?
-  optionalTextComment String?      @default("") //Optional textual comment, e.g., what could be better, what was great?
-  createdAt           DateTime     @default(now())
-}
-
+// BerufeNet
 model Bkgr {
   id           String         @id @default(cuid())
   typ          Typ            @relation(fields: [typId], references: [id])

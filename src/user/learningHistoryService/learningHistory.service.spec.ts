@@ -342,7 +342,7 @@ describe("CareerProfileService", () => {
             const lu1 = await factory.createLearningUnit(creationDto1);
             const lu2 = await factory.createLearningUnit(creationDto2);
 
-            const consumedUnits = await dbUtils.createConsumedUnitData(userHistory.id, [
+            const consumedUnits = await dbUtils.createLearningUnitInstance(userHistory.id, [
                 lu1.id,
                 lu2.id,
             ]);

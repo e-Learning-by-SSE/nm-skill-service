@@ -50,7 +50,7 @@ describe("LearningUnit Factory", () => {
 
         it("With Parameter on Empty DB -> Empty Result List", async () => {
             await expect(
-                factory.loadAllLearningUnits({ where: { title: "Awesome Title" } }),
+                factory.loadAllLearningUnits({ where: { id: "Awesome Id" } }),
             ).resolves.toEqual({
                 learningUnits: [],
             });
@@ -58,11 +58,9 @@ describe("LearningUnit Factory", () => {
 
         it("With Parameter -> Only exact match should return", async () => {
             const creationDtoMatch = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title",
                 id: "1",
             });
             const creationDtoNoMatch = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title 2",
                 id: "2",
             });
             await factory.createLearningUnit(creationDtoMatch);
@@ -70,12 +68,11 @@ describe("LearningUnit Factory", () => {
 
             // Should return only the first object
             const result = await factory.loadAllLearningUnits({
-                where: { title: "Awesome Title" },
+                where: { id: "1" },
             });
 
             // Expected DTO class and values for one and only element
             const expectedItem: Partial<SearchLearningUnitDto> = {
-                title: creationDtoMatch.title,
                 requiredSkills: [],
                 teachingGoals: [],
             };
@@ -90,13 +87,13 @@ describe("LearningUnit Factory", () => {
     describe("createLearningUnit", () => {
         it("Empty DB, no Skills -> Create Learning Unit", async () => {
             const creationDto = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title",
+                id: "Awesome Id",
             });
             const result = await factory.createLearningUnit(creationDto);
 
             // Expected DTO class and values
             const expected: Partial<SearchLearningUnitDto> = {
-                title: creationDto.title,
+                id: creationDto.id,
                 requiredSkills: [],
                 teachingGoals: [],
             };
@@ -107,14 +104,14 @@ describe("LearningUnit Factory", () => {
 
         it("Empty DB, Required Skill -> Create Learning Unit", async () => {
             const creationDto = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title",
+                id: "Awesome id",
                 requiredSkills: [reqSkill.id],
             });
             const result = await factory.createLearningUnit(creationDto);
 
             // Expected DTO class and values
             const expected: Partial<SearchLearningUnitDto> = {
-                title: creationDto.title,
+                id: creationDto.id,
                 requiredSkills: creationDto.requiredSkills,
                 teachingGoals: [],
             };
@@ -124,7 +121,7 @@ describe("LearningUnit Factory", () => {
 
         it("Empty DB, Taught Skill -> Create Learning Unit", async () => {
             const creationDto = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title",
+                id: "Awesome Id",
                 requiredSkills: [reqSkill.id],
                 teachingGoals: [goalSkill.id],
             });
@@ -132,7 +129,7 @@ describe("LearningUnit Factory", () => {
 
             // Expected DTO class and values
             const expected: Partial<SearchLearningUnitDto> = {
-                title: creationDto.title,
+                id: creationDto.id,
                 requiredSkills: creationDto.requiredSkills,
                 teachingGoals: creationDto.teachingGoals,
             };
@@ -143,14 +140,14 @@ describe("LearningUnit Factory", () => {
 
         it("Empty DB, Required/Taught Skills -> Create Learning Unit", async () => {
             const creationDto = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title",
+                id: "Awesome id",
                 teachingGoals: [goalSkill.id],
             });
             const result = await factory.createLearningUnit(creationDto);
 
             // Expected DTO class and values
             const expected: Partial<SearchLearningUnitDto> = {
-                title: creationDto.title,
+                id: creationDto.id,
                 requiredSkills: [],
                 teachingGoals: creationDto.teachingGoals,
             };
@@ -169,7 +166,6 @@ describe("LearningUnit Factory", () => {
         it("should delete a learning unit when it exists and is in the DRAFT state", async () => {
             const existingLearningUnit: SearchLearningUnitCreationDto = {
                 id: "789",
-                title: "Learning Unit 2",
                 targetAudience: [],
                 lifecycle: LIFECYCLE.POOL, // Assuming PUBLISHED is not the DRAFT state
                 teachingGoals: [],
@@ -208,7 +204,6 @@ describe("LearningUnit Factory", () => {
         it("should throw ForbiddenException when deleting a learning unit that is not in DRAFT state", async () => {
             const existingLearningUnit: SearchLearningUnitCreationDto = {
                 id: "789",
-                title: "Learning Unit 2",
                 targetAudience: [],
                 lifecycle: LIFECYCLE.POOL, // Assuming PUBLISHED is not the DRAFT state
                 teachingGoals: [],
@@ -227,7 +222,6 @@ describe("LearningUnit Factory", () => {
         it("should throw an error when Prisma delete operation fails", async () => {
             const existingLearningUnit: SearchLearningUnitCreationDto = {
                 id: "1234",
-                title: "Learning Unit 2",
                 targetAudience: [],
                 lifecycle: LIFECYCLE.POOL, // Assuming PUBLISHED is not the DRAFT state
                 teachingGoals: [],

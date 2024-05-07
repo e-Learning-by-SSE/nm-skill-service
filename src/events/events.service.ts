@@ -370,8 +370,6 @@ export class EventMgmtService {
         //Caution: An event may contain just a partial update, some values may be undefined
         const learningUnitDto: SearchLearningUnitCreationDto = {
             id: mlsEvent.id,
-            title: mlsEvent.payload["title" as keyof JSON]?.toString(), //Only convert to string if not undefined or null
-            description: mlsEvent.payload["description" as keyof JSON]?.toString(),
             contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
             teachingGoals: [], // Skills are created by the SEARCH extension AFTER the learning unit was created
             requiredSkills: [], // Skills are created by the SEARCH extension AFTER the learning unit was created

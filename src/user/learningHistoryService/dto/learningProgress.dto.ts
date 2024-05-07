@@ -1,11 +1,10 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { LearningProgressCreationDto } from "./learningProgressCreation.dto";
-import { LearningProgress } from "@prisma/client";
+import { IsNotEmpty, IsString } from "class-validator";
+import { LearnedSkill } from "@prisma/client";
 
 /**
  * This models the complete learning progress object.
  */
-export class LearningProgressDto {
+export class LearnedSkillDto {
 
     //Automatically set in the DB
     @IsNotEmpty()
@@ -31,7 +30,7 @@ export class LearningProgressDto {
      * @param LearningProgress 
      * @returns A learning progress DTO
      */
-    static createFromDao(learningProgress: LearningProgress): LearningProgressDto {
+    static createFromDao(learningProgress: LearnedSkill): LearnedSkillDto {
         return {
             id: learningProgress.id,
             skillId: learningProgress.skillId,

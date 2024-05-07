@@ -1,10 +1,11 @@
-import { ConsumedUnitData, STATUS } from "@prisma/client";
-import { ConsumedUnitUpdateDto } from "./consumed-unit-change.dto";
-import { IsDefined } from "class-validator";
 
-export class ConsumedUnitDto extends ConsumedUnitUpdateDto {
-    @IsDefined()
-    historyId: string;
+import { LearningUnitInstance, STATUS } from "@prisma/client";
+import { IsDefined } from "class-validator";
+import { LearningUnitInstanceUpdateDto } from "./LearningUnitInstanceUpdate.dto";
+
+
+
+export class LearningUnitInstanceDto extends LearningUnitInstanceUpdateDto {
 
     @IsDefined()
     status: STATUS;
@@ -22,15 +23,14 @@ export class ConsumedUnitDto extends ConsumedUnitUpdateDto {
     learningPaths: string[];
 
     static createFromDao(
-        dao: ConsumedUnitData & {
+        dao: LearningUnitInstance & {
             path: {
                 position: number;
                 pathId: string;
             }[];
         },
     ) {
-        const dto: ConsumedUnitDto = {
-            historyId: dao.historyId,
+        const dto: LearningUnitInstanceDto = {
             unitId: dao.unitId,
             status: dao.status,
             learningPaths: dao.path.map((p) => p.pathId),
