@@ -21,9 +21,7 @@ export async function createLearningObjects(learningObjectives: LearningUnitType
         id: unit.id,
         lifecycle: unit.lifecycle,
         orga_id: unit.orga_id,
-        title: unit.name,
         language: 'de',
-        description: unit.description,
         requirements: {
           connect: unit.requirements.map((i) => ({ id: i })),
         },
