@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
-import {
-    LearningHistoryCreationDto,
-    LearningUnitInstanceDto,
-} from "./dto";
+import { LearningHistoryCreationDto, LearningUnitInstanceDto } from "./dto";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -11,8 +8,8 @@ import { STATUS } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
 
 /**
- * Service that manages the creation/update/deletion of learningHistory
- * @author Sauer
+ * Service that manages the creation/update/deletion of a learningHistory (which stores the learned skills and the personalized paths of a user)
+ * @author Sauer, Gerling
  */
 @Injectable()
 export class LearningHistoryService {
@@ -36,7 +33,7 @@ export class LearningHistoryService {
                 },
             });
 
-            return "WIP" //LearningHistoryDto.createFromDao(lh);
+            return "WIP"; //LearningHistoryDto.createFromDao(lh);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 // unique field already exists
@@ -132,7 +129,7 @@ export class LearningHistoryService {
         const updatedUnit = await this.db.learningUnitInstance.upsert({
             // Check if exist
             where: {
-                    unitId: dto.unitId,
+                unitId: dto.unitId,
             },
             // Create if not exist
             create: {
@@ -167,7 +164,7 @@ export class LearningHistoryService {
                 throw new NotFoundException("No learningHistory found.");
             }
 
-            return "WIP" //LearningHistoryDto.createFromDao(lHistory);
+            return "WIP"; //LearningHistoryDto.createFromDao(lHistory);
         } catch (error) {
             throw error;
         }
@@ -185,7 +182,6 @@ export class LearningHistoryService {
         throw new Error("Method not implemented.");
     }
 
-    
     async deleteProgressForId(id: string) {
         const recordToDelete = await this.db.learnedSkill.findUnique({
             where: {
@@ -217,15 +213,19 @@ export class LearningHistoryService {
     }
 
     /**
-     * When a user acquires a skill, create a learning progress object for them (matches skill and user).
-     * Currently, the same skill can be acquired multiple times. Every time there is a new learning progress entry created.
-     * @param lProgressDto
-     * @returns
+     * When a user acquires a skill, create a learnedSkill object for them (matches skill and user (via their learning history)).
+     * Currently, the same skill can be acquired multiple times. Every time there is a new learnedSkill entry created.
+     * @param userId The id of the user who learned the skill (same as their history id)
+     * @param skillId The id of the skill that was learned
+     * @returns The created learnedSkill object
      */
-    async createProgressForUserId(userId: string, skillId: string) {
+    async addLearnedSkillToUser(userId: string, skillId: string) {
         try {
             const createEntry = await this.db.learnedSkill.create({
-                data: { learningHistoryId: userId, skillId: skillId }, //TODO needs to change to history id
+                data: {
+                    LearningHistory: { connect: { userId: userId } }, //User id and its history id are the same (and the id field of the history is named userId)
+                    Skill: { connect: { id: skillId } },
+                },
             });
             return createEntry;
         } catch (error) {
@@ -251,7 +251,6 @@ export class LearningHistoryService {
         }
     }
 
-    
     async editStatusForALearningUnitInstanceById(consumedUnitId: string, status: STATUS) {
         try {
             // Find users with the given learning unit in their learning history

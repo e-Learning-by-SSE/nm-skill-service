@@ -1,5 +1,5 @@
 import { INestApplication } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import * as request from "supertest";
 import { Test } from "@nestjs/testing";
 import { SkillMap, Skill, LearningUnit } from "@prisma/client";
@@ -8,10 +8,17 @@ import { DbTestUtils } from "../DbTestUtils";
 import { PrismaModule } from "../prisma/prisma.module";
 import { PathDto, PathRequestDto } from "./dto";
 import { PathFinderModule } from "./pathFinder.module";
+import { PrismaService } from "../prisma/prisma.service";
+import { UserMgmtService } from "../user/user.service";
+import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 
 describe("PathFinder Controller Tests", () => {
     let app: INestApplication;
     const dbUtils = DbTestUtils.getInstance();
+    const config = new ConfigService();
+    const db = new PrismaService(config);
+    const userService = new UserMgmtService(db);
+    const historyService = new LearningHistoryService(db, config);
 
     /**
      * Initializes (relevant parts of) the application before the first test.
@@ -32,10 +39,18 @@ describe("PathFinder Controller Tests", () => {
         app = moduleRef.createNestApplication();
         await app.init();
     });
+
     beforeEach(async () => {
         // Wipe DB before test
         await dbUtils.wipeDb();
     });
+
+    afterAll(async () => {
+        // Wipe DB after tests are finished
+        await dbUtils.wipeDb();
+        await db.$disconnect();
+    });
+
     describe("POST:computePath", () => {
         /**
          * Tests for the computePath() method with and without the presence of a LearningProgressProfile (as part of the UserProfile).
@@ -65,10 +80,10 @@ describe("PathFinder Controller Tests", () => {
                 skill2 = await dbUtils.createSkill(skillMap1, "Skill 2");
                 skill3 = await dbUtils.createSkill(skillMap1, "Skill 3");
 
-                lu1 = await dbUtils.createLearningUnit("Learning Unit 1", [nestedSkill1], []);
-                lu2 = await dbUtils.createLearningUnit("Learning Unit 2", [nestedSkill2], []);
-                lu3 = await dbUtils.createLearningUnit("Learning Unit 3", [skill2], [skill1]);
-                lu4 = await dbUtils.createLearningUnit("Learning Unit 3", [skill3], [skill2]);
+                lu1 = await dbUtils.createLearningUnit([nestedSkill1], []);
+                lu2 = await dbUtils.createLearningUnit([nestedSkill2], []);
+                lu3 = await dbUtils.createLearningUnit([skill2], [skill1]);
+                lu4 = await dbUtils.createLearningUnit([skill3], [skill2]);
             });
 
             it("Compute Path wo/ knowledge", async () => {
@@ -107,8 +122,15 @@ describe("PathFinder Controller Tests", () => {
 
             it("Compute Path w/ child knowledge", async () => {
                 // Create UserProfile with knowledge of nested Skill
-                const userId = "User 1";
-                await dbUtils.createLearningProgress(userId, [nestedSkill2.id]);
+                const expectedUser = {
+                    id: "testUser",
+                };
+
+                // Create the user and save it to the DB
+                await userService.createUser(expectedUser);
+
+                // Teach the user the skill
+                await historyService.addLearnedSkillToUser(expectedUser.id, nestedSkill2.id);
 
                 // Expected result
                 const expectedResult: PathDto = {
@@ -119,7 +141,7 @@ describe("PathFinder Controller Tests", () => {
                 // Input
                 const input: PathRequestDto = {
                     goal: [skill3.id],
-                    userId: userId,
+                    userId: expectedUser.id,
                 };
 
                 // Test: Create a path to learn Skill 3, with knowledge NestedSkill 2
@@ -134,8 +156,15 @@ describe("PathFinder Controller Tests", () => {
 
             it("Compute Path w/ parent knowledge", async () => {
                 // Create UserProfile with knowledge of non-nested Skill
-                const userId = "User 1";
-                await dbUtils.createLearningProgress(userId, [skill1.id]);
+                const expectedUser = {
+                    id: "testUser",
+                };
+
+                // Create the user and save it to the DB
+                await userService.createUser(expectedUser);
+
+                // Teach the user the skill
+                await historyService.addLearnedSkillToUser(expectedUser.id, skill1.id);
 
                 // Expected result
                 const expectedResult: PathDto = {
@@ -146,7 +175,7 @@ describe("PathFinder Controller Tests", () => {
                 // Input
                 const input: PathRequestDto = {
                     goal: [skill3.id],
-                    userId: userId,
+                    userId: expectedUser.id,
                 };
 
                 // Test: Create a path to learn Skill 3, with knowledge Skill 1
@@ -161,8 +190,13 @@ describe("PathFinder Controller Tests", () => {
 
             it("Compute Path w/ empty LearningProgress", async () => {
                 // Create UserProfile with empty LearningProgress
-                const userId = "User 1";
-                await dbUtils.createLearningProgress(userId, []);
+                const expectedUser = {
+                    id: "testUser",
+                };
+
+                // Create the user and save it to the DB (initially their learning history is empty)
+                await userService.createUser(expectedUser);
+
 
                 // Expected result
                 // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
@@ -229,14 +263,10 @@ describe("PathFinder Controller Tests", () => {
                  *   - Skill 4: LU2 -> LU3 -> LU4
                  *   -> LU1 -> LU2 -> LU3 -> LU4
                  */
-                lu1 = await dbUtils.createLearningUnit("Learning Unit 1", [skill2], []);
-                lu2 = await dbUtils.createLearningUnit("Learning Unit 2", [skill1], []);
-                lu3 = await dbUtils.createLearningUnit(
-                    "Learning Unit 3",
-                    [skill2, skill3],
-                    [skill1],
-                );
-                lu4 = await dbUtils.createLearningUnit("Learning Unit 3", [skill4], [skill3]);
+                lu1 = await dbUtils.createLearningUnit([skill2], []);
+                lu2 = await dbUtils.createLearningUnit([skill1], []);
+                lu3 = await dbUtils.createLearningUnit([skill2, skill3], [skill1]);
+                lu4 = await dbUtils.createLearningUnit([skill4], [skill3]);
             });
 
             it("Compute Path (Optimal)", async () => {

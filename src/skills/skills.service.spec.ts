@@ -3,7 +3,6 @@ import { SkillMgmtService } from "./skill.service";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import {
-    ResolvedSkillRepositoryDto,
     SkillCreationDto,
     ResolvedSkillDto,
     SkillRepositoryCreationDto,
@@ -830,7 +829,7 @@ describe("Skill Service", () => {
             );
 
             // Create a learning unit that uses one of the skills
-            await dbUtils.createLearningUnit("Learning Unit 1", [skill3], [skill3]);
+            await dbUtils.createLearningUnit([skill3], [skill3]);
 
             // Act and Assert: Call the deleteRepository method and expect a NotFoundException
             await expect(
@@ -1098,11 +1097,7 @@ describe("Skill Service", () => {
                 },
             }); // Arrange: Create a skill and associate it with a learning unit
             const skill = await dbTestUtils.createSkill(skillMap1, "Skill A");
-            const learningUnit = await dbTestUtils.createLearningUnit(
-                "Learning Unit 1",
-                [skill],
-                [],
-            );
+            await dbTestUtils.createLearningUnit([skill], []);
 
             // Act: Check if the skill is used
             const used = await skillService.isSkillUsed(skill.id);
@@ -1119,11 +1114,7 @@ describe("Skill Service", () => {
                 },
             }); // Arrange: Create skills and a learning unit with the skill as a requirement
             const skill = await dbTestUtils.createSkill(skillMap1, "Skill A");
-            const learningUnit = await dbTestUtils.createLearningUnit(
-                "Learning Unit 1",
-                [],
-                [skill],
-            );
+            await dbTestUtils.createLearningUnit([], [skill]);
 
             // Act: Check if the skill is used
             const used = await skillService.isSkillUsed(skill.id);

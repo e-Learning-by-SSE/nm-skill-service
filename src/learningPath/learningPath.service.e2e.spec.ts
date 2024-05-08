@@ -239,8 +239,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
             skillMap = await dbUtils.createSkillMap("New Owner", "Skill Map");
             skill1 = await dbUtils.createSkill(skillMap, "Skill1");
             skill2 = await dbUtils.createSkill(skillMap, "Skill2");
-            unit1 = await dbUtils.createLearningUnit("Unit1", [skill1], []);
-            unit2 = await dbUtils.createLearningUnit("Unit2", [skill2], [skill1]);
+            unit1 = await dbUtils.createLearningUnit([skill1], []);
+            unit2 = await dbUtils.createLearningUnit([skill2], [skill1]);
         });
 
         it("Update non-existent path -> 404", async () => {
@@ -545,7 +545,7 @@ describe("Learning-Path Controller E2E-Tests", () => {
             it("External requirements; Provides Goal; recommended order of 1 -> 200", async () => {
                 // Test object
                 const initialPath = await dbUtils.createLearningPath("test-orga");
-                const unit = await dbUtils.createLearningUnit("Unit1", [skill1], [skill2]);
+                const unit = await dbUtils.createLearningUnit([skill1], [skill2]);
 
                 // Input
                 const update: UpdatePathRequestDto = {
@@ -612,13 +612,13 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 skillB1 = await dbUtils.createSkill(skillMap, "B1", [skillB.id]);
                 skillB2 = await dbUtils.createSkill(skillMap, "B2", [skillB.id]);
                 skillB3 = await dbUtils.createSkill(skillMap, "B3", [skillB.id]);
-                unit1 = await dbUtils.createLearningUnit("Unit1", [nestedSkill1], []);
-                unit2 = await dbUtils.createLearningUnit("Unit2", [nestedSkill2], []);
-                unit3 = await dbUtils.createLearningUnit("Unit3", [skill1, skill2], []);
-                unit4 = await dbUtils.createLearningUnit("Unit3", [skill2, skill3], []);
-                unitB1 = await dbUtils.createLearningUnit("UnitB1", [skillB1], []);
-                unitB2 = await dbUtils.createLearningUnit("UnitB2", [skillB2], []);
-                unitB3 = await dbUtils.createLearningUnit("UnitB3", [skillB3], []);
+                unit1 = await dbUtils.createLearningUnit([nestedSkill1], []);
+                unit2 = await dbUtils.createLearningUnit([nestedSkill2], []);
+                unit3 = await dbUtils.createLearningUnit([skill1, skill2], []);
+                unit4 = await dbUtils.createLearningUnit([skill2, skill3], []);
+                unitB1 = await dbUtils.createLearningUnit([skillB1], []);
+                unitB2 = await dbUtils.createLearningUnit([skillB2], []);
+                unitB3 = await dbUtils.createLearningUnit([skillB3], []);
                 initialPath = await dbUtils.createLearningPath("test-orga");
             });
 
@@ -822,10 +822,10 @@ describe("Learning-Path Controller E2E-Tests", () => {
             skill1 = await dbUtils.createSkill(skillMap, "Skill 1");
             skill2 = await dbUtils.createSkill(skillMap, "Skill 2");
             skill3 = await dbUtils.createSkill(skillMap, "Skill 3");
-            unit1 = await dbUtils.createLearningUnit("Unit1", [nestedSkill1], []);
-            unit2 = await dbUtils.createLearningUnit("Unit2", [nestedSkill2], []);
-            cyclicUnit1 = await dbUtils.createLearningUnit("Unit3", [skill1], [skill2]);
-            cyclicUnit2 = await dbUtils.createLearningUnit("Unit3", [skill2], [skill1]);
+            unit1 = await dbUtils.createLearningUnit([nestedSkill1], []);
+            unit2 = await dbUtils.createLearningUnit([nestedSkill2], []);
+            cyclicUnit1 = await dbUtils.createLearningUnit([skill1], [skill2]);
+            cyclicUnit2 = await dbUtils.createLearningUnit([skill2], [skill1]);
             path = await dbUtils.createLearningPath("Validate Tests");
         });
 
@@ -945,8 +945,8 @@ describe("Learning-Path Controller E2E-Tests", () => {
             const skillMap = await dbUtils.createSkillMap("New Owner", "Skill Map");
             const skill1 = await dbUtils.createSkill(skillMap, "Skill1");
             const skill2 = await dbUtils.createSkill(skillMap, "Skill2");
-            const unit1 = await dbUtils.createLearningUnit("Unit1", [skill1], []);
-            const unit2 = await dbUtils.createLearningUnit("Unit2", [skill2], [skill1]);
+            const unit1 = await dbUtils.createLearningUnit([skill1], []);
+            const unit2 = await dbUtils.createLearningUnit([skill2], [skill1]);
 
             // Update path
             const update: UpdatePathRequestDto = {

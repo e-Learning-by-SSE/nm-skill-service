@@ -342,7 +342,7 @@ model LearningHistory {
 // - https://github.com/e-Learning-by-SSE/nm-skill-service/issues/112
 model LearnedSkill {
   id        String   @id @default(cuid())
-  Skill     Skill    @relation("learnedBy", fields: [skillId], references: [id])
+  Skill     Skill    @relation("learnedBy", fields: [skillId], references: [id], onDelete: Cascade)
   skillId   String
   createdAt DateTime @default(now())
 

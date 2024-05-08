@@ -202,9 +202,9 @@ describe("LearningPath Service", () => {
             skill1 = await dbUtils.createSkill(skillMap, "Skill1");
             skill2 = await dbUtils.createSkill(skillMap, "Skill2");
             skill3 = await dbUtils.createSkill(skillMap, "Skill3");
-            unit1 = await dbUtils.createLearningUnit("Unit1", [skill1], []);
-            unit2 = await dbUtils.createLearningUnit("Unit2", [skill2], [skill1]);
-            unit3 = await dbUtils.createLearningUnit("Unit3", [skill3], [skill1]);
+            unit1 = await dbUtils.createLearningUnit([skill1], []);
+            unit2 = await dbUtils.createLearningUnit([skill2], [skill1]);
+            unit3 = await dbUtils.createLearningUnit([skill3], [skill1]);
         });
 
         it("Full Update", async () => {
@@ -733,9 +733,9 @@ describe("LearningPath Service", () => {
             skill1 = await dbUtils.createSkill(map, "Skill1");
             skill2 = await dbUtils.createSkill(map, "Skill2");
             skill3 = await dbUtils.createSkill(map, "Skill3");
-            await dbUtils.createLearningUnit("unit 1", [skill1], []);
-            await dbUtils.createLearningUnit("unit 2", [skill2], []);
-            await dbUtils.createLearningUnit("unit 3", [skill3], [skill1, skill2]);
+            await dbUtils.createLearningUnit([skill1], []);
+            await dbUtils.createLearningUnit([skill2], []);
+            await dbUtils.createLearningUnit([skill3], [skill1, skill2]);
             skill1Dto = SkillDto.createFromDao(skill1);
             skill2Dto = SkillDto.createFromDao(skill2);
             skill3Dto = SkillDto.createFromDao(skill3);

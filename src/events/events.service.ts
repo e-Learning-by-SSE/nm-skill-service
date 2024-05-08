@@ -295,7 +295,7 @@ export class EventMgmtService {
                             for (const skill of skills) {
                                 //Create a new learning progress entry (that matches user and skill and saves the date of the acquisition)
                                 let learningProgressDto =
-                                    await this.learningHistoryService.createProgressForUserId(
+                                    await this.learningHistoryService.addLearnedSkillToUser(
                                         userID,
                                         skill.id,
                                     );

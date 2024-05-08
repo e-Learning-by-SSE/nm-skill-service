@@ -89,7 +89,7 @@ export class LearningHistoryController {
     @Post(":id/learning-progress")
     async createLearningProgress(@Param("id") userId: string, @Body() skillId: string) {
         // Create a new learning progress entry for a user
-        return this.learningHistoryService.createProgressForUserId(userId, skillId);
+        return this.learningHistoryService.addLearnedSkillToUser(userId, skillId);
     }
 
     @Delete(":id/learning-progress")
