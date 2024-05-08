@@ -2,449 +2,124 @@ import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
 import { LearningHistoryService } from "./learningHistory.service";
-import { LearningHistoryCreationDto, LearningHistoryDto } from "../dto";
-import { NotFoundException } from "@nestjs/common";
+import { UserMgmtService } from "../user.service";
+import { ForbiddenException } from "@nestjs/common";
+import { Skill } from "@prisma/client";
 
-describe("CareerProfileService", () => {
+describe("LearningHistoryService", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const dbUtils = DbTestUtils.getInstance();
+    const userService = new UserMgmtService(db);
+    let skill1: Skill;
+    let skill2: Skill;
+    let skill3: Skill;
 
     // Object under test
     const historyService = new LearningHistoryService(db, config);
 
-    beforeEach(async () => {
-        // Wipe DB before test
+    beforeAll(async () => {
+        // Wipe DB once before test (as we reuse data)
         await dbUtils.wipeDb();
+
+        // Learning units and skills to be reused in the tests
+        const skillMap1 = await db.skillMap.create({
+            data: {
+                name: "First Map",
+                ownerId: "User-1",
+            },
+        });
+
+        skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
+        skill2 = await dbUtils.createSkill(skillMap1, "Skill 2", []);
+        skill3 = await dbUtils.createSkill(skillMap1, "Skill 3", []);
     });
 
-    describe("createLearningHistory", () => {
-        it("Create empty Learning History", async () => {
-            // Arrange: Prepare test data
-            const userProfile = await dbUtils.createUserProfile();
-            const dto: LearningHistoryCreationDto = {
-                userId: userProfile.id,
-                id: "",
-                user: {
-                    id: "",
-                    name: "",
-                    companyId: null,
-                    status: "ACTIVE",
-                },
-                startedLearningUnits: [],
-                learnedSkills: [],
-                learningProfile: [],
-                personalPaths: [],
-            };
+    afterAll(async () => {
+        // Wipe DB after all tests
+        await dbUtils.wipeDb();
+        await db.$disconnect();
+    });
 
+    describe("createAndUpdateLearningHistoriesLearnedSkills", () => {
+        //Reused for the tests
+        const expectedUser = {
+            id: "testUser",
+        };
+
+        it("should create empty Learning History", async () => {
             // Test precondition: No history entries exist
             const nHistories = await db.learningHistory.count();
             expect(nHistories).toEqual(0);
 
-            // Act: Call the createLearningHistory method
-            const createdLearningHistory = await historyService.createLearningHistory(dto);
+            //Act: Create the user and save it to the DB (this should create a new empty user profile, including an empty learning history)
+            await userService.createUser(expectedUser);
 
-            // Assert: Check the result and database state
-            expect(createdLearningHistory).toBeInstanceOf(LearningHistoryDto);
-            expect(createdLearningHistory.userId).toEqual(userProfile.id);
+            // Assert: Check the results (there should now be an empty learning history with empty learnedSkills and empty personalPaths)
+            const createdHistory = await db.learningHistory.findUnique({
+                where: { userId: expectedUser.id },
+                include: { learnedSkills: true, personalPaths: true },
+            });
+            expect(createdHistory).toBeDefined();
+            expect(createdHistory?.learnedSkills).toEqual([]);
+            expect(createdHistory?.personalPaths).toEqual([]);
+            expect(createdHistory?.userId).toEqual(expectedUser.id);
         });
 
-        it("Create history profile for non-existing user -> NotFoundException", async () => {
-            // Arrange: Prepare invalid test data
-            const invalidUserId = "non-existent-user"; // An invalid user ID
-            const invalidDto: LearningHistoryCreationDto = {
-                userId: invalidUserId,
-                id: "",
-                user: {
-                    id: "",
-                    name: "",
-                    companyId: null,
-                    status: "ACTIVE",
-                },
-                startedLearningUnits: [],
-                learnedSkills: [],
-                learningProfile: [],
-                personalPaths: [],
-            };
+        it("should update the learning history with a newly learned skill", async () => {
+            //Act: Add a learned skill to the learning history
+            await historyService.addLearnedSkillToUser(expectedUser.id, skill1.id);
 
-            // Act and Assert: Call the createLearningHistory method and expect it to throw an error
-            await expect(historyService.createLearningHistory(invalidDto)).rejects.toThrowError(
-                NotFoundException,
-            );
-        });
-    });
+            // Receive the list of learned skills for the user
+            const learnedSkills = await historyService.getLearnedSkillsOfUser(expectedUser.id);
 
-    
-    describe("editStatusForAConsumedUnit", () => {
-        let userProf: UserProfile;
-        let consumedUnit: ConsumedUnitData;
-        let lu: LearningUnit;
-        let factory: LearningUnitFactory;
-        beforeEach(async () => {
-            await dbUtils.wipeDb();
-            factory = new LearningUnitFactory(db);
-            userProf = await db.userProfile.create({
-                data: {
-                    status: "ACTIVE",
-                    id: "testId",
-                },
-            });
-
-            const learningHistory = await db.learningHistory.create({
-                data: {
-                    userId: userProf.id,
-                },
-            });
-            const creationDto = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title",
-            });
-            const result = await factory.createLearningUnit(creationDto);
-
-
-
-            consumedUnit = await db.consumedUnitData.create({
-                data: {
-                    historyId: learningHistory.userId,
-                    actualProcessingTime: 2 * 60 * 60,
-                    testPerformance: 0.85,
-                    unitId: result.id,
-                    status: "STARTED",
-                    date: new Date(),
-                },
-            });
+            // Assert: Check the results (there should now be one learned skill)
+            expect(learnedSkills).toHaveLength(1);
+            expect(learnedSkills[0]).toEqual(skill1.id);
         });
 
-        it("should edit the status for a consumed unit", async () => {
-            // Arrange: Define test data
-            const consumedUnitId = consumedUnit.id;
-            const newStatus: STATUS = STATUS.FINISHED; // Replace with the desired status
-
-            // Act: Call the editStatusForAConsumedUnit method
-            const result = await LearningHistoryService.editStatusForAConsumedUnitById(
-                consumedUnitId,
-                newStatus,
-            );
-
-            // Assert: Check that the result is defined and has the expected structure
-            expect(result).toBeDefined();
-            expect(result.id).toEqual(consumedUnitId);
-            expect(result.status).toEqual(newStatus);
-
-            // Assert: Check the database state after the test
-            const updatedConsumedUnit = await db.consumedUnitData.findUnique({
-                where: { id: consumedUnitId },
-            });
-
-            // Check that the consumed unit in the database has the updated status
-            expect(updatedConsumedUnit).toBeDefined();
-            expect(updatedConsumedUnit?.status).toEqual(newStatus);
-        });
-
-        it("should handle errors when editing the status for a consumed unit", async () => {
-            // Arrange: Define test data that may cause an error
-            const invalidUserId = "non-existent-user"; // An invalid user ID
-            const invalidConsumedUnitId = "non-existent-consumed-unit"; // An invalid consumed unit ID
-            const newStatus: STATUS = STATUS.FINISHED;
-
-            // Act and Assert: Call the editStatusForAConsumedUnit method and expect it to throw an error
+        it("should not update the learning history with a non existent skill", async () => {
+            //Act and assert: Reject to add a non-existent skill to the learning history
             await expect(
-                userService.editStatusForAConsumedUnitById(invalidConsumedUnitId, newStatus),
-            ).rejects.toThrowError(NotFoundException);
-        });
-    });
-
-    
-    describe("createLearningPathForUser", () => {
-        let userProf: UserProfile;
-        let skillMap1: SkillMap;
-        let skill1: Skill;
-
-        beforeEach(async () => {
-            await dbUtils.wipeDb();
-
-            userProf = await db.userProfile.create({
-                data: {
-                    status: "ACTIVE",
-                    id: "testId",
-                },
-            });
-
-            skillMap1 = await db.skillMap.create({
-                data: {
-                    name: "First Map",
-                    ownerId: "User-1",
-                },
-            });
-
-            skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
-        });
-
-        it("should create a personalized learning path for a user", async () => {
-            // Arrange: Define test data
-            const userId = userProf.id;
-            const learningUnitsIds: string[] = [];
-            const pathTeachingGoalsIds: string[] = [];
-
-            // Act: Call the createLearningPathForUser method
-            const result = await userService.createLearningPathForUser(
-                userId,
-                learningUnitsIds,
-                pathTeachingGoalsIds,
-            );
-
-            // Assert: Check that the result is defined and has the expected structure
-            expect(result.createdPersonalizedLearningPath).toBeDefined();
-            expect(result.createdPersonalizedLearningPath.id).toBeDefined();
-            expect(result.createdPersonalizedLearningPath.createdAt).toBeDefined();
-            expect(result.createdPersonalizedLearningPath.updatedAt).toBeDefined();
-
-            // Assert: Check the database state after the test
-            const createdPathFromDb = await db.personalizedLearningPath.findUnique({
-                where: { id: result.createdPersonalizedLearningPath.id },
-                include: { unitSequence: true, pathTeachingGoals: true },
-            });
-
-            // Check that the created path is in the database and has the expected associations
-            expect(createdPathFromDb).toBeDefined();
-            if (createdPathFromDb) {
-                expect(createdPathFromDb.unitSequence).toHaveLength(learningUnitsIds.length);
-                expect(createdPathFromDb.pathTeachingGoals).toHaveLength(
-                    pathTeachingGoalsIds.length,
-                );
-            }
-        });
-    });
-
-    describe("createProgressForUserId", () => {
-        let userProf: UserProfile;
-        let skillMap1: SkillMap;
-        let skill1: Skill;
-        let lePro: LearningProgress;
-        beforeEach(async () => {
-            await dbUtils.wipeDb();
-            userProf = await db.userProfile.create({
-                data: {
-                    status: "ACTIVE",
-                    id: "testId",
-                },
-            });
-            skillMap1 = await db.skillMap.create({
-                data: {
-                    name: "First Map",
-                    ownerId: "User-1",
-                },
-            });
-            skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
-        });
-        it("should create a learning progress entry", async () => {
-            // Arrange: Define test data
-            const userId = userProf.id; // Replace with a valid user ID
-
-            // Act: Call the createProgressForUserId method
-            const createdEntry = await userService.createProgressForUserId(userId, skill1.id);
-
-            // Assert: Check that the createdEntry is valid and matches the expected data
-            //expect(createdEntry.userId).toEqual(userId); This should be replaced with the history id
-            expect(createdEntry.skillId).toEqual(skill1.id);
-        });
-
-        it("should handle errors when creating a learning progress entry", async () => {
-            // Arrange: Define test data that may cause an error
-            const invalidUserId = "non-existent-user"; // An invalid user ID
-
-            // Act and Assert: Call the createProgressForUserId method and expect it to throw an error
-            await expect(
-                userService.createProgressForUserId(invalidUserId, skill1.id),
+                historyService.addLearnedSkillToUser(expectedUser.id, "non-existent"),
             ).rejects.toThrowError(ForbiddenException);
         });
-    });
 
-    describe("findProgressForUserId", () => {
-        let userProf: UserProfile;
-        let skillMap1: SkillMap;
-        let skill1: Skill;
-        let lePro: LearningProgress;
-        beforeEach(async () => {
-            await dbUtils.wipeDb();
-            userProf = await db.userProfile.create({
-                data: {
-                    status: "ACTIVE",
-                    id: "testId",
-                },
-            });
-            skillMap1 = await db.skillMap.create({
-                data: {
-                    name: "First Map",
-                    ownerId: "User-1",
-                },
-            });
-            skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
-            lePro = await db.learningProgress.create({
-                data: {
-                    skillId: skill1.id,
-                    learningHistoryId: userProf.id, //TODO this needs to be corrected to the history id
-                    //userId: userProf.id,
-                },
-            });
-        });
-        it("should find learning progress entries for a user", async () => {
-            // Arrange: Define a valid user ID for which you expect progress entries
-            const userId = userProf.id; // Replace with a valid user ID
-
-            // Act: Call the findProgressForUserId method
-            const progressEntries = await userService.findProgressForUserId(userId);
-
-            // Assert: Check that progressEntries is an array and contains expected data
-            expect(Array.isArray(progressEntries)).toBe(true);
-            expect(progressEntries[0].skillId).toEqual(skill1.id);
-            //expect(progressEntries[0].userId).toEqual(userId); Change to history id
-            // Add more assertions based on your data structure
-        });
-
-        it("should handle errors when finding learning progress entries", async () => {
-            // Arrange: Define an invalid user ID that may cause an error
-            const invalidUserId = "non-existent-user"; // An invalid user ID
-
-            // Act and Assert: Call the findProgressForUserId method and expect it to throw an error
-            await expect(userService.findProgressForUserId(invalidUserId)).rejects.toThrowError(
-                "Error finding learning progress.",
-            );
-        });
-    });
-    describe("checkStatusForUnitsInPathOfLearningHistory", () => {
-        beforeEach(async () => {
-            await dbUtils.wipeDb();
-        });
-        it("should check status for units in the path", async () => {
-            // Arrange: Create test data
-            const factory: LearningUnitFactory = new LearningUnitFactory(db);
-
-            const userProf = await db.userProfile.create({
-                data: {
-                    status: "ACTIVE",
-                    id: "123",
-                },
-            });
-            const userHistory = await db.learningHistory.create({
-                data: {
-                    userId: userProf.id,
-                    id: userProf.id,
-                },
-            });
-            const creationDto1 = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title123",
-                id: "123",
-            });
-            const creationDto2 = SearchLearningUnitCreationDto.createForTesting({
-                title: "Awesome Title1234",
-                id: "1234",
-            });
-            const lu1 = await factory.createLearningUnit(creationDto1);
-            const lu2 = await factory.createLearningUnit(creationDto2);
-
-            const consumedUnits = await dbUtils.createLearningUnitInstance(userHistory.id, [
-                lu1.id,
-                lu2.id,
-            ]);
-            const learningPath = await db.personalizedLearningPath.create({
-                data: {
-                    learningHistoryId: userHistory.id,
-                    unitSequence: {
-                        create: [
-                            { unitId: consumedUnits[0].id, position: 0 },
-                            { unitId: consumedUnits[1].id, position: 1 },
-                        ], // Connect learning units
-                    },
-                },
-            });
-
-            const learningPathFromDB = await db.personalizedLearningPath.findUnique({
-                where: {
-                    id: learningPath.id,
-                },
-                include: { unitSequence: true },
-            });
-
-            // Act: Call the checkStatusForUnitsInPathOfLearningHistory method
-            const result = await userService.checkStatusForUnitsInPathOfLearningHistory(
-                userHistory.id,
-                learningPath.id,
-            );
-
-            if (learningPathFromDB) {
-                // Assert: Check the result and database state
-                expect(result).toHaveLength(learningPathFromDB.unitSequence.length);
-            }
-            result.forEach((unitStatus) => {
-                expect(unitStatus).toHaveProperty("unit");
-                expect(unitStatus).toHaveProperty("status");
-            });
-        });
-
-        it("should handle errors when learning path is not found", async () => {
-            // Arrange: Use an invalid learning history ID
-            const invalidLearningHistoryId = "non-existent-learning-history-id";
-
-            // Act and Assert: Call the method and expect it to throw NotFoundException
+        it("should not update the learning history of a non existent user", async () => {
+            //Act and assert: Reject to add a learned skill to a non-existent user
             await expect(
-                userService.checkStatusForUnitsInPathOfLearningHistory(
-                    invalidLearningHistoryId,
-                    invalidLearningHistoryId,
-                ),
-            ).rejects.toThrowError(NotFoundException);
+                historyService.addLearnedSkillToUser("non-existent", skill2.id),
+            ).rejects.toThrowError(ForbiddenException);
         });
 
-        // Add more test cases as needed
-    });
-    describe("deleteLearningProgress", () => {
-        let userProf: UserProfile;
-        let skillMap1: SkillMap;
-        let skill1: Skill;
-        let lePro: LearningProgress;
-        beforeEach(async () => {
-            await dbUtils.wipeDb();
-            userProf = await db.userProfile.create({
-                data: {
-                    status: "ACTIVE",
-                    id: "testId",
-                },
-            });
-            skillMap1 = await db.skillMap.create({
-                data: {
-                    name: "First Map",
-                    ownerId: "User-1",
-                },
-            });
-            skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
-            lePro = await db.learningProgress.create({
-                data: {
-                    skillId: skill1.id,
-                    learningHistoryId: userProf.id, //TODO this needs to be corrected to the history id
-                    //userId: userProf.id,
-                },
-            });
-        });
-        it("should delete a learning progress entry", async () => {
-            const result = await userService.deleteProgressForId(lePro.id);
+        it("should update the learning history with multiple learned skills", async () => {
+            //Act: Add multiple learned skills to the learning history
+            await historyService.addLearnedSkillToUser(expectedUser.id, skill2.id);
+            await historyService.addLearnedSkillToUser(expectedUser.id, skill3.id);
 
-            // Assert that the result matches the expected value
-            expect(result).toEqual(lePro);
+            // Receive the list of learned skills for the user
+            const learnedSkills = await historyService.getLearnedSkillsOfUser(expectedUser.id);
+
+            // Assert: Check the results (there should now be three learned skills, retrieved in the order they have been learned)
+            expect(learnedSkills).toHaveLength(3);
+            expect(learnedSkills[2]).toEqual(skill1.id);
+            expect(learnedSkills[1]).toEqual(skill2.id);
+            expect(learnedSkills[0]).toEqual(skill3.id);
         });
 
-        it("should handle errors when deleting a learning progress entry", async () => {
-            const nonExistentId = "non-existent-id";
+        it("should allow a user to learn a skill a second time", async () => {
+            //Act: Add an already learned skill to the learning history
+            await historyService.addLearnedSkillToUser(expectedUser.id, skill1.id);
 
-            // Use try...catch to handle the expected NotFoundException
-            try {
-                await userService.deleteProgressForId(nonExistentId);
+            // Receive the list of learned skills for the user
+            const learnedSkills = await historyService.getLearnedSkillsOfUser(expectedUser.id);
 
-                // If the deletion does not throw an exception, fail the test
-                fail("Expected NotFoundException was not thrown.");
-            } catch (error) {
-                // Check if the error is an instance of NotFoundException and has the expected message
-                expect(error).toBeInstanceOf(NotFoundException);
-                expect(error.message).toBe(`Record not found: ${nonExistentId}`);
-            }
+            // Assert: Check the results (the additional skill should now be contained twice (first and last), and the other skills should be unchanged)
+            expect(learnedSkills).toHaveLength(4);
+            expect(learnedSkills[3]).toEqual(skill1.id);
+            expect(learnedSkills[2]).toEqual(skill2.id);
+            expect(learnedSkills[1]).toEqual(skill3.id);
+            expect(learnedSkills[0]).toEqual(skill1.id);
         });
     });
 });

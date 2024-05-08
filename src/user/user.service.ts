@@ -14,7 +14,7 @@ export class UserMgmtService {
     constructor(private db: PrismaService) {}
 
     /**
-     * Creates a new user and saves it into the DB
+     * Creates a new user and saves it into the DB. This includes creating an empty learning history, career profile and learning profile.
      * @param dto Specifies the user to be created
      * @returns The newly created user
      */
