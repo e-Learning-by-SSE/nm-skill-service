@@ -5,6 +5,8 @@ import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception
 import { STATUS } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
 import { LearningUnitInstanceDto } from "./dto/learningUnitInstance.dto";
+import { PersonalizedLearningPathsListDto } from "./dto/personalizedLearningPathsList.dto";
+import { PersonalizedPathDto } from "./dto/personalizedPath.dto";
 
 /**
  * Service that manages updating and retrieving of a learningHistory (which stores the learned skills and the personalized paths of a user).
@@ -22,7 +24,7 @@ export class LearningHistoryService {
         this.passingThreshold = this.config.get("PASSING_THRESHOLD") || 0.5;
     }
 
-    /** Returns a list containing the ids of all learned skills of a user. 
+    /** Returns a list containing the ids of all learned skills of a user.
      * The list can contain duplicates, as a user can acquire a skill multiple times.
      * The entries are sorted descending by the creation date (so that the newest acquired skill appears first).
      * @param userId The id of the user (and ist learning history) whose learned skills are to be returned
@@ -37,8 +39,8 @@ export class LearningHistoryService {
 
             return learnedSkills.map((learnedSkill) => learnedSkill.skillId);
         } catch (error) {
-            console.error("Error finding learned skills for user: "+userId, error);
-            throw new ForbiddenException("Error finding learned skills for user: "+userId);
+            console.error("Error finding learned skills for user: " + userId, error);
+            throw new ForbiddenException("Error finding learned skills for user: " + userId);
         }
     }
 
@@ -65,6 +67,90 @@ export class LearningHistoryService {
             throw new ForbiddenException("Error creating learned skill");
         }
     }
+
+    /**
+     * Returns the personalized learning paths of a user.
+     * @param userId The id of the user (and its learning history) whose personalized paths are to be returned
+     * @param status The status of the paths to be returned (optional)
+     * @returns A list of personalized learning paths of a user, reduced to their id, the learningPathId (if existent), and their status
+     */
+    async getPersonalizedPathsOfUser(userId: string, status?: STATUS) {
+        try {
+            const paths = await this.db.personalizedLearningPath.findMany({
+                where: { learningHistoryId: userId, status: status }, //UserId equals historyId
+                select: { id: true, learningPathId: true, status: true },
+                orderBy: { updatedAt: "desc" },
+            });
+
+            //Create the DTO
+            const pathDto = PersonalizedLearningPathsListDto.createFromDao(paths);
+
+            return pathDto;
+        } catch (error) {
+            console.error("Error finding personalized paths for user: " + userId, error);
+            throw new ForbiddenException("Error finding personalized paths for user: " + userId);
+        }
+    }
+
+    /**
+     * Returns the personalized learning path of a user.
+     * @param pathId The id of the personalized learning path to be returned.
+     * @returns The personalized learning path of a user
+     */
+    async getPersonalizedPath(pathId: string) {
+        try {
+            const path = await this.db.personalizedLearningPath.findUnique({
+                where: { id: pathId },
+                include: {
+                    pathTeachingGoals: { select: { id: true } }, //Ids of the taught skills
+                    unitSequence: { include: { unit: { select: { id: true, status: true } } } }, //Id and state of the learningUnitInstances contained in the path
+                },
+            });
+
+            if (path) {
+                //Create the DTO
+                const pathDto = PersonalizedPathDto.createFromDao(path);
+
+                return pathDto;
+            } 
+        } catch (error) {
+            console.error("Error finding personalized path: " + pathId, error);
+            throw new ForbiddenException("Error finding personalized path: " + pathId);
+        }
+    }
+
+    /**
+     * TODO: Here I would expect a call to the pathPlanner
+     *
+     **/
+    async addPersonalizedLearningPathToUser(
+        userID: string,
+        learningUnitsIds: string[],
+        pathTeachingGoalsIds: string[],
+    ) {
+        try {
+            const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
+                data: {
+                    learningHistoryId: userID,
+                    unitSequence: {
+                        connect: learningUnitsIds.map((id) => ({ id })), //This should not work, we have a deeper nesting going over pathSequence objects here
+                    },
+                    pathTeachingGoals: {
+                        connect: pathTeachingGoalsIds.map((id) => ({ id })),
+                    },
+                },
+            });
+
+            return { createdPersonalizedLearningPath };
+        } catch (error) {
+            console.error("Error creating personalized learning path for user: " + userID, error);
+            throw new ForbiddenException(
+                "Error creating personalized learning path for user: " + userID,
+            );
+        }
+    }
+
+    // Functions below still need revision //
 
     /**
      * Updates the status of a consumed unit, when an user learns the unit.
@@ -109,66 +195,6 @@ export class LearningHistoryService {
         // TODO SE: Update learned skills if status == FINISHED
 
         return LearningUnitInstanceDto.createFromDao(updatedUnit);
-    }
-
-    async findProgressForUserId(id: string) {
-        try {
-            const progressEntries = await this.db.learnedSkill.findMany({
-                where: { learningHistoryId: id }, //TODO needs to change to history id
-            });
-
-            if (progressEntries.length === 0) {
-                throw new NotFoundException("No learning progress found.");
-            }
-
-            return progressEntries;
-        } catch (error) {
-            // Handle any other errors or rethrow them as needed
-            throw new Error("Error finding learning progress.");
-        }
-    }
-
-    async createLearningPathForUser(
-        userID: string,
-        learningUnitsIds: string[],
-        pathTeachingGoalsIds: string[],
-    ) {
-        let existingUserProfile = await this.db.userProfile.findUnique({
-            where: { id: userID },
-        });
-
-        if (!existingUserProfile) {
-            existingUserProfile = await this.db.userProfile.create({
-                data: {
-                    id: userID,
-                },
-            });
-        }
-
-        let existingUserHistory = await this.db.learningHistory.findUnique({
-            where: { userId: userID },
-        });
-        if (!existingUserHistory) {
-            existingUserHistory = await this.db.learningHistory.create({
-                data: {
-                    userId: userID,
-                },
-            });
-        }
-
-        const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
-            data: {
-                learningHistoryId: userID,
-                unitSequence: {
-                    connect: learningUnitsIds.map((id) => ({ id })),
-                },
-                pathTeachingGoals: {
-                    connect: pathTeachingGoalsIds.map((id) => ({ id })),
-                },
-            },
-        });
-
-        return { createdPersonalizedLearningPath };
     }
 
     async checkStatusForUnitsInPathOfLearningHistory(learningHistoryId: string, pathId: string) {
