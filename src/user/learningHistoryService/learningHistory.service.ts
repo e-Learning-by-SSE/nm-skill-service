@@ -63,7 +63,6 @@ export class LearningHistoryService {
             });
             return createEntry;
         } catch (error) {
-            console.error("Error creating learned skill", error);
             throw new ForbiddenException("Error creating learned skill");
         }
     }
@@ -87,7 +86,6 @@ export class LearningHistoryService {
 
             return pathDto;
         } catch (error) {
-            console.error("Error finding personalized paths for user: " + userId, error);
             throw new ForbiddenException("Error finding personalized paths for user: " + userId);
         }
     }
@@ -112,9 +110,8 @@ export class LearningHistoryService {
                 const pathDto = PersonalizedPathDto.createFromDao(path);
 
                 return pathDto;
-            } 
+            }
         } catch (error) {
-            console.error("Error finding personalized path: " + pathId, error);
             throw new ForbiddenException("Error finding personalized path: " + pathId);
         }
     }
@@ -143,7 +140,6 @@ export class LearningHistoryService {
 
             return { createdPersonalizedLearningPath };
         } catch (error) {
-            console.error("Error creating personalized learning path for user: " + userID, error);
             throw new ForbiddenException(
                 "Error creating personalized learning path for user: " + userID,
             );

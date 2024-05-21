@@ -96,15 +96,14 @@ export class BerufeService {
         }
     }
 
-    async getJobsByPageAndSearchString(page: string, searchQuery: string): Promise<any> {
+    async getJobsByPageAndSearchString(page: string, searchQuery: string) {
         try {
             const response = await axios.get(
                 `${this.baseUrl}/berufe?suchwoerter=${searchQuery}&page=${page}`,
                 this.axiosConfig,
             );
 
-            const data = response.data;
-            return data;
+            return response.data;
         } catch (error) {
             console.error(`Error making API request: ${error.message}`);
         }
