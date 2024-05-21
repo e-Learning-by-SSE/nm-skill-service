@@ -10,7 +10,8 @@ import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exceptio
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 import { LIFECYCLE, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
-import { LearningProgressDto } from "../user/dto";
+import { LearnedSkillDto, UserWithoutChildrenDto } from "../user/dto";
+import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 import { UnprocessableEntityException } from "@nestjs/common";
 
 describe("Event Service", () => {
@@ -18,6 +19,7 @@ describe("Event Service", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const userService = new UserMgmtService(db);
+    const learningHistoryService = new LearningHistoryService(db, config);
     const learningUnitFactory = new LearningUnitFactory(db);
     const learningUnitService = new LearningUnitMgmtService(learningUnitFactory);
     const dbUtils = DbTestUtils.getInstance();
@@ -27,6 +29,7 @@ describe("Event Service", () => {
         learningUnitService,
         learningUnitFactory,
         userService,
+        learningHistoryService,
         config,
     );
 
@@ -155,9 +158,7 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "GetSkillFromNonExistingTask",
-                payload: JSON.parse(
-                    '{"status":"FINISHED"}',
-                ),
+                payload: JSON.parse('{"status":"FINISHED"}'),
                 taskTodoPayload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "user":"testEventId", "task":"non-existing"}',
                 ),
@@ -173,19 +174,17 @@ describe("Event Service", () => {
             // Arrange: Create events with missing skill in the LU
 
             //We need an existing user and a learning unit missing the skill
-            const userProfile = await dbUtils.createUserProfile("Test Name");
-            const learningUnit = await dbUtils.createLearningUnit("Test LU", [], []);
+            const learningUnit = await dbUtils.createLearningUnit([], []);
 
             //We need the Ids for validation
-            const userID = userProfile.id;
+            const userID = "testUserId";
             const luID = learningUnit.id;
 
             const invalidMLSEvent: MLSEvent = {
                 entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "NoSkillInTask",
-                payload: JSON.parse('{"status":"FINISHED"}',
-                ),
+                payload: JSON.parse('{"status":"FINISHED"}'),
                 taskTodoPayload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "user":"' +
                         userID +
@@ -206,9 +205,7 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "ScoredPointsBelowThreshold",
-                payload: JSON.parse(
-                    '{"status":"FINISHED"}',
-                ),
+                payload: JSON.parse('{"status":"FINISHED"}'),
                 taskTodoPayload: JSON.parse(
                     '{"scoredPoints":"4", "maxPoints":10, "user":"notRelevant", "task":"notRelevant"}',
                 ),
@@ -227,9 +224,7 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "StatusIsNotFinished",
-                payload: JSON.parse(
-                    '{"status":"NotFINISHED"}',
-                ),
+                payload: JSON.parse('{"status":"NotFINISHED"}'),
                 taskTodoPayload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "user":"notRelevant", "task":"notRelevant"}',
                 ),
@@ -254,7 +249,7 @@ describe("Event Service", () => {
                 "Description",
                 1,
             );
-            const learningUnit = await dbUtils.createLearningUnit("Test LU", [goalSkill], []);
+            const learningUnit = await dbUtils.createLearningUnit([goalSkill], []);
 
             //We need the Ids for validation
             const luID = learningUnit.id;
@@ -263,9 +258,7 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "LearnSkillByNonExistentUser",
-                payload: JSON.parse(
-                    '{"status":"FINISHED"}',
-                ),
+                payload: JSON.parse('{"status":"FINISHED"}'),
                 taskTodoPayload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "user":"non-existent", "task":"' +
                         luID +
@@ -329,9 +322,7 @@ describe("Event Service", () => {
 
             const expectedLearningUnitDto: SearchLearningUnitCreationDto = {
                 id: validMLSPostEvent.id,
-                title: "Test Title",
                 targetAudience: [],
-                description: "Test description",
                 contentCreator: "Test creator",
                 teachingGoals: [],
                 requiredSkills: [],
@@ -344,12 +335,6 @@ describe("Event Service", () => {
             // Assert: Check that the createdEntry is valid and matches the expected data (we cannot check object equality as the created DTO contains way more values)
             expect((createdEntry as SearchLearningUnitCreationDto).id).toEqual(
                 expectedLearningUnitDto.id,
-            );
-            expect((createdEntry as SearchLearningUnitCreationDto).title).toEqual(
-                expectedLearningUnitDto.title,
-            );
-            expect((createdEntry as SearchLearningUnitCreationDto).description).toEqual(
-                expectedLearningUnitDto.description,
             );
             expect((createdEntry as SearchLearningUnitCreationDto).contentCreator).toEqual(
                 expectedLearningUnitDto.contentCreator,
@@ -369,15 +354,16 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.Task,
                 method: MlsActionType.PUT,
                 id: "test1",
-                payload: JSON.parse('{"description":"Updated test description"}'),
+                payload: JSON.parse('{"contentCreator":"Updated test contentCreator"}'),
             };
 
             // Act: Call the getEvent method
             createdEntry = await eventService.getEvent(validMLSPutEvent);
 
-            // Assert: Check that the createdEntry is valid and matches the expected data (updated description, other selected values unchanged)
-            expect((createdEntry as SearchLearningUnitCreationDto).description).toEqual(
-                "Updated test description",
+            // Assert: Check that the createdEntry is valid and matches the expected data (updated contentCreator, other selected values unchanged)
+
+            expect((createdEntry as SearchLearningUnitCreationDto).contentCreator).toEqual(
+                expectedLearningUnitDto.contentCreator,
             );
             expect((createdEntry as SearchLearningUnitCreationDto).teachingGoals).toEqual(
                 expectedLearningUnitDto.teachingGoals,
@@ -435,17 +421,18 @@ describe("Event Service", () => {
 
             const expectedUserDto: UserCreationDto = {
                 id: validMLSPostEvent.id,
-                name: "Test Name",
-                status: USERSTATUS.ACTIVE, //Initially, users are created as active users
+                //Initially, users are created as active users, so no status given
             };
 
             // Act: Call the getEvent method
-            let createdEntry = await eventService.getEvent(validMLSPostEvent);
+            await eventService.getEvent(validMLSPostEvent);
+
+            //Load the user from the DB
+            let createdEntry = await userService.getUserById(expectedUserDto.id);
 
             // Assert: Check that the createdEntry is valid and matches the expected data (we cannot check object equality as the created DTO contains way more values)
-            expect((createdEntry as UserCreationDto).id).toEqual(expectedUserDto.id);
-            expect((createdEntry as UserCreationDto).name).toEqual(expectedUserDto.name);
-            expect((createdEntry as UserCreationDto).status).toEqual(expectedUserDto.status);
+            expect((createdEntry as UserWithoutChildrenDto).id).toEqual(expectedUserDto.id);
+            expect((createdEntry as UserWithoutChildrenDto).status).toEqual(USERSTATUS.ACTIVE);
 
             // Arrange: Define an update event
             const validMLSPutEvent: MLSEvent = {
@@ -456,12 +443,13 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            createdEntry = await eventService.getEvent(validMLSPutEvent);
+            await eventService.getEvent(validMLSPutEvent);
+            //Load the user from the DB
+            createdEntry = await userService.getUserById(expectedUserDto.id);
 
             // Assert: Check that the createdEntry is valid and matches the expected data (updated state, other selected values unchanged)
-            expect((createdEntry as UserCreationDto).id).toEqual(expectedUserDto.id);
-            expect((createdEntry as UserCreationDto).name).toEqual(expectedUserDto.name);
-            expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.INACTIVE);
+            expect((createdEntry as UserWithoutChildrenDto).id).toEqual(expectedUserDto.id);
+            expect((createdEntry as UserWithoutChildrenDto).status).toEqual(USERSTATUS.INACTIVE);
 
             //Update again as preparation for next test and to test the other branch
             const validMLSPutEvent2: MLSEvent = {
@@ -472,12 +460,13 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            createdEntry = await eventService.getEvent(validMLSPutEvent2);
+            await eventService.getEvent(validMLSPutEvent2);
+            //Load the user from the DB
+            createdEntry = await userService.getUserById(expectedUserDto.id);
 
             // Assert: Check that the createdEntry is valid and matches the expected data (updated state, other selected values unchanged)
-            expect((createdEntry as UserCreationDto).id).toEqual(expectedUserDto.id);
-            expect((createdEntry as UserCreationDto).name).toEqual(expectedUserDto.name);
-            expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.ACTIVE);
+            expect((createdEntry as UserWithoutChildrenDto).id).toEqual(expectedUserDto.id);
+            expect((createdEntry as UserWithoutChildrenDto).status).toEqual(USERSTATUS.ACTIVE);
 
             // Arrange: Define a delete event
             const validMLSDeleteEvent: MLSEvent = {
@@ -488,10 +477,12 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            createdEntry = await eventService.getEvent(validMLSDeleteEvent);
+            await eventService.getEvent(validMLSDeleteEvent);
+            //Load the user from the DB
+            createdEntry = await userService.getUserById(expectedUserDto.id);
 
             // Assert: Check that the user unit is successfully deleted (in our case this means setting status to inactive)
-            expect((createdEntry as UserCreationDto).status).toEqual(USERSTATUS.INACTIVE);
+            expect((createdEntry as UserWithoutChildrenDto).status).toEqual(USERSTATUS.INACTIVE);
         });
 
         it("should create a new user profile when receiving a PUT event for a non-existent one (when manually triggered in MLS for import)", async () => {
@@ -504,10 +495,13 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            const createdEntry = await eventService.getEvent(MlsPUTEvent);
+            await eventService.getEvent(MlsPUTEvent);
+
+            //Load the user from the DB
+            const createdEntry = await userService.getUserById(MlsPUTEvent.id);
 
             // Assert: Check that the createdEntry is valid and matches the expected data
-            expect((createdEntry as UserCreationDto).id).toEqual("non-existent");
+            expect((createdEntry as UserWithoutChildrenDto).id).toEqual(MlsPUTEvent.id);
         });
     });
 
@@ -519,7 +513,8 @@ describe("Event Service", () => {
             // Arrange: Define test data and create event input
 
             //We need an existing user, skill (requires a skillMap), and a learning unit teaching the skill
-            const userProfile = await dbUtils.createUserProfile("Test Name");
+            const userID = "testUserId";
+            await userService.createUser({ id: userID });
             const skillMap = await dbUtils.createSkillMap("owner", "Default Skill Map for Testing");
             const goalSkill = await dbUtils.createSkill(
                 skillMap,
@@ -530,10 +525,9 @@ describe("Event Service", () => {
             );
 
             const teachingGoals = [goalSkill];
-            const learningUnit = await dbUtils.createLearningUnit("Test LU", teachingGoals, []);
+            const learningUnit = await dbUtils.createLearningUnit(teachingGoals, []);
 
             //We need the Ids for validation
-            const userID = userProfile.id;
             const skillID = goalSkill.id;
             const luID = learningUnit.id;
 
@@ -542,9 +536,7 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "validTaskToDoInfo",
-                payload: JSON.parse(
-                    '{"status":"FINISHED"}',
-                ),
+                payload: JSON.parse('{"status":"FINISHED"}'),
                 taskTodoPayload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "user":"' +
                         userID +
@@ -559,10 +551,10 @@ describe("Event Service", () => {
 
             // Assert: Check that the createdEntry is valid and matches the expected data
             // Here, we expect an array of learning progress DTOs
-            for (const entry of createdEntry as Array<LearningProgressDto>) {
+            for (const entry of createdEntry as Array<LearnedSkillDto>) {
                 //Skill id and user id should match the input
                 expect(entry.skillId).toEqual(skillID);
-                expect(entry.userId).toEqual(userID);
+                expect(entry.learningHistoryId).toEqual(userID);
             }
         });
 
@@ -570,7 +562,8 @@ describe("Event Service", () => {
             // Arrange: Define test data and create event input
 
             //We need an existing user, skill (requires a skillMap), and a learning unit teaching the skill
-            const userProfile = await dbUtils.createUserProfile("Test Name");
+            const userID = "testUserId";
+            await userService.createUser({ id: userID });
             const skillMap = await dbUtils.createSkillMap("owner", "Default Skill Map for Testing");
             const goalSkill = await dbUtils.createSkill(
                 skillMap,
@@ -581,10 +574,9 @@ describe("Event Service", () => {
             );
 
             const teachingGoals = [goalSkill];
-            const learningUnit = await dbUtils.createLearningUnit("Test LU with 0 max points", teachingGoals, []);
+            const learningUnit = await dbUtils.createLearningUnit(teachingGoals, []);
 
             //We need the Ids for validation
-            const userID = userProfile.id;
             const skillID = goalSkill.id;
             const luID = learningUnit.id;
 
@@ -593,9 +585,7 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "validTaskToDoInfoWith0MaxPoints",
-                payload: JSON.parse(
-                    '{"status":"FINISHED"}',
-                ),
+                payload: JSON.parse('{"status":"FINISHED"}'),
                 taskTodoPayload: JSON.parse(
                     '{"scoredPoints":"0", "maxPoints":0, "user":"' +
                         userID +
@@ -610,18 +600,19 @@ describe("Event Service", () => {
 
             // Assert: Check that the createdEntry is valid and matches the expected data
             // Here, we expect an array of learning progress DTOs
-            for (const entry of createdEntry as Array<LearningProgressDto>) {
+            for (const entry of createdEntry as Array<LearnedSkillDto>) {
                 //Skill id and user id should match the input
                 expect(entry.skillId).toEqual(skillID);
-                expect(entry.userId).toEqual(userID);
+                expect(entry.learningHistoryId).toEqual(userID);
             }
-        });        
+        });
 
         it("should create several valid learning progress objects linking user and different skills", async () => {
             // Arrange: Define test data and create event input
 
             //We need an existing user, skills (requires a skillMap), and a learning unit teaching the skills
-            const userProfile = await dbUtils.createUserProfile("Test Name");
+            const userID = "testUserId";
+            await userService.createUser({ id: userID });
             const skillMap = await dbUtils.createSkillMap("owner", "Default Skill Map for Testing");
             const goalSkill1 = await dbUtils.createSkill(
                 skillMap,
@@ -646,10 +637,9 @@ describe("Event Service", () => {
             );
 
             const teachingGoals = [goalSkill1, goalSkill2, goalSkill3];
-            const learningUnit = await dbUtils.createLearningUnit("Test LU", teachingGoals, []);
+            const learningUnit = await dbUtils.createLearningUnit(teachingGoals, []);
 
             //We need the Ids for validation
-            const userID = userProfile.id;
             const idArray = [goalSkill1.id, goalSkill2.id, goalSkill3.id];
             const luID = learningUnit.id;
 
@@ -658,9 +648,7 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.PUT,
                 id: "validTaskToDoInfo2",
-                payload: JSON.parse(
-                    '{"status":"FINISHED"}',
-                ),
+                payload: JSON.parse('{"status":"FINISHED"}'),
                 taskTodoPayload: JSON.parse(
                     '{"scoredPoints":"1", "maxPoints":1, "user":"' +
                         userID +
@@ -679,10 +667,10 @@ describe("Event Service", () => {
             let i = 0;
 
             // Here, we expect an array of learning progress DTOs
-            for (const entry of createdEntry as Array<LearningProgressDto>) {
+            for (const entry of createdEntry as Array<LearnedSkillDto>) {
                 //Skill id and user id should match the input
                 expect(entry.skillId).toEqual(idArray[i]);
-                expect(entry.userId).toEqual(userID);
+                expect(entry.learningHistoryId).toEqual(userID);
                 i++;
             }
         });

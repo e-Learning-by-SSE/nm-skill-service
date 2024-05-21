@@ -1,5 +1,4 @@
-import { LIFECYCLE, Prisma, PrismaClient } from '@prisma/client';
-import { faker } from '@faker-js/faker';
+import { LIFECYCLE, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -22,9 +21,7 @@ export async function createLearningObjects(learningObjectives: LearningUnitType
         id: unit.id,
         lifecycle: unit.lifecycle,
         orga_id: unit.orga_id,
-        title: unit.name,
         language: 'de',
-        description: unit.description,
         requirements: {
           connect: unit.requirements.map((i) => ({ id: i })),
         },

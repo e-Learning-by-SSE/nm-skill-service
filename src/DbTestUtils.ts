@@ -1,6 +1,6 @@
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "./prisma/prisma.service";
-import { Prisma, Skill, SkillMap, USERSTATUS } from "@prisma/client";
+import { Prisma, Skill, SkillMap } from "@prisma/client";
 
 /**
  * Not a test suite, but functionality that supports writing test cases.
@@ -26,13 +26,13 @@ export class DbTestUtils {
 
     public async wipeDb() {
         // User Profiles
-        await this.db.learningProgress.deleteMany();
+        await this.db.learnedSkill.deleteMany();
+        await this.db.pathSequence.deleteMany();
         await this.db.personalizedLearningPath.deleteMany();
-        await this.db.consumedUnitData.deleteMany();
-        await this.db.learningHistory.deleteMany();
-        await this.db.learningBehaviorData.deleteMany();
-        await this.db.careerProfile.deleteMany();
-        await this.db.learningProfile.deleteMany();
+        await this.db.learningUnitInstance.deleteMany();
+        //await this.db.learningHistory.deleteMany(); These should all be removed with their user profile
+        //await this.db.careerProfile.deleteMany();
+        //await this.db.learningProfile.deleteMany();
         await this.db.userProfile.deleteMany();
 
         // Learning Paths
@@ -41,7 +41,6 @@ export class DbTestUtils {
         // Learning Units
         await this.db.preferredOrdering.deleteMany();
         await this.db.learningUnit.deleteMany();
-        await this.db.nugget.deleteMany();
 
         // Skills
         await this.db.skill.deleteMany();
@@ -53,18 +52,6 @@ export class DbTestUtils {
 
     public getDb() {
         return this.db;
-    }
-
-    async createUserProfile(name?: string) {
-        return this.db.userProfile.create({
-            data: {
-                name,
-            },
-            include: {
-                learningProfile: true,
-                careerProfile: true,
-            },
-        });
     }
 
     async createSkill(
@@ -98,16 +85,9 @@ export class DbTestUtils {
         });
     }
 
-    async createLearningUnit(
-        title: string,
-        goals: Skill[],
-        requirements: Skill[],
-        description?: string,
-    ) {
+    async createLearningUnit(goals: Skill[], requirements: Skill[]) {
         const createInput: Prisma.LearningUnitCreateArgs = {
             data: {
-                title: title,
-                description: description ?? "",
                 language: "en",
                 teachingGoals: {
                     connect: goals.map((goal) => ({ id: goal.id })),
@@ -129,20 +109,6 @@ export class DbTestUtils {
             include: {
                 requirements: true,
                 pathTeachingGoals: true,
-            },
-        });
-    }
-
-    async createLearningProgress(userId: string, learningUnitIds: string[]) {
-        return this.db.userProfile.create({
-            data: {
-                id: userId,
-                status: USERSTATUS.ACTIVE,
-                learningProgress: {
-                    createMany: {
-                        data: learningUnitIds.map((skill) => ({ skillId: skill })),
-                    },
-                },
             },
         });
     }

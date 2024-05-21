@@ -14,13 +14,7 @@ export class SearchLearningUnitCreationDto {
     id: string;
 
     @IsOptional()
-    title?: string;
-
-    @IsOptional()
     language?: string;
-
-    @IsOptional()
-    description?: string;
 
     @IsDefined()
     teachingGoals: string[] = [];
@@ -71,14 +65,12 @@ export class SearchLearningUnitCreationDto {
      * @returns An instance suitable for testing, where all unset values are treated as `null`.
      */
     static createForTesting(
-        params: Pick<SearchLearningUnitCreationDto, "title"> &
+        params: 
             Partial<SearchLearningUnitCreationDto>,
     ): SearchLearningUnitCreationDto {
         return {
             id: params.id ?? "",
             language: params.language ?? "en",
-            title: params.title ?? undefined, // Mandatory
-            description: params.description ?? undefined,
             processingTime: params.processingTime ?? undefined,
             rating: params.rating ?? undefined,
             contentCreator: params.contentCreator ?? undefined,

@@ -1,123 +1,118 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, Query } from "@nestjs/common";
-import { ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Controller, Get, Post, Body, Param, Delete, Patch } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { CareerProfileService } from "./careerProfile.service";
-import { CareerProfileCreationDto, JobCreationDto } from "../dto";
-import { JobUpdateDto } from "../dto/job-update.dto";
-import { QualificationCreationDto } from "../dto/qualification-creation.dto";
-import { CareerProfileFilterDto } from "./dto/careerProfile-filter.dto";
+import { CareerProfileDto } from "./dto/careerProfile.dto";
+import { JobDto } from "./dto/job.dto";
+import { QualificationDto } from "./dto/qualification.dto";
 
 /**
- * Controller for managing the career profiles
- * ToDo: Is the profile only accessible via its user profile, or do we need access to all / specific career profiles?
+ * Controller for managing the career profiles of users
  */
 @ApiTags("CareerProfile")
 @Controller("career-profiles")
 export class CareerProfileController {
     constructor(private careerService: CareerProfileService) {}
 
-    // Filter: Includes careerProfile.dto.ts
     /**
-     * If we specify a user ID, we get their career profile(s). Otherwise, get all profiles.
-     * @param filter
-     * @returns
+     * Return all existing career profiles. Used for ai stuff.
+     * @returns All currently existing career profiles (including their child objects) from all users.
      */
     @Get("")
-    @ApiQuery({
-        name: "userId",
-        required: false,
-        type: String,
-        description: "Filter by userId",
-    })
-    getCareerProfileByFilter(@Query() filter: CareerProfileFilterDto) {
-        return this.careerService.getCareerProfileByFilter(filter);
+    getAllCareerProfiles() {
+        return this.careerService.getAllCareerProfiles();
     }
 
-    @Post("")
-    addCareerProfile(@Body() dto: CareerProfileCreationDto) {
-        return this.careerService.createCareerProfile(dto);
-    }
-
+    /**
+     * Returns the requested career profile including all child objects (sorted ascending by (start)date)
+     * @param careerProfileId The career profile of the user with the same id
+     * @returns The career profile DTO for the specified user / with the specified id
+     */
     @Get(":career_profile_id")
     getCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
         return this.careerService.getCareerProfileByID(careerProfileId);
     }
 
-    @Delete(":career_profile_id")
-    delCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
-        return this.careerService.deleteCareerProfileByID(careerProfileId);
-    }
-
+    /**
+     * Allows a user to update their career profile
+     * @param careerProfileId The id of the career profile to update (and of the belonging user)
+     * @param dto The new data for the career profile
+     * @returns The updated part of the career profile
+     */
     @Patch(":career_profile_id")
     patchCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
-        @Body() dto: CareerProfileCreationDto,
+        @Body() dto: CareerProfileDto,
     ) {
         return this.careerService.patchCareerProfileByID(careerProfileId, dto);
     }
 
+    /**
+     * Creates a new job object and adds it to the user's job history and their career profile
+     * @param careerProfileId Id of the user and its career profile (both are the same) to which the job shall be added
+     * @param dto The job data to add
+     * @returns A success message if successful (there is no use case where we need the job object itself, so we don't return it)
+     */
     @Post(":career_profile_id/job_history")
-    addJob(@Param("career_profile_id") careerProfileId: string, @Body() dto: JobCreationDto) {
-        return this.careerService.createJob(careerProfileId, dto);
+    addJob(@Param("career_profile_id") careerProfileId: string, @Body() dto: JobDto) {
+        return this.careerService.addJobToJobHistoryAtCareerProfile(careerProfileId, dto);
     }
 
-    @Patch(":career_profile_id/:job_history_id")
-    patchJobHistoryAtCareerProfileByID(
-        @Param("career_profile_id") careerProfileId: string,
-        @Param("job_history_id") jobHistoryId: string,
-        @Body() dto: JobUpdateDto,
-    ) {
-        return this.careerService.patchJobHistoryAtCareerProfileByID(
-            careerProfileId,
-            jobHistoryId,
-            dto,
-        );
+    /**
+     * Updates the values of an existing job in the job history of a user
+     * @param jobId The id of the job to update
+     * @param dto The new data for the job
+     * @returns A success message if successful (there is no use case where we need the job object itself, so we don't return it)
+     */
+    @Patch(":career_profile_id/:job_history:/job_id")
+    patchJobHistoryAtCareerProfileByID(@Param("job_id") jobId: string, @Body() jobDto: JobDto) {
+        return this.careerService.updateJobInCareerProfile(jobId, jobDto);
     }
 
-    @Delete(":career_profile_id/:job_history_id")
-    deleteJobHistoryAtCareerProfileByID(
-        @Param("career_profile_id") careerProfileId: string,
-        @Param("job_history_id") jobHistoryId: string,
-    ) {
-        return this.careerService.deleteJobHistoryAtCareerProfileByID(
-            careerProfileId,
-            jobHistoryId,
-        );
+    /**
+     * Deletes an existing job from the job history (and career profile) of a user
+     * @param jobId The job to be removed from the job history
+     * @returns A success message if successful (we cannot return the deleted object)
+     */
+    @Delete(":career_profile_id/:job_history:/job_id")
+    deleteJobHistoryAtCareerProfileByID(@Param("job_id") jobId: string) {
+        return this.careerService.deleteJobFromHistoryInCareerProfile(jobId);
     }
 
+    /**
+     * Adds a new qualification to the career profile of a user
+     * @param dto The qualification to add
+     * @param careerProfileId The id of the user and its career profile (both are the same) to which the qualification shall be added
+     * @returns A success message if successful (there is no use case where we need the qualification object itself, so we don't return it)
+     */
     @Post(":career_profile_id/qualifications/")
     addQualificationToCareerProfile(
         @Param("career_profile_id") careerProfileId: string,
-        @Body() dto: QualificationCreationDto,
+        @Body() dto: QualificationDto,
     ) {
-        return this.careerService.createQualificationForCareerProfile(careerProfileId, dto);
+        return this.careerService.addQualificationToCareerProfile(careerProfileId, dto);
     }
 
-    @Get(":career_profile_id/qualifications/:qualification_id")
-    getQualificationForCareerProfile(@Param("qualification_id") qualificationId: string) {
-        return this.careerService.getQualificationForCareerProfile(qualificationId);
-    }
-
+    /**
+     * Updates an existing qualification in the career profile of a user
+     * @param qualificationId The id of the qualification to update
+     * @param dto The new data for the qualification
+     * @returns A success message if successful (there is no use case where we need the qualification object itself, so we don't return it)
+     */
     @Patch(":career_profile_id/qualifications/:qualification_id")
     patchQualificationToCareerProfile(
-        @Param("career_profile_id") careerProfileId: string,
         @Param("qualification_id") qualificationId: string,
-        @Body() dto: QualificationCreationDto,
+        @Body() dto: QualificationDto,
     ) {
-        return this.careerService.patchQualificationForCareerProfile(
-            careerProfileId,
-            qualificationId,
-            dto,
-        );
+        return this.careerService.updateQualificationInCareerProfile(qualificationId, dto);
     }
 
+    /**
+     * Deletes an existing qualification from the career profile of a user
+     * @param qualificationId The id of the qualification to delete
+     * @returns A success message if successful (we cannot return the deleted object)
+     */
     @Delete(":career_profile_id/qualifications/:qualification_id")
-    deleteQualificationToCareerProfile(
-        @Param("career_profile_id") careerProfileId: string,
-        @Param("qualification_id") qualificationId: string,
-    ) {
-        return this.careerService.deleteQualificationForCareerProfile(
-            careerProfileId,
-            qualificationId,
-        );
+    deleteQualificationToCareerProfile(@Param("qualification_id") qualificationId: string) {
+        return this.careerService.deleteQualificationFromCareerProfile(qualificationId);
     }
 }

@@ -765,7 +765,7 @@ describe("Skill Service", () => {
             );
 
             // Create a learning unit that uses one of the skills
-            await dbUtils.createLearningUnit("Learning Unit 1", [skill3], [skill3]);
+            await dbUtils.createLearningUnit([skill3], [skill3]);
 
             // Act and Assert: Call the deleteRepository method and expect a NotFoundException
             await expect(
@@ -1018,7 +1018,7 @@ describe("Skill Service", () => {
                 },
             }); // Arrange: Create a skill and associate it with a learning unit
             const skill = await dbUtils.createSkill(skillMap1, "Skill A");
-            await dbUtils.createLearningUnit("Learning Unit 1", [skill], []);
+            const learningUnit = await dbUtils.createLearningUnit([skill], []);
 
             // Act: Check if the skill is used
             const used = await skillService.isSkillUsed([skill.id]);
@@ -1035,7 +1035,7 @@ describe("Skill Service", () => {
                 },
             }); // Arrange: Create skills and a learning unit with the skill as a requirement
             const skill = await dbUtils.createSkill(skillMap1, "Skill A");
-            await dbUtils.createLearningUnit("Learning Unit 1", [], [skill]);
+            await dbUtils.createLearningUnit([], [skill]);
 
             // Act: Check if the skill is used
             const used = await skillService.isSkillUsed([skill.id]);
@@ -1264,7 +1264,7 @@ describe("Skill Service", () => {
             it("Update used skill -> ForbiddenException", async () => {
                 // Arrange: Create a skill and associate it with a learning unit
                 const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
-                await dbUtils.createLearningUnit("Learning Unit 1", [skill], []);
+                await dbUtils.createLearningUnit([skill], []);
 
                 // Act: Change name of used skill
                 const result = skillService.updateSkill(skill.id, { name: "New Name" });
@@ -1278,7 +1278,7 @@ describe("Skill Service", () => {
                 const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
                 const newNested1 = await dbUtils.createSkill(defaultSkillMap, "Nested Skill 1");
                 const newNested2 = await dbUtils.createSkill(defaultSkillMap, "Nested Skill 2");
-                await dbUtils.createLearningUnit("Learning Unit 1", [newNested2], []);
+                await dbUtils.createLearningUnit([newNested2], []);
 
                 // Act: Add skills as nested skills
                 const result = skillService.updateSkill(skill.id, {
@@ -1294,7 +1294,7 @@ describe("Skill Service", () => {
                 const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
                 await dbUtils.createSkill(defaultSkillMap, "Nested 1", [skill.id]);
                 const nested2 = await dbUtils.createSkill(defaultSkillMap, "Nested 2", [skill.id]);
-                await dbUtils.createLearningUnit("Learning Unit 1", [nested2], []);
+                await dbUtils.createLearningUnit([nested2], []);
 
                 // Act: Remove a nested skill
                 const result = skillService.updateSkill(skill.id, {
@@ -1310,7 +1310,7 @@ describe("Skill Service", () => {
                 const skill = await dbUtils.createSkill(defaultSkillMap, "Skill A");
                 const newParent1 = await dbUtils.createSkill(defaultSkillMap, "Parent Skill 1");
                 const newParent2 = await dbUtils.createSkill(defaultSkillMap, "Parent Skill 2");
-                await dbUtils.createLearningUnit("Learning Unit 1", [newParent2], []);
+                await dbUtils.createLearningUnit([newParent2], []);
 
                 // Act: Add skills as parent skills
                 const result = skillService.updateSkill(skill.id, {
@@ -1329,7 +1329,7 @@ describe("Skill Service", () => {
                     parent1.id,
                     parent2.id,
                 ]);
-                await dbUtils.createLearningUnit("Learning Unit 1", [parent2], []);
+                await dbUtils.createLearningUnit([parent2], []);
 
                 // Act: Remove a nested skill
                 const result = skillService.updateSkill(skill.id, {
@@ -1435,7 +1435,7 @@ describe("Skill Service", () => {
 
         it("No children; no parents; usage in LearningUnit -> ForbiddenException", async () => {
             // Arrange: Use the skill in a learning unit
-            await dbUtils.createLearningUnit("Learning Unit 1", [trgSkill], []);
+            await dbUtils.createLearningUnit([trgSkill], []);
 
             // Act: Move the skill to the destination repository
             const result = skillService.moveSkillToRepository(trgSkill.id, destMap.id);

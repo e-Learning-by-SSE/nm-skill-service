@@ -39,10 +39,8 @@ export class LearningUnitFactory {
                 where: { id: "" + dto.id },
                 data: {
                     id: "" + dto.id ?? existingLearningUnit.id,
-                    title: dto.title ?? existingLearningUnit.title,
                     orga_id: dto.orga_id ?? existingLearningUnit.orga_id,
                     lifecycle: dto.lifecycle ?? existingLearningUnit.lifecycle,
-                    description: dto.description ?? existingLearningUnit.description,
                     language: dto.language ?? existingLearningUnit.language,
 
                     processingTime: dto.processingTime ?? existingLearningUnit.processingTime,
@@ -171,10 +169,8 @@ export class LearningUnitFactory {
             const learningUnit = await this.db.learningUnit.create({
                 data: {
                     id: dto.id,
-                    title: dto.title ?? "",
                     orga_id: dto.orga_id ?? "",
                     lifecycle: dto.lifecycle,
-                    description: dto.description ?? "",
                     language: dto.language ?? "",
 
                     processingTime: dto.processingTime,

@@ -1,7 +1,7 @@
 import { IsDefined } from "class-validator";
-import { UserDto } from "./user.dto";
+import { UserWithoutChildrenDto } from "./user-without-children.dto";
 
 export class UserListDto {
     @IsDefined()
-    users: UserDto[] = [];
+    users: UserWithoutChildrenDto[] = [];
 }

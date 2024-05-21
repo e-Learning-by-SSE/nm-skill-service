@@ -1,10 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
-import { javaSeed } from "./java_example_seed";
 import { digimediaSeed } from "./digimedia_example_seed";
-import { miSeed } from "./mi_example_seed";
 import { faker } from "@faker-js/faker";
-import { createProfiles } from "./user_profiles_example_seed";
 
 const prisma = new PrismaClient();
 

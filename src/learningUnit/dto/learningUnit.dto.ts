@@ -17,9 +17,7 @@ export class SearchLearningUnitDto extends SearchLearningUnitCreationDto {
     ): SearchLearningUnitDto {
         return {
             id: unit.id,
-            title: unit.title,
             language: unit.language,
-            description: unit.description,
             requiredSkills: unit.requirements?.map((skill) => skill.id) ?? [],
             teachingGoals: unit.teachingGoals?.map((skill) => skill.id) ?? [],
             processingTime: unit.processingTime,

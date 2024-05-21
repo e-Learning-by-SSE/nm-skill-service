@@ -14,6 +14,7 @@ import { USERSTATUS, LIFECYCLE } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
 import LoggerUtil from "../logger/logger";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
+import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 
 /**
  * Triggers actions when certain events related to tasks (like creating a TaskTodo) occur in the MLS system
@@ -27,6 +28,7 @@ export class EventMgmtService {
         private learningUnitService: LearningUnitMgmtService,
         private learningUnitFactory: LearningUnitFactory,
         private userService: UserMgmtService,
+        private learningHistoryService: LearningHistoryService,
         private configService: ConfigService,
     ) {}
 
@@ -130,7 +132,18 @@ export class EventMgmtService {
             case MlsActionEntity.User: {
                 //Create a new empty user profile when a user is created in the MLS system
                 if (mlsEvent.method === MlsActionType.POST) {
-                    return await this.createUserProfileDTOFromMLSEvent(mlsEvent);
+                    //Create DTO
+                    const userDto: UserCreationDto = {
+                        id: mlsEvent.id,
+                        //Initially, users are created as active users. They only become inactive when deleted.
+                    };
+                    LoggerUtil.logInfo("EventService::createUserDTO", mlsEvent.id);
+
+                    //Create user profile in database
+                    await this.userService.createUser(userDto);
+                    LoggerUtil.logInfo("EventService::createUser", userDto);
+
+                    return "User created successfully!";
 
                     //Change the user profile state when it is changed in MLS
                     //TODO: We could also create a user if it is not in our db, but currently we only get an update when the user should be deleted, so a new creation makes no sense
@@ -165,15 +178,15 @@ export class EventMgmtService {
                                     //TODO Change to NotFound?
 
                                     //Create a new user profile in our system with the new values from MLS (this can happen if we missed a post request or the update is manually triggered by MLS)
-                                    userProfile = this.createUserProfileDTOFromMLSEvent(mlsEvent);
+                                    await this.userService.createUser({ id: mlsEvent.id });
 
                                     console.log(
                                         "Created new user profile instead of update: " +
-                                            userProfile,
+                                            mlsEvent.id,
                                     );
                                     LoggerUtil.logInfo(
                                         "EventService::updateUserActive(createNewUserProfile)",
-                                        userProfile,
+                                        mlsEvent.id,
                                     );
                                 } else {
                                     throw new ForbiddenException(
@@ -184,7 +197,7 @@ export class EventMgmtService {
                                 }
                             }
 
-                            return userProfile;
+                            return "Successfully updated user profile!";
 
                             //This is the same as the DELETE event
                         } else if (userState == "0" || userState == "false") {
@@ -302,7 +315,7 @@ export class EventMgmtService {
                             for (const skill of skills) {
                                 //Create a new learning progress entry (that matches user and skill and saves the date of the acquisition)
                                 let learningProgressDto =
-                                    await this.userService.createProgressForUserId(
+                                    await this.learningHistoryService.addLearnedSkillToUser(
                                         userID,
                                         skill.id,
                                     );
@@ -312,10 +325,7 @@ export class EventMgmtService {
 
                                 LoggerUtil.logInfo(
                                     "EventService::TaskToDoInfoLearnSkill:SkillAcquired",
-                                    learningProgressDto.userId +
-                                        "," +
-                                        learningProgressDto.skillId +
-                                        ")",
+                                    userID + "," + learningProgressDto.skillId + ")",
                                 );
                             }
 
@@ -377,8 +387,6 @@ export class EventMgmtService {
         //Caution: An event may contain just a partial update, some values may be undefined
         const learningUnitDto: SearchLearningUnitCreationDto = {
             id: mlsEvent.id,
-            title: mlsEvent.payload["title" as keyof JSON]?.toString(), //Only convert to string if not undefined or null
-            description: mlsEvent.payload["description" as keyof JSON]?.toString(),
             contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
             teachingGoals: [], // Skills are created by the SEARCH extension AFTER the learning unit was created
             requiredSkills: [], // Skills are created by the SEARCH extension AFTER the learning unit was created
@@ -390,26 +398,5 @@ export class EventMgmtService {
         LoggerUtil.logInfo("EventService::LearningUnit(createDTO)", learningUnitDto);
 
         return learningUnitDto;
-    }
-
-    /**
-     * Helper function to create a user profile DTO from the values of a MLS event.
-     * @param mlsEvent Must contain at least the id, can also contain title, description, and contentCreator as payload.
-     * @returns The newly created learning user creation DTO
-     */
-    async createUserProfileDTOFromMLSEvent(mlsEvent: MLSEvent) {
-        //Create DTO
-        const userDto: UserCreationDto = {
-            id: mlsEvent.id,
-            name: mlsEvent.payload["name" as keyof JSON]?.toString(),
-            status: USERSTATUS.ACTIVE, //Initially, users are created as active users. They only become inactive when deleted.
-        };
-        LoggerUtil.logInfo("EventService::createUserDTO", userDto);
-
-        //Create user profile in database
-        const user = this.userService.createUser(userDto);
-        LoggerUtil.logInfo("EventService::createUser", user);
-
-        return user;
     }
 }

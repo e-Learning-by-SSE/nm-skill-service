@@ -4,12 +4,13 @@ import { PrismaService } from "../prisma/prisma.service";
 import { FeedbackService } from "./feedback.service";
 import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
-import { LearningUnit, UserProfile } from "@prisma/client";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
+import { UserMgmtService } from "../user/user.service";
 
 describe("Feedback Service", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
+    const userService = new UserMgmtService(db);
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
@@ -30,19 +31,11 @@ describe("Feedback Service", () => {
             // Arrange: Define test data
 
             //Create test user profile
-            let userProf: UserProfile;
-            userProf = await db.userProfile.create({
-                data: {
-                    name: "TestUser",
-                    status: "ACTIVE",
-                    id: "testId",
-                },
-            });
-            const userId = userProf.id; // Replace with a valid user ID
+            const userId = "testId";
+            await userService.createUser({id: userId});
 
             //Create test learning unit
-            let unit: LearningUnit;
-            unit = await dbUtils.createLearningUnit("TestUnit", [], []);
+            const unit = await dbUtils.createLearningUnit([], []);
             const learningUnitId = unit.id; // Replace with a valid learning unit ID
 
             //Create test feedback dto
@@ -89,19 +82,11 @@ describe("Feedback Service", () => {
             // Arrange: Define test data
 
             //Create test user profile
-            let userProf: UserProfile;
-            userProf = await db.userProfile.create({
-                data: {
-                    name: "TestUser2",
-                    status: "ACTIVE",
-                    id: "testId2",
-                },
-            });
-            const userId = userProf.id; // Replace with a valid user ID
+            const userId = "testId2";
+            await userService.createUser({id: userId});
 
             //Create test learning unit
-            let unit: LearningUnit;
-            unit = await dbUtils.createLearningUnit("TestUnit2", [], []);
+            const unit = await dbUtils.createLearningUnit([], []);
             const learningUnitId = unit.id; // Replace with a valid learning unit ID
 
             //Create test feedback dto and DB entry

@@ -59,6 +59,9 @@ pipeline {
                         SAVE_LOG_TO_FILE = true
                         LOG_LEVEL = "info"
                         PASSING_THRESHOLD = 0.5
+                        BERUFENET_BASEURL="https://rest.arbeitsagentur.de/infosysbub/bnet/pc/v1"
+                        BERUFENET_CLIENT_SECRET="d672172b-f3ef-4746-b659-227c39d95acf"
+                        BERUFENET_TIMEOUT=120000
                     }
                     steps {
                         script {

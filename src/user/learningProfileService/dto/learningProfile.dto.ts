@@ -1,48 +1,48 @@
-import { IsNotEmpty } from "class-validator";
+import { IsInt, IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
 import { LearningProfile } from "@prisma/client";
-import { LearningProfileCreationDto } from "./learningProfile-creation.dto";
-
-export class LearningProfileDto extends LearningProfileCreationDto {
+/**
+ * Models a complete learning profile
+ */
+export class LearningProfileDto {
     @IsNotEmpty()
-    id: string;
+    @IsString()
+    id: string; //Unique id, same as the user id to which it belongs
 
-    constructor(
-        id: string,
-        semanticDensity: number | null,
-        semanticGravity: number | undefined,
-        mediaType: string | null,
-        language: string | null,
-        processingTPU: string | null,
-        learningHistoryId: string | null,
-        userId: string,
-    ) {
-        super();
+    @IsNotEmpty()
+    @IsNumber()
+    @Min(0, { message: "semanticDensity must be at least 0" })
+    @Max(1, { message: "semanticDensity must be at most 1" })
+    semanticDensity: number;
 
-        this.id = id;
-        this.semanticDensity = semanticDensity ?? undefined;
-        this.semanticGravity = semanticGravity ?? undefined;
-        this.mediaType = mediaType ?? undefined;
-        this.language = language ?? undefined;
-        this.processingTimePerUnit = processingTPU ?? undefined;
-        this.learningHistoryId = learningHistoryId ?? undefined;
-        this.userId = userId;
-    }
+    @IsNotEmpty()
+    @IsNumber()
+    @Min(0, { message: "semanticGravity must be at least 0" })
+    @Max(1, { message: "semanticGravity must be at most 1" })
+    semanticGravity: number;
+
+    mediaType: string[]; // Ordered ascending by preference, MIME types
+    language: string[]; //Ordered ascending by preference, ISO 639-1 codes
+
+    @IsNotEmpty()
+    @IsInt()
+    @Min(0, { message: "processingTimePerUnit must be at least 0" })
+    processingTimePerUnit: number; // In minutes
+
+    preferredDidacticMethod: string[]; //Ordered ascending by preference, method names
 
     /**
-     * Creates a new SkillDto from a DB result, but won't consider parents/children.
-     * @param skill The DB result which shall be converted to a DTO
-     * @returns The corresponding DTO, but without parents/children
+     * Creates a new complete learningProfileDto from the DB
+     * @returns The learningProfileDTO
      */
-    static createFromDao(lp: LearningProfile): LearningProfileCreationDto {
-        return new LearningProfileDto(
-            lp.id,
-            lp.semanticDensity,
-            lp.semanticGravity,
-            lp.mediaType,
-            lp.language,
-            lp.processingTimePerUnit,
-            lp.learningHistoryId,
-            lp.userId,
-        );
+    static createFromDao(learningProfile: LearningProfile): LearningProfileDto {
+        return {
+            id: learningProfile.userId,
+            semanticDensity: learningProfile.semanticDensity,
+            semanticGravity: learningProfile.semanticGravity,
+            mediaType: learningProfile.mediaType,
+            language: learningProfile.language,
+            processingTimePerUnit: learningProfile.processingTimePerUnit,
+            preferredDidacticMethod: learningProfile.preferredDidacticMethod,
+        };
     }
 }
