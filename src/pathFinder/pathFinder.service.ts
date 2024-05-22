@@ -2,6 +2,8 @@ import { ConflictException, Injectable, NotFoundException } from "@nestjs/common
 import { PrismaService } from "../prisma/prisma.service";
 import { SkillDto } from "../skills/dto";
 import {
+    EnrollmentPreviewResponseDto,
+    EnrollmentResponseDto,
     PathDto,
     PathRequestDto,
     PathStorageRequestDto,
@@ -12,6 +14,7 @@ import {
 } from "./dto";
 import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
+import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 
 /**
  * Service for Graph requests
@@ -20,7 +23,11 @@ import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
  */
 @Injectable()
 export class PathFinderService {
-    constructor(private db: PrismaService, private luFactory: LearningUnitFactory) {}
+    constructor(
+        private db: PrismaService,
+        private luFactory: LearningUnitFactory,
+        private historyService: LearningHistoryService,
+    ) {}
 
     private async loadUser(userId: string) {
         const user = await this.db.userProfile.findUnique({
@@ -110,6 +117,64 @@ export class PathFinderService {
             path.path.map((lu) => lu.id),
             path.cost,
         );
+    }
+
+    /**
+     * For a specified pre-defined path, the path is personalized to the given user and returns the result.
+     * @param userId The user for whom the course should be personalized to
+     * @param pathId The pre-defined path that should be personalized
+     * @param storePath if true, the path will be stored in the user's learning history otherwise only the path will be returned as a preview
+     * @param optimalSolution If true, the algorithm will try to find an optimal path, at cost of performance.
+     * @returns Either the stored personalized path (storePath = true) or a preview of the path (storePath = false)
+     */
+    public async enrollment(
+        userId: string,
+        pathId: string,
+        storePath: boolean = true,
+        optimalSolution: boolean = false,
+    ) {
+        // Load pre-defined path (defined by content creators)
+        const pathDefinition = await this.db.learningPath.findUnique({
+            where: {
+                id: pathId,
+            },
+            include: {
+                pathTeachingGoals: true,
+            },
+        });
+
+        if (!pathDefinition) {
+            throw new NotFoundException(`Specified path not found: ${pathId}`);
+        }
+
+        // Compute path for the user
+        const path = await this.computePath({
+            goal: pathDefinition.pathTeachingGoals.map((goal) => goal.id),
+            userId: userId,
+            optimalSolution: optimalSolution,
+        });
+
+        // Store path if requested
+        if (storePath) {
+            // Convert from readonly API to string[]
+            const learningUnitsIds = [...path.learningUnits];
+
+            const storedPath = await this.historyService.addPersonalizedLearningPathToUser({
+                userId,
+                learningUnitsIds,
+                pathId,
+            });
+
+            return EnrollmentResponseDto.createEnrollmentResponseFromDao({
+                ...storedPath,
+                learningPathId: pathId,
+            });
+        } else {
+            return EnrollmentPreviewResponseDto.createPreviewResponseFromDao({
+                unitSequence: path.learningUnits,
+                learningPathId: pathId,
+            });
+        }
     }
 
     /**

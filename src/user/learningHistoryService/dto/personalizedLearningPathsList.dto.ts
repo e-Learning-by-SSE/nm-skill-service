@@ -1,7 +1,6 @@
 import { STATUS } from "@prisma/client";
 import { PathSummaryDto } from "./pathSummary.dto";
 import { IsDefined } from "class-validator";
-import path from "path";
 
 /**
  * Models a list of personalized learning paths.

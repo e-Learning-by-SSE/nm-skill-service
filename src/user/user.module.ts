@@ -21,6 +21,6 @@ import { LearningHistoryController } from "./learningHistoryService/learningHist
         LearningHistoryService,
         LearningProfileService,
     ],
-    exports: [UserMgmtService],
+    exports: [UserMgmtService, LearningHistoryService],
 })
 export class UserModule {}

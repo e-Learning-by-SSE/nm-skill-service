@@ -1,30 +1,17 @@
-import { Body, Controller, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { PathFinderService } from "./pathFinder.service";
-import { PathRequestDto, PathStorageRequestDto, SkillsToAnalyze } from "./dto";
+import {
+    EnrollmentRequestDto,
+    PathRequestDto,
+    PathStorageRequestDto,
+    SkillsToAnalyze,
+} from "./dto";
 
 @ApiTags("PathFinder")
 @Controller("PathFinder")
 export class PathFinderController {
     constructor(private pfService: PathFinderService) {}
-
-    // @ApiOperation({ deprecated: true })
-    // @Get("getConnectedGraphForSkill/:skillId")
-    // getConnectedGraphForSkill(@Param("skillId") skillId: string) {
-    //     return this.pfService.getConnectedGraphForSkill(skillId, true);
-    // }
-
-    // @ApiOperation({ deprecated: true })
-    // @Get("getConnectedSkillGraphForSkill/:skillId")
-    // getConnectedSkillGraphForSkill(@Param("skillId") skillId: string) {
-    //     return this.pfService.getConnectedGraphForSkill(skillId, false);
-    // }
-
-    // @ApiOperation({ deprecated: true })
-    // @Get("checkGraph/:skillId")
-    // checkGraph(@Param("skillId") skillId: string) {
-    //     return this.pfService.isGraphForIdACycle(skillId);
-    // }
 
     /**
      * Computes the optimal learning path to learn the specified skill(s).
@@ -81,6 +68,20 @@ export class PathFinderController {
     @Post("skillAnalysis/")
     skillAnalysis(@Body() dto: SkillsToAnalyze) {
         return this.pfService.skillAnalysis(dto);
+    }
+
+    @Get("adapted-path")
+    simulateEnrollment(
+        @Query("userId") userId: string,
+        @Query("learningPathId") pathId: string,
+        @Query("optimalSolution") optimalSolution?: boolean,
+    ) {
+        this.pfService.enrollment(userId, pathId, false, optimalSolution);
+    }
+
+    @Post("adapted-path")
+    enrollment(@Body() dto: EnrollmentRequestDto) {
+        this.pfService.enrollment(dto.userId, dto.learningPathId, true, dto.optimalSolution);
     }
 
     @ApiOperation({ summary: "Experimental (WIP)" })

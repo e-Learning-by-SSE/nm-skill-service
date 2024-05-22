@@ -7,6 +7,8 @@ import { ConfigService } from "@nestjs/config";
 import { LearningUnitInstanceDto } from "./dto/learningUnitInstance.dto";
 import { PersonalizedLearningPathsListDto } from "./dto/personalizedLearningPathsList.dto";
 import { PersonalizedPathDto } from "./dto/personalizedPath.dto";
+import { PathEnrollment } from "./types";
+import { ConflictException } from "@nestjs/common";
 
 /**
  * Service that manages updating and retrieving of a learningHistory (which stores the learned skills and the personalized paths of a user).
@@ -117,33 +119,102 @@ export class LearningHistoryService {
     }
 
     /**
-     * TODO: Here I would expect a call to the pathPlanner
+     * Adds a new personalized learning path to a user.
+     * The personalized learning path needs exactly one origin to be created:
+     * 1.) a predefined path by passing the pathId as parameter
+     * 2.) a self-created path by passing the pathTeachingGoalsIds as parameter
      *
-     **/
-    async addPersonalizedLearningPathToUser(
-        userID: string,
-        learningUnitsIds: string[],
-        pathTeachingGoalsIds: string[],
-    ) {
-        try {
-            const createdPersonalizedLearningPath = await this.db.personalizedLearningPath.create({
+     * @param enrollment user, personalized selection of learning units and the origin of the selection
+     * @returns The created personalized learning path (including the sequence of learning units and the origin of the selection)
+     */
+    async addPersonalizedLearningPathToUser(enrollment: PathEnrollment) {
+        // Transaction to ensure atomicity
+        return this.db.$transaction(async (tx) => {
+            // 1. Create the personalized learning path
+            const createdPersonalizedLearningPath = await tx.personalizedLearningPath.create({
                 data: {
-                    learningHistoryId: userID,
-                    unitSequence: {
-                        connect: learningUnitsIds.map((id) => ({ id })), //This should not work, we have a deeper nesting going over pathSequence objects here
-                    },
+                    learningHistoryId: enrollment.userId,
+                    learningPathId: enrollment.pathId,
                     pathTeachingGoals: {
-                        connect: pathTeachingGoalsIds.map((id) => ({ id })),
+                        connect: enrollment.pathTeachingGoalsIds?.map((id) => ({ id })),
                     },
                 },
             });
 
-            return { createdPersonalizedLearningPath };
-        } catch (error) {
-            throw new ForbiddenException(
-                "Error creating personalized learning path for user: " + userID,
+            // 2. Create LearningUnitInstances if they not already exist
+            Promise.all(
+                enrollment.learningUnitsIds.map(async (unitId) => {
+                    // Create if not exist, based on: https://github.com/prisma/prisma/discussions/5815#discussioncomment-3641585
+                    await tx.learningUnitInstance.upsert({
+                        where: {
+                            unitId: unitId,
+                        },
+                        create: {
+                            unitId: unitId,
+                            status: STATUS.OPEN,
+                        },
+                        // Avoid accidental overwriting -> NOP
+                        update: {},
+                    });
+                }),
             );
-        }
+
+            // 3. Load LearningUnitInstance for all units
+            const learningUnitInstances = await tx.learningUnitInstance.findMany({
+                where: {
+                    unitId: {
+                        in: enrollment.learningUnitsIds,
+                    },
+                },
+            });
+
+            // 4. Create the path sequence
+            for (let i = 0; i < enrollment.learningUnitsIds.length; i++) {
+                // LearningUnitInstance.Id of the given unit
+                const learningUnitInstance = learningUnitInstances.find(
+                    (unit) => unit.unitId === enrollment.learningUnitsIds[i],
+                )?.id;
+
+                if (!learningUnitInstance) {
+                    throw new NotFoundException(
+                        `Learning unit instance for unit ${enrollment.learningUnitsIds[i]} not found`,
+                    );
+                }
+
+                await tx.pathSequence.create({
+                    data: {
+                        pathId: createdPersonalizedLearningPath.id,
+                        unitId: learningUnitInstance,
+                        position: i,
+                    },
+                });
+            }
+
+            // 5. Return the created path
+            const personalPath = await tx.personalizedLearningPath.findUnique({
+                where: {
+                    id: createdPersonalizedLearningPath.id,
+                },
+                include: {
+                    unitSequence: {
+                        select: {
+                            unitId: true,
+                        },
+                        orderBy: {
+                            position: "asc",
+                        },
+                    },
+                },
+            });
+
+            if (!personalPath) {
+                throw new ConflictException(
+                    `Could not store path ${createdPersonalizedLearningPath.id} for user: ${enrollment.userId}`,
+                );
+            }
+
+            return personalPath;
+        });
     }
 
     // Functions below still need revision //

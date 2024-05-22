@@ -21,7 +21,6 @@ describe("LearningHistoryService", () => {
         id: "testUser2",
     };
 
-
     // Object under test
     const historyService = new LearningHistoryService(db, config);
 
@@ -143,7 +142,11 @@ describe("LearningHistoryService", () => {
 
         it("should update the learning history with a newly created personal path", async () => {
             //Act: Add a personal path to the learning history
-            await historyService.addPersonalizedLearningPathToUser(expectedUser2.id, [], []); // This function needs revision
+            await historyService.addPersonalizedLearningPathToUser({
+                userId: expectedUser2.id,
+                learningUnitsIds: [],
+                pathTeachingGoalsIds: [],
+            }); // This function needs revision
 
             // Receive the list of all personal paths for the user
             const personalPaths = await historyService.getPersonalizedPathsOfUser(expectedUser2.id);
@@ -160,8 +163,5 @@ describe("LearningHistoryService", () => {
             expect(personalPath?.unitSequence).toEqual([]);
             expect(personalPath?.goals).toEqual([]);
         });
-
-
     });
-
 });

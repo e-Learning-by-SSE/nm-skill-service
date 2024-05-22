@@ -1,13 +1,4 @@
-import {
-    LIFECYCLE,
-    LearningHistory,
-    LearningUnit,
-    PersonalizedLearningPath,
-    Skill,
-    UserProfile,
-    STATUS,
-} from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime/library";
+import { LIFECYCLE, LearningHistory, PersonalizedLearningPath, Skill } from "@prisma/client";
 import { IsDefined, IsNotEmpty, IsOptional } from "class-validator";
 
 /**
