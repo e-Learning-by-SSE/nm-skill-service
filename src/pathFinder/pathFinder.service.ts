@@ -165,12 +165,12 @@ export class PathFinderService {
                 pathId,
             });
 
-            return EnrollmentResponseDto.createEnrollmentResponseFromDao({
+            return EnrollmentResponseDto.createFromDao({
                 ...storedPath,
                 learningPathId: pathId,
             });
         } else {
-            return EnrollmentPreviewResponseDto.createPreviewResponseFromDao({
+            return EnrollmentPreviewResponseDto.createFromDao({
                 unitSequence: path.learningUnits,
                 learningPathId: pathId,
             });

@@ -197,7 +197,6 @@ describe("PathFinder Controller Tests", () => {
                 // Create the user and save it to the DB (initially their learning history is empty)
                 await userService.createUser(expectedUser);
 
-
                 // Expected result
                 // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {

@@ -11,7 +11,7 @@ export class EnrollmentPreviewResponseDto {
     @IsDefined()
     learningUnits: string[];
 
-    static createPreviewResponseFromDao(dao: {
+    static createFromDao(dao: {
         unitSequence: ReadonlyArray<string>;
         learningPathId: string;
     }): EnrollmentPreviewResponseDto {

@@ -198,7 +198,13 @@ export class LearningHistoryService {
                 include: {
                     unitSequence: {
                         select: {
-                            unitId: true,
+                            // LearningUnitInstance
+                            unit: {
+                                select: {
+                                    unitId: true,
+                                    status: true,
+                                },
+                            },
                         },
                         orderBy: {
                             position: "asc",

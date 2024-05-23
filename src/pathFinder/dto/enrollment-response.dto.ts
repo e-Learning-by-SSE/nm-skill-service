@@ -1,23 +1,33 @@
-import { IsNotEmpty, IsString } from "class-validator";
-import { EnrollmentPreviewResponseDto } from "./enrollment-preview-response.dto";
+import { IsDefined, IsNotEmpty, IsString } from "class-validator";
+import { LearningProgressDto } from ".";
+import { STATUS } from "@prisma/client";
 
 /**
  * Representation of a personalized path after the user has been enrolled to a pre-defined course.
  * @author El-Sharkawy
  */
-export class EnrollmentResponseDto extends EnrollmentPreviewResponseDto {
+export class EnrollmentResponseDto {
+    @IsNotEmpty()
+    @IsString()
+    learningPathId: string;
+
+    @IsDefined()
+    learningUnits: LearningProgressDto[];
+
     @IsNotEmpty()
     @IsString()
     personalizedPathId: string;
 
-    static createEnrollmentResponseFromDao(dao: {
+    static createFromDao(dao: {
         id: string;
         learningPathId: string;
-        unitSequence: { unitId: string }[];
+        unitSequence: { unit: { unitId: string; status: STATUS } }[];
     }): EnrollmentResponseDto {
         return {
-            learningUnits: dao.unitSequence.map((unit) => unit.unitId),
             learningPathId: dao.learningPathId,
+            learningUnits: dao.unitSequence.map((unit) =>
+                LearningProgressDto.createFromDao(unit.unit),
+            ),
             personalizedPathId: dao.id,
         };
     }

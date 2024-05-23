@@ -14,3 +14,4 @@ export * from "./skillToAnalyze.dto";
 export * from "./enrollment-request.dto";
 export * from "./enrollment-preview-response.dto";
 export * from "./enrollment-response.dto";
+export * from "./learning-progress.dto";

@@ -1,6 +1,6 @@
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "./prisma/prisma.service";
-import { Prisma, Skill, SkillMap } from "@prisma/client";
+import { Prisma, Skill, SkillMap, USERSTATUS } from "@prisma/client";
 
 /**
  * Not a test suite, but functionality that supports writing test cases.
@@ -24,6 +24,10 @@ export class DbTestUtils {
         return DbTestUtils._instance;
     }
 
+    /**
+     * Deletes all data from the database.
+     * Needs to be extended manually when new tables are added.
+     */
     public async wipeDb() {
         // User Profiles
         await this.db.learnedSkill.deleteMany();
@@ -101,14 +105,34 @@ export class DbTestUtils {
         return this.db.learningUnit.create(createInput);
     }
 
-    async createLearningPath(owner: string) {
+    async createLearningPath(owner: string, goals?: Skill[], requirements?: Skill[]) {
         return this.db.learningPath.create({
             data: {
                 owner: owner,
+                pathTeachingGoals: {
+                    connect: goals?.map((goal) => ({ id: goal.id })),
+                },
+                requirements: {
+                    connect: requirements?.map((req) => ({ id: req.id })),
+                },
             },
             include: {
                 requirements: true,
                 pathTeachingGoals: true,
+            },
+        });
+    }
+
+    async createUserProfile(userId: string) {
+        return await this.db.userProfile.create({
+            data: {
+                id: userId,
+                status: USERSTATUS.ACTIVE, //New users start active
+
+                // Create the respective objects with their default values. Their id is the userId.
+                learningHistory: { create: {} },
+                careerProfile: { create: {} },
+                learningProfile: { create: {} },
             },
         });
     }
