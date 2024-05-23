@@ -11,6 +11,7 @@ import { PathFinderModule } from "./pathFinder.module";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserMgmtService } from "../user/user.service";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
+import { UserModule } from "../user/user.module";
 
 describe("PathFinder Controller Tests", () => {
     let app: INestApplication;
@@ -32,6 +33,7 @@ describe("PathFinder Controller Tests", () => {
                     validationOptions: { allowUnknown: false },
                 }),
                 PrismaModule,
+                UserModule,
                 PathFinderModule,
             ],
         }).compile();
