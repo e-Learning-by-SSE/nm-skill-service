@@ -2,11 +2,13 @@ import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { PathFinderService } from "./pathFinder.service";
 import {
+    EnrollmentPreviewResponseDto,
     EnrollmentRequestDto,
     PathRequestDto,
     PathStorageRequestDto,
     SkillsToAnalyze,
 } from "./dto";
+import { PersonalizedLearningPath } from "@prisma/client";
 
 @ApiTags("PathFinder")
 @Controller("PathFinder")
@@ -76,12 +78,22 @@ export class PathFinderController {
         @Query("learningPathId") pathId: string,
         @Query("optimalSolution") optimalSolution?: boolean,
     ) {
-        this.pfService.enrollment(userId, pathId, false, optimalSolution);
+        return this.pfService.enrollment(
+            userId,
+            pathId,
+            false,
+            optimalSolution,
+        ) as unknown as EnrollmentPreviewResponseDto;
     }
 
     @Post("adapted-path")
     enrollment(@Body() dto: EnrollmentRequestDto) {
-        this.pfService.enrollment(dto.userId, dto.learningPathId, true, dto.optimalSolution);
+        return this.pfService.enrollment(
+            dto.userId,
+            dto.learningPathId,
+            true,
+            dto.optimalSolution,
+        ) as unknown as PersonalizedLearningPath;
     }
 
     @ApiOperation({ summary: "Experimental (WIP)" })

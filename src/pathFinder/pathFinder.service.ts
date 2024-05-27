@@ -3,7 +3,6 @@ import { PrismaService } from "../prisma/prisma.service";
 import { SkillDto } from "../skills/dto";
 import {
     EnrollmentPreviewResponseDto,
-    EnrollmentResponseDto,
     PathDto,
     PathRequestDto,
     PathStorageRequestDto,
@@ -15,6 +14,7 @@ import {
 import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
+import { EnrollmentResponseDto } from "../user/learningHistoryService/dto";
 
 /**
  * Service for Graph requests
@@ -159,15 +159,10 @@ export class PathFinderService {
             // Convert from readonly API to string[]
             const learningUnitsIds = [...path.learningUnits];
 
-            const storedPath = await this.historyService.addPersonalizedLearningPathToUser({
+            return await this.historyService.addPersonalizedLearningPathToUser({
                 userId,
                 learningUnitsIds,
                 pathId,
-            });
-
-            return EnrollmentResponseDto.createFromDao({
-                ...storedPath,
-                learningPathId: pathId,
             });
         } else {
             return EnrollmentPreviewResponseDto.createFromDao({

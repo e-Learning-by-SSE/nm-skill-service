@@ -5,7 +5,8 @@ import { PathFinderService } from "./pathFinder.service";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningPath, LearningUnit, STATUS, Skill, SkillMap, UserProfile } from "@prisma/client";
-import { EnrollmentPreviewResponseDto, EnrollmentResponseDto } from "./dto";
+import { EnrollmentPreviewResponseDto } from "./dto";
+import { PersonalizedPathDto } from "../user/learningHistoryService/dto";
 
 describe("LearningHistoryService", () => {
     const config = new ConfigService();
@@ -91,7 +92,7 @@ describe("LearningHistoryService", () => {
                 );
 
                 // Assert: All 3 units are part of path; Path was saved
-                const expected: EnrollmentResponseDto = {
+                const expected: PersonalizedPathDto = {
                     learningPathId: pathDefinition.id,
                     personalizedPathId: expect.any(String),
                     learningUnits: [
@@ -99,6 +100,8 @@ describe("LearningHistoryService", () => {
                         { unitId: unit2.id, status: STATUS.OPEN },
                         { unitId: unit3.id, status: STATUS.OPEN },
                     ],
+                    goals: [],
+                    status: STATUS.OPEN,
                 };
                 expect(result).toMatchObject(expected);
                 history = await db.personalizedLearningPath.findMany({
@@ -154,10 +157,12 @@ describe("LearningHistoryService", () => {
                 );
 
                 // Assert: Only last is part of path; Path was saved
-                const expected: EnrollmentResponseDto = {
+                const expected: PersonalizedPathDto = {
                     learningPathId: pathDefinition.id,
                     personalizedPathId: expect.any(String),
                     learningUnits: [{ unitId: unit3.id, status: STATUS.OPEN }],
+                    goals: [],
+                    status: STATUS.OPEN,
                 };
                 expect(result).toMatchObject(expected);
                 history = await db.personalizedLearningPath.findMany({

@@ -1,4 +1,5 @@
-import { PersonalizedLearningPath, STATUS } from "@prisma/client";
+import { STATUS } from "@prisma/client";
+import { LearningProgressDto } from "./learning-progress.dto";
 
 /**
  * Models a reduced version of a personalized learning path.
@@ -21,26 +22,34 @@ export class PersonalizedPathDto {
      * The status of the personalized path. Can be OPEN (newly enrolled), IN_PROGRESS (currently doing at least one contained learning unit), or FINISHED (all learning units are successfully finished)
      */
     status: STATUS;
-    /** 
+    /**
      * The sequence of the contained learning unit instances (their id and status)
      */
-    unitSequence: { id: string, status: STATUS }[];
-
+    learningUnits: LearningProgressDto[];
 
     /**
      * Creates a new personalized path DTO based on the DB object.
      * @param pathDao The personalized path from the db
      * @returns A new personalized path as DTO
      */
-    static createFromDao(pathDao : {id: string, learningPathId: string | null, pathTeachingGoals: {id: string}[], status: STATUS, unitSequence: {unit: {id: string, status: STATUS}}[]}) {
-        const pathDto = {
+    static createFromDao(pathDao: {
+        id: string;
+        learningPathId: string | null;
+        pathTeachingGoals: { id: string }[];
+        status: STATUS;
+        unitSequence: { unit: { unitId: string; status: STATUS } }[];
+    }): PersonalizedPathDto {
+        return {
             personalizedPathId: pathDao.id,
             learningPathId: pathDao.learningPathId,
-            goals: pathDao.pathTeachingGoals,
+            goals: pathDao.pathTeachingGoals.map((goal) => goal.id),
             status: pathDao.status,
-            unitSequence: pathDao.unitSequence,
+            learningUnits: pathDao.unitSequence.map((unit) =>
+                LearningProgressDto.createFromDao({
+                    unitId: unit.unit.unitId,
+                    status: unit.unit.status,
+                }),
+            ),
         };
-        return pathDto;
     }
-
 }

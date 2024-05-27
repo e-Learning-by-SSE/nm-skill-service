@@ -9,6 +9,7 @@ import { PersonalizedLearningPathsListDto } from "./dto/personalizedLearningPath
 import { PersonalizedPathDto } from "./dto/personalizedPath.dto";
 import { PathEnrollment } from "./types";
 import { ConflictException } from "@nestjs/common";
+import { EnrollmentResponseDto } from "./dto";
 
 /**
  * Service that manages updating and retrieving of a learningHistory (which stores the learned skills and the personalized paths of a user).
@@ -103,16 +104,15 @@ export class LearningHistoryService {
                 where: { id: pathId },
                 include: {
                     pathTeachingGoals: { select: { id: true } }, //Ids of the taught skills
-                    unitSequence: { include: { unit: { select: { id: true, status: true } } } }, //Id and state of the learningUnitInstances contained in the path
+                    unitSequence: { include: { unit: { select: { unitId: true, status: true } } } }, //Id and state of the learningUnitInstances contained in the path
                 },
             });
 
-            if (path) {
-                //Create the DTO
-                const pathDto = PersonalizedPathDto.createFromDao(path);
-
-                return pathDto;
+            if (!path) {
+                throw new NotFoundException(`Personalized path not found: ${pathId}`);
             }
+
+            return PersonalizedPathDto.createFromDao(path);
         } catch (error) {
             throw new ForbiddenException("Error finding personalized path: " + pathId);
         }
@@ -210,6 +210,11 @@ export class LearningHistoryService {
                             position: "asc",
                         },
                     },
+                    pathTeachingGoals: {
+                        select: {
+                            id: true,
+                        },
+                    },
                 },
             });
 
@@ -219,7 +224,7 @@ export class LearningHistoryService {
                 );
             }
 
-            return personalPath;
+            return PersonalizedPathDto.createFromDao(personalPath);
         });
     }
 

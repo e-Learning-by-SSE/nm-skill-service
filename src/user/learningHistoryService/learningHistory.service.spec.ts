@@ -160,7 +160,7 @@ describe("LearningHistoryService", () => {
             expect(personalPath?.personalizedPathId).toEqual(pathId);
             expect(personalPath?.learningPathId).toEqual(null);
             expect(personalPath?.status).toEqual(STATUS.OPEN);
-            expect(personalPath?.unitSequence).toEqual([]);
+            expect(personalPath?.learningUnits).toEqual([]);
             expect(personalPath?.goals).toEqual([]);
         });
     });
