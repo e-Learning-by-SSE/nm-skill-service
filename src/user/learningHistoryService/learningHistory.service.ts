@@ -9,7 +9,6 @@ import { PersonalizedLearningPathsListDto } from "./dto/personalizedLearningPath
 import { PersonalizedPathDto } from "./dto/personalizedPath.dto";
 import { PathEnrollment } from "./types";
 import { ConflictException } from "@nestjs/common";
-import { EnrollmentResponseDto } from "./dto";
 
 /**
  * Service that manages updating and retrieving of a learningHistory (which stores the learned skills and the personalized paths of a user).

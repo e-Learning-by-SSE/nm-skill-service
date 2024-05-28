@@ -14,7 +14,6 @@ import {
 import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
-import { EnrollmentResponseDto } from "../user/learningHistoryService/dto";
 
 /**
  * Service for Graph requests

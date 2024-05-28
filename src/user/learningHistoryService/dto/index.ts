@@ -1,4 +1,3 @@
-export * from "./enrollment-response.dto";
 export * from "./learnedSkill.dto";
 export * from "./learning-progress.dto";
 export * from "./learningUnitInstance.dto";
