@@ -16,6 +16,7 @@ import {
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import {
     LearningUnit,
+    Path,
     Skill,
     computeSuggestedSkills,
     findCycles,
@@ -254,7 +255,6 @@ export class LearningPathMgmtService {
         }
 
         // Check if there exist a path at all (full data set)
-        const allUnits = await this.luFactory.getLearningUnits();
         const skills = (
             await this.db.skill.findMany({
                 include: {
@@ -293,13 +293,28 @@ export class LearningPathMgmtService {
             nestedSkills: skill.nestedSkills.map((skill) => skill.id),
         }));
 
-        const computedPath = await getPath({
-            skills,
-            goal,
-            knowledge,
-            learningUnits: allUnits,
-            optimalSolution: false,
-        });
+        let computedPath: Path | null = null;
+        if (path.recommendedUnitSequence.length > 0) {
+            // For performance reasons, try compute path only on suggested units
+            computedPath = await getPath({
+                skills,
+                goal,
+                knowledge,
+                learningUnits: units, //allUnits,
+                optimalSolution: false,
+            });
+        }
+        if (computedPath === null) {
+            // Fall back try path with all available units
+            const allUnits = await this.luFactory.getLearningUnits();
+            computedPath = await getPath({
+                skills,
+                goal,
+                knowledge,
+                learningUnits: allUnits,
+                optimalSolution: false,
+            });
+        }
         if (computedPath === null) {
             const from = knowledge.length > 0 ? knowledge.map((skill) => skill.id).join(", ") : "∅";
             const to = goal.length > 0 ? goal.map((skill) => skill.id).join(", ") : "∅";

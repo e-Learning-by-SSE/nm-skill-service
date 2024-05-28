@@ -679,6 +679,85 @@ describe("LearningPath Service", () => {
                 ).rejects.toThrow(ForbiddenException);
             });
         });
+
+        describe("Scenarios", () => {
+            let initialPath: LearningPathDto;
+
+            beforeEach(async () => {
+                // Test object, which shall be altered
+                const emptyPath = await dbUtils.createLearningPath("TestUser");
+                const updateDto: UpdatePathRequestDto = {
+                    owner: "TestUser",
+                    title: "A Title",
+                    description: "A Description",
+                    targetAudience: ["An Audience"],
+                    lifecycle: LIFECYCLE.DRAFT,
+                    requirements: [skill1.id],
+                    pathGoals: [skill2.id],
+                    recommendedUnitSequence: [unit1.id, unit2.id],
+                };
+                initialPath = await learningPathService.updateLearningPath(emptyPath.id, updateDto);
+
+                const expected: LearningPathDto = {
+                    id: initialPath.id,
+                    owner: updateDto.owner!,
+                    title: updateDto.title!,
+                    description: updateDto.description!,
+                    targetAudience: updateDto.targetAudience!,
+                    lifecycle: LIFECYCLE.DRAFT,
+                    requirements: updateDto.requirements!,
+                    pathGoals: updateDto.pathGoals!,
+                    recommendedUnitSequence: updateDto.recommendedUnitSequence!,
+                    createdAt: expect.any(String),
+                    updatedAt: expect.any(String),
+                };
+
+                expect(
+                    initialPath,
+                    "Scenarios::beforeAll() failed: Could not configure test object",
+                    {
+                        showPrefix: false,
+                    },
+                ).toMatchObject(expected);
+
+                // Create 5.000 units that should not be part of the path, but need to be considered...
+                const otherMap = await dbUtils.createSkillMap("New Owner", "Skill Map 2");
+                const decoySkill = await dbUtils.createSkill(otherMap, `Decoy Skill`);
+                // Needs to be executed in parallel to avoid timeout by Jess
+                await Promise.all(
+                    Array.from(
+                        { length: 5000 },
+                        async (_obj, _i) => await dbUtils.createLearningUnit([decoySkill], []),
+                    ),
+                );
+            });
+
+            it("Stress Test: 5000 units of other paths", async () => {
+                // Perform update of the path -> Should not take too long / fail
+                const updateDto: UpdatePathRequestDto = {
+                    title: "Updated Title",
+                    description: "Will trigger path validation",
+                };
+
+                const expected: LearningPathDto = {
+                    ...initialPath,
+                    title: updateDto.title!,
+                    description: updateDto.description!,
+                    updatedAt: expect.any(String),
+                };
+
+                const start = Date.now();
+                const result = await learningPathService.updateLearningPath(
+                    initialPath.id,
+                    updateDto,
+                );
+                const end = Date.now();
+
+                expect(result).toMatchObject(expected);
+                // Update should take less than 1 second
+                expect(end - start).toBeLessThan(1000);
+            });
+        });
     });
 
     describe("getLearningPath", () => {
