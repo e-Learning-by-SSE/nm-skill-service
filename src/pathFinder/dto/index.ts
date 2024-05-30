@@ -13,3 +13,5 @@ export * from "./subPathList.dto";
 export * from "./skillToAnalyze.dto";
 export * from "./enrollment-request.dto";
 export * from "./enrollment-preview-response.dto";
+export * from "./custom-course-request.dto";
+export * from "./custom-course-preview-response.dto";

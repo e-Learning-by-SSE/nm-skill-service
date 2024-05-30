@@ -2,6 +2,8 @@ import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { PathFinderService } from "./pathFinder.service";
 import {
+    CustomCoursePreviewResponseDto,
+    CustomCourseRequestDto,
     EnrollmentPreviewResponseDto,
     EnrollmentRequestDto,
     PathRequestDto,
@@ -94,6 +96,29 @@ export class PathFinderController {
             true,
             dto.optimalSolution,
         ) as unknown as PersonalizedLearningPath;
+    }
+
+    @Post("calculated-path")
+    enrollmentByGoal(@Body() dto: CustomCourseRequestDto) {
+        return this.pfService.enrollmentByGoal(
+            dto.userId,
+            dto.goals,
+            true,
+            dto.optimalSolution,
+        ) as unknown as CustomCoursePreviewResponseDto;
+    }
+    @Get("calculated-path")
+    simulateEnrollmentByGoal(
+        @Query("userId") userId: string,
+        @Query("goals") goals: string[],
+        @Query("optimalSolution") optimalSolution?: boolean,
+    ) {
+        return this.pfService.enrollmentByGoal(
+            userId,
+            goals,
+            false,
+            optimalSolution,
+        ) as unknown as EnrollmentPreviewResponseDto;
     }
 
     @ApiOperation({ summary: "Experimental (WIP)" })

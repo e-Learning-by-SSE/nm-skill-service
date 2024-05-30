@@ -2,6 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from "@nestjs/common
 import { PrismaService } from "../prisma/prisma.service";
 import { SkillDto } from "../skills/dto";
 import {
+    CustomCoursePreviewResponseDto,
     EnrollmentPreviewResponseDto,
     PathDto,
     PathRequestDto,
@@ -167,6 +168,45 @@ export class PathFinderService {
             return EnrollmentPreviewResponseDto.createFromDao({
                 unitSequence: path.learningUnits,
                 learningPathId: pathId,
+            });
+        }
+    }
+
+    /**
+     * Specifies a custom, self-defined learning path created the user by specifying the goal.
+     * @param userId The user for whom the course should be personalized to
+     * @param goal The targeted skills to be obtained by the custom path
+     * @param storePath if true, the path will be stored in the user's learning history otherwise only the path will be returned as a preview
+     * @param optimalSolution If true, the algorithm will try to find an optimal path, at cost of performance.
+     * @returns Either the stored personalized path (storePath = true) or a preview of the path (storePath = false)
+     */
+    public async enrollmentByGoal(
+        userId: string,
+        goal: string[],
+        storePath: boolean = true,
+        optimalSolution: boolean = false,
+    ) {
+        // Compute path for the user
+        const path = await this.computePath({
+            goal: goal,
+            userId: userId,
+            optimalSolution: optimalSolution,
+        });
+
+        // Store path if requested
+        if (storePath) {
+            // Convert from readonly API to string[]
+            const learningUnitsIds = [...path.learningUnits];
+
+            return await this.historyService.addPersonalizedLearningPathToUser({
+                userId,
+                learningUnitsIds,
+                pathTeachingGoalsIds: goal,
+            });
+        } else {
+            return CustomCoursePreviewResponseDto.createFromDao({
+                unitSequence: path.learningUnits,
+                goal: goal,
             });
         }
     }
