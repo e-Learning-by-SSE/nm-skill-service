@@ -183,7 +183,7 @@ export class LearningHistoryService {
                 await tx.pathSequence.create({
                     data: {
                         pathId: createdPersonalizedLearningPath.id,
-                        unitId: learningUnitInstance,
+                        unitInstanceId: learningUnitInstance,
                         position: i,
                     },
                 });
@@ -230,48 +230,79 @@ export class LearningHistoryService {
     // Functions below still need revision //
 
     /**
-     * Updates the status of a consumed unit, when an user learns the unit.
-     * Will automatically create a new ConsumedUnitData entry if none exists yet.
-     * @param historyId The LearningHistory where to add the consumed unit data.
-     * @param dto The changes to apply, undefined entries will be ignored.
+     * Updates the status of a learning unit instance, when an user changes its status (IN_PROGRESS or FINISHED))
+     * Will automatically create a new learning unit instance entry if none exists yet. //TODO: This needs to be discussed, as we do not have a path for it
+     * Further updates the status of the personalized learning paths which contain the unit
+     * @param historyId The LearningHistory/userId where to add update the status.
+     * @param learningUnitId The id of the learning unit to update the status for (this needs to be mapped to the learning unit instance).
      */
-    async updateLearningUnitInstance(historyId: string, dto: LearningUnitInstanceDto) {
-        // Compute progress
-        let state: STATUS = STATUS.OPEN;
-        if (dto.testPerformance) {
-            if (dto.testPerformance >= this.passingThreshold) {
-                state = STATUS.FINISHED;
-            } else if (dto.actualProcessingTime) {
-                state = STATUS.IN_PROGRESS;
-            }
-        }
+    async updateLearningUnitInstanceAndPersonalizedPathStatus(historyId: string, learningUnitId: string, status: STATUS) {
+        //const updatedUnit = await this.db.learningHistory.upsert({
+                        // Create if not exist
+        //                create: {
+        //                    unitId: dto.unitId,
+        //                    actualProcessingTime: dto.actualProcessingTime,
+        //                    testPerformance: dto.testPerformance,
+        //                    status: state,
+        //                },
+        //update: {
 
-        const updatedUnit = await this.db.learningUnitInstance.upsert({
-            // Check if exist
+        //This returns the learningHistories (including the pathId and learningUnitInstanceId) which contain paths containing the given learningUnitId
+        const result = await this.db.learningHistory.findMany({
             where: {
-                unitId: dto.unitId,
-            },
-            // Create if not exist
-            create: {
-                unitId: dto.unitId,
-                actualProcessingTime: dto.actualProcessingTime,
-                testPerformance: dto.testPerformance,
-                status: state,
-            },
-            // Update if exist
-            update: {
-                actualProcessingTime: dto.actualProcessingTime,
-                testPerformance: dto.testPerformance,
-                status: state,
+                userId: historyId,
+                personalPaths: {
+                    some: { // at least some of the unit sequences have the given learningUnitId
+                        unitSequence: {
+                            some: { // at least some of the unit instances have the given learningUnitId
+                                unit: { unitId: learningUnitId },
+                            },
+                        },
+                    },
+                },
             },
             include: {
-                path: true,
+                personalPaths: {
+                    include: {
+                        unitSequence: {
+                            select: {
+                                id: true,
+                            },
+                        },
+                    },
+                    select: {
+                        id: true,
+                    },
+                },
             },
         });
 
-        // TODO SE: Update learned skills if status == FINISHED
+        console.log(result);
 
-        return LearningUnitInstanceDto.createFromDao(updatedUnit);
+        //For each learning unit instance in the result
+        for (const learningHistory of result) {
+            //Update the status of the learning unit instance
+            await this.db.learningUnitInstance.update({
+                where: {
+                    id: learningHistory.personalPaths.unitSequence.id,
+                },
+                data: {
+                    status: status,
+                },
+            });
+            //Update the status of the personalized learning path
+            await this.db.personalizedLearningPath.update({
+                where: {
+                    id: learningHistory.personalPaths.id,
+                },
+                data: {
+                    status: status,
+                },
+            });
+        }
+
+
+        return "Success!";
     }
 
     async checkStatusForUnitsInPathOfLearningHistory(learningHistoryId: string, pathId: string) {

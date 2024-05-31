@@ -261,40 +261,51 @@ export class EventMgmtService {
                     //If field not existing or not a number, variables will be NaN or undefined and the condition evaluates to false (the ! is necessary to force typescript to access the object, though)
                     const scoredPoints = +mlsEvent.taskTodoPayload!["scoredPoints" as keyof JSON]; //The + is used for parsing to a number
                     const maxPoints = +mlsEvent.taskTodoPayload!["maxPoints" as keyof JSON]; // caution: can be 0
-                    const FINISHED = mlsEvent.payload["status" as keyof JSON];
+                    const STATUS = mlsEvent.payload["status" as keyof JSON];
+                    //Get the id of the user that updated the task
+                    const userID = "" + mlsEvent.taskTodoPayload!["user" as keyof JSON]?.toString();
+                    //Get the id of the task
+                    const taskID = "" + mlsEvent.taskTodoPayload!["task" as keyof JSON]?.toString();
+
+                    LoggerUtil.logInfo(
+                        "EventService::TaskToDoInfoLearnSkill:getIDs",
+                        "User: " + userID + " Task: " + taskID,
+                    );
 
                     LoggerUtil.logInfo(
                         "EventService::getTaskToDoInfo:PointsAndStatus",
-                        "scored(" +
-                            scoredPoints +
-                            ") max(" +
-                            maxPoints +
-                            ") status(" +
-                            FINISHED +
-                            ")",
-                    );
+                        "scored(" +scoredPoints+") max(" +maxPoints+") status(" +STATUS+")",);
+
+                    //If the user has started the task
+                    if (STATUS == "IN_PROGRESS") {
+                        LoggerUtil.logInfo(
+                            "EventService::TaskToDoInfoLearnSkill: Task started",
+                            taskID,
+                        );
+
+                        try {
+                            //Get the personalized learning paths of the user
+                            //Update the status of all learning unit instances with taskID to IN_PROGRESS
+                            //Update the status of the path itself to IN_PROGRESS (happens when at least one learning unit is IN_PROGRESS)
+                        } catch (error) {
+                            console.error(error);
+                            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Error", error);
+                            throw new ForbiddenException(
+                                "Task started, but no learning unit(s) updated",
+                            );
+                        }
+                        return "Task updated to IN_PROGRESS";
+                    }
 
                     //Check conditions for acquisition
                     if (
-                        FINISHED == "FINISHED" &&
+                        STATUS == "FINISHED" &&
                         (maxPoints == 0 || //Because some tasks have no points and are finished successfully every time
                             scoredPoints / maxPoints >= this.configService.get("PASSING_THRESHOLD"))
                     ) {
                         LoggerUtil.logInfo(
                             "EventService::TaskToDoInfoLearnSkill: Threshold passed",
                             mlsEvent.id,
-                        );
-
-                        //Get the id of the user that finished the task
-                        const userID =
-                            "" + mlsEvent.taskTodoPayload!["user" as keyof JSON]?.toString();
-                        //Get the id of the finished task
-                        const taskID =
-                            "" + mlsEvent.taskTodoPayload!["task" as keyof JSON]?.toString();
-
-                        LoggerUtil.logInfo(
-                            "EventService::TaskToDoInfoLearnSkill:getIDs",
-                            "User: " + userID + " Task: " + taskID,
                         );
 
                         try {
