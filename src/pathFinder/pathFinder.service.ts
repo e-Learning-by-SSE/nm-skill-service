@@ -367,7 +367,7 @@ export class PathFinderService {
                 },
                 unitSequence: {
                     create: dto.units.map((unitId, index) => ({
-                        unitId: unitId,
+                        unitInstanceId: unitId,                     //Is this correct? Shouldn't it be unitId?
                         position: index,
                     })),
                 },
