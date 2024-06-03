@@ -303,18 +303,16 @@ export class LearningHistoryService {
                     },
                 },
             },
-            include: {
+            select: {
                 personalPaths: {
-                    include: {
+                    select: {
+                        id: true, //ID of the personalized learning path
                         unitSequence: {
-//                          select: {
- //                               id: true, //ID of the learning unit instance
-   //                         },
+                          select: {
+                                id: true, //ID of the learning unit instance
+                            },
                         },
                     },
-   //                 select: {
-  //                      id: true, //ID of the personalized learning path
-   //                 },
                 },
             },
         });
