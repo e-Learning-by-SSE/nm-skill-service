@@ -335,7 +335,7 @@ export class EventMgmtService {
         //If the user has started the task
         if (STATUS == "IN_PROGRESS") {
             LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill: Task started", taskID);
-            return await this.learningHistoryService.updateLearnedSkillsInProgress(userID, taskID);
+            return await this.learningHistoryService.updateLearningUnitInstanceAndPersonalizedPathStatus(userID, taskID, STATUS);
         }
 
         //Check conditions for acquisition
@@ -349,7 +349,13 @@ export class EventMgmtService {
                 mlsEvent.id,
             );
 
-            return await this.learningHistoryService.updateLearnedSkillsFinished(userID, taskID);
+            //Update the learned skills of the user
+            await this.learningHistoryService.updateLearnedSkills(userID, taskID);
+
+            //Update the status of the learning unit instances and the personalized learning paths
+            await this.learningHistoryService.updateLearningUnitInstanceAndPersonalizedPathStatus(userID, taskID, STATUS);
+
+            return "Update of status and learned skills finished"
         }
 
         //When we get irrelevant events, like an unsuccessful attempt to finish a task

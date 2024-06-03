@@ -69,7 +69,7 @@ export class LearningHistoryService {
      * @param taskID The id of the task that is finished (and is required to get its taught skills)
      * @returns A list of learned skills (each containing the user, the skill, and the date of acquisition)
      */
-    async updateLearnedSkillsFinished(userID: string, taskID: string) {
+    async updateLearnedSkills(userID: string, taskID: string) {
         try {
             //Load the learning unit (MLS task equivalent) from our DB
             const lu = await this.learningUnitFactory.loadLearningUnit(taskID);
@@ -271,25 +271,6 @@ export class LearningHistoryService {
         });
     }
 
-    /**
-     *
-     * @param userID The id of the user (and its learning history) whose learned skills should be update
-     * @param taskID The id of the task (learning unit) that was started
-     * @returns A status message
-     */
-    async updateLearnedSkillsInProgress(userID: string, taskID: string) {
-        try {
-            //Get the personalized learning paths of the user
-            //Update the status of all learning unit instances with taskID to IN_PROGRESS
-            //Update the status of the path itself to IN_PROGRESS (happens when at least one learning unit is IN_PROGRESS)
-        } catch (error) {
-            console.error(error);
-            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Error", error);
-            throw new ForbiddenException("Task started, but no learning unit(s) updated");
-        }
-
-        return "Task updated to IN_PROGRESS";
-    }
 
     // Functions below still need revision //
 
@@ -326,14 +307,14 @@ export class LearningHistoryService {
                 personalPaths: {
                     include: {
                         unitSequence: {
-                            select: {
-                                id: true, //ID of the learning unit instance
-                            },
+//                          select: {
+ //                               id: true, //ID of the learning unit instance
+   //                         },
                         },
                     },
-                    select: {
-                        id: true, //ID of the personalized learning path
-                    },
+   //                 select: {
+  //                      id: true, //ID of the personalized learning path
+   //                 },
                 },
             },
         });
