@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
-import { SearchLearningUnitCreationDto } from "../learningUnit/dto";
+import { SearchLearningUnitCreationDto, SearchLearningUnitUpdateDto } from "../learningUnit/dto";
 import { LearningUnitMgmtService } from "../learningUnit/learningUnit.service";
 import { UserCreationDto } from "../user/dto";
 import { UserMgmtService } from "../user/user.service";
@@ -48,7 +48,7 @@ export class EventMgmtService {
                 //Create a partly empty learning unit with the provided data from MLS (when a task is created in MLS)
                 if (mlsEvent.method === MlsActionType.POST) {
                     const learningUnit = this.learningUnitService.createLearningUnit(
-                        await this.createLearningUnitDTOFromMLSEvent(mlsEvent),
+                        this.createLearningUnitCreationDTOFromMLSEvent(mlsEvent),
                     );
                     LoggerUtil.logInfo("EventService::createLearningUnit", learningUnit);
                     return learningUnit;
@@ -59,7 +59,7 @@ export class EventMgmtService {
                 } else if (mlsEvent.method === MlsActionType.PUT) {
                     //Declare required objects
                     let learningUnit;
-                    const learningUnitDTO = await this.createLearningUnitDTOFromMLSEvent(mlsEvent);
+                    const learningUnitDTO = this.createLearningUnitUpdateDTOFromMLSEvent(mlsEvent);
 
                     //Then try to either update the learning unit, or create a new one if not existent
                     try {
@@ -76,8 +76,9 @@ export class EventMgmtService {
                     } catch (exception) {
                         if (exception instanceof NotFoundException) {
                             //Create a new learning unit in our system with the new values from MLS (this can happen if we missed a post request)
-                            learningUnit =
-                                this.learningUnitService.createLearningUnit(learningUnitDTO);
+                            learningUnit = this.learningUnitService.createLearningUnit(
+                                this.createLearningUnitCreationDTOFromMLSEvent(mlsEvent),
+                            );
                             console.log("Created new LU instead of update: " + learningUnit);
                             LoggerUtil.logInfo(
                                 "EventService::updateLearningUnit(createNewLearningUnit)",
@@ -375,7 +376,7 @@ export class EventMgmtService {
      * @param mlsEvent Must contain at least the id, can also contain title, description, and contentCreator as payload.
      * @returns The newly created learning unit DTO
      */
-    async createLearningUnitDTOFromMLSEvent(mlsEvent: MLSEvent) {
+    createLearningUnitUpdateDTOFromMLSEvent(mlsEvent: MLSEvent) {
         //Lifecycle needs extra handling (save content of JSON as string if key exists)
         const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
         //Match string to enum. Can result in undefined. Enum matching is case sensitive.
@@ -385,13 +386,42 @@ export class EventMgmtService {
 
         //Gets id, title, description, lifecycle, and creator from the MLS system
         //Caution: An event may contain just a partial update, some values may be undefined
+        //Following values will be updated later by the SEARCH extension and MUST be undefined: requiredSkills, teachingGoals, targetAudience
+        const learningUnitDto: SearchLearningUnitUpdateDto = {
+            id: mlsEvent.id,
+            contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
+            lifecycle: lifecycle,
+        };
+
+        console.log("Created LU DTO: " + learningUnitDto);
+        LoggerUtil.logInfo("EventService::LearningUnit(createDTO)", learningUnitDto);
+
+        return learningUnitDto;
+    }
+
+    /**
+     * Helper function to create a learning unit DTO from the values of a MLS event.
+     * @param mlsEvent Must contain at least the id, can also contain title, description, and contentCreator as payload.
+     * @returns The newly created learning unit DTO
+     */
+    createLearningUnitCreationDTOFromMLSEvent(mlsEvent: MLSEvent) {
+        //Lifecycle needs extra handling (save content of JSON as string if key exists)
+        const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
+        //Match string to enum. Can result in undefined. Enum matching is case sensitive.
+        const lifecycle: LIFECYCLE = LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE];
+
+        LoggerUtil.logInfo("EventService::LearningUnit(getLifecycle)", lifecycle);
+
+        //Gets id, title, description, lifecycle, and creator from the MLS system
+        //Caution: An event may contain just a partial update, some values may be undefined
+        //Following values will be updated later by the SEARCH extension and should be empty: requiredSkills, teachingGoals, targetAudience
         const learningUnitDto: SearchLearningUnitCreationDto = {
             id: mlsEvent.id,
             contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
-            teachingGoals: [], // Skills are created by the SEARCH extension AFTER the learning unit was created
-            requiredSkills: [], // Skills are created by the SEARCH extension AFTER the learning unit was created
-            targetAudience: [], // Audience is set by the SEARCH extension AFTER the learning unit was created
             lifecycle: lifecycle,
+            requiredSkills: [],
+            teachingGoals: [],
+            targetAudience: [],
         };
 
         console.log("Created LU DTO: " + learningUnitDto);

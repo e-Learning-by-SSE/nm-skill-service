@@ -70,6 +70,9 @@ export class LearningUnitFactory {
 
             return SearchLearningUnitDto.createFromDao(updatedLearningUnit);
         } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+                throw new NotFoundException(`Learning Unit not found: ${dto.id}`);
+            }
             throw error;
         }
     }
