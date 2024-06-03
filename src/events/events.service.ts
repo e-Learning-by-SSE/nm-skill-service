@@ -160,7 +160,7 @@ export class EventMgmtService {
                     //Check if we got a valid result (MLS uses a boolean, which is parsed to a number) and change the user state accordingly
                     if (userState != undefined) {
                         //This case can happen if we manually import users from MLS via the respective button (this will trigger PUT events instead of POST)
-                        if (userState == "1" || userState == "true") {
+                        if (userState == "1" || userState.toString() == "true" ) {
                             LoggerUtil.logInfo("EventService::updateUserActive", userState);
 
                             //Then try to either update the user profile, or create a new one if not existent
