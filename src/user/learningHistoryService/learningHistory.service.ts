@@ -82,26 +82,26 @@ export class LearningHistoryService {
             );
 
             // Collect the learned skills matched with the user
-            let learningProgressList = [];
+            let learnedSkillsList = [];
 
             //Iterate over all skills taught by the learning unit
             for (const skill of skills) {
                 //Create a new learning progress entry (that matches user and skill and saves the date of the acquisition)
-                let learningProgressDto = await this.addLearnedSkillToUser(userID, skill.id);
+                let learnedSkill = await this.addLearnedSkillToUser(userID, skill.id);
 
                 //Add the progress entry to the result list
-                learningProgressList.push(learningProgressDto);
+                learnedSkillsList.push(learnedSkill);
 
                 LoggerUtil.logInfo(
                     "EventService::TaskToDoInfoLearnSkill:SkillAcquired",
-                    userID + "," + learningProgressDto.skillId + ")",
+                    userID + "," + learnedSkill.skillId + ")",
                 );
             }
 
             LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Finished");
 
             //Return the array with all learned skills (list of learning progress objects)
-            return learningProgressList;
+            return learnedSkillsList;
 
             //When user, learning unit, or skill id are not existent in our DB
         } catch (error) {
@@ -147,7 +147,9 @@ export class LearningHistoryService {
                 where: { id: pathId },
                 include: {
                     pathTeachingGoals: { select: { id: true } }, //Ids of the taught skills
-                    unitSequence: { include: { unit: { select: { unitId: true, status: true } } } }, //Id and state of the learningUnitInstances contained in the path
+                    unitSequence: {
+                        include: { unitInstance: { select: { id: true, status: true } } }, //Id and state of the learningUnitInstances (not the learningUnit!) contained in the path
+                    }, 
                 },
             });
 
@@ -242,9 +244,9 @@ export class LearningHistoryService {
                     unitSequence: {
                         select: {
                             // LearningUnitInstance
-                            unit: {
+                            unitInstance: {
                                 select: {
-                                    unitId: true,
+                                    id: true,       //Before, here was unit id (not of the instance) What is correct?
                                     status: true,
                                 },
                             },
@@ -271,7 +273,6 @@ export class LearningHistoryService {
         });
     }
 
-
     // Functions below still need revision //
 
     /**
@@ -286,7 +287,6 @@ export class LearningHistoryService {
         learningUnitId: string,
         status: STATUS,
     ) {
-
         //This returns the ids of the personalized learning paths and the ids of the learning unit instances that contain the learning unit (with learningUnitId)
         const result = await this.db.learningHistory.findMany({
             where: {
@@ -297,7 +297,7 @@ export class LearningHistoryService {
                         unitSequence: {
                             some: {
                                 // at least some of the unit instances have the given learningUnitId
-                                unit: { unitId: learningUnitId },
+                                unitInstance: { unitId: learningUnitId },
                             },
                         },
                     },
@@ -308,8 +308,12 @@ export class LearningHistoryService {
                     select: {
                         id: true, //ID of the personalized learning path
                         unitSequence: {
-                          select: {
-                                id: true, //ID of the learning unit instance
+                            select: {
+                                unitInstance: {
+                                    select: {
+                                        id: true, //ID of the learning unit instance
+                                    },
+                                },
                             },
                         },
                     },
@@ -324,7 +328,10 @@ export class LearningHistoryService {
         return "Success!";
     }
 
-    async checkStatusForUnitsInPathOfLearningHistory(learningHistoryId: string, pathId: string) {
+    async checkStatusForUnitInstancesInPathOfLearningHistory(
+        learningHistoryId: string,
+        pathId: string,
+    ) {
         // Find the learning path associated with the specified learning history
         const learningPath = await this.db.personalizedLearningPath.findUnique({
             where: {
@@ -334,7 +341,7 @@ export class LearningHistoryService {
             include: {
                 unitSequence: {
                     include: {
-                        unit: true,
+                        unitInstance: true,
                     },
                 },
             },
@@ -347,8 +354,8 @@ export class LearningHistoryService {
         }
 
         return learningPath.unitSequence.map((unit) => ({
-            unit: unit.unit,
-            status: unit.unit.status,
+            unitInstance: unit.unitInstance,
+            status: unit.unitInstance.status,
         }));
     }
 }

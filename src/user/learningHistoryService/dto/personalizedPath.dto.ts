@@ -1,5 +1,5 @@
 import { STATUS } from "@prisma/client";
-import { LearningProgressDto } from "./learning-progress.dto";
+import { LearningUnitInstanceStatusDto } from "./learningUnitInstanceStatus.dto";
 
 /**
  * Models a reduced version of a personalized learning path.
@@ -25,7 +25,7 @@ export class PersonalizedPathDto {
     /**
      * The sequence of the contained learning unit instances (their id and status)
      */
-    learningUnits: LearningProgressDto[];
+    learningUnitInstances: LearningUnitInstanceStatusDto[];
 
     /**
      * Creates a new personalized path DTO based on the DB object.
@@ -37,19 +37,20 @@ export class PersonalizedPathDto {
         learningPathId: string | null;
         pathTeachingGoals: { id: string }[];
         status: STATUS;
-        unitSequence: { unit: { unitId: string; status: STATUS } }[];
+        unitSequence: { unitInstance: { id: string; status: STATUS } }[];
     }): PersonalizedPathDto {
         return {
             personalizedPathId: pathDao.id,
             learningPathId: pathDao.learningPathId,
             goals: pathDao.pathTeachingGoals.map((goal) => goal.id),
             status: pathDao.status,
-            learningUnits: pathDao.unitSequence.map((unit) =>
-                LearningProgressDto.createFromDao({
-                    unitId: unit.unit.unitId,
-                    status: unit.unit.status,
+            learningUnitInstances: pathDao.unitSequence.map((unit) =>
+                LearningUnitInstanceStatusDto.createFromDao({
+                    uniInstanceId: unit.unitInstance.id,
+                    status: unit.unitInstance.status,
                 }),
             ),
+            
         };
     }
 }

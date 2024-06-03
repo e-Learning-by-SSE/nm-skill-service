@@ -377,7 +377,7 @@ export class PathFinderService {
             include: {
                 unitSequence: {
                     include: {
-                        unit: true,
+                        unitInstance: true,
                     },
                     orderBy: {
                         position: "asc",

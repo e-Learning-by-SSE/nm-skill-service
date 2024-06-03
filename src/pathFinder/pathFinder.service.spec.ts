@@ -95,10 +95,10 @@ describe("LearningHistoryService", () => {
                 const expected: PersonalizedPathDto = {
                     learningPathId: pathDefinition.id,
                     personalizedPathId: expect.any(String),
-                    learningUnits: [
-                        { unitId: unit1.id, status: STATUS.OPEN },
-                        { unitId: unit2.id, status: STATUS.OPEN },
-                        { unitId: unit3.id, status: STATUS.OPEN },
+                    learningUnitInstances: [
+                        { uniInstanceId: unit1.id, status: STATUS.OPEN },
+                        { uniInstanceId: unit2.id, status: STATUS.OPEN },
+                        { uniInstanceId: unit3.id, status: STATUS.OPEN },
                     ],
                     goals: [],
                     status: STATUS.OPEN,
@@ -160,7 +160,7 @@ describe("LearningHistoryService", () => {
                 const expected: PersonalizedPathDto = {
                     learningPathId: pathDefinition.id,
                     personalizedPathId: expect.any(String),
-                    learningUnits: [{ unitId: unit3.id, status: STATUS.OPEN }],
+                    learningUnitInstances: [{ uniInstanceId: unit3.id, status: STATUS.OPEN }],
                     goals: [],
                     status: STATUS.OPEN,
                 };
@@ -243,10 +243,10 @@ describe("LearningHistoryService", () => {
                 const expected: PersonalizedPathDto = {
                     learningPathId: null,
                     personalizedPathId: expect.any(String),
-                    learningUnits: [
-                        { unitId: unit1.id, status: STATUS.OPEN },
-                        { unitId: unit2.id, status: STATUS.OPEN },
-                        { unitId: unit3.id, status: STATUS.OPEN },
+                    learningUnitInstances: [
+                        { uniInstanceId: unit1.id, status: STATUS.OPEN },
+                        { uniInstanceId: unit2.id, status: STATUS.OPEN },
+                        { uniInstanceId: unit3.id, status: STATUS.OPEN },
                     ],
                     goals: [skill3.id],
                     status: STATUS.OPEN,
@@ -308,7 +308,7 @@ describe("LearningHistoryService", () => {
                 const expected: PersonalizedPathDto = {
                     learningPathId: null,
                     personalizedPathId: expect.any(String),
-                    learningUnits: [{ unitId: unit3.id, status: STATUS.OPEN }],
+                    learningUnitInstances: [{ uniInstanceId: unit3.id, status: STATUS.OPEN }],
                     goals: [skill3.id],
                     status: STATUS.OPEN,
                 };

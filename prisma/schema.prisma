@@ -186,7 +186,7 @@ model PathSequence {
   position Int // The position of the learning unit in the path
   path     PersonalizedLearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
   pathId   String // The id of the personalized learning path where the learning unit is part of
-  unit     LearningUnitInstance     @relation(fields: [unitInstanceId], references: [id])
+  unitInstance     LearningUnitInstance     @relation(fields: [unitInstanceId], references: [id])
   unitInstanceId   String // The id of the concrete learning unit instance
 
   @@unique([pathId, position]) // Position must be unique in a path

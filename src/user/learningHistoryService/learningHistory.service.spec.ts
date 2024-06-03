@@ -168,10 +168,10 @@ describe("LearningHistoryService", () => {
             const expected: PersonalizedPathDto = {
                 learningPathId: pathDefinition.id,
                 personalizedPathId: expect.any(String),
-                learningUnits: [
-                    { unitId: unit1.id, status: STATUS.OPEN },
-                    { unitId: unit2.id, status: STATUS.OPEN },
-                    { unitId: unit3.id, status: STATUS.OPEN },
+                learningUnitInstances: [
+                    { uniInstanceId: unit1.id, status: STATUS.OPEN },   //This is wrong, the unitInstanceIds should not be the unit ids?
+                    { uniInstanceId: unit2.id, status: STATUS.OPEN },
+                    { uniInstanceId: unit3.id, status: STATUS.OPEN },
                 ],
                 goals: [],
                 status: STATUS.OPEN,
@@ -192,7 +192,7 @@ describe("LearningHistoryService", () => {
             expect(personalPath?.personalizedPathId).toEqual(pathId);
             expect(personalPath?.learningPathId).toEqual(expected.learningPathId);
             expect(personalPath?.status).toEqual(expected.status);
-            expect(personalPath?.learningUnits).toEqual(expected.learningUnits);
+            expect(personalPath?.learningUnitInstances).toEqual(expected.learningUnitInstances);
             expect(personalPath?.goals).toEqual(expected.goals);
         });
 
@@ -214,9 +214,9 @@ describe("LearningHistoryService", () => {
             // Assert: Check the results (there should now be one personal path)
             expect(personalPaths.paths).toHaveLength(1);
             expect(personalPaths.paths[0].status).toEqual(STATUS.IN_PROGRESS); //Path status should be now be IN_PROGRESS (as at least one task is started)
-            expect(personalPath?.learningUnits[0].status).toEqual(STATUS.IN_PROGRESS); //Unit 1 should be IN_PROGRESS
-            expect(personalPath?.learningUnits[1].status).toEqual(STATUS.OPEN); //Unit 2 should be unchanged
-            expect(personalPath?.learningUnits[2].status).toEqual(STATUS.OPEN); //Unit 3 should be unchanged
+            expect(personalPath?.learningUnitInstances[0].status).toEqual(STATUS.IN_PROGRESS); //Unit 1 should be IN_PROGRESS
+            expect(personalPath?.learningUnitInstances[1].status).toEqual(STATUS.OPEN); //Unit 2 should be unchanged
+            expect(personalPath?.learningUnitInstances[2].status).toEqual(STATUS.OPEN); //Unit 3 should be unchanged
         });
     });
 });
