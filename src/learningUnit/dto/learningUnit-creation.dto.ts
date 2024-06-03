@@ -65,8 +65,7 @@ export class SearchLearningUnitCreationDto {
      * @returns An instance suitable for testing, where all unset values are treated as `null`.
      */
     static createForTesting(
-        params: 
-            Partial<SearchLearningUnitCreationDto>,
+        params: Partial<SearchLearningUnitCreationDto>,
     ): SearchLearningUnitCreationDto {
         return {
             id: params.id ?? "",

@@ -4,6 +4,7 @@ import {
     SearchLearningUnitCreationDto,
     SearchLearningUnitDto,
     SearchLearningUnitListDto,
+    SearchLearningUnitUpdateDto,
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { LIFECYCLE, Prisma } from "@prisma/client";
@@ -20,64 +21,58 @@ import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";
  */
 @Injectable()
 export class LearningUnitFactory {
-    public async patchLearningUnit(learningUnitId: string, dto: SearchLearningUnitCreationDto) {
+    constructor(private db: PrismaService) {}
+
+    /**
+     * Creates an update query for referenced items (list of references), but considers:
+     * - null: The field shall be deleted (reset to default)
+     * - undefined: The field shall not be changed
+     * - value: The field shall be updated to the given value
+     * @param ids The list of IDs that shall be updated (or undefined if no update shall be performed)
+     * @returns The Prisma update query
+     */
+    private updateQuery(ids?: string[] | null) {
+        if (ids === null) {
+            return { set: [] };
+        } else if (ids === undefined) {
+            return undefined;
+        } else {
+            return { set: ids.map((item) => ({ id: item })) };
+        }
+    }
+
+    public async patchLearningUnit(dto: SearchLearningUnitUpdateDto) {
         try {
-            const existingLearningUnit = await this.loadLearningUnit(learningUnitId);
-
-            if (!existingLearningUnit) {
-                throw new NotFoundException(`Learning Unit not found: ${learningUnitId}`);
-            }
-            // Disconnect all existing requirements
-            await this.db.learningUnit.update({
-                where: { id: learningUnitId },
-                data: {
-                    requirements: { set: [] },
-                    teachingGoals: { set: [] },
-                },
-            });
             const updatedLearningUnit = await this.db.learningUnit.update({
-                where: { id: "" + dto.id },
+                where: { id: dto.id },
                 data: {
-                    id: "" + dto.id ?? existingLearningUnit.id,
-                    orga_id: dto.orga_id ?? existingLearningUnit.orga_id,
-                    lifecycle: dto.lifecycle ?? existingLearningUnit.lifecycle,
-                    language: dto.language ?? existingLearningUnit.language,
-
-                    processingTime: dto.processingTime ?? existingLearningUnit.processingTime,
-                    rating: dto.rating ?? existingLearningUnit.rating,
-                    contentCreator: dto.contentCreator ?? existingLearningUnit.contentCreator,
-                    targetAudience: dto.targetAudience ?? existingLearningUnit.targetAudience,
-                    semanticDensity: dto.semanticDensity ?? existingLearningUnit.semanticDensity,
-                    semanticGravity: dto.semanticGravity ?? existingLearningUnit.semanticGravity,
-                    contentTags: dto.contentTags ?? existingLearningUnit.contentTags,
-                    contextTags: dto.contextTags ?? existingLearningUnit.contextTags,
-                    linkToHelpMaterial:
-                        dto.linkToHelpMaterial ?? existingLearningUnit.linkToHelpMaterial,
-
-                    requirements: {
-                        connect:
-                            dto.requiredSkills?.map((skillId) => ({ id: skillId })) ??
-                            existingLearningUnit.requirements.map((r) => ({ id: r.id })),
-                    },
-
-                    teachingGoals: {
-                        connect:
-                            dto.teachingGoals?.map((skillId) => ({ id: skillId })) ??
-                            existingLearningUnit.teachingGoals.map((tg) => ({ id: tg.id })),
-                    },
+                    orga_id: dto.orga_id,
+                    lifecycle: dto.lifecycle,
+                    language: dto.language,
+                    processingTime: dto.processingTime,
+                    rating: dto.rating,
+                    contentCreator: dto.contentCreator,
+                    contentProvider: dto.contentProvider,
+                    targetAudience: dto.targetAudience,
+                    semanticDensity: dto.semanticDensity,
+                    semanticGravity: dto.semanticGravity,
+                    contentTags: dto.contentTags,
+                    contextTags: dto.contextTags,
+                    linkToHelpMaterial: dto.linkToHelpMaterial,
+                    requirements: this.updateQuery(dto.requiredSkills),
+                    teachingGoals: this.updateQuery(dto.teachingGoals),
                 },
                 include: {
                     requirements: true,
-
                     teachingGoals: true,
                 },
             });
+
             return SearchLearningUnitDto.createFromDao(updatedLearningUnit);
         } catch (error) {
             throw error;
         }
     }
-    constructor(private db: PrismaService) {}
 
     public async deleteLearningUnit(learningUnitId: string) {
         try {

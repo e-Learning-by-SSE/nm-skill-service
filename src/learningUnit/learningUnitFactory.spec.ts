@@ -6,6 +6,7 @@ import {
     SearchLearningUnitCreationDto,
     SearchLearningUnitDto,
     SearchLearningUnitListDto,
+    SearchLearningUnitUpdateDto,
 } from "./dto";
 import { LIFECYCLE, Skill, SkillMap } from "@prisma/client";
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
@@ -157,6 +158,266 @@ describe("LearningUnit Factory", () => {
         });
     });
 
+    describe("patchLearningUnit - Partial Updates", () => {
+        let unit: SearchLearningUnitDto;
+        let [skill1, skill2, skill3]: Skill[] = [];
+
+        beforeEach(async () => {
+            // Wipe DB before test
+            await dbUtils.wipeDb();
+
+            // Create skills
+            const skillMap = await dbUtils.createSkillMap(
+                "owner",
+                "Skill Map for testing partial updates of LearningUnits",
+            );
+            skill1 = await dbUtils.createSkill(skillMap, "Skill1", [], "Description", 1);
+            skill2 = await dbUtils.createSkill(skillMap, "Skill2", [], "Description", 1);
+            skill3 = await dbUtils.createSkill(skillMap, "Skill3", [], "Description", 1);
+
+            // Create empty learning unit
+            const creationDto: SearchLearningUnitCreationDto = {
+                id: "unitID-1",
+                requiredSkills: [skill1.id],
+                teachingGoals: [skill2.id],
+                targetAudience: [],
+                lifecycle: LIFECYCLE.DRAFT,
+                language: "en",
+            };
+            unit = await factory.createLearningUnit(creationDto);
+
+            expect(unit, "patchLearningUnit::beforeEach broken").toMatchObject(creationDto);
+            // Prepare expected object:
+            // - updatedAt is expected to be updated with irrelevant/unknown time
+            unit.updatedAt = expect.any(String);
+        });
+
+        it("Required Skills", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                requiredSkills: [skill3.id],
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                requiredSkills: updateDto.requiredSkills!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Teaching Goals", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                teachingGoals: [skill3.id],
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                teachingGoals: updateDto.teachingGoals!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Target Audience", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                targetAudience: ["Student"],
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                targetAudience: updateDto.targetAudience!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Content Creator", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                contentCreator: "A Creator",
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                contentCreator: updateDto.contentCreator!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Content Provider", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                contentProvider: "A Provider",
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                contentProvider: updateDto.contentProvider!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Content Tags", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                contentTags: ["Tag1", "Tag2"],
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                contentTags: updateDto.contentTags!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Context Tags", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                contextTags: ["Tag1", "Tag2"],
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                contextTags: updateDto.contextTags!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Semantic Density", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                semanticDensity: "High",
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                semanticDensity: updateDto.semanticDensity!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Semantic Gravity", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                semanticGravity: "High",
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                semanticGravity: updateDto.semanticGravity!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Language", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                language: "de",
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                language: updateDto.language!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Lifecycle", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                lifecycle: LIFECYCLE.POOL,
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                lifecycle: updateDto.lifecycle!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Link To Help Material", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                linkToHelpMaterial: "A Link to nowhere",
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                linkToHelpMaterial: updateDto.linkToHelpMaterial!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Rating", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                rating: "Awesome",
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                rating: updateDto.rating!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Processing Time", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                processingTime: "42 minutes",
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                processingTime: updateDto.processingTime!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Orga ID", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                orga_id: "A very new organization",
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                orga_id: updateDto.orga_id!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+    });
+
     describe("deleteLearningUnit", () => {
         beforeEach(async () => {
             // Wipe DB before test
@@ -220,14 +481,6 @@ describe("LearningUnit Factory", () => {
         });
 
         it("should throw an error when Prisma delete operation fails", async () => {
-            const existingLearningUnit: SearchLearningUnitCreationDto = {
-                id: "1234",
-                targetAudience: [],
-                lifecycle: LIFECYCLE.POOL, // Assuming PUBLISHED is not the DRAFT state
-                teachingGoals: [],
-                requiredSkills: [],
-            };
-
             await expect(factory.deleteLearningUnit("1234s")).rejects.toThrowError(
                 NotFoundException,
             );

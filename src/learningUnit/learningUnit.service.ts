@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { SearchLearningUnitCreationDto } from "./dto";
+import { SearchLearningUnitCreationDto, SearchLearningUnitUpdateDto } from "./dto";
 import { LearningUnitFactory } from "./learningUnitFactory";
 import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";
 
@@ -21,11 +21,10 @@ export class LearningUnitMgmtService {
     }
 
     /**
-   * Adds a new LearningUnit
-   * @param dto Specifies the learningUnit to be created
-   * @returns The newly created learningUnit
-
-   */
+     * Adds a new LearningUnit
+     * @param dto Specifies the learningUnit to be created
+     * @returns The newly created learningUnit
+     */
     async createLearningUnit(dto: SearchLearningUnitCreationDto) {
         return this.luService.createLearningUnit(dto);
     }
@@ -40,7 +39,7 @@ export class LearningUnitMgmtService {
     public async loadAllLearningUnits() {
         return this.luService.loadAllLearningUnits();
     }
-    public async patchLearningUnit(learningUnitId: string, dto: SearchLearningUnitCreationDto) {
-        return this.luService.patchLearningUnit(learningUnitId, dto);
+    public async patchLearningUnit(learningUnitId: string, dto: SearchLearningUnitUpdateDto) {
+        return this.luService.patchLearningUnit(dto);
     }
 }
