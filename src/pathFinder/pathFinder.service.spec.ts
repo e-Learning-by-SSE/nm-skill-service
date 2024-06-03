@@ -12,7 +12,7 @@ describe("LearningHistoryService", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const luFactory = new LearningUnitFactory(db);
-    const historyService = new LearningHistoryService(db, config);
+    const historyService = new LearningHistoryService(db, luFactory);
     const dbUtils = DbTestUtils.getInstance();
 
     // Object under test

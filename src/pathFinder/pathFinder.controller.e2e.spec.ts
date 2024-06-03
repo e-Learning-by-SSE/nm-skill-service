@@ -12,6 +12,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { UserMgmtService } from "../user/user.service";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 import { UserModule } from "../user/user.module";
+import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 
 describe("PathFinder Controller Tests", () => {
     let app: INestApplication;
@@ -19,7 +20,8 @@ describe("PathFinder Controller Tests", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const userService = new UserMgmtService(db);
-    const historyService = new LearningHistoryService(db, config);
+    const learningUnitFactoryService = new LearningUnitFactory(db);
+    const historyService = new LearningHistoryService(db, learningUnitFactoryService);
 
     /**
      * Initializes (relevant parts of) the application before the first test.

@@ -5,10 +5,12 @@ import { LearningHistoryService } from "./learningHistory.service";
 import { UserMgmtService } from "../user.service";
 import { ForbiddenException } from "@nestjs/common";
 import { STATUS, Skill } from "@prisma/client";
+import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
 
 describe("LearningHistoryService", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
+    const learningUnitFactoryService = new LearningUnitFactory(db);
     const dbUtils = DbTestUtils.getInstance();
     const userService = new UserMgmtService(db);
     let skill1: Skill;
@@ -22,7 +24,7 @@ describe("LearningHistoryService", () => {
     };
 
     // Object under test
-    const historyService = new LearningHistoryService(db, config);
+    const historyService = new LearningHistoryService(db, learningUnitFactoryService);
 
     beforeAll(async () => {
         // Wipe DB once before test (as we reuse data)

@@ -19,18 +19,17 @@ describe("Event Service", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const userService = new UserMgmtService(db);
-    const learningHistoryService = new LearningHistoryService(db, config);
     const learningUnitFactory = new LearningUnitFactory(db);
+    const learningHistoryService = new LearningHistoryService(db, learningUnitFactory);
     const learningUnitService = new LearningUnitMgmtService(learningUnitFactory);
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
     const eventService = new EventMgmtService(
         learningUnitService,
-        learningUnitFactory,
-        userService,
-        learningHistoryService,
         config,
+        userService,
+        learningHistoryService,   
     );
 
     // Wipe DB before each test

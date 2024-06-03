@@ -7,6 +7,8 @@ import { LearningProfileService } from "./learningProfileService/learningProfile
 import { CareerProfileController } from "./careerProfileService/careerProfile.controller";
 import { LearningProfileController } from "./learningProfileService/learningProfile.controller";
 import { LearningHistoryController } from "./learningHistoryService/learningHistory.controller";
+import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
+import { LearningUnitMgmtService } from "../learningUnit/learningUnit.service";
 
 @Module({
     controllers: [
@@ -20,6 +22,8 @@ import { LearningHistoryController } from "./learningHistoryService/learningHist
         CareerProfileService,
         LearningHistoryService,
         LearningProfileService,
+        LearningUnitFactory,
+        LearningUnitMgmtService, 
     ],
     exports: [UserMgmtService, LearningHistoryService],
 })

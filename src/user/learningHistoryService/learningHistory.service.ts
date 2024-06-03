@@ -3,12 +3,12 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { STATUS } from "@prisma/client";
-import { ConfigService } from "@nestjs/config";
-import { LearningUnitInstanceDto } from "./dto/learningUnitInstance.dto";
 import { PersonalizedLearningPathsListDto } from "./dto/personalizedLearningPathsList.dto";
 import { PersonalizedPathDto } from "./dto/personalizedPath.dto";
 import { PathEnrollment } from "./types";
 import { ConflictException } from "@nestjs/common";
+import LoggerUtil from "../../logger/logger";
+import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
 
 /**
  * Service that manages updating and retrieving of a learningHistory (which stores the learned skills and the personalized paths of a user).
@@ -18,13 +18,7 @@ import { ConflictException } from "@nestjs/common";
  */
 @Injectable()
 export class LearningHistoryService {
-    // The threshold for passing a test
-    private passingThreshold: number;
-
-    constructor(private db: PrismaService, private config: ConfigService) {
-        // We ensure that all defined environment variables are set, otherwise we use a default value
-        this.passingThreshold = this.config.get("PASSING_THRESHOLD") || 0.5;
-    }
+    constructor(private db: PrismaService, private learningUnitFactory: LearningUnitFactory) {}
 
     /** Returns a list containing the ids of all learned skills of a user.
      * The list can contain duplicates, as a user can acquire a skill multiple times.
@@ -66,6 +60,56 @@ export class LearningHistoryService {
             return createEntry;
         } catch (error) {
             throw new ForbiddenException("Error creating learned skill");
+        }
+    }
+
+    /**
+     * Updates the learned skills of a user (within their learning history) when a task is finished (triggered via the event system).
+     * @param userID The id of the user (and its learning history) whose learned skills should be updated
+     * @param taskID The id of the task that is finished (and is required to get its taught skills)
+     * @returns A list of learned skills (each containing the user, the skill, and the date of acquisition)
+     */
+    async updateLearnedSkillsFinished(userID: string, taskID: string) {
+        try {
+            //Load the learning unit (MLS task equivalent) from our DB
+            const lu = await this.learningUnitFactory.loadLearningUnit(taskID);
+            //Get the skills taught by the learning unit
+            const skills = lu.teachingGoals;
+
+            LoggerUtil.logInfo(
+                "EventService::TaskToDoInfoGetSkill",
+                "LU: " + lu.toString() + " Skills: " + skills.toString(),
+            );
+
+            // Collect the learned skills matched with the user
+            let learningProgressList = [];
+
+            //Iterate over all skills taught by the learning unit
+            for (const skill of skills) {
+                //Create a new learning progress entry (that matches user and skill and saves the date of the acquisition)
+                let learningProgressDto = await this.addLearnedSkillToUser(userID, skill.id);
+
+                //Add the progress entry to the result list
+                learningProgressList.push(learningProgressDto);
+
+                LoggerUtil.logInfo(
+                    "EventService::TaskToDoInfoLearnSkill:SkillAcquired",
+                    userID + "," + learningProgressDto.skillId + ")",
+                );
+            }
+
+            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Finished");
+
+            //Return the array with all learned skills (list of learning progress objects)
+            return learningProgressList;
+
+            //When user, learning unit, or skill id are not existent in our DB
+        } catch (error) {
+            console.error(error);
+            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Error", error);
+            throw new ForbiddenException(
+                "No skill(s) acquired, learning unit not existent or has no skills",
+            );
         }
     }
 
@@ -227,6 +271,26 @@ export class LearningHistoryService {
         });
     }
 
+    /**
+     *
+     * @param userID The id of the user (and its learning history) whose learned skills should be update
+     * @param taskID The id of the task (learning unit) that was started
+     * @returns A status message
+     */
+    async updateLearnedSkillsInProgress(userID: string, taskID: string) {
+        try {
+            //Get the personalized learning paths of the user
+            //Update the status of all learning unit instances with taskID to IN_PROGRESS
+            //Update the status of the path itself to IN_PROGRESS (happens when at least one learning unit is IN_PROGRESS)
+        } catch (error) {
+            console.error(error);
+            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Error", error);
+            throw new ForbiddenException("Task started, but no learning unit(s) updated");
+        }
+
+        return "Task updated to IN_PROGRESS";
+    }
+
     // Functions below still need revision //
 
     /**
@@ -236,25 +300,22 @@ export class LearningHistoryService {
      * @param historyId The LearningHistory/userId where to add update the status.
      * @param learningUnitId The id of the learning unit to update the status for (this needs to be mapped to the learning unit instance).
      */
-    async updateLearningUnitInstanceAndPersonalizedPathStatus(historyId: string, learningUnitId: string, status: STATUS) {
-        //const updatedUnit = await this.db.learningHistory.upsert({
-                        // Create if not exist
-        //                create: {
-        //                    unitId: dto.unitId,
-        //                    actualProcessingTime: dto.actualProcessingTime,
-        //                    testPerformance: dto.testPerformance,
-        //                    status: state,
-        //                },
-        //update: {
+    async updateLearningUnitInstanceAndPersonalizedPathStatus(
+        historyId: string,
+        learningUnitId: string,
+        status: STATUS,
+    ) {
 
-        //This returns the learningHistories (including the pathId and learningUnitInstanceId) which contain paths containing the given learningUnitId
+        //This returns the ids of the personalized learning paths and the ids of the learning unit instances that contain the learning unit (with learningUnitId)
         const result = await this.db.learningHistory.findMany({
             where: {
                 userId: historyId,
                 personalPaths: {
-                    some: { // at least some of the unit sequences have the given learningUnitId
+                    some: {
+                        // at least some of the unit sequences have the given learningUnitId
                         unitSequence: {
-                            some: { // at least some of the unit instances have the given learningUnitId
+                            some: {
+                                // at least some of the unit instances have the given learningUnitId
                                 unit: { unitId: learningUnitId },
                             },
                         },
@@ -266,41 +327,20 @@ export class LearningHistoryService {
                     include: {
                         unitSequence: {
                             select: {
-                                id: true,
+                                id: true, //ID of the learning unit instance
                             },
                         },
                     },
                     select: {
-                        id: true,
+                        id: true, //ID of the personalized learning path
                     },
                 },
             },
         });
 
-        console.log(result);
-
-        //For each learning unit instance in the result
-        for (const learningHistory of result) {
-            //Update the status of the learning unit instance
-            await this.db.learningUnitInstance.update({
-                where: {
-                    id: learningHistory.personalPaths.unitSequence.id,
-                },
-                data: {
-                    status: status,
-                },
-            });
-            //Update the status of the personalized learning path
-            await this.db.personalizedLearningPath.update({
-                where: {
-                    id: learningHistory.personalPaths.id,
-                },
-                data: {
-                    status: status,
-                },
-            });
+        for (const entry in result) {
+            console.log("Entry: " + entry);
         }
-
 
         return "Success!";
     }

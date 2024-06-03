@@ -13,7 +13,6 @@ import { UserMgmtService } from "../user/user.service";
 import { USERSTATUS, LIFECYCLE } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
 import LoggerUtil from "../logger/logger";
-import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 
 /**
@@ -24,13 +23,18 @@ import { LearningHistoryService } from "../user/learningHistoryService/learningH
  */
 @Injectable()
 export class EventMgmtService {
+    // The threshold for passing a test
+    private passingThreshold: number;
+
     constructor(
         private learningUnitService: LearningUnitMgmtService,
-        private learningUnitFactory: LearningUnitFactory,
+        private configService: ConfigService,
         private userService: UserMgmtService,
         private learningHistoryService: LearningHistoryService,
-        private configService: ConfigService,
-    ) {}
+    ) {
+        // We ensure that all defined environment variables are set, otherwise we use a default value
+        this.passingThreshold = this.configService.get("PASSING_THRESHOLD") || 0.5;
+    }
 
     /**
      * Whenever the MLS event system publishes an event, this service is triggered.
@@ -257,111 +261,7 @@ export class EventMgmtService {
                         );
                     }
 
-                    //Try to read the required values.
-                    //If field not existing or not a number, variables will be NaN or undefined and the condition evaluates to false (the ! is necessary to force typescript to access the object, though)
-                    const scoredPoints = +mlsEvent.taskTodoPayload!["scoredPoints" as keyof JSON]; //The + is used for parsing to a number
-                    const maxPoints = +mlsEvent.taskTodoPayload!["maxPoints" as keyof JSON]; // caution: can be 0
-                    const STATUS = mlsEvent.payload["status" as keyof JSON];
-                    //Get the id of the user that updated the task
-                    const userID = "" + mlsEvent.taskTodoPayload!["user" as keyof JSON]?.toString();
-                    //Get the id of the task
-                    const taskID = "" + mlsEvent.taskTodoPayload!["task" as keyof JSON]?.toString();
-
-                    LoggerUtil.logInfo(
-                        "EventService::TaskToDoInfoLearnSkill:getIDs",
-                        "User: " + userID + " Task: " + taskID,
-                    );
-
-                    LoggerUtil.logInfo(
-                        "EventService::getTaskToDoInfo:PointsAndStatus",
-                        "scored(" +scoredPoints+") max(" +maxPoints+") status(" +STATUS+")",);
-
-                    //If the user has started the task
-                    if (STATUS == "IN_PROGRESS") {
-                        LoggerUtil.logInfo(
-                            "EventService::TaskToDoInfoLearnSkill: Task started",
-                            taskID,
-                        );
-
-                        try {
-                            //Get the personalized learning paths of the user
-                            //Update the status of all learning unit instances with taskID to IN_PROGRESS
-                            //Update the status of the path itself to IN_PROGRESS (happens when at least one learning unit is IN_PROGRESS)
-                        } catch (error) {
-                            console.error(error);
-                            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Error", error);
-                            throw new ForbiddenException(
-                                "Task started, but no learning unit(s) updated",
-                            );
-                        }
-                        return "Task updated to IN_PROGRESS";
-                    }
-
-                    //Check conditions for acquisition
-                    if (
-                        STATUS == "FINISHED" &&
-                        (maxPoints == 0 || //Because some tasks have no points and are finished successfully every time
-                            scoredPoints / maxPoints >= this.configService.get("PASSING_THRESHOLD"))
-                    ) {
-                        LoggerUtil.logInfo(
-                            "EventService::TaskToDoInfoLearnSkill: Threshold passed",
-                            mlsEvent.id,
-                        );
-
-                        try {
-                            //Load the learning unit (MLS task equivalent) from our DB
-                            const lu = await this.learningUnitFactory.loadLearningUnit(taskID);
-                            //Get the skills taught by the learning unit
-                            const skills = lu.teachingGoals;
-
-                            LoggerUtil.logInfo(
-                                "EventService::TaskToDoInfoGetSkill",
-                                "LU: " + lu.toString() + " Skills: " + skills.toString(),
-                            );
-
-                            // Collect the learned skills matched with the user
-                            let learningProgressList = [];
-
-                            //Iterate over all skills taught by the learning unit
-                            for (const skill of skills) {
-                                //Create a new learning progress entry (that matches user and skill and saves the date of the acquisition)
-                                let learningProgressDto =
-                                    await this.learningHistoryService.addLearnedSkillToUser(
-                                        userID,
-                                        skill.id,
-                                    );
-
-                                //Add the progress entry to the result list
-                                learningProgressList.push(learningProgressDto);
-
-                                LoggerUtil.logInfo(
-                                    "EventService::TaskToDoInfoLearnSkill:SkillAcquired",
-                                    userID + "," + learningProgressDto.skillId + ")",
-                                );
-                            }
-
-                            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Finished");
-
-                            //Return the array with all learned skills (list of learning progress objects)
-                            return learningProgressList;
-
-                            //When user, learning unit, or skill id are not existent in our DB
-                        } catch (error) {
-                            console.error(error);
-                            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:Error", error);
-                            throw new ForbiddenException(
-                                "No skill(s) acquired, learning unit not existent or has no skills",
-                            );
-                        }
-
-                        //When we get irrelevant events, like an unsuccessful attempt
-                    } else {
-                        LoggerUtil.logInfo(
-                            "EventService::TaskToDoInfoLearnSkill:NothingRelevant",
-                            mlsEvent.id,
-                        );
-                        return "Nothing relevant happened";
-                    }
+                    return await this.updateLearnedSkills(mlsEvent);
                 } else {
                     throw new ForbiddenException(
                         "TaskToDoInfoEvent: Method for this action type not implemented.",
@@ -409,5 +309,51 @@ export class EventMgmtService {
         LoggerUtil.logInfo("EventService::LearningUnit(createDTO)", learningUnitDto);
 
         return learningUnitDto;
+    }
+
+    async updateLearnedSkills(mlsEvent: MLSEvent) {
+        //Try to read the required values.
+        //If field not existing or not a number, variables will be NaN or undefined and the condition evaluates to false (the ! is necessary to force typescript to access the object, though)
+        const scoredPoints = +mlsEvent.taskTodoPayload!["scoredPoints" as keyof JSON]; //The + is used for parsing to a number
+        const maxPoints = +mlsEvent.taskTodoPayload!["maxPoints" as keyof JSON]; // caution: can be 0
+        const STATUS = mlsEvent.payload["status" as keyof JSON];
+        //Get the id of the user that updated the task
+        const userID = "" + mlsEvent.taskTodoPayload!["user" as keyof JSON]?.toString();
+        //Get the id of the task
+        const taskID = "" + mlsEvent.taskTodoPayload!["task" as keyof JSON]?.toString();
+
+        LoggerUtil.logInfo(
+            "EventService::TaskToDoInfoLearnSkill:getIDs",
+            "User: " + userID + " Task: " + taskID,
+        );
+
+        LoggerUtil.logInfo(
+            "EventService::getTaskToDoInfo:PointsAndStatus",
+            "scored(" + scoredPoints + ") max(" + maxPoints + ") status(" + STATUS + ")",
+        );
+
+        //If the user has started the task
+        if (STATUS == "IN_PROGRESS") {
+            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill: Task started", taskID);
+            return await this.learningHistoryService.updateLearnedSkillsInProgress(userID, taskID);
+        }
+
+        //Check conditions for acquisition
+        if (
+            STATUS == "FINISHED" &&
+            (maxPoints == 0 || //Because some tasks have no points and are finished successfully every time
+                scoredPoints / maxPoints >= this.passingThreshold)
+        ) {
+            LoggerUtil.logInfo(
+                "EventService::TaskToDoInfoLearnSkill: Threshold passed",
+                mlsEvent.id,
+            );
+
+            return await this.learningHistoryService.updateLearnedSkillsFinished(userID, taskID);
+        }
+
+        //When we get irrelevant events, like an unsuccessful attempt to finish a task
+        LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:NothingRelevant", mlsEvent.id);
+        return "Nothing relevant happened";
     }
 }
