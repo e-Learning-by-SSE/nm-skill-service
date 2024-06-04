@@ -173,7 +173,7 @@ model LearningUnitInstance {
   unitId               String // A LearningUnitInstance belongs to exactly one learning unit  
   status               STATUS         @default(OPEN) //Learner's view
   date                 DateTime       @default(now())
-  path                 PathSequence[]
+  pathSequence         PathSequence[]
 
   @@unique([unitId])
   @@map("consumedUnits") //Table in the postgres database
@@ -184,12 +184,12 @@ model LearningUnitInstance {
 model PathSequence {
   id       String                   @id @default(cuid())
   position Int // The position of the learning unit in the path
-  path     PersonalizedLearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
-  pathId   String // The id of the personalized learning path where the learning unit is part of
+  personalizedPath     PersonalizedLearningPath @relation(fields: [personalizedPathId], references: [id], onDelete: Cascade)
+  personalizedPathId   String // The id of the personalized learning path where the learning unit is part of
   unitInstance     LearningUnitInstance     @relation(fields: [unitInstanceId], references: [id])
   unitInstanceId   String // The id of the concrete learning unit instance
 
-  @@unique([pathId, position]) // Position must be unique in a path
+  @@unique([personalizedPathId, position]) // Position must be unique in a path
   @@map("pathSequence")
 }
 
