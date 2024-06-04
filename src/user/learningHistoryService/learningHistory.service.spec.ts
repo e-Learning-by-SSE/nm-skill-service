@@ -169,9 +169,9 @@ describe("LearningHistoryService", () => {
                 learningPathId: pathDefinition.id,
                 personalizedPathId: expect.any(String),
                 learningUnitInstances: [
-                    { uniInstanceId: unit1.id, status: STATUS.OPEN },   //This is wrong, the unitInstanceIds should not be the unit ids?
-                    { uniInstanceId: unit2.id, status: STATUS.OPEN },
-                    { uniInstanceId: unit3.id, status: STATUS.OPEN },
+                    { unitId: unit1.id, status: STATUS.OPEN },   //This is wrong, the unitInstanceIds should not be the unit ids?
+                    { unitId: unit2.id, status: STATUS.OPEN },
+                    { unitId: unit3.id, status: STATUS.OPEN },
                 ],
                 goals: [],
                 status: STATUS.OPEN,

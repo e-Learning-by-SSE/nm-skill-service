@@ -148,8 +148,8 @@ export class LearningHistoryService {
                 include: {
                     pathTeachingGoals: { select: { id: true } }, //Ids of the taught skills
                     unitSequence: {
-                        include: { unitInstance: { select: { id: true, status: true } } }, //Id and state of the learningUnitInstances (not the learningUnit!) contained in the path
-                    }, 
+                        include: { unitInstance: { select: { unitId: true, status: true } } }, //Id of the learning unit and state of the belonging learningUnitInstances contained in the path
+                    },
                 },
             });
 
@@ -246,7 +246,7 @@ export class LearningHistoryService {
                             // LearningUnitInstance
                             unitInstance: {
                                 select: {
-                                    id: true,       //Before, here was unit id (not of the instance) What is correct?
+                                    unitId: true, //As we want to display the belonging unit, not its instance
                                     status: true,
                                 },
                             },

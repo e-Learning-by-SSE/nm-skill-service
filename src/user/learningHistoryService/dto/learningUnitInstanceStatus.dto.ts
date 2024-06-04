@@ -2,17 +2,18 @@ import { STATUS } from "@prisma/client";
 
 /**
  * Status of a LearningUnitInstance in an personalized path.
- * Brings together the ID of a LearningUnitInstance and the learning status of user.
+ * Brings together the ID of a LearningUnit used for the instance and the learning status of user.
  * Used to prevent anonymous objects within returned arrays.
  */
 export class LearningUnitInstanceStatusDto {
-    uniInstanceId: string;
-
+    //The id of the learning unit used for the instance (as this is sent to the API, where instances are not relevant)
+    unitId: string;
+    //The current status of the learning unit instance
     status: STATUS;
 
-    static createFromDao(dao: { uniInstanceId: string; status: STATUS }): LearningUnitInstanceStatusDto {
+    static createFromDao(dao: { unitId: string; status: STATUS }): LearningUnitInstanceStatusDto {
         return {
-            uniInstanceId: dao.uniInstanceId,
+            unitId: dao.unitId,
             status: dao.status,
         };
     }

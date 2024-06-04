@@ -23,7 +23,7 @@ export class PersonalizedPathDto {
      */
     status: STATUS;
     /**
-     * The sequence of the contained learning unit instances (their id and status)
+     * The sequence of the contained learning unit instances (their unit's id and status)
      */
     learningUnitInstances: LearningUnitInstanceStatusDto[];
 
@@ -37,7 +37,7 @@ export class PersonalizedPathDto {
         learningPathId: string | null;
         pathTeachingGoals: { id: string }[];
         status: STATUS;
-        unitSequence: { unitInstance: { id: string; status: STATUS } }[];
+        unitSequence: { unitInstance: { unitId: string; status: STATUS } }[];
     }): PersonalizedPathDto {
         return {
             personalizedPathId: pathDao.id,
@@ -46,7 +46,7 @@ export class PersonalizedPathDto {
             status: pathDao.status,
             learningUnitInstances: pathDao.unitSequence.map((unit) =>
                 LearningUnitInstanceStatusDto.createFromDao({
-                    uniInstanceId: unit.unitInstance.id,
+                    unitId: unit.unitInstance.unitId,
                     status: unit.unitInstance.status,
                 }),
             ),
