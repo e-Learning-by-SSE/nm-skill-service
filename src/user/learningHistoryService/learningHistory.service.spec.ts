@@ -3,7 +3,7 @@ import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
 import { LearningHistoryService } from "./learningHistory.service";
 import { UserMgmtService } from "../user.service";
-import { ForbiddenException } from "@nestjs/common";
+import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { LearningPath, LearningUnit, STATUS, Skill, SkillMap } from "@prisma/client";
 import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
 import { PathFinderService } from "../../pathFinder/pathFinder.service";
@@ -169,7 +169,7 @@ describe("LearningHistoryService", () => {
                 learningPathId: pathDefinition.id,
                 personalizedPathId: expect.any(String),
                 learningUnitInstances: [
-                    { unitId: unit1.id, status: STATUS.OPEN },   //This is wrong, the unitInstanceIds should not be the unit ids?
+                    { unitId: unit1.id, status: STATUS.OPEN },   
                     { unitId: unit2.id, status: STATUS.OPEN },
                     { unitId: unit3.id, status: STATUS.OPEN },
                 ],
@@ -196,7 +196,7 @@ describe("LearningHistoryService", () => {
             expect(personalPath?.goals).toEqual(expected.goals);
         });
 
-        it("should update the status of the learning unit instance and the personal path", async () => {
+        it("should update the status of one learning unit instance and the personal path to IN_PROGRESS", async () => {
             //This test case is dependent on the previous test case
 
             // Act (update the status of the first unit to IN_PROGRESS)
@@ -205,6 +205,8 @@ describe("LearningHistoryService", () => {
                 unit1.id,
                 STATUS.IN_PROGRESS,
             );
+
+            console.log("Unit 1: ", unit1.id);
 
             // Receive the list of all personal paths for the user
             const personalPaths = await historyService.getPersonalizedPathsOfUser(expectedUser2.id);
@@ -217,6 +219,83 @@ describe("LearningHistoryService", () => {
             expect(personalPath?.learningUnitInstances[0].status).toEqual(STATUS.IN_PROGRESS); //Unit 1 should be IN_PROGRESS
             expect(personalPath?.learningUnitInstances[1].status).toEqual(STATUS.OPEN); //Unit 2 should be unchanged
             expect(personalPath?.learningUnitInstances[2].status).toEqual(STATUS.OPEN); //Unit 3 should be unchanged
+        });
+
+        it("should update the status of one learning unit instance to FINISHED, but not the personal path", async () => {
+            //This test case is dependent on the previous test case
+
+            //Act (update the status of the first unit to FINISHED)
+            await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                expectedUser2.id,
+                unit1.id,
+                STATUS.FINISHED,
+            );
+
+            console.log("Unit 1 again: ", unit1.id);
+
+            // Receive the list of all personal paths for the user
+            const personalPaths = await historyService.getPersonalizedPathsOfUser(expectedUser2.id);
+            const pathId = personalPaths.paths[0].personalizedPathId;
+            const personalPath = await historyService.getPersonalizedPath(pathId);
+
+            // Assert: Check the results (there should now be status FINISHED in one unit, but the path should still be IN_PROGRESS)
+            expect(personalPaths.paths).toHaveLength(1);
+            expect(personalPaths.paths[0].status).toEqual(STATUS.IN_PROGRESS); //Path status should still be IN_PROGRESS (as not all tasks are finished)
+            expect(personalPath?.learningUnitInstances[0].status).toEqual(STATUS.FINISHED); //Unit 1 should be FINISHED
+            expect(personalPath?.learningUnitInstances[1].status).toEqual(STATUS.OPEN); //Unit 2 should be unchanged
+            expect(personalPath?.learningUnitInstances[2].status).toEqual(STATUS.OPEN); //Unit 3 should be unchanged
+        });
+
+        it("should update the status of all learning unit instances to FINISHED and the personal path to FINISHED", async () => {
+            //This test case is dependent on the previous test case
+
+            //Act (update the status of the second unit to FINISHED)
+            await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                expectedUser2.id,
+                unit2.id,
+                STATUS.FINISHED,
+            );
+
+            //Act (update the status of the third unit to FINISHED)
+            await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                expectedUser2.id,
+                unit3.id,
+                STATUS.FINISHED,
+            );
+
+            // Receive the list of all personal paths for the user
+            const personalPaths = await historyService.getPersonalizedPathsOfUser(expectedUser2.id);
+            const pathId = personalPaths.paths[0].personalizedPathId;
+            const personalPath = await historyService.getPersonalizedPath(pathId);
+
+            // Assert: Check the results (all units should now be FINISHED, and the path should be FINISHED)
+            expect(personalPaths.paths).toHaveLength(1);
+            expect(personalPaths.paths[0].status).toEqual(STATUS.FINISHED); //Path status should now be FINISHED (as all tasks are finished)
+            expect(personalPath?.learningUnitInstances[0].status).toEqual(STATUS.FINISHED); //Unit 1 should be FINISHED
+            expect(personalPath?.learningUnitInstances[1].status).toEqual(STATUS.FINISHED); //Unit 2 should be FINISHED
+            expect(personalPath?.learningUnitInstances[2].status).toEqual(STATUS.FINISHED); //Unit 3 should be FINISHED
+        });
+
+        it("should not update the status of a non existent learning unit instance", async () => {
+            //Act and assert: Reject to update the status of a non-existent unit
+            await expect(
+                historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                    expectedUser2.id,
+                    "non-existent",
+                    STATUS.FINISHED,
+                ),
+            ).rejects.toThrowError(NotFoundException);
+        });
+
+        it("should not update the learning unit instance status of a non existent user", async () => {
+            //Act and assert: Reject to update the status of a unit for a non-existent user
+            await expect(
+                historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                    "non-existent",
+                    unit1.id,
+                    STATUS.FINISHED,
+                ),
+            ).rejects.toThrowError(NotFoundException);
         });
     });
 });
