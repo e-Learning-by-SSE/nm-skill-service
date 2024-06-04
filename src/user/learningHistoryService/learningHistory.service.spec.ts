@@ -3,8 +3,8 @@ import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
 import { LearningHistoryService } from "./learningHistory.service";
 import { UserMgmtService } from "../user.service";
-import { ForbiddenException, NotFoundException } from "@nestjs/common";
-import { LearningPath, LearningUnit, STATUS, Skill, SkillMap } from "@prisma/client";
+import { ForbiddenException } from "@nestjs/common";
+import { LearningPath, LearningUnit, STATUS, Skill } from "@prisma/client";
 import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
 import { PathFinderService } from "../../pathFinder/pathFinder.service";
 import { PersonalizedPathDto } from "./dto/personalizedPath.dto";
@@ -169,7 +169,7 @@ describe("LearningHistoryService", () => {
                 learningPathId: pathDefinition.id,
                 personalizedPathId: expect.any(String),
                 learningUnitInstances: [
-                    { unitId: unit1.id, status: STATUS.OPEN },   
+                    { unitId: unit1.id, status: STATUS.OPEN },
                     { unitId: unit2.id, status: STATUS.OPEN },
                     { unitId: unit3.id, status: STATUS.OPEN },
                 ],
@@ -277,25 +277,23 @@ describe("LearningHistoryService", () => {
         });
 
         it("should not update the status of a non existent learning unit instance", async () => {
-            //Act and assert: Reject to update the status of a non-existent unit
-            await expect(
-                historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
-                    expectedUser2.id,
-                    "non-existent",
-                    STATUS.FINISHED,
-                ),
-            ).rejects.toThrowError(NotFoundException);
+            //Act and assert: There should not be a success message returned
+            const result = await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                "non-existent",
+                unit1.id,
+                STATUS.FINISHED,
+            );
+            expect(result).toContain("No personalized path containing unit");
         });
 
         it("should not update the learning unit instance status of a non existent user", async () => {
-            //Act and assert: Reject to update the status of a unit for a non-existent user
-            await expect(
-                historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
-                    "non-existent",
-                    unit1.id,
-                    STATUS.FINISHED,
-                ),
-            ).rejects.toThrowError(NotFoundException);
+            //Act and assert: There should not be a success message returned
+            const result = await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                "non-existent",
+                unit1.id,
+                STATUS.FINISHED,
+            );
+            expect(result).toContain("found for user:");
         });
     });
 });

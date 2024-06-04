@@ -276,7 +276,7 @@ export class LearningHistoryService {
     // Functions below still need revision //
 
     /**
-     * Updates the status of a learning unit instance, when an user changes its status 
+     * Updates the status of a learning unit instance, when an user changes its status
      * Further updates the status of the personalized learning paths which contain the unit (IN_PROGRESS if at least one unit instance is IN_PROGRESS, FINISHED if all unit instances are FINISHED)
      * @param historyId The LearningHistory/userId where to add update the status.
      * @param learningUnitId The id of the learning unit to update the status for (this needs to be mapped to the learning unit instance).
@@ -315,11 +315,11 @@ export class LearningHistoryService {
 
         //If the result is empty
         if (result.length === 0) {
-            throw new NotFoundException(
+            return (
                 "No personalized path containing unit " +
-                    learningUnitId +
-                    " found for user: " +
-                    historyId,
+                learningUnitId +
+                " found for user: " +
+                historyId
             );
         }
 
@@ -335,7 +335,6 @@ export class LearningHistoryService {
                     status: status,
                 },
             });
-
 
             //For every learning path that contains the learning unit instance, update the status
             for (let j = 0; j < result[i].pathSequence.length; j++) {
@@ -368,7 +367,7 @@ export class LearningHistoryService {
                                 status: status,
                             },
                         });
-                    //This should not throw an error, as the status of the path should not be updated if not all unit instances are FINISHED 
+                        //This should not throw an error, as the status of the path should not be updated if not all unit instances are FINISHED
                     } catch (error) {
                         console.log("Status was not updated");
                     }
