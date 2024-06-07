@@ -32,14 +32,14 @@ export class MLSEvent {
      * The complete entity (including its id and all other attributes existing in the MLS system)
      */
     @IsNotEmpty()
-    @IsJSON()
+    //@IsJSON() This is too restrictive
     payload: JSON;
 
     /**
      * A special payload to get the parent object of a taskTodoInfo object. Only existent for this kind of object.
      */
     @IsOptional()
-    @IsJSON()
+    //@IsJSON() This is too restrictive
     taskTodoPayload?: JSON;
 
     /**
