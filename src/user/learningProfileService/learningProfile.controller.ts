@@ -8,19 +8,19 @@ import { LearningProfileService } from "./learningProfile.service";
  * @author Wenzel, Sauer, Gerling
  */
 @ApiTags("LearningProfiles")
-@Controller("learning-profiles")
+@Controller("learning-profiles/")
 export class LearningProfileController {
     constructor(private learningProfileService: LearningProfileService) {}
 
     //Post and delete are not required
 
-    @Get(":learning_profile_id")
+    @Get("{learning_profile_id}")
     getLearningProfileByID(@Param("learning_profile_id") learningProfileId: string) {
         return this.learningProfileService.getLearningProfileByID(learningProfileId);
     }
 
-    @Patch(":learning_profile_id")
-    patchLearningProfileByID(@Body() dto: LearningProfileUpdateDto) {
+    @Patch("{learning_profile_id}")
+    patchLearningProfileByID(@Param("learning_profile_id") learningProfileId: string, @Body() dto: LearningProfileUpdateDto) {
         this.learningProfileService.updateLearningProfile(dto);
         return "Success";
     }

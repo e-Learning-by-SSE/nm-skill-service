@@ -7,7 +7,7 @@ import { UserMgmtService } from "./user.service";
  * @author Wenzel, Sauer, Gerling
  */
 @ApiTags("User")
-@Controller("user-profiles")
+@Controller("user-profiles/")
 export class UserMgmtController {
     constructor(private userService: UserMgmtService) {}
 
@@ -29,7 +29,7 @@ export class UserMgmtController {
      * @returns The specified user-profile DTO (without its child objects, but with their id).
      */
 
-    @Get(":user_profile_id")
+    @Get("{user_profile_id}")
     getUserProfiles(@Param("user_profile_id") userId: string) {
         return this.userService.getUserById(userId);
     }
