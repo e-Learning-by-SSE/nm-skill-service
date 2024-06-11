@@ -12,7 +12,7 @@ describe("LearningHistoryService", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const luFactory = new LearningUnitFactory(db);
-    const historyService = new LearningHistoryService(db, config);
+    const historyService = new LearningHistoryService(db, luFactory);
     const dbUtils = DbTestUtils.getInstance();
 
     // Object under test
@@ -95,7 +95,7 @@ describe("LearningHistoryService", () => {
                 const expected: PersonalizedPathDto = {
                     learningPathId: pathDefinition.id,
                     personalizedPathId: expect.any(String),
-                    learningUnits: [
+                    learningUnitInstances: [
                         { unitId: unit1.id, status: STATUS.OPEN },
                         { unitId: unit2.id, status: STATUS.OPEN },
                         { unitId: unit3.id, status: STATUS.OPEN },
@@ -160,7 +160,7 @@ describe("LearningHistoryService", () => {
                 const expected: PersonalizedPathDto = {
                     learningPathId: pathDefinition.id,
                     personalizedPathId: expect.any(String),
-                    learningUnits: [{ unitId: unit3.id, status: STATUS.OPEN }],
+                    learningUnitInstances: [{ unitId: unit3.id, status: STATUS.OPEN }],
                     goals: [],
                     status: STATUS.OPEN,
                 };
@@ -243,7 +243,7 @@ describe("LearningHistoryService", () => {
                 const expected: PersonalizedPathDto = {
                     learningPathId: null,
                     personalizedPathId: expect.any(String),
-                    learningUnits: [
+                    learningUnitInstances: [
                         { unitId: unit1.id, status: STATUS.OPEN },
                         { unitId: unit2.id, status: STATUS.OPEN },
                         { unitId: unit3.id, status: STATUS.OPEN },
@@ -308,7 +308,7 @@ describe("LearningHistoryService", () => {
                 const expected: PersonalizedPathDto = {
                     learningPathId: null,
                     personalizedPathId: expect.any(String),
-                    learningUnits: [{ unitId: unit3.id, status: STATUS.OPEN }],
+                    learningUnitInstances: [{ unitId: unit3.id, status: STATUS.OPEN }],
                     goals: [skill3.id],
                     status: STATUS.OPEN,
                 };

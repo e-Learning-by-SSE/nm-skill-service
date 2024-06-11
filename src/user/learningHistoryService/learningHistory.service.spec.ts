@@ -4,13 +4,22 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { LearningHistoryService } from "./learningHistory.service";
 import { UserMgmtService } from "../user.service";
 import { ForbiddenException } from "@nestjs/common";
-import { STATUS, Skill } from "@prisma/client";
+import { LearningPath, LearningUnit, STATUS, Skill } from "@prisma/client";
+import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
+import { PathFinderService } from "../../pathFinder/pathFinder.service";
+import { PersonalizedPathDto } from "./dto/personalizedPath.dto";
 
 describe("LearningHistoryService", () => {
+    //Required classes
     const config = new ConfigService();
     const db = new PrismaService(config);
+    const learningUnitFactoryService = new LearningUnitFactory(db);
     const dbUtils = DbTestUtils.getInstance();
     const userService = new UserMgmtService(db);
+    const historyService = new LearningHistoryService(db, learningUnitFactoryService);
+    const pathFinderService = new PathFinderService(db, learningUnitFactoryService, historyService);
+
+    //Preparation of input data
     let skill1: Skill;
     let skill2: Skill;
     let skill3: Skill;
@@ -20,9 +29,9 @@ describe("LearningHistoryService", () => {
     const expectedUser2 = {
         id: "testUser2",
     };
-
-    // Object under test
-    const historyService = new LearningHistoryService(db, config);
+    // Test data, a pre-defined learning path with 3 units & skills
+    let [unit1, unit2, unit3]: LearningUnit[] = [];
+    let pathDefinition: LearningPath & { pathTeachingGoals: Skill[]; requirements: Skill[] };
 
     beforeAll(async () => {
         // Wipe DB once before test (as we reuse data)
@@ -39,6 +48,13 @@ describe("LearningHistoryService", () => {
         skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
         skill2 = await dbUtils.createSkill(skillMap1, "Skill 2", []);
         skill3 = await dbUtils.createSkill(skillMap1, "Skill 3", []);
+
+        unit1 = await dbUtils.createLearningUnit([skill1], []);
+        unit2 = await dbUtils.createLearningUnit([skill2], [skill1]);
+        unit3 = await dbUtils.createLearningUnit([skill3], [skill2]);
+
+        // Create learning path
+        pathDefinition = await dbUtils.createLearningPath("teacher", [skill3]);
     });
 
     afterAll(async () => {
@@ -141,12 +157,27 @@ describe("LearningHistoryService", () => {
         });
 
         it("should update the learning history with a newly created personal path", async () => {
-            //Act: Add a personal path to the learning history
-            await historyService.addPersonalizedLearningPathToUser({
-                userId: expectedUser2.id,
-                learningUnitsIds: [],
-                pathTeachingGoalsIds: [],
-            }); // This function needs revision
+            // Act (enroll the user in the path and store it to their learning history)
+            const result = await pathFinderService.enrollment(
+                expectedUser2.id,
+                pathDefinition.id,
+                true, //Needs to be true for path to be added to the history
+            );
+
+            // Assert: All 3 units are part of path; Path was saved
+            const expected: PersonalizedPathDto = {
+                learningPathId: pathDefinition.id,
+                personalizedPathId: expect.any(String),
+                learningUnitInstances: [
+                    { unitId: unit1.id, status: STATUS.OPEN },
+                    { unitId: unit2.id, status: STATUS.OPEN },
+                    { unitId: unit3.id, status: STATUS.OPEN },
+                ],
+                goals: [],
+                status: STATUS.OPEN,
+            };
+
+            expect(result).toMatchObject(expected);
 
             // Receive the list of all personal paths for the user
             const personalPaths = await historyService.getPersonalizedPathsOfUser(expectedUser2.id);
@@ -155,13 +186,114 @@ describe("LearningHistoryService", () => {
 
             // Assert: Check the results (there should now be one personal path)
             expect(personalPaths.paths).toHaveLength(1);
-            expect(personalPaths.paths[0].learningPathId).toEqual(null);
-            expect(personalPaths.paths[0].status).toEqual(STATUS.OPEN);
+            expect(personalPaths.paths[0].learningPathId).toEqual(expected.learningPathId);
+            expect(personalPaths.paths[0].status).toEqual(expected.status);
+
             expect(personalPath?.personalizedPathId).toEqual(pathId);
-            expect(personalPath?.learningPathId).toEqual(null);
-            expect(personalPath?.status).toEqual(STATUS.OPEN);
-            expect(personalPath?.learningUnits).toEqual([]);
-            expect(personalPath?.goals).toEqual([]);
+            expect(personalPath?.learningPathId).toEqual(expected.learningPathId);
+            expect(personalPath?.status).toEqual(expected.status);
+            expect(personalPath?.learningUnitInstances).toEqual(expected.learningUnitInstances);
+            expect(personalPath?.goals).toEqual(expected.goals);
+        });
+
+        it("should update the status of one learning unit instance and the personal path to IN_PROGRESS", async () => {
+            //This test case is dependent on the previous test case
+
+            // Act (update the status of the first unit to IN_PROGRESS)
+            await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                expectedUser2.id,
+                unit1.id,
+                STATUS.IN_PROGRESS,
+            );
+
+            console.log("Unit 1: ", unit1.id);
+
+            // Receive the list of all personal paths for the user
+            const personalPaths = await historyService.getPersonalizedPathsOfUser(expectedUser2.id);
+            const pathId = personalPaths.paths[0].personalizedPathId;
+            const personalPath = await historyService.getPersonalizedPath(pathId);
+
+            // Assert: Check the results (there should now be one personal path)
+            expect(personalPaths.paths).toHaveLength(1);
+            expect(personalPaths.paths[0].status).toEqual(STATUS.IN_PROGRESS); //Path status should be now be IN_PROGRESS (as at least one task is started)
+            expect(personalPath?.learningUnitInstances[0].status).toEqual(STATUS.IN_PROGRESS); //Unit 1 should be IN_PROGRESS
+            expect(personalPath?.learningUnitInstances[1].status).toEqual(STATUS.OPEN); //Unit 2 should be unchanged
+            expect(personalPath?.learningUnitInstances[2].status).toEqual(STATUS.OPEN); //Unit 3 should be unchanged
+        });
+
+        it("should update the status of one learning unit instance to FINISHED, but not the personal path", async () => {
+            //This test case is dependent on the previous test case
+
+            //Act (update the status of the first unit to FINISHED)
+            await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                expectedUser2.id,
+                unit1.id,
+                STATUS.FINISHED,
+            );
+
+            console.log("Unit 1 again: ", unit1.id);
+
+            // Receive the list of all personal paths for the user
+            const personalPaths = await historyService.getPersonalizedPathsOfUser(expectedUser2.id);
+            const pathId = personalPaths.paths[0].personalizedPathId;
+            const personalPath = await historyService.getPersonalizedPath(pathId);
+
+            // Assert: Check the results (there should now be status FINISHED in one unit, but the path should still be IN_PROGRESS)
+            expect(personalPaths.paths).toHaveLength(1);
+            expect(personalPaths.paths[0].status).toEqual(STATUS.IN_PROGRESS); //Path status should still be IN_PROGRESS (as not all tasks are finished)
+            expect(personalPath?.learningUnitInstances[0].status).toEqual(STATUS.FINISHED); //Unit 1 should be FINISHED
+            expect(personalPath?.learningUnitInstances[1].status).toEqual(STATUS.OPEN); //Unit 2 should be unchanged
+            expect(personalPath?.learningUnitInstances[2].status).toEqual(STATUS.OPEN); //Unit 3 should be unchanged
+        });
+
+        it("should update the status of all learning unit instances to FINISHED and the personal path to FINISHED", async () => {
+            //This test case is dependent on the previous test case
+
+            //Act (update the status of the second unit to FINISHED)
+            await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                expectedUser2.id,
+                unit2.id,
+                STATUS.FINISHED,
+            );
+
+            //Act (update the status of the third unit to FINISHED)
+            await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                expectedUser2.id,
+                unit3.id,
+                STATUS.FINISHED,
+            );
+
+            // Receive the list of all personal paths for the user
+            const personalPaths = await historyService.getPersonalizedPathsOfUser(expectedUser2.id);
+            const pathId = personalPaths.paths[0].personalizedPathId;
+            const personalPath = await historyService.getPersonalizedPath(pathId);
+
+            // Assert: Check the results (all units should now be FINISHED, and the path should be FINISHED)
+            expect(personalPaths.paths).toHaveLength(1);
+            expect(personalPaths.paths[0].status).toEqual(STATUS.FINISHED); //Path status should now be FINISHED (as all tasks are finished)
+            expect(personalPath?.learningUnitInstances[0].status).toEqual(STATUS.FINISHED); //Unit 1 should be FINISHED
+            expect(personalPath?.learningUnitInstances[1].status).toEqual(STATUS.FINISHED); //Unit 2 should be FINISHED
+            expect(personalPath?.learningUnitInstances[2].status).toEqual(STATUS.FINISHED); //Unit 3 should be FINISHED
+        });
+
+        it("should not update the status of a non existent learning unit instance", async () => {
+            //Act and assert: There should not be a success message returned
+            const result = await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                "non-existent",
+                unit1.id,
+                STATUS.FINISHED,
+            );
+            expect(result).toContain("No personalized path containing unit");
+        });
+
+        it("should not update the learning unit instance status of a non existent user", async () => {
+            //Act and assert: There should not be a success message returned
+            const result = await historyService.updateLearningUnitInstanceAndPersonalizedPathStatus(
+                "non-existent",
+                unit1.id,
+                STATUS.FINISHED,
+            );
+            expect(result).toContain("found for user:");
         });
     });
 });

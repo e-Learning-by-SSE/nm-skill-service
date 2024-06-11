@@ -10,7 +10,7 @@ import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exceptio
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 import { LIFECYCLE, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
-import { LearnedSkillDto, UserWithoutChildrenDto } from "../user/dto";
+import { UserWithoutChildrenDto } from "../user/dto";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 import { UnprocessableEntityException } from "@nestjs/common";
 
@@ -19,18 +19,17 @@ describe("Event Service", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const userService = new UserMgmtService(db);
-    const learningHistoryService = new LearningHistoryService(db, config);
     const learningUnitFactory = new LearningUnitFactory(db);
+    const learningHistoryService = new LearningHistoryService(db, learningUnitFactory);
     const learningUnitService = new LearningUnitMgmtService(learningUnitFactory);
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
     const eventService = new EventMgmtService(
         learningUnitService,
-        learningUnitFactory,
+        config,
         userService,
         learningHistoryService,
-        config,
     );
 
     // Wipe DB before each test
@@ -546,15 +545,16 @@ describe("Event Service", () => {
                 ),
             };
 
-            // Act: Call the getEvent method
-            const createdEntry = await eventService.getEvent(validMLSPostEvent);
+            // Act: Call the getEvent method (to teach the user the skills)
+            await eventService.getEvent(validMLSPostEvent);
+
+            const learnedSkills = await learningHistoryService.getLearnedSkillsOfUser(userID);
 
             // Assert: Check that the createdEntry is valid and matches the expected data
             // Here, we expect an array of learning progress DTOs
-            for (const entry of createdEntry as Array<LearnedSkillDto>) {
+            for (const entry of learnedSkills) {
                 //Skill id and user id should match the input
-                expect(entry.skillId).toEqual(skillID);
-                expect(entry.learningHistoryId).toEqual(userID);
+                expect(entry).toEqual(skillID);
             }
         });
 
@@ -596,14 +596,16 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            const createdEntry = await eventService.getEvent(validMLSPostEvent);
+            await eventService.getEvent(validMLSPostEvent);
+
+            //Get the learned skills
+            const learnedSkills = await learningHistoryService.getLearnedSkillsOfUser(userID);
 
             // Assert: Check that the createdEntry is valid and matches the expected data
             // Here, we expect an array of learning progress DTOs
-            for (const entry of createdEntry as Array<LearnedSkillDto>) {
+            for (const entry of learnedSkills) {
                 //Skill id and user id should match the input
-                expect(entry.skillId).toEqual(skillID);
-                expect(entry.learningHistoryId).toEqual(userID);
+                expect(entry).toEqual(skillID);
             }
         });
 
@@ -659,19 +661,17 @@ describe("Event Service", () => {
             };
 
             // Act: Call the getEvent method
-            const createdEntry = await eventService.getEvent(validMLSPostEvent);
+            await eventService.getEvent(validMLSPostEvent);
+
+            //Get the learned skills
+            const learnedSkills = await learningHistoryService.getLearnedSkillsOfUser(userID);
 
             // Assert: Check that the createdEntry is valid and matches the expected data
 
-            //For comparing the ids
-            let i = 0;
-
             // Here, we expect an array of learning progress DTOs
-            for (const entry of createdEntry as Array<LearnedSkillDto>) {
-                //Skill id and user id should match the input
-                expect(entry.skillId).toEqual(idArray[i]);
-                expect(entry.learningHistoryId).toEqual(userID);
-                i++;
+            for (const entry of learnedSkills) {
+                //Skill id and user id should match the input (the order of learnedSkills and idArray are different, so we cannot compare via index)
+                expect(idArray).toContain(entry);
             }
         });
     });

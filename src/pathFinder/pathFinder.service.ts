@@ -367,7 +367,7 @@ export class PathFinderService {
                 },
                 unitSequence: {
                     create: dto.units.map((unitId, index) => ({
-                        unitId: unitId,
+                        unitInstanceId: unitId,                     //Is this correct? Shouldn't it be unitId?
                         position: index,
                     })),
                 },
@@ -377,7 +377,7 @@ export class PathFinderService {
             include: {
                 unitSequence: {
                     include: {
-                        unit: true,
+                        unitInstance: true,
                     },
                     orderBy: {
                         position: "asc",
