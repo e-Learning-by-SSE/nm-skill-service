@@ -43,7 +43,7 @@ export class LearningProfileService {
      * @param dto A complete or partial learningProfile with the new values
      * @returns Success if successful, or an exception if the learningProfile does not exist
      */
-    async updateLearningProfile(dto: LearningProfileUpdateDto) {
+    async updateLearningProfile(learningProfileId: string, dto: LearningProfileUpdateDto) {
 
             //Check values again
             if (dto.semanticDensity && (dto.semanticDensity < 0 || dto.semanticDensity > 1)) {
@@ -59,7 +59,7 @@ export class LearningProfileService {
             try{
             //Update the learningProfile with the specified ID according to the DTO
             await this.db.learningProfile.update({
-                where: { userId: dto.id },
+                where: { userId: learningProfileId },
                 //Only update the fields contained in the DTO
                 data: {
                     semanticDensity: dto.semanticDensity || undefined,

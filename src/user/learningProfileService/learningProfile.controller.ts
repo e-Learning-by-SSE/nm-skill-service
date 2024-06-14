@@ -21,7 +21,7 @@ export class LearningProfileController {
 
     @Patch("{learning_profile_id}")
     patchLearningProfileByID(@Param("learning_profile_id") learningProfileId: string, @Body() dto: LearningProfileUpdateDto) {
-        this.learningProfileService.updateLearningProfile(dto);
+        this.learningProfileService.updateLearningProfile(learningProfileId, dto);
         return "Success";
     }
 }
