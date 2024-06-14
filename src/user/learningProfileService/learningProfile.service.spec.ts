@@ -59,7 +59,7 @@ describe("LearningProfileService", () => {
                 semanticDensity: 0.5,
             };
             // Act: Update the learningProfile
-            await learningProfileService.updateLearningProfile(updateDto);
+            await learningProfileService.updateLearningProfile(expectedUserId, updateDto);
 
             // Call the getLearningProfile method and receive the learning profile as DTO
             const updatedLearningProfile = await learningProfileService.getLearningProfileByID(
@@ -94,7 +94,7 @@ describe("LearningProfileService", () => {
             };
 
             //Act: Update the learningProfile
-            await learningProfileService.updateLearningProfile(updateDto);
+            await learningProfileService.updateLearningProfile(expectedUserId, updateDto);
 
             // Call the getLearningProfile method and receive the learning profile as DTO
             const updatedLearningProfile = await learningProfileService.getLearningProfileByID(
@@ -127,7 +127,7 @@ describe("LearningProfileService", () => {
             };
 
             // Act and Assert: Check if the user update was rejected correctly
-            await expect(learningProfileService.updateLearningProfile(updateDto)).rejects.toThrow();
+            await expect(learningProfileService.updateLearningProfile(nonExistentUserId, updateDto)).rejects.toThrow();
         });
 
         it("rejects to update a learningProfile with invalid values (density above 1)", async () => {
@@ -141,7 +141,7 @@ describe("LearningProfileService", () => {
             };
 
             // Act and Assert: Check if the user update was rejected correctly
-            await expect(learningProfileService.updateLearningProfile(updateDto)).rejects.toThrow();
+            await expect(learningProfileService.updateLearningProfile(expectedUserId, updateDto)).rejects.toThrow();
         });
 
         it("rejects to update a learningProfile with invalid values (density below 0)", async () => {
@@ -155,7 +155,7 @@ describe("LearningProfileService", () => {
             };
 
             // Act and Assert: Check if the user update was rejected correctly
-            await expect(learningProfileService.updateLearningProfile(updateDto)).rejects.toThrow();
+            await expect(learningProfileService.updateLearningProfile(expectedUserId, updateDto)).rejects.toThrow();
         });
 
         it("rejects to update a learningProfile with invalid values (gravity below 0)", async () => {
@@ -169,7 +169,7 @@ describe("LearningProfileService", () => {
             };
 
             // Act and Assert: Check if the user update was rejected correctly
-            await expect(learningProfileService.updateLearningProfile(updateDto)).rejects.toThrow();
+            await expect(learningProfileService.updateLearningProfile(expectedUserId, updateDto)).rejects.toThrow();
         });
 
         it("rejects to update a learningProfile with invalid values (gravity above 1)", async () => {
@@ -183,7 +183,7 @@ describe("LearningProfileService", () => {
             };
 
             // Act and Assert: Check if the user update was rejected correctly
-            await expect(learningProfileService.updateLearningProfile(updateDto)).rejects.toThrow();
+            await expect(learningProfileService.updateLearningProfile(expectedUserId, updateDto)).rejects.toThrow();
         });
 
         it("rejects to update a learningProfile with invalid values (negative processing time)", async () => {
@@ -197,7 +197,7 @@ describe("LearningProfileService", () => {
             };
 
             // Act and Assert: Check if the user update was rejected correctly
-            await expect(learningProfileService.updateLearningProfile(updateDto)).rejects.toThrow();
+            await expect(learningProfileService.updateLearningProfile(expectedUserId, updateDto)).rejects.toThrow();
         });
 
         it("rejects to update a learningProfile with invalid values (non integer processing time)", async () => {
@@ -211,7 +211,7 @@ describe("LearningProfileService", () => {
             };
 
             // Act and Assert: Check if the user update was rejected correctly
-            await expect(learningProfileService.updateLearningProfile(updateDto)).rejects.toThrow();
+            await expect(learningProfileService.updateLearningProfile(expectedUserId, updateDto)).rejects.toThrow();
         });
     });
 });
