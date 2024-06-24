@@ -27,7 +27,7 @@ export class CareerProfileController {
      * @param careerProfileId The career profile of the user with the same id
      * @returns The career profile DTO for the specified user / with the specified id
      */
-    @Get("career-profiles/{career_profile_id}")
+    @Get("career-profiles/:career_profile_id")
     getCareerProfileByID(@Param("career_profile_id") careerProfileId: string) {
         return this.careerService.getCareerProfileByID(careerProfileId);
     }
@@ -64,10 +64,7 @@ export class CareerProfileController {
      * @returns A success message if successful (there is no use case where we need the job object itself, so we don't return it)
      */
     @Patch("job_history/{job_id}")
-    patchJobHistoryAtCareerProfileByID(
-        @Param("job_id") jobId: string,
-        @Body() jobDto: JobDto,
-    ) {
+    patchJobHistoryAtCareerProfileByID(@Param("job_id") jobId: string, @Body() jobDto: JobDto) {
         return this.careerService.updateJobInCareerProfile(jobId, jobDto);
     }
 
@@ -77,9 +74,7 @@ export class CareerProfileController {
      * @returns A success message if successful (we cannot return the deleted object)
      */
     @Delete("job_history/{job_id}")
-    deleteJobHistoryAtCareerProfileByID(
-        @Param("job_id") jobId: string,
-    ) {
+    deleteJobHistoryAtCareerProfileByID(@Param("job_id") jobId: string) {
         return this.careerService.deleteJobFromHistoryInCareerProfile(jobId);
     }
 
@@ -117,9 +112,7 @@ export class CareerProfileController {
      * @returns A success message if successful (we cannot return the deleted object)
      */
     @Delete("qualifications/{qualification_id}")
-    deleteQualificationToCareerProfile(
-        @Param("qualification_id") qualificationId: string,
-    ) {
+    deleteQualificationToCareerProfile(@Param("qualification_id") qualificationId: string) {
         return this.careerService.deleteQualificationFromCareerProfile(qualificationId);
     }
 }

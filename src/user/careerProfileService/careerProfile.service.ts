@@ -23,12 +23,14 @@ export class CareerProfileService {
                 include: {
                     jobHistory: {
                         orderBy: {
-                          startTime: 'asc',
-                        }},
+                            startTime: "asc",
+                        },
+                    },
                     qualifications: {
                         orderBy: {
-                          date: 'asc',
-                        }},
+                            date: "asc",
+                        },
+                    },
                 },
             });
 
@@ -44,6 +46,7 @@ export class CareerProfileService {
      * @returns A career profile DTO for the specified user (and with the specified career profile id)
      */
     async getCareerProfileByID(careerProfileId: string) {
+        console.log("CareerProfileService::getCareerProfileByID");
         try {
             const careerProfile = await this.db.careerProfile.findUnique({
                 where: {
@@ -52,12 +55,14 @@ export class CareerProfileService {
                 include: {
                     jobHistory: {
                         orderBy: {
-                          startTime: 'asc',
-                        }},
+                            startTime: "asc",
+                        },
+                    },
                     qualifications: {
                         orderBy: {
-                          date: 'asc',
-                        }},
+                            date: "asc",
+                        },
+                    },
                 },
             });
 
