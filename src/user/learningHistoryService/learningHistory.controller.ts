@@ -8,11 +8,11 @@ import { STATUS } from "@prisma/client";
 export class LearningHistoryController {
     constructor(private learningHistoryService: LearningHistoryService) {}
 
-    /** 
-     * Returns the learned skills of a user (sorted descending by creation date) 
+    /**
+     * Returns the learned skills of a user (sorted descending by creation date)
      * @param userId The id of the user (and its learning history) whose learned skills are to be returned
-    */
-    @Get("{learning-history/history_id}/learned-skills")
+     */
+    @Get("learning-history/:history_id/learned-skills")
     getLearnedSkills(@Param("history_id") historyId: string) {
         return this.learningHistoryService.getLearnedSkillsOfUser(historyId);
     }
@@ -22,8 +22,8 @@ export class LearningHistoryController {
      * @param userId The id of the user (and its learning history) whose personalized paths are to be returned
      * @param status The status (OPEN/IN_PROGRESS/FINISHED) of the paths to be returned (optional)
      */
-    @Get("learning-history/{history_id}/personalized-paths")
-    getPersonalizedPaths(@Param("history_id") historyId: string, @Body("status") status: STATUS){
+    @Get("learning-history/:history_id/personalized-paths")
+    getPersonalizedPaths(@Param("history_id") historyId: string, @Body("status") status: STATUS) {
         return this.learningHistoryService.getPersonalizedPathsOfUser(historyId, status);
     }
 
@@ -31,9 +31,8 @@ export class LearningHistoryController {
      * Returns a personalized learning path.
      * @param pathId The id of the personalized learning path to be returned.
      */
-    @Get("personalized-paths/{path_id}")
-    getPersonalizedPath(@Param("history_id") historyId: string, @Param("path_id") pathId: string){
+    @Get("personalized-paths/:path_id")
+    getPersonalizedPath(@Param("path_id") pathId: string) {
         return this.learningHistoryService.getPersonalizedPath(pathId);
     }
-    
 }
