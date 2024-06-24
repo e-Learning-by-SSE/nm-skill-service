@@ -9,7 +9,7 @@ import {
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { LIFECYCLE, Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
-import { LearningUnit } from "../../nm-skill-lib/src";
+import { LearningUnit, And, Variable } from "../../nm-skill-lib/src";
 import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";
 
 /**
@@ -259,7 +259,9 @@ export class LearningUnitFactory {
 
         const results: LearningUnit[] = learningUnits.map((lu) => ({
             id: lu.id,
-            requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
+            requiredSkills: new And(
+                lu.requirements.map((skill) => new Variable(SkillDto.createFromDao(skill))),
+            ),
             teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
             suggestedSkills: lu.orderings
                 .flatMap((ordering) => ordering.suggestedSkills)

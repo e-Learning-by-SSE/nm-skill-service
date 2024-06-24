@@ -9,7 +9,7 @@ import {
     LearningPathListDto,
     UpdatePathRequestDto,
 } from "./dto";
-import { LearningUnit, getPath } from "../../nm-skill-lib/src";
+import { LearningUnit, getPath, Variable, And } from "../../nm-skill-lib/src";
 import { SkillDto } from "../skills/dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LIFECYCLE, Skill, SkillMap, LearningUnit as PrismaLearningUnit } from "@prisma/client";
@@ -890,7 +890,10 @@ async function findAll_internal(db: PrismaService) {
 async function findAll(db: PrismaService) {
     const results: LearningUnit[] = (await findAll_internal(db)).map((lu) => ({
         id: lu.id,
-        requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
+        // requiredSkills: lu.requirements.map((skill) => SkillDto.createFromDao(skill)),
+        requiredSkills: new And(
+            lu.requirements.map((skill) => new Variable(SkillDto.createFromDao(skill))),
+        ),
         teachingGoals: lu.teachingGoals.map((skill) => SkillDto.createFromDao(skill)),
         suggestedSkills: lu.orderings
             .flatMap((ordering) => ordering.suggestedSkills)

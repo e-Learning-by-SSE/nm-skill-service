@@ -231,7 +231,7 @@ export class LearningPathMgmtService {
             unit.teachingGoals.forEach((goal) => {
                 usedSkills.add(goal);
             });
-            unit.requiredSkills.forEach((requirement) => {
+            unit.requiredSkills.extractSkills().forEach((requirement) => {
                 usedSkills.add(requirement);
             });
             unit.suggestedSkills

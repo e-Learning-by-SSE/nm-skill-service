@@ -109,7 +109,9 @@ export class PathFinderService {
         if (path.cost == -1) {
             throw new NotFoundException(
                 `Could not compute a path for the specified goal: ${dto.goal}`,
-                `Missing skills are : ${path.path[0].requiredSkills.map((lu) => lu.id)}`,
+                `Missing skills are : ${path.path[0].requiredSkills
+                    .extractSkills()
+                    .map((lu) => lu.id)}`,
             );
         }
 
@@ -367,7 +369,7 @@ export class PathFinderService {
                 },
                 unitSequence: {
                     create: dto.units.map((unitId, index) => ({
-                        unitInstanceId: unitId,                     //Is this correct? Shouldn't it be unitId?
+                        unitInstanceId: unitId, //Is this correct? Shouldn't it be unitId?
                         position: index,
                     })),
                 },
