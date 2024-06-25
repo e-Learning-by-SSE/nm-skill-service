@@ -20,6 +20,7 @@ import {
 } from "./dto";
 import { Skill, SkillMap } from "@prisma/client";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
+import { de } from "@faker-js/faker";
 
 type SkillWithChildren = Skill & { nestedSkills: { id: string }[] };
 
@@ -216,8 +217,8 @@ describe("Skill Controller Tests", () => {
         });
     });
 
-    describe("/create", () => {
-        it("Create Skill without conflict", () => {
+    describe("POST:/skill-repositories/create", () => {
+        it("Create Skill-Repository without conflict -> 201", () => {
             // Create DTO
             const input: SkillRepositoryCreationDto = {
                 name: "New Skill Map",
@@ -242,6 +243,129 @@ describe("Skill Controller Tests", () => {
                 .expect((res) => {
                     expect(res.body).toMatchObject(expect.objectContaining(expectedObject));
                 });
+        });
+    });
+
+    describe("POST:/skill-repositories/{repositoryId}/skill/add_skill", () => {
+        it("New Skill; No nested; Existing repository; No conflict -> 201", () => {
+            // Creation DTO
+            const input: SkillCreationDto = {
+                name: "New Skill",
+                description: "This is a new skill",
+                level: 1,
+                nestedSkills: [],
+                owner: skillMap1.ownerId,
+            };
+
+            // Expected result
+            const expectedObject: SkillDto = {
+                ...input,
+                id: expect.any(String),
+                nestedSkills: [],
+                parentSkills: [],
+                repositoryId: skillMap1.id,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            };
+            delete (expectedObject as any).owner;
+
+            // Test: Create Skill
+            return request(app.getHttpServer())
+                .post(`/skill-repositories/${skillMap1.id}/skill/add_skill`)
+                .send(input)
+                .expect(201)
+                .expect((res) => {
+                    expect(res.body).toMatchObject(expectedObject);
+                });
+        });
+
+        it("New Skill; With nested; Existing repository; No conflict -> 201", () => {
+            // Creation DTO
+            const input: SkillCreationDto = {
+                name: "New Skill",
+                description: "This is a new skill",
+                level: 1,
+                nestedSkills: [skill2.id],
+                owner: skillMap1.ownerId,
+            };
+
+            // Expected result
+            const expectedObject: SkillDto = {
+                ...input,
+                id: expect.any(String),
+                nestedSkills: [skill2.id],
+                parentSkills: [],
+                repositoryId: skillMap1.id,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            };
+            delete (expectedObject as any).owner;
+
+            // Test: Create Skill
+            return request(app.getHttpServer())
+                .post(`/skill-repositories/${skillMap1.id}/skill/add_skill`)
+                .send(input)
+                .expect(201)
+                .expect((res) => {
+                    expect(res.body).toMatchObject(expectedObject);
+                });
+        });
+
+        it("New Skill; No nested; Non-existing repository; No conflict -> 404 (Repository not found)", () => {
+            // Creation DTO
+            const input: SkillCreationDto = {
+                name: "New Skill",
+                description: "This is a new skill",
+                level: 1,
+                nestedSkills: [],
+                owner: skillMap1.ownerId,
+            };
+
+            // Expected result
+            const expectedObject: SkillDto = {
+                ...input,
+                id: expect.any(String),
+                parentSkills: [],
+                repositoryId: skillMap1.id,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            };
+            delete (expectedObject as any).owner;
+
+            // Test: Create Skill
+            return request(app.getHttpServer())
+                .post(`/skill-repositories/A-non-existing-repository/skill/add_skill`)
+                .send(input)
+                .expect(404);
+        });
+
+        it("New Skill; No nested; Existing repository; Wrong owner -> 403 (forbidden)", () => {
+            // Creation DTO
+            const input: SkillCreationDto = {
+                name: "New Skill",
+                description: "This is a new skill",
+                level: 1,
+                nestedSkills: [skill2.id],
+                owner: skillMap1.ownerId,
+            };
+
+            // Expected result
+            const expectedObject: SkillDto = {
+                ...input,
+                id: expect.any(String),
+                nestedSkills: [skill2.id],
+                parentSkills: [],
+                repositoryId: skillMap1.id,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            };
+            delete (expectedObject as any).owner;
+
+            // Test: Create Skill
+            return request(app.getHttpServer())
+                .post(`/skill-repositories/${skillMap3.id}/skill/add_skill`)
+                .send(input)
+                .expect(403);
         });
     });
 

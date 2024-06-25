@@ -1,4 +1,4 @@
-import { LIFECYCLE, Prisma, PrismaClient } from "@prisma/client";
+import { LIFECYCLE, Prisma, PrismaClient, USERSTATUS } from "@prisma/client";
 import { createLearningObjects } from "./seed_functions";
 
 const prisma = new PrismaClient();
@@ -1811,10 +1811,13 @@ export async function digimediaSeed(): Promise<void> {
     console.log(" - %s\x1b[32m ✔\x1b[0m", "Skills");
     await createSkillGroups();
     console.log(" - %s\x1b[32m ✔\x1b[0m", "SkillGroups");
-    // await createLearningObjects(learningObjectives);
-    // console.log(" - %s\x1b[32m ✔\x1b[0m", "Learning Objects");
-    // await createGoals();
-    // console.log(" - %s\x1b[32m ✔\x1b[0m", "Goals");
+
+    await createLearningObjects(learningObjectives);
+    console.log(" - %s\x1b[32m ✔\x1b[0m", "Learning Objects");
+    await createGoals();
+    console.log(" - %s\x1b[32m ✔\x1b[0m", "Goals");
+    await createUsers(["1"]);
+    console.log(" - %s\x1b[32m ✔\x1b[0m", "Users");
 }
 
 async function createRepositories() {
@@ -1885,6 +1888,22 @@ async function createGoals() {
                 pathTeachingGoals: {
                     connect: goal.goals.map((i) => ({ id: i })),
                 },
+            },
+        });
+    }
+}
+
+async function createUsers(ids: string[]) {
+    for (const id of ids) {
+        await prisma.userProfile.create({
+            data: {
+                id: id,
+                status: USERSTATUS.ACTIVE, //New users start active
+
+                //Create the respective objects with their default values. Their id is the userId.
+                learningHistory: { create: {} },
+                careerProfile: { create: {} },
+                learningProfile: { create: {} },
             },
         });
     }
