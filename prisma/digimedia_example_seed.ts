@@ -1812,12 +1812,12 @@ export async function digimediaSeed(): Promise<void> {
     await createSkillGroups();
     console.log(" - %s\x1b[32m ✔\x1b[0m", "SkillGroups");
 
-    await createLearningObjects(learningObjectives);
-    console.log(" - %s\x1b[32m ✔\x1b[0m", "Learning Objects");
-    await createGoals();
-    console.log(" - %s\x1b[32m ✔\x1b[0m", "Goals");
-    await createUsers(["1"]);
-    console.log(" - %s\x1b[32m ✔\x1b[0m", "Users");
+    // await createLearningObjects(learningObjectives);
+    // console.log(" - %s\x1b[32m ✔\x1b[0m", "Learning Objects");
+    // await createGoals();
+    // console.log(" - %s\x1b[32m ✔\x1b[0m", "Goals");
+    // await createUsers(["1"]);
+    // console.log(" - %s\x1b[32m ✔\x1b[0m", "Users");
 }
 
 async function createRepositories() {
