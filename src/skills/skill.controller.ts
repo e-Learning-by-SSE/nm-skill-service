@@ -88,7 +88,7 @@ export class SkillMgmtController {
     /**
      * Lists all skills matching given attributes.
      * @param dto Search attributes
-     * @returns List of all skills matching given attributes.
+     * @returns List of all skills matching given attributes (may be empty).
      */
     @Post("findSkills")
     findSkills(@Body() dto: SkillSearchDto) {

@@ -264,6 +264,8 @@ export class SkillMgmtService {
             query.skip = page * pageSize;
             query.take = pageSize;
         }
+
+        // Search for Skills with provided query
         const skills = await this.db.skill.findMany({
             ...query,
             include: {
@@ -281,19 +283,8 @@ export class SkillMgmtService {
             },
         });
 
-        if (!skills) {
-            throw new NotFoundException("Can not find any skills");
-        }
-
-        // Resolve nested skills if there are any
         const skillList = new SkillListDto();
-        for (const skill of skills) {
-            const child = SkillDto.createFromDao(skill);
-            // Add nested skills
-            child.nestedSkills = skill.nestedSkills.map((c) => c.id);
-
-            skillList.skills.push(child);
-        }
+        skillList.skills = skills.map((skill) => SkillDto.createFromDao(skill));
 
         return skillList;
     }

@@ -20,7 +20,6 @@ import {
 } from "./dto";
 import { Skill, SkillMap } from "@prisma/client";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
-import { de } from "@faker-js/faker";
 
 type SkillWithChildren = Skill & { nestedSkills: { id: string }[] };
 
@@ -468,6 +467,27 @@ describe("Skill Controller Tests", () => {
                 .expect((res) => {
                     const result = res.body as SkillListDto;
                     expect(result.skills.length).toBe(2);
+                });
+        });
+
+        it("Search for Skills by non-existent name -> 404", () => {
+            // Search DTO
+            const input: SkillSearchDto = {
+                name: "UnusedName",
+            };
+
+            // Expected result
+            const emptyList: SkillListDto = {
+                skills: [],
+            };
+
+            // Test: Search for Skills
+            return request(app.getHttpServer())
+                .post("/skill-repositories/findSkills")
+                .send(input)
+                .expect(201)
+                .expect((res) => {
+                    expect(res.body).toMatchObject(expect.objectContaining(emptyList));
                 });
         });
     });
