@@ -5,13 +5,11 @@ import {
     IsEnum,
     IsNotEmpty,
     IsNumber,
+    IsOptional,
+    IsString,
     IsUrl,
     Max,
     Min,
-    isNotEmpty,
-    isNumber,
-    isURL,
-    max,
     validateSync,
 } from "class-validator";
 
@@ -101,6 +99,10 @@ export class EnvironmentVariables {
     @IsNotEmpty()
     @Min(1)
     BERUFENET_TIMEOUT: number = 120000;
+
+    @IsString()
+    @IsOptional()
+    MAX_PAYLOAD: string;
 }
 
 export function validate(config: Record<string, unknown>) {

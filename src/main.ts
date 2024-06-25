@@ -5,6 +5,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { LIB_VERSION } from "./version";
+import { urlencoded, json } from "express";
 
 declare global {
     var USE_SEARCH: boolean;
@@ -30,8 +31,14 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup("api", app, document);
 
-    const port = app.get(ConfigService).get("APP_PORT") ?? 3000;
     app.enableCors({ exposedHeaders: "x-total-count" });
+
+    // Increase Payload limit based on: https://stackoverflow.com/a/59978098
+    const payloadLimit = app.get(ConfigService).get("MAX_PAYLOAD") ?? "5mb";
+    app.use(json({ limit: payloadLimit }));
+    app.use(urlencoded({ extended: true, limit: payloadLimit }));
+
+    const port = app.get(ConfigService).get("APP_PORT") ?? 3000;
     console.log(`Starting application on ${port}...`);
     await app.listen(port);
 }
