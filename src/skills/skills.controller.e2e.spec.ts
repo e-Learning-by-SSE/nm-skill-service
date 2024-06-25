@@ -403,7 +403,7 @@ describe("Skill Controller Tests", () => {
         });
     });
 
-    describe("/findSkills", () => {
+    describe("POST:/findSkills", () => {
         it("Search for Skills of not existing Skill Map -> Empty list", () => {
             // Search DTO
             const input: SkillSearchDto = {
@@ -450,6 +450,24 @@ describe("Skill Controller Tests", () => {
                 .expect(201)
                 .expect((res) => {
                     expect(res.body).toMatchObject(expect.objectContaining(resultList));
+                });
+        });
+
+        it("Pagination", () => {
+            // Search DTO
+            const input: SkillSearchDto = {
+                page: 0,
+                pageSize: 2,
+            };
+
+            // Test: Search for Skills (only 2 of 4 Skills should be returned)
+            return request(app.getHttpServer())
+                .post("/skill-repositories/findSkills")
+                .send(input)
+                .expect(201)
+                .expect((res) => {
+                    const result = res.body as SkillListDto;
+                    expect(result.skills.length).toBe(2);
                 });
         });
     });

@@ -260,7 +260,7 @@ export class SkillMgmtService {
                 pageSize = pageSize ?? 10;
             }
         }
-        if (page && page >= 0 && pageSize && pageSize > 0) {
+        if (page != null && page >= 0 && pageSize != null && pageSize > 0) {
             query.skip = page * pageSize;
             query.take = pageSize;
         }
