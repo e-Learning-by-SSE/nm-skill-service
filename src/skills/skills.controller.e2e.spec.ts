@@ -16,10 +16,12 @@ import {
     SkillRepositoryDto,
     SkillRepositoryListDto,
     SkillRepositorySearchDto,
+    SkillRepositoryUpdateDto,
     SkillSearchDto,
 } from "./dto";
 import { Skill, SkillMap } from "@prisma/client";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
+import { create } from "domain";
 
 type SkillWithChildren = Skill & { nestedSkills: { id: string }[] };
 
@@ -493,31 +495,6 @@ describe("Skill Controller Tests", () => {
     });
 
     describe("/resolve", () => {
-        //     describe(":repositoryId", () => {
-        //         it("Resolve Skill Map with Skills & Nested Skill", () => {
-        //             // Expected result
-        //             const expectedObject = ResolvedSkillRepositoryDto.createFromDao(skillMapWithSkills);
-        //             expectedObject.skills = [
-        //                 {
-        //                     ...ResolvedSkillDto.createFromDao(skill2),
-        //                     nestedSkills: [ResolvedSkillDto.createFromDao(nestedSkill1)],
-        //                 },
-        //                 ResolvedSkillDto.createFromDao(skill3),
-        //             ].sort((a, b) => a.id.localeCompare(b.id));
-        //             delete expectedObject.description;
-
-        //             // Test: Resolve Skill Map
-        //             return request(app.getHttpServer())
-        //                 .get(`/skill-repositories/resolve/${skillMapWithSkills.id}`)
-        //                 .expect(200)
-        //                 .expect((res) => {
-        //                     const result = res.body as ResolvedSkillRepositoryDto;
-        //                     result.skills.sort((a, b) => a.id.localeCompare(b.id));
-        //                     expect(result).toMatchObject(expectedObject);
-        //                 });
-        //         });
-        //     });
-
         describe("/findSkills", () => {
             it("Search for Skills by Name", () => {
                 // Search DTO
@@ -667,6 +644,62 @@ describe("Skill Controller Tests", () => {
                         }),
                     );
                 });
+        });
+    });
+
+    describe("PATCH:/skill-repositories/{repositoryId}", () => {
+        it("Update Skill Map -> success", () => {
+            // Update DTO
+            const input: SkillRepositoryUpdateDto = {
+                name: "Updated Skill Map",
+                description: "This is an updated skill map",
+                version: "2.0.1",
+            };
+
+            // Expected result
+            const expectedObject = {
+                ...skillMap3,
+                ...input,
+                skills: [skill1.id],
+            };
+            delete (expectedObject as any).ownerId;
+            delete (expectedObject as any).createdAt;
+            delete (expectedObject as any).updatedAt;
+
+            // Test: Update Skill Map
+            return request(app.getHttpServer())
+                .patch(`/skill-repositories/${skillMap3.id}`)
+                .send(input)
+                .expect(200)
+                .expect((res) => {
+                    expect(res.body).toMatchObject(expectedObject);
+                });
+        });
+    });
+
+    describe("DELETE:/skill-repositories/{repositoryId}", () => {
+        it("Delete existing non-empty Skill Map -> success", () => {
+            // Expected result
+            const expectedObject = {
+                ...skillMap3,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            };
+
+            // Test: Update Skill Map
+            return request(app.getHttpServer())
+                .delete(`/skill-repositories/${skillMap3.id}`)
+                .expect(200)
+                .expect((res) => {
+                    expect(res.body).toMatchObject(expectedObject);
+                });
+        });
+
+        it("Delete non-existing Skill Map -> 404", () => {
+            // Test: Update Skill Map
+            return request(app.getHttpServer())
+                .delete(`/skill-repositories/a-non-existing-id`)
+                .expect(404);
         });
     });
 
