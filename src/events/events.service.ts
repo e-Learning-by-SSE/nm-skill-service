@@ -49,6 +49,11 @@ export class EventMgmtService {
         switch (mlsEvent.entityType) {
             //MLS tasks are called learning units in this system
             case MlsActionEntity.Task: {
+                LoggerUtil.logInfo("EventService::Task", {
+                    id: mlsEvent.id,
+                    method: mlsEvent.method,
+                });
+
                 //Create a partly empty learning unit with the provided data from MLS (when a task is created in MLS)
                 if (mlsEvent.method === MlsActionType.POST) {
                     const learningUnit = this.learningUnitService.createLearningUnit(
@@ -135,6 +140,11 @@ export class EventMgmtService {
 
             //MLS users are only available as user profiles in this system
             case MlsActionEntity.User: {
+                LoggerUtil.logInfo("EventService::User", {
+                    id: mlsEvent.id,
+                    method: mlsEvent.method,
+                });
+
                 //Create a new empty user profile when a user is created in the MLS system
                 if (mlsEvent.method === MlsActionType.POST) {
                     //Create DTO
@@ -246,7 +256,11 @@ export class EventMgmtService {
             // We need to listen to taskTodoInfo PUT events, as the change of the status to FINISHED is happening only there
             // We get a payload for the taskTodoInfo, and a taskTodoPayload for the payload of the taskTodo object (due to MLS implementation constraints)
             case MlsActionEntity.TaskToDoInfo: {
-                LoggerUtil.logInfo("EventService::TaskToDoInfoEvent", mlsEvent.id);
+                LoggerUtil.logInfo("EventService::TaskToDoInfo", {
+                    id: mlsEvent.id,
+                    method: mlsEvent.method,
+                });
+
                 // When a TaskTodoInfo is updated in the MLS system, update our user profile accordingly
                 if (mlsEvent.method === MlsActionType.PUT) {
                     LoggerUtil.logInfo("EventService::getTaskToDoInfoPUT", mlsEvent.id);
