@@ -580,4 +580,27 @@ describe("Skill Controller Tests", () => {
                 .expect(404);
         });
     });
+
+    describe("DELETE:/skill-repositories/skill/deleteWithCheck/{skillId}", () => {
+        it("Delete unused Skill -> success", () => {
+            return request(app.getHttpServer())
+                .delete(`/skill-repositories/skill/deleteWithCheck/${skill1.id}`)
+                .expect(200);
+        });
+
+        it("Delete used Skill -> success", async () => {
+            await dbUtils.createLearningPath("A-owner", [nestedSkill1]);
+
+            // Skill2 is parent of used skill
+            return request(app.getHttpServer())
+                .delete(`/skill-repositories/skill/deleteWithCheck/${skill2.id}`)
+                .expect(400);
+        });
+
+        it("Delete non-existing Skill -> 404", () => {
+            return request(app.getHttpServer())
+                .delete("/skill-repositories/skill/deleteWithCheck/a::non::existing::id")
+                .expect(404);
+        });
+    });
 });

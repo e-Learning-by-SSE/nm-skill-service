@@ -4,8 +4,8 @@ import {
     Injectable,
     NotFoundException,
 } from "@nestjs/common";
-import { Prisma, Skill } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { Prisma, PrismaClient, Skill } from "@prisma/client";
+import { DefaultArgs, PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { PrismaService } from "../prisma/prisma.service";
 import {
     SkillCreationDto,
@@ -351,40 +351,75 @@ export class SkillMgmtService {
         return skillList;
     }
 
+    /**
+     * Deletes a skill but checks if it (or one of its children) is already used (e.g., in a learning unit).
+     * If not used, it will delete the skill and all of its children.
+     * @param skillId The skill to be deleted
+     * @throws {BadRequestException} If the skill is already used in a learning unit
+     */
     async deleteSkillWithCheck(skillId: string): Promise<void> {
-        // Check if the skill is already in use
-
-        const isUsed = await this.isSkillUsed([skillId]);
-        if (isUsed) {
-            throw new BadRequestException("Skill is already used and cannot be deleted.");
-        }
-
-        // Retrieve all children of this skill
-        const childSkills = await this.getChildSkills(skillId);
-        let childIsUsed = false;
-        // Check if any Child is used i a Learning Unit
-        for (const childSkill of childSkills) {
-            if (await this.isSkillUsed([childSkill.id])) {
-                childIsUsed = true;
+        await this.db.$transaction(async (tx) => {
+            // Check if specified skill exists
+            const skill = await tx.skill.findUnique({
+                where: { id: skillId },
+            });
+            if (!skill) {
+                throw new NotFoundException(`Specified skill not found: ${skillId}`);
             }
-        }
-        if (childIsUsed) {
-            throw new BadRequestException("Child of Skill is already used and cannot be deleted.");
-        }
-        // Recursively delete children
-        for (const childSkill of childSkills) {
-            await this.deleteSkillRecursive(childSkill.id);
-        }
 
-        // Delete the current skill
-        await this.db.skill.delete({
-            where: { id: skillId },
+            // Check if the skill is already in use
+            const isUsed = await this.isSkillUsed([skillId], tx);
+            if (isUsed) {
+                throw new BadRequestException("Skill is already used and cannot be deleted.");
+            }
+
+            // Check if any Child is used i a Learning Unit
+            const childSkills = await this.getChildSkills(skillId, tx);
+            const alreadyChecked = new Set<string>([skillId]);
+            let childIsUsed = false;
+            for (const childSkill of childSkills) {
+                alreadyChecked.add(childSkill.id);
+                if (await this.isSkillUsed([childSkill.id], tx)) {
+                    childIsUsed = true;
+                } else {
+                    // Recursively check children of the child
+                    const grandChildren = await this.getChildSkills(childSkill.id, tx);
+                    grandChildren
+                        .filter((child) => !alreadyChecked.has(child.id))
+                        .forEach((child) => {
+                            childSkills.push(child);
+                        });
+                }
+            }
+            if (childIsUsed) {
+                throw new BadRequestException(
+                    "Child of Skill is already used and cannot be deleted.",
+                );
+            }
+
+            // Recursively delete skill and its (grand)children
+            await this.deleteSkillRecursive(skillId);
         });
     }
 
-    public async isSkillUsed(skillId: string[]): Promise<boolean> {
+    /**
+     * Checks if a skill is already be used in a LearningUnit or a LearningPath,
+     * e.g., before deletion or altering.
+     * @param skillId The skill to check (won't be applied recursively)
+     * @param prisma Optional `transaction instance` to be used for the check
+     * @returns `true` if the skill is used, `false` otherwise
+     */
+    public async isSkillUsed(
+        skillId: string[],
+        prisma?: Omit<
+            PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+            "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+        >,
+    ): Promise<boolean> {
+        const db = prisma || this.db;
+
         // Check if the skill is used in learning units
-        const learningUnits = await this.db.learningUnit.findMany({
+        const learningUnits = await db.learningUnit.findMany({
             where: {
                 OR: [
                     { requirements: { some: { id: { in: skillId } } } },
@@ -392,24 +427,68 @@ export class SkillMgmtService {
                 ],
             },
         });
-        return learningUnits.length > 0;
+
+        // Check is the skill is used in learning paths
+        if (learningUnits.length == 0) {
+            const paths = await db.learningPath.findMany({
+                where: {
+                    OR: [
+                        { requirements: { some: { id: { in: skillId } } } },
+                        { pathTeachingGoals: { some: { id: { in: skillId } } } },
+                    ],
+                },
+            });
+
+            return paths.length > 0;
+        }
+
+        // Used in learning units
+        return true;
     }
 
-    public async getChildSkills(parentSkillId: string): Promise<Skill[]> {
+    /**
+     * Returns all direct children of the specified skill.
+     * Won't work recursively.
+     * @param parentSkillId The skill for which the children should be returned.
+     * @param prisma Optional `transaction instance` to be used for the check
+     * @returns All direct children of the specified skill, may be empty
+     */
+    public async getChildSkills(
+        parentSkillId: string,
+        prisma?: Omit<
+            PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+            "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+        >,
+    ): Promise<Skill[]> {
+        const db = prisma || this.db;
+
         // Query to retrieve children of the skill
-        return await this.db.skill.findMany({
+        return await db.skill.findMany({
             where: { parentSkills: { some: { id: parentSkillId } } },
         });
     }
 
-    public async deleteSkillRecursive(skillId: string): Promise<void> {
-        const childSkills = await this.getChildSkills(skillId);
+    /**
+     * Deletes first all children recursively, before deleting the specified skill.
+     * @param skillId The skill (and all of its (grand) children) to be deleted
+     * @param prisma Optional `transaction instance` to be used for the deletion
+     */
+    public async deleteSkillRecursive(
+        skillId: string,
+        prisma?: Omit<
+            PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+            "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+        >,
+    ): Promise<void> {
+        const db = prisma || this.db;
+
+        const childSkills = await this.getChildSkills(skillId, db);
 
         for (const childSkill of childSkills) {
-            await this.deleteSkillRecursive(childSkill.id);
+            await this.deleteSkillRecursive(childSkill.id, db);
         }
 
-        await this.db.skill.delete({
+        await db.skill.delete({
             where: { id: skillId },
         });
     }
