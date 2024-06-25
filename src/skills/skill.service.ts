@@ -86,7 +86,7 @@ export class SkillMgmtService {
 
         // Create and return skill
         try {
-            const nestedSkills = dto.nestedSkills || [];
+            const nestedSkills = dto.nestedSkills;
             const skill = await this.db.skill.create({
                 data: {
                     repositoryId: skillRepositoryId,
