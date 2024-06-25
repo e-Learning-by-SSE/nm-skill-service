@@ -298,6 +298,14 @@ export class SkillMgmtController {
             throw error;
         }
     }
+
+    /**
+     * Deletes a skill without checking if it is already used (e.g., in a learning unit).
+     * **Warning:** This method may lead to data inconsistency if the skill is already used.
+     * Please use `deleteWithCheck` instead.
+     * @param skillId The skill to be deleted
+     * @returns The deleted skill or `404` if the skill does not exist
+     */
     @Delete("/skill/deleteWithoutCheck/:skillId")
     async deleteSkillWithoutCheck(@Param("skillId") skillId: string) {
         try {

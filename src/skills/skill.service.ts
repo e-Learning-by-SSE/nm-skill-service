@@ -56,21 +56,19 @@ export class SkillMgmtService {
      * @returns {SkillListDto} A SkillListDto containing the complete list of skills.
      * @throws {NotFoundException} If no skills are found in the database.
      */
-    async loadAllSkills() {
+    async loadAllSkills(): Promise<SkillListDto> {
         // Retrieve skills from the database, including nestedSkills and parentSkills
-
         const skills = await this.db.skill.findMany({
             include: INCLUDE_CHILDREN_AND_PARENTS,
         });
+
         // Check if no skills were found, and throw an exception if so
         if (skills.length == 0) {
             throw new NotFoundException("Can not find any skills");
         }
-        // Create a SkillListDto instance to store the list of skills
+
+        // Create a SkillListDto instance and store the list of skills
         const skillList = new SkillListDto();
-
-        // Map the retrieved skills to SkillDto objects and include nestedSkills and parentSkills
-
         skillList.skills = skills.map((skill) => SkillDto.createFromDao(skill));
 
         // Return the skillList containing the skills hierarchy
@@ -166,19 +164,32 @@ export class SkillMgmtService {
 
         return this.loadNestedSkill(dao);
     }
+
+    /**
+     * Deletes a skill without checking if it is already used (e.g., in a learning unit).
+     * **Warning:** This method may lead to data inconsistency if the skill is already used.
+     * Please use `deleteSkillWithCheck` instead.
+     * @param skillId The skill to be deleted
+     * @returns The deleted skill or `NotFoundException` if the skill does not exist
+     */
     public async deleteSkillWithoutCheck(skillId: string) {
-        const dao = await this.db.skill.delete({
-            where: {
-                id: skillId,
-            },
-        });
-
-        if (!dao) {
-            throw new NotFoundException(`Specified skill not found: ${skillId}`);
+        try {
+            return await this.db.skill.delete({
+                where: {
+                    id: skillId,
+                },
+            });
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                // unique field already exists
+                if (error.code === "P2025") {
+                    throw new NotFoundException(`Specified skill not found: ${skillId}`);
+                }
+            }
+            throw error;
         }
-
-        return dao;
     }
+
     /**
      * Recursive function to resolve nested sills.
      *

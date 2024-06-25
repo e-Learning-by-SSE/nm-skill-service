@@ -21,18 +21,15 @@ import {
 import { Skill, SkillMap } from "@prisma/client";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
 
+type SkillWithChildren = Skill & { nestedSkills: { id: string }[] };
+
 describe("Skill Controller Tests", () => {
     let app: INestApplication;
     const dbUtils = DbTestUtils.getInstance();
 
     // Test data
-    let skillMap1: SkillMap;
-    let skillMap2: SkillMap;
-    let skillMap3: SkillMap;
-    let skillMapWithSkills: SkillMap;
-    let skill2: Skill & { nestedSkills: { id: string }[] };
-    let skill3: Skill & { nestedSkills: { id: string }[] };
-    let nestedSkill1: Skill & { nestedSkills: { id: string }[] };
+    let [skillMap1, skillMap2, skillMap3, skillMapWithSkills]: SkillMap[] = [];
+    let [skill1, skill2, skill3, nestedSkill1]: SkillWithChildren[] = [];
 
     /**
      * Initializes (relevant parts of) the application before the first test.
@@ -66,7 +63,7 @@ describe("Skill Controller Tests", () => {
             "Another awesome map by a different user",
         );
         skillMapWithSkills = await dbUtils.createSkillMap("User-3", "A skill map with skills");
-        await dbUtils.createSkill(skillMap3, "Item of Map 3");
+        skill1 = await dbUtils.createSkill(skillMap3, "Item of Map 3");
         skill2 = await dbUtils.createSkill(
             skillMapWithSkills,
             "Awesome Skill",
@@ -85,6 +82,33 @@ describe("Skill Controller Tests", () => {
             [skill2.id],
             "A description for nested skill 1",
         );
+    });
+
+    describe("GET:/getAllSkills", () => {
+        it("Get all skills -> All skills returned; 200", () => {
+            // Expected result
+            const expectedObject: SkillListDto = {
+                skills: [
+                    SkillDto.createFromDao(skill1),
+                    SkillDto.createFromDao(skill2),
+                    SkillDto.createFromDao(skill3),
+                    SkillDto.createFromDao(nestedSkill1),
+                ],
+            };
+
+            return request(app.getHttpServer())
+                .get("/skill-repositories/getAllSkills")
+                .expect(200)
+                .expect((res) => {
+                    dbUtils.assert(res.body, expectedObject);
+                });
+        });
+
+        it("Empty DB -> 404", async () => {
+            await dbUtils.wipeDb();
+
+            return request(app.getHttpServer()).get("/skill-repositories/getAllSkills").expect(404);
+        });
     });
 
     describe("/skill-repositories", () => {
@@ -512,6 +536,48 @@ describe("Skill Controller Tests", () => {
                 .expect((res) => {
                     dbUtils.assert(res.body, expectedObject);
                 });
+        });
+    });
+
+    describe("DELETE:/skill-repositories/skill/deleteWithoutCheck/{skillId}", () => {
+        it("Delete unused Skill -> success", () => {
+            const expectedObject: any = {
+                ...skill1,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            };
+            delete expectedObject.nestedSkills;
+
+            return request(app.getHttpServer())
+                .delete(`/skill-repositories/skill/deleteWithoutCheck/${skill1.id}`)
+                .expect(200)
+                .expect((res) => {
+                    expect(res.body).toMatchObject(expectedObject);
+                });
+        });
+
+        it("Delete used Skill -> success", async () => {
+            await dbUtils.createLearningUnit([skill1], []);
+
+            const expectedObject: any = {
+                ...skill1,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            };
+            delete expectedObject.nestedSkills;
+
+            return request(app.getHttpServer())
+                .delete(`/skill-repositories/skill/deleteWithoutCheck/${skill1.id}`)
+                .expect(200)
+                .expect((res) => {
+                    expect(res.body).toMatchObject(expectedObject);
+                });
+        });
+
+        it("Delete non-existing Skill -> 404", () => {
+            return request(app.getHttpServer())
+                .delete("/skill-repositories/skill/deleteWithoutCheck/a::non::existing::id")
+                .expect(404);
         });
     });
 });
