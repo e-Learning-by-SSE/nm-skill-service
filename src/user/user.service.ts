@@ -76,33 +76,6 @@ export class UserMgmtService {
     }
 
     /**
-     * Returns all existing user profiles. Currently not used/required.
-     * @returns A list with all existing user profiles.
-     */
-    /*     public async getAllUserProfiles() {
-        //Get all user objects from the DB
-        const users = await this.db.userProfile.findMany();
-
-        //Throw an exception if there are no user objects
-        if (!users) {
-            const exception = new NotFoundException("Can not find any users");
-            LoggerUtil.logError("UserService::getAllUserProfiles", exception);
-            throw exception;
-        }
-
-        //Create a list with all user objects (as DTOs)
-        const userList = new UserListDto();
-        userList.users = users.map((user) => UserDto.createFromDao(user));
-
-        LoggerUtil.logInfo(
-            "UserService::getAllUserProfiles",
-            "Returning list of all user profiles: " + userList.toString(),
-        );
-
-        return userList;
-    } */
-
-    /**
      * Changes the user state. Triggered by an MLS event (PUT or DELETE).
      * @param userId The ID of the user to be changed.
      * @param userState The new user state. True: Active, False: Inactive (for deleted users).
@@ -127,25 +100,4 @@ export class UserMgmtService {
             throw new ForbiddenException("User id " + userId + " does not exist in the database");
         }
     }
-
-    //Maybe we still need this for administrative purposes later
-    /*     async deleteUser(userId: string) {
-        try {
-            const user = await this.db.userProfile.delete({
-                where: {
-                    id: userId,
-                },
-            });
-
-            return UserDto.createFromDao(user);
-        } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
-                if (error.code === "P2025") {
-                    throw new ForbiddenException("User not exists in System");
-                }
-            }
-            throw error;
-        }
-    } */
 }
