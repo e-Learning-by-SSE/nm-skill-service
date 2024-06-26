@@ -368,6 +368,32 @@ describe("PathFinder Controller Tests", () => {
                         expect(res.body as PathDto).toMatchObject(expectedResult);
                     });
             });
+
+            it("No Path available -> 404", async () => {
+                const skill5 = await dbUtils.createSkill(skillMap1, "Skill 5");
+                const skill6 = await dbUtils.createSkill(skillMap1, "Skill 6");
+
+                // LU5 (Skill 5) missing
+                const lu6 = await dbUtils.createLearningUnit([skill6], [skill5]);
+
+                // Input
+                const input: PathRequestDto = {
+                    goal: [skill6.id],
+                    optimalSolution: true,
+                };
+
+                // Test: Create a path to learn Skill 3, without prior knowledge
+                return request(app.getHttpServer())
+                    .post("/PathFinder/computePath")
+                    .send(input)
+                    .expect(404)
+                    .expect((res) => {
+                        const exc = res.body as NotFoundException;
+                        expect(exc.message).toEqual(
+                            `Could not compute a path for the specified goal: ${skill6.id}`,
+                        );
+                    });
+            });
         });
     });
 });
