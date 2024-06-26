@@ -121,9 +121,9 @@ export class PathFinderController {
         ) as unknown as EnrollmentPreviewResponseDto;
     }
 
-    @ApiOperation({ summary: "Experimental (WIP)" })
-    @Post(":userId")
-    storePersonalizedPath(@Param("userId") userId: string, @Body() dto: PathStorageRequestDto) {
-        return this.pfService.storePersonalizedPath(userId, dto);
-    }
+    // @ApiOperation({ summary: "Experimental (WIP)" })
+    // @Post(":userId")
+    // storePersonalizedPath(@Param("userId") userId: string, @Body() dto: PathStorageRequestDto) {
+    //     return this.pfService.storePersonalizedPath(userId, dto);
+    // }
 }

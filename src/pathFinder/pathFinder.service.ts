@@ -268,104 +268,104 @@ export class PathFinderService {
         }));
     }
 
-    private async createOrLoadLearningHistory(userId: string) {
-        // Ensure that a user profile exists
-        let user = await this.db.userProfile.findUnique({
-            where: {
-                id: userId,
-            },
-        });
-        if (!user) {
-            user = await this.db.userProfile.create({
-                data: {
-                    id: userId,
-                    status: "ACTIVE",
-                },
-            });
-        }
+    // private async createOrLoadLearningHistory(userId: string) {
+    //     // Ensure that a user profile exists
+    //     let user = await this.db.userProfile.findUnique({
+    //         where: {
+    //             id: userId,
+    //         },
+    //     });
+    //     if (!user) {
+    //         user = await this.db.userProfile.create({
+    //             data: {
+    //                 id: userId,
+    //                 status: "ACTIVE",
+    //             },
+    //         });
+    //     }
 
-        // Create learning history
-        let learningHistory = await this.db.learningHistory.findUnique({
-            where: {
-                userId: userId,
-            },
-        });
-        if (!learningHistory) {
-            learningHistory = await this.db.learningHistory.create({
-                data: {
-                    userId: userId,
-                },
-            });
-        }
+    //     // Create learning history
+    //     let learningHistory = await this.db.learningHistory.findUnique({
+    //         where: {
+    //             userId: userId,
+    //         },
+    //     });
+    //     if (!learningHistory) {
+    //         learningHistory = await this.db.learningHistory.create({
+    //             data: {
+    //                 userId: userId,
+    //             },
+    //         });
+    //     }
 
-        return learningHistory;
-    }
+    //     return learningHistory;
+    // }
 
-    public async storePersonalizedPath(userId: string, dto: PathStorageRequestDto) {
-        let goals: string[] = [];
+    // public async storePersonalizedPath(userId: string, dto: PathStorageRequestDto) {
+    //     let goals: string[] = [];
 
-        // Load Learning History
-        const learningHistory = await this.createOrLoadLearningHistory(userId);
+    //     // Load Learning History
+    //     const learningHistory = await this.createOrLoadLearningHistory(userId);
 
-        // Load the source of the path (either a pre-defined path or a goal)
-        if (dto.originPathId) {
-            const path = await this.db.learningPath.findUnique({
-                where: {
-                    id: dto.originPathId,
-                },
-                include: {
-                    pathTeachingGoals: true,
-                },
-            });
-            if (!path) {
-                throw new NotFoundException(`Specified path not found: ${dto.originPathId}`);
-            }
-            goals = path.pathTeachingGoals.map((goal) => goal.id);
-        } else if (dto.goal) {
-            goals = dto.goal;
-        } else {
-            throw new ConflictException(`Either originPathId or goal must be specified: ${dto}`);
-        }
+    //     // Load the source of the path (either a pre-defined path or a goal)
+    //     if (dto.originPathId) {
+    //         const path = await this.db.learningPath.findUnique({
+    //             where: {
+    //                 id: dto.originPathId,
+    //             },
+    //             include: {
+    //                 pathTeachingGoals: true,
+    //             },
+    //         });
+    //         if (!path) {
+    //             throw new NotFoundException(`Specified path not found: ${dto.originPathId}`);
+    //         }
+    //         goals = path.pathTeachingGoals.map((goal) => goal.id);
+    //     } else if (dto.goal) {
+    //         goals = dto.goal;
+    //     } else {
+    //         throw new ConflictException(`Either originPathId or goal must be specified: ${dto}`);
+    //     }
 
-        // Create the personalized path
-        const newPath = await this.db.personalizedLearningPath.create({
-            data: {
-                learningHistoryId: learningHistory.userId,
-                learningPathId: dto.originPathId,
-                pathTeachingGoals: {
-                    connect: goals.map((goal) => ({ id: goal })),
-                },
-                unitSequence: {
-                    create: dto.units.map((unitId, index) => ({
-                        unitInstanceId: unitId, //Is this correct? Shouldn't it be unitId?
-                        position: index,
-                    })),
-                },
+    //     // Create the personalized path
+    //     const newPath = await this.db.personalizedLearningPath.create({
+    //         data: {
+    //             learningHistoryId: learningHistory.userId,
+    //             learningPathId: dto.originPathId,
+    //             pathTeachingGoals: {
+    //                 connect: goals.map((goal) => ({ id: goal })),
+    //             },
+    //             unitSequence: {
+    //                 create: dto.units.map((unitId, index) => ({
+    //                     unitInstanceId: unitId, //Is this correct? Shouldn't it be unitId?
+    //                     position: index,
+    //                 })),
+    //             },
 
-                lifecycle: "CREATED",
-            },
-            include: {
-                unitSequence: {
-                    include: {
-                        unitInstance: true,
-                    },
-                    orderBy: {
-                        position: "asc",
-                    },
-                },
-                pathTeachingGoals: true,
-                learningHistory: {
-                    include: {
-                        user: true,
-                    },
-                },
-            },
-        });
+    //             lifecycle: "CREATED",
+    //         },
+    //         include: {
+    //             unitSequence: {
+    //                 include: {
+    //                     unitInstance: true,
+    //                 },
+    //                 orderBy: {
+    //                     position: "asc",
+    //                 },
+    //             },
+    //             pathTeachingGoals: true,
+    //             learningHistory: {
+    //                 include: {
+    //                     user: true,
+    //                 },
+    //             },
+    //         },
+    //     });
 
-        if (!newPath) {
-            throw new NotFoundException(`Could not store path: ${dto}`);
-        }
+    //     if (!newPath) {
+    //         throw new NotFoundException(`Could not store path: ${dto}`);
+    //     }
 
-        return PathStorageResponseDto.createFromDao(newPath);
-    }
+    //     return PathStorageResponseDto.createFromDao(newPath);
+    // }
 }
