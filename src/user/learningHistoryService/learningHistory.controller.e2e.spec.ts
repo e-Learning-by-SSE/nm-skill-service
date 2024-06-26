@@ -13,6 +13,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
 import { LearningHistoryService } from "./learningHistory.service";
 import { PersonalizedPathDto } from "./dto";
+import { UserMgmtService } from "../user.service";
 
 describe("Learning History Controller Tests", () => {
     let app: INestApplication;
@@ -22,8 +23,9 @@ describe("Learning History Controller Tests", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const luFactory = new LearningUnitFactory(db);
+    const userMgmtService = new UserMgmtService(db);
     const historyService = new LearningHistoryService(db, luFactory);
-    const pathFinderService = new PathFinderService(db, luFactory, historyService);
+    const pathFinderService = new PathFinderService(db, luFactory, historyService, userMgmtService);
 
     // Test data
     const learnerId = "1";

@@ -277,7 +277,9 @@ export class LearningHistoryService {
 
     /**
      * Updates the status of a learning unit instance, when an user changes its status
-     * Further updates the status of the personalized learning paths which contain the unit (IN_PROGRESS if at least one unit instance is IN_PROGRESS, FINISHED if all unit instances are FINISHED)
+     * Further:
+     * - Updates the status of the personalized learning paths which contain the unit (IN_PROGRESS if at least one unit instance is IN_PROGRESS, FINISHED if all unit instances are FINISHED)
+     * - Updates the learned skills of the user
      * @param historyId The LearningHistory/userId where to add update the status.
      * @param learningUnitId The id of the learning unit to update the status for (this needs to be mapped to the learning unit instance).
      */
@@ -327,7 +329,7 @@ export class LearningHistoryService {
         for (let i = 0; i < result.length; i++) {
             console.log("Result: ", result[i].id);
 
-            const result2 = await this.db.learningUnitInstance.update({
+            const unitUpdate = await this.db.learningUnitInstance.update({
                 where: {
                     id: result[i].id,
                 },
@@ -335,6 +337,7 @@ export class LearningHistoryService {
                     status: status,
                 },
             });
+            await this.updateLearnedSkills(historyId, unitUpdate.unitId);
 
             //For every learning path that contains the learning unit instance, update the status
             for (let j = 0; j < result[i].pathSequence.length; j++) {

@@ -7,16 +7,18 @@ import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningPath, LearningUnit, STATUS, Skill, SkillMap, UserProfile } from "@prisma/client";
 import { CustomCoursePreviewResponseDto, EnrollmentPreviewResponseDto } from "./dto";
 import { PersonalizedPathDto } from "../user/learningHistoryService/dto";
+import { UserMgmtService } from "../user/user.service";
 
 describe("LearningHistoryService", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const luFactory = new LearningUnitFactory(db);
+    const userMgmtService = new UserMgmtService(db);
     const historyService = new LearningHistoryService(db, luFactory);
     const dbUtils = DbTestUtils.getInstance();
 
     // Object under test
-    const pathFinderService = new PathFinderService(db, luFactory, historyService);
+    const pathFinderService = new PathFinderService(db, luFactory, historyService, userMgmtService);
 
     /**
      * Test cases for the enrollment/inspection into pre-defined learning paths.

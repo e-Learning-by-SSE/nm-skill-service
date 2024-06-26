@@ -17,7 +17,12 @@ describe("LearningHistoryService", () => {
     const dbUtils = DbTestUtils.getInstance();
     const userService = new UserMgmtService(db);
     const historyService = new LearningHistoryService(db, learningUnitFactoryService);
-    const pathFinderService = new PathFinderService(db, learningUnitFactoryService, historyService);
+    const pathFinderService = new PathFinderService(
+        db,
+        learningUnitFactoryService,
+        historyService,
+        userService,
+    );
 
     //Preparation of input data
     let skill1: Skill;

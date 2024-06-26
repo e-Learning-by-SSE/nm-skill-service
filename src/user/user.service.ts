@@ -51,6 +51,48 @@ export class UserMgmtService {
     }
 
     /**
+     * Loads the complete user profile from the DB, including:
+     * - Learning Profile
+     * - Career Profile
+     * - Learning History
+     *   * Learned Skills
+     * @param userId The id of the user profile to be loaded
+     * @returns The full profile (DAO) of the specified user
+     * @throws NotFoundException if the user does not exist
+     */
+    public async loadUserProfile(userId: string) {
+        const user = await this.db.userProfile.findUnique({
+            where: {
+                id: userId,
+            },
+            include: {
+                learningProfile: true,
+                careerProfile: true,
+                learningHistory: {
+                    include: {
+                        learnedSkills: {
+                            include: {
+                                Skill: {
+                                    include: {
+                                        nestedSkills: true,
+                                    },
+                                },
+                            },
+                        },
+                        personalPaths: true,
+                    },
+                },
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException(`Specified user not found: ${userId}`);
+        }
+
+        return user;
+    }
+
+    /**
      * Loads the user with userId from the DB and returns it as DTO
      * @param userId The id of the user profile to be returned
      * @returns A user profile DTO ${UserWithoutChildrenDto}

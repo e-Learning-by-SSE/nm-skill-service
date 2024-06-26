@@ -15,6 +15,7 @@ import {
 import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
+import { UserMgmtService } from "../user/user.service";
 
 /**
  * Service for Graph requests
@@ -27,38 +28,8 @@ export class PathFinderService {
         private db: PrismaService,
         private luFactory: LearningUnitFactory,
         private historyService: LearningHistoryService,
+        private userService: UserMgmtService,
     ) {}
-
-    private async loadUser(userId: string) {
-        const user = await this.db.userProfile.findUnique({
-            where: {
-                id: userId,
-            },
-            include: {
-                learningProfile: true,
-                careerProfile: true,
-                learningHistory: {
-                    include: {
-                        learnedSkills: {
-                            include: {
-                                Skill: {
-                                    include: {
-                                        nestedSkills: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        });
-
-        if (!user) {
-            throw new NotFoundException(`Specified user not found: ${userId}`);
-        }
-
-        return user;
-    }
 
     /**
      * Computes an (optimal) learning path to learn the specified goal (set of skills to be obtained).
@@ -76,11 +47,10 @@ export class PathFinderService {
         const skills = await this.loadAllSkillsOfRepositories(repositories);
 
         // TODO: Revise
-
         let knowledge: Skill[] | undefined;
         if (dto.userId) {
             // Consider already learned Skills of the user
-            const userProfile = await this.loadUser(dto.userId);
+            const userProfile = await this.userService.loadUserProfile(dto.userId);
             const learnedSkills =
                 userProfile.learningHistory?.learnedSkills.map((progress) => progress.Skill) ?? [];
 
@@ -367,7 +337,7 @@ export class PathFinderService {
                 },
                 unitSequence: {
                     create: dto.units.map((unitId, index) => ({
-                        unitInstanceId: unitId,                     //Is this correct? Shouldn't it be unitId?
+                        unitInstanceId: unitId, //Is this correct? Shouldn't it be unitId?
                         position: index,
                     })),
                 },
