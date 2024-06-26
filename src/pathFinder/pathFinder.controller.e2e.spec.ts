@@ -1,4 +1,4 @@
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, NotFoundException } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import * as request from "supertest";
 import { Test } from "@nestjs/testing";
@@ -192,6 +192,37 @@ describe("PathFinder Controller Tests", () => {
                     });
             });
 
+            it("Compute Path w/ profile but wo/ knowledge", async () => {
+                // Create UserProfile with knowledge of nested Skill
+                const expectedUser = {
+                    id: "testUser",
+                };
+
+                // Create the user and save it to the DB
+                await userService.createUser(expectedUser);
+
+                // Expected result
+                const expectedResult: PathDto = {
+                    learningUnits: expect.arrayContaining([lu1.id, lu2.id, lu3.id, lu4.id]),
+                    cost: 4.6,
+                };
+
+                // Input
+                const input: PathRequestDto = {
+                    goal: [skill3.id],
+                    userId: expectedUser.id,
+                };
+
+                // Test: Create a path to learn Skill 3, with knowledge NestedSkill 2
+                return request(app.getHttpServer())
+                    .post("/PathFinder/computePath")
+                    .send(input)
+                    .expect(201)
+                    .expect((res) => {
+                        expect(res.body as PathDto).toMatchObject(expectedResult);
+                    });
+            });
+
             it("Compute Path w/ empty LearningProgress", async () => {
                 // Create UserProfile with empty LearningProgress
                 const expectedUser = {
@@ -231,6 +262,26 @@ describe("PathFinder Controller Tests", () => {
                             result.learningUnits = reorderedUnits;
                         }
                         expect(result).toMatchObject(expectedResult);
+                    });
+            });
+
+            it("Compute Path w/ non-existing profile", async () => {
+                // Input
+                const input: PathRequestDto = {
+                    goal: [skill3.id],
+                    userId: "invalid-user-id",
+                };
+
+                // Test: Create a path to learn Skill 3, with knowledge NestedSkill 2
+                return request(app.getHttpServer())
+                    .post("/PathFinder/computePath")
+                    .send(input)
+                    .expect(404)
+                    .expect((res) => {
+                        const result = res.body as NotFoundException;
+                        expect(result.message).toContain(
+                            "Specified user not found: invalid-user-id",
+                        );
                     });
             });
         });
