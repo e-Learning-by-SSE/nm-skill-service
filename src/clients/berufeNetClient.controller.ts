@@ -3,6 +3,7 @@ import { ApiTags } from "@nestjs/swagger";
 
 import { BerufeService } from "./berufeNetClient.service";
 import LoggerUtil from "../logger/logger";
+import { JobResponseDto } from "./schemas";
 
 @ApiTags("BerufeNet")
 @Controller("berufeNet")
@@ -15,7 +16,7 @@ export class BerufeNetController {
      * @returns job descriptions.
      */
     @Get("getJobBySearchString")
-    getJobsBySearchString(@Query("searchString") searchString: string) {
+    getJobsBySearchString(@Query("searchString") searchString: string): Promise<JobResponseDto[]> {
         LoggerUtil.logInfo("BerufeNetController::getJobsBySearchString", {
             searchString: searchString,
         });

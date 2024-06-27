@@ -2,7 +2,6 @@ import axios, { AxiosRequestConfig } from "axios";
 import { PrismaService } from "../prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import LoggerUtil from "../logger/logger";
 
 const { JSDOM } = require("jsdom");
 
