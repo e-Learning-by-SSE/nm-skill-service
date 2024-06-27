@@ -7,6 +7,7 @@ import { validate } from "class-validator";
 import { INestApplication } from "@nestjs/common";
 import { DbTestUtils } from "../DbTestUtils";
 import { JobResponseDto } from "./schemas";
+import exp from "constants";
 
 describe("BerufeNet-Client E2E-Tests", () => {
     let app: INestApplication;
@@ -64,6 +65,39 @@ describe("BerufeNet-Client E2E-Tests", () => {
             expect(response.body).toBeDefined();
             const result = response.body as JobResponseDto[];
             expect(result.length).toBe(0);
+        });
+    });
+
+    describe("GET:/berufeNet/getJobById", () => {
+        it("Valid ID of JobBySearchString -> 200 (same entry)", async () => {
+            // Identify a JobId
+            let response = await request(app.getHttpServer())
+                .get("/berufeNet/getJobBySearchString")
+                .query({ searchString: "Softwareentwickler" });
+
+            const developerEntry = (response.body as JobResponseDto[]).filter(
+                (entry) => entry.kurzBezeichnungNeutral === "Softwareentwickler/in",
+            )[0];
+            const developerId = developerEntry.id;
+
+            console.log("Developer ID: " + developerId);
+
+            // Act: Query for a job
+            response = await request(app.getHttpServer())
+                .get("/berufeNet/getJobById")
+                .query({ JobBerufId: developerId });
+
+            // Assert: Positive response, queried job should be in the response
+            expect(response.status).toBe(200);
+            expect(response.body).toBeDefined();
+            expect(response.body.length).toBeGreaterThanOrEqual(1);
+            // All entries belong to the same job, but may have different IDs
+            for (const job of response.body) {
+                expect(job).toHaveProperty("kurzBezeichnungNeutral", "Softwareentwickler/in");
+            }
+            // The specified ID should be in the response
+            const ids = response.body.map((job: { id: number }) => job.id);
+            expect(ids).toContain(developerId);
         });
     });
 });
