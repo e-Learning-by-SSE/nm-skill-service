@@ -9,9 +9,4 @@ export class SkillRepositorySelectionDto {
 
     @IsOptional()
     version?: string;
-
-    constructor(name: string, version?: string | null) {
-        this.name = name;
-        this.version = version ?? undefined;
-    }
 }

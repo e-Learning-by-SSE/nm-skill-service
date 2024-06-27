@@ -7,7 +7,6 @@ export * from "./skill-repository-selection.dto";
 export * from "./skill-repository.dto";
 export * from "./skill-repository-creation.dto";
 export * from "./skill-repository-update.dto";
-export * from "./resolved-skill-repository.dto";
 export * from "./skill-search.dto";
 export * from "./skill-list-resolved.dto";
 export * from "./skill.resolved.dto";
