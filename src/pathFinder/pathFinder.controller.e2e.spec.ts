@@ -374,7 +374,7 @@ describe("PathFinder Controller Tests", () => {
                 const skill6 = await dbUtils.createSkill(skillMap1, "Skill 6");
 
                 // LU5 (Skill 5) missing
-                const lu6 = await dbUtils.createLearningUnit([skill6], [skill5]);
+                await dbUtils.createLearningUnit([skill6], [skill5]);
 
                 // Input
                 const input: PathRequestDto = {

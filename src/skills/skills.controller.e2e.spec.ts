@@ -21,7 +21,8 @@ import {
 } from "./dto";
 import { Skill, SkillMap } from "@prisma/client";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
-import { create } from "domain";
+import { SkillUpdateDto } from "./dto/skill-update.dto";
+import exp from "constants";
 
 type SkillWithChildren = Skill & { nestedSkills: { id: string }[] };
 
@@ -703,7 +704,7 @@ describe("Skill Controller Tests", () => {
         });
     });
 
-    describe("skill/:skillId", () => {
+    describe("GET:/skill-repositories/skill/{skillId}", () => {
         it("Not existing ID -> NotFoundException", () => {
             return request(app.getHttpServer())
                 .get(`/skill-repositories/skill/not-existing-id`)
@@ -731,6 +732,51 @@ describe("Skill Controller Tests", () => {
                 .expect((res) => {
                     dbUtils.assert(res.body, expectedObject);
                 });
+        });
+    });
+
+    describe("PATCH:/skill-repositories/skill/{skillId}", () => {
+        it("Update existing Skill -> 200 (success)", () => {
+            const input: SkillUpdateDto = {
+                name: "Updated Skill",
+                description: "This is an updated skill",
+                level: 2,
+                nestedSkills: [nestedSkill1.id],
+            };
+
+            const expectedObject: SkillDto = {
+                name: "Updated Skill",
+                description: "This is an updated skill",
+                level: 2,
+                nestedSkills: [nestedSkill1.id],
+                parentSkills: [],
+                id: skill1.id,
+                repositoryId: skillMap3.id,
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            };
+
+            return request(app.getHttpServer())
+                .patch(`/skill-repositories/skill/${skill1.id}`)
+                .send(input)
+                .expect(200)
+                .expect((res) => {
+                    expect(res.body).toMatchObject(expectedObject);
+                });
+        });
+
+        it("Update non-existing Skill -> 404", () => {
+            const input: SkillUpdateDto = {
+                name: "Updated Skill",
+                description: "This is an updated skill",
+                level: 2,
+                nestedSkills: [nestedSkill1.id],
+            };
+
+            return request(app.getHttpServer())
+                .patch(`/skill-repositories/skill/not-existing-id`)
+                .send(input)
+                .expect(404);
         });
     });
 
