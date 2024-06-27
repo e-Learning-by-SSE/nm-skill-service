@@ -501,7 +501,7 @@ describe("Skill Service", () => {
                     ownerId: "User-1",
                 },
             });
-            expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
+            await expect(db.skillMap.aggregate({ _count: true })).resolves.toEqual({ _count: 1 });
 
             // Test: Create first repository
             const creationDto: SkillRepositoryCreationDto = {
