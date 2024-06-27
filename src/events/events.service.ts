@@ -46,6 +46,17 @@ export class EventMgmtService {
      * @returns Depends on the use case?
      */
     async getEvent(mlsEvent: MLSEvent) {
+        if (typeof mlsEvent.payload === "string") {
+            LoggerUtil.logInfo("EventService::payloadFix (string)");
+            // Try to parse the payload as JSON
+            try {
+                mlsEvent.payload = JSON.parse(mlsEvent.payload);
+                LoggerUtil.logInfo("EventService::payloadFixed");
+            } catch (e) {
+                LoggerUtil.logInfo("EventService::payloadFix (failed)", { cause: e });
+            }
+        }
+
         switch (mlsEvent.entityType) {
             //MLS tasks are called learning units in this system
             case MlsActionEntity.Task: {

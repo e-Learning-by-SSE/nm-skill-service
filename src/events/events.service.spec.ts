@@ -39,7 +39,7 @@ describe("Event Service", () => {
 
     // Wipe DB after all tests are finished
     afterAll(async () => {
-        await dbUtils.wipeDb();
+        //await dbUtils.wipeDb();
     });
 
     /**
@@ -673,6 +673,98 @@ describe("Event Service", () => {
                 //Skill id and user id should match the input (the order of learnedSkills and idArray are different, so we cannot compare via index)
                 expect(idArray).toContain(entry);
             }
+        });
+    });
+
+    describe("Scenario tests", () => {
+        it("User PUT by Florian (2024-06-27)", async () => {
+            // Arrange
+            const event = {
+                entityType: MlsActionEntity.User,
+                method: MlsActionType.PUT,
+                id: "17139",
+                payload: {
+                    keycloakUuid: "04f20673-1bd9-4f2c-ac3b-77cc3f86d112",
+                    createdAt: "2024-06-25T15:34:24+02:00",
+                    updatedAt: "2024-06-27T14:04:17+02:00",
+                    id: 17139,
+                    username: "Neuer_Account",
+                    groups: [],
+                    roles: ["ROLE_INSTRUCTOR"],
+                    password: null,
+                    firstname: "!!!asdasd",
+                    lastname: "asasdasd",
+                    name: "!!!asdasd asasdasd",
+                    email: "neuer@neueer.de",
+                    state: true,
+                    organizations: ["\\/mls-api\\/organizations\\/1"],
+                    createdForms: [],
+                    userOptions: "\\/mls-api\\/user-options\\/16179",
+                    tasksTodo: [],
+                    groupTaskTodoLinks: [],
+                    userPrivacies: [],
+                    userTermsOfUse: ["\\/mls-api\\/user-terms-of-uses\\/55"],
+                    createdTasks: [],
+                    editedTasks: [],
+                    assignedTaskTodos: [],
+                    assignedGroupTaskTodos: [],
+                    editedForms: [],
+                    invitedUsers: [],
+                    guestRoleRequests: [],
+                    directories: [],
+                    documents: [],
+                    ratedTaskTodos: [],
+                    purchasedExternalContent: [],
+                    projects: [],
+                    assignedProjectTodos: [],
+                    projectsTodo: [],
+                    traineeNotices: [],
+                    mls1Id: null,
+                    updatedTasks: [],
+                    inactiveOrganizations: [],
+                    christianiId: null,
+                    christianiToken: null,
+                    equipment: [],
+                    sharedDirectories: [],
+                    sharedDocuments: [],
+                    autofachmannId: null,
+                    autokaufmannId: null,
+                    localEuropathekBooks: [],
+                    externalEuropathekBooks: [],
+                    createdChats: [],
+                    chats: [],
+                    sendedChatMessages: [],
+                    shownGroups: [],
+                    tagFilters: [],
+                    ratingBows: [],
+                    updatedRatingBows: [],
+                    userIdentifier: "Neuer_Account",
+                    salt: null,
+                },
+            };
+
+            // Act
+            const result = await eventService.getEvent(event as any as MLSEvent);
+
+            // Assert
+            expect(result).toEqual("Successfully updated user profile!");
+        });
+
+        it("User PUT by Florian (2024-06-27)", async () => {
+            // Arrange
+            const event = {
+                method: "PUT",
+                entityType: "User",
+                id: "17139",
+                payload:
+                    '{"keycloakUuid":"04f20673-1bd9-4f2c-ac3b-77cc3f86d112","createdAt":"2024-06-25T15:34:24+02:00","updatedAt":"2024-06-27T14:04:17+02:00","id":17139,"username":"Neuer_Account","groups":[],"roles":["ROLE_INSTRUCTOR"],"password":null,"firstname":"!!!asdasd","lastname":"asasdasd","name":"!!!asdasd asasdasd","email":"neuer@neueer.de","state":true,"organizations":["\\/mls-api\\/organizations\\/1"],"createdForms":[],"userOptions":"\\/mls-api\\/user-options\\/16179","tasksTodo":[],"groupTaskTodoLinks":[],"userPrivacies":[],"userTermsOfUse":["\\/mls-api\\/user-terms-of-uses\\/55"],"createdTasks":[],"editedTasks":[],"assignedTaskTodos":[],"assignedGroupTaskTodos":[],"editedForms":[],"invitedUsers":[],"guestRoleRequests":[],"directories":[],"documents":[],"ratedTaskTodos":[],"purchasedExternalContent":[],"projects":[],"assignedProjectTodos":[],"projectsTodo":[],"traineeNotices":[],"mls1Id":null,"updatedTasks":[],"inactiveOrganizations":[],"christianiId":null,"christianiToken":null,"equipment":[],"sharedDirectories":[],"sharedDocuments":[],"autofachmannId":null,"autokaufmannId":null,"localEuropathekBooks":[],"externalEuropathekBooks":[],"createdChats":[],"chats":[],"sendedChatMessages":[],"shownGroups":[],"tagFilters":[],"ratingBows":[],"updatedRatingBows":[],"userIdentifier":"Neuer_Account","salt":null}',
+            };
+
+            // Act
+            const result = await eventService.getEvent(event as any as MLSEvent);
+
+            // Assert
+            expect(result).toEqual("Successfully updated user profile!");
         });
     });
 });
