@@ -1,5 +1,5 @@
 import { Body, Controller, Post } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiTags } from "@nestjs/swagger";
 import { MLSEvent } from "../events/dtos/mls-event.dto";
 import { EventMgmtService } from "./events.service";
 import LoggerUtil from "../logger/logger";
@@ -8,7 +8,6 @@ import LoggerUtil from "../logger/logger";
 @Controller("events")
 export class EventsController {
     constructor(private eventService: EventMgmtService) {}
-    @ApiOperation({ summary: "Experimental (WIP)" })
     @Post("")
     async getEvents(@Body() dto: MLSEvent) {
         LoggerUtil.logInfo("EventsController::getEvents", { request: dto });
