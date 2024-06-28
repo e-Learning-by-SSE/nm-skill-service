@@ -9,11 +9,11 @@ export class FeedbackController {
     constructor(private feedbackService: FeedbackService) {}
 
     /**
-     * Lists all available feedback for the respective learning unit.   
+     * Lists all available feedback for the respective learning unit.
      * @param learningUnitId The ID of the respective learning unit.
      * @returns List of all feedback for the respective learning unit.
      */
-    @Get("learning-units/{learningUnitId}/feedbacks/")
+    @Get("learning-units/:learningUnitId/feedbacks/")
     listFeedback(@Param("learningUnitId") learningUnitId: string) {
         return this.feedbackService.loadAllFeedback(learningUnitId);
     }
@@ -23,7 +23,7 @@ export class FeedbackController {
      * @param feedbackId The ID of the feedback to be returned
      * @returns The specified feedback.
      */
-    @Get("feedbacks/{feedbackId}")
+    @Get("feedbacks/:feedbackId")
     getFeedback(@Param("feedbackId") feedbackId: string) {
         return this.feedbackService.getFeedback(feedbackId);
     }
@@ -43,9 +43,8 @@ export class FeedbackController {
      * @param feedbackId The unique database id of the feedback to be deleted
      * @returns True if deletion was successful, false otherwise
      */
-    @Delete("feedbacks/{feedbackId}")
+    @Delete("feedbacks/:feedbackId")
     deleteFeedback(@Param("feedbackId") feedbackId: string) {
         return this.feedbackService.deleteFeedbackById(feedbackId);
     }
-
 }

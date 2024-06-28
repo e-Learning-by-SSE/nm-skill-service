@@ -9,10 +9,9 @@ export class SearchLearningUnitController {
     constructor(private learningUnitService: LearningUnitMgmtService) {}
 
     /**
-   * Lists all learningUnits.
-   
-   * @returns List of all learningUnits.
-   */
+     * Lists all learningUnits.
+     * @returns List of all learningUnits.
+     */
     @Get("showAllLearningUnits")
     listLearningUnits() {
         return this.learningUnitService.loadAllLearningUnits();
@@ -29,6 +28,7 @@ export class SearchLearningUnitController {
     addLearningUnitSearch(@Body() dto: SearchLearningUnitCreationDto) {
         return this.learningUnitService.createLearningUnit(dto);
     }
+
     @Get("/")
     @ApiQuery({
         name: "owners",
@@ -61,10 +61,12 @@ export class SearchLearningUnitController {
     getLearningUnit(@Param("learningUnitId") learningUnitId: string) {
         return this.learningUnitService.getLearningUnit(learningUnitId);
     }
+
     @Delete(":learningUnitId")
     deleteLearningUnit(@Param("learningUnitId") learningUnitId: string) {
         return this.learningUnitService.deleteLearningUnit(learningUnitId);
     }
+
     @Patch(":learningUnitId")
     patchLearningUnit(
         @Param("learningUnitId") learningUnitId: string,
@@ -72,6 +74,7 @@ export class SearchLearningUnitController {
     ) {
         return this.learningUnitService.patchLearningUnit(learningUnitId, dto);
     }
+
     @Put(":learningUnitId/checks")
     checkLearningUnit(@Param("learningUnitId") learningUnitId: string) {
         return this.learningUnitService.checkLearningUnit(learningUnitId);

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import {
     SkillCreationDto,
@@ -21,10 +21,10 @@ export class SkillMgmtController {
     ) {}
 
     @Get("/getAllSkills/")
-    getAllSkills() {
+    async getAllSkills() {
         try {
             LoggerUtil.logInfo("Skill::getAllSkills");
-            return this.skillService.loadAllSkills();
+            return await this.skillService.loadAllSkills();
         } catch (error) {
             LoggerUtil.logError("getAllSkills", error);
             throw error;
@@ -32,14 +32,14 @@ export class SkillMgmtController {
     }
 
     @Post()
-    searchForRepositories(@Body() dto?: SkillRepositorySearchDto) {
+    async searchForRepositories(@Body() dto?: SkillRepositorySearchDto) {
         try {
             LoggerUtil.logInfo("Skill::searchForRepositories");
             const mapName: Prisma.StringFilter | null = dto?.name
                 ? { contains: dto.name, mode: "insensitive" }
                 : null;
 
-            return this.repositoryService.findSkillRepositories(
+            return await this.repositoryService.findSkillRepositories(
                 dto?.page ?? null,
                 dto?.pageSize ?? null,
                 dto?.owner ?? null,
@@ -58,11 +58,17 @@ export class SkillMgmtController {
      * @returns The repositories of the specified user.
      */
     @Get("byOwner/:ownerId")
-    listRepositories(@Param("ownerId") owner: string) {
+    async listRepositories(@Param("ownerId") owner: string) {
         try {
             LoggerUtil.logInfo("Skill::listRepositories", { ownerId: owner });
             // SE: I do not expect so many repositories per user that we need pagination here
-            return this.repositoryService.findSkillRepositories(null, null, owner, null, null);
+            return await this.repositoryService.findSkillRepositories(
+                null,
+                null,
+                owner,
+                null,
+                null,
+            );
         } catch (error) {
             LoggerUtil.logError("Skill::listRepositories", error);
             throw error;
@@ -78,7 +84,7 @@ export class SkillMgmtController {
     async loadRepository(@Param("repositoryId") repositoryId: string) {
         try {
             LoggerUtil.logInfo("Skill::loadRepository", { repositoryId: repositoryId });
-            return this.repositoryService.loadSkillRepository(repositoryId);
+            return await this.repositoryService.loadSkillRepository(repositoryId);
         } catch (error) {
             LoggerUtil.logError("Skill::loadRepository", error);
             throw error;
@@ -91,7 +97,7 @@ export class SkillMgmtController {
      * @returns List of all skills matching given attributes (may be empty).
      */
     @Post("findSkills")
-    findSkills(@Body() dto: SkillSearchDto) {
+    async findSkills(@Body() dto: SkillSearchDto) {
         try {
             LoggerUtil.logInfo("Skill::findSkills", dto);
             // Return also repositories that contain the specified name
@@ -99,7 +105,7 @@ export class SkillMgmtController {
                 ? { contains: dto.name, mode: "insensitive" }
                 : null;
 
-            return this.skillService.searchSkills(
+            return await this.skillService.searchSkills(
                 dto.page ?? null,
                 dto.pageSize ?? null,
                 skillName,

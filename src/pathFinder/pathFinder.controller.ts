@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { PathFinderService } from "./pathFinder.service";
 import {
     CustomCoursePreviewResponseDto,
@@ -7,7 +7,6 @@ import {
     EnrollmentPreviewResponseDto,
     EnrollmentRequestDto,
     PathRequestDto,
-    PathStorageRequestDto,
     SkillsToAnalyze,
 } from "./dto";
 import { PersonalizedLearningPath } from "@prisma/client";
@@ -107,6 +106,7 @@ export class PathFinderController {
             dto.optimalSolution,
         ) as unknown as CustomCoursePreviewResponseDto;
     }
+
     @Get("calculated-path")
     simulateEnrollmentByGoal(
         @Query("userId") userId: string,

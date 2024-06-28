@@ -38,7 +38,7 @@ export class CareerProfileController {
      * @param dto The new data for the career profile
      * @returns The updated part of the career profile
      */
-    @Patch("career-profiles/{career_profile_id}")
+    @Patch("career-profiles/:career_profile_id")
     patchCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
         @Body() dto: CareerProfileDto,
@@ -52,7 +52,7 @@ export class CareerProfileController {
      * @param dto The job data to add
      * @returns A success message if successful (there is no use case where we need the job object itself, so we don't return it)
      */
-    @Post("career-profiles/{career_profile_id}/job_history")
+    @Post("career-profiles/:career_profile_id/job_history")
     addJob(@Param("career_profile_id") careerProfileId: string, @Body() dto: JobDto) {
         return this.careerService.addJobToJobHistoryAtCareerProfile(careerProfileId, dto);
     }
@@ -63,7 +63,7 @@ export class CareerProfileController {
      * @param dto The new data for the job
      * @returns A success message if successful (there is no use case where we need the job object itself, so we don't return it)
      */
-    @Patch("job_history/{job_id}")
+    @Patch("job_history/:job_id")
     patchJobHistoryAtCareerProfileByID(@Param("job_id") jobId: string, @Body() jobDto: JobDto) {
         return this.careerService.updateJobInCareerProfile(jobId, jobDto);
     }
@@ -73,7 +73,7 @@ export class CareerProfileController {
      * @param jobId The job to be removed from the job history
      * @returns A success message if successful (we cannot return the deleted object)
      */
-    @Delete("job_history/{job_id}")
+    @Delete("job_history/:job_id")
     deleteJobHistoryAtCareerProfileByID(@Param("job_id") jobId: string) {
         return this.careerService.deleteJobFromHistoryInCareerProfile(jobId);
     }
@@ -84,7 +84,7 @@ export class CareerProfileController {
      * @param careerProfileId The id of the user and its career profile (both are the same) to which the qualification shall be added
      * @returns A success message if successful (there is no use case where we need the qualification object itself, so we don't return it)
      */
-    @Post("career-profiles/{career_profile_id}/qualifications/")
+    @Post("career-profiles/:career_profile_id/qualifications/")
     addQualificationToCareerProfile(
         @Param("career_profile_id") careerProfileId: string,
         @Body() dto: QualificationDto,
@@ -98,7 +98,7 @@ export class CareerProfileController {
      * @param dto The new data for the qualification
      * @returns A success message if successful (there is no use case where we need the qualification object itself, so we don't return it)
      */
-    @Patch("qualifications/{qualification_id}")
+    @Patch("qualifications/:qualification_id")
     patchQualificationToCareerProfile(
         @Param("qualification_id") qualificationId: string,
         @Body() dto: QualificationDto,
@@ -111,7 +111,7 @@ export class CareerProfileController {
      * @param qualificationId The id of the qualification to delete
      * @returns A success message if successful (we cannot return the deleted object)
      */
-    @Delete("qualifications/{qualification_id}")
+    @Delete("qualifications/:qualification_id")
     deleteQualificationToCareerProfile(@Param("qualification_id") qualificationId: string) {
         return this.careerService.deleteQualificationFromCareerProfile(qualificationId);
     }
