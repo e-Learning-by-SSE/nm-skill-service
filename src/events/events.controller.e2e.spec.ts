@@ -43,7 +43,7 @@ describe("Event-System Controller Tests", () => {
     describe("PATCH:User", () => {
         it("Existent user -> 201", async () => {
             const userId = "2";
-            dbUtils.createUserProfile(userId);
+            await dbUtils.createUserProfile(userId);
 
             const mlsEvent = {
                 method: "PUT",

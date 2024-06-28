@@ -677,7 +677,7 @@ describe("Event Service", () => {
     });
 
     describe("Scenario tests", () => {
-        it("User PUT by Florian (2024-06-27)", async () => {
+        it("User PUT by Florian with JSON payload (2024-06-27)", async () => {
             // Arrange
             const event = {
                 entityType: MlsActionEntity.User,
@@ -750,7 +750,7 @@ describe("Event Service", () => {
             expect(result).toEqual("Successfully updated user profile!");
         });
 
-        it("User PUT by Florian (2024-06-27)", async () => {
+        it("User PUT by Florian with string payload (2024-06-27)", async () => {
             // Arrange
             const event = {
                 method: "PUT",
