@@ -4,7 +4,11 @@ import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { FeedbackDto } from "./dto/feedback.dto";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+    PrismaClientKnownRequestError,
+    PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
+import { BadRequestException } from "@nestjs/common";
 
 /**
  * Service that manages the creation/update/deletion of feedback
@@ -81,8 +85,14 @@ export class FeedbackService {
                 }
                 // Learning unit id (foreign key) does not exist
                 if (error.code === "P2003") {
-                    throw new ForbiddenException("No learning unit with this is exists");
+                    throw new NotFoundException(
+                        `No learning unit \"${dto.learningUnitID}\" found.`,
+                    );
                 }
+                console.log(error);
+            } else if (error instanceof PrismaClientValidationError) {
+                // Input validation error
+                throw new BadRequestException(`Invalid input data: ${dto}`);
             }
             throw error;
         }

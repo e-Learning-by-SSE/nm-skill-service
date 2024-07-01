@@ -4,7 +4,12 @@ import { ConfigModule } from "@nestjs/config";
 import { validate } from "class-validator";
 import { PrismaModule } from "../prisma/prisma.module";
 import { DbTestUtils } from "../DbTestUtils";
-import { INestApplication } from "@nestjs/common";
+import {
+    BadRequestException,
+    ForbiddenException,
+    INestApplication,
+    NotFoundException,
+} from "@nestjs/common";
 import { FeedbackModule } from "./feedback.module";
 import { FeedbackService } from "./feedback.service";
 import { FeedbackDto } from "./dto";
@@ -153,6 +158,63 @@ describe("Feedback Controller Tests", () => {
                 `/feedbacks/${feedback.feedbackID}`,
             );
             expect(response2.status).toBe(404);
+        });
+    });
+
+    describe("POST:/feedbacks", () => {
+        it("Valid feedback -> 201; Created feedback", async () => {
+            // Test data: Feedback object
+            const user = await dbUtils.createUserProfile("testUser");
+            const skillMap = await dbUtils.createSkillMap("An owner", "A Skill-Map");
+            const goal = await dbUtils.createSkill(skillMap, "A Skill");
+            const lu = await dbUtils.createLearningUnit([goal], []);
+            const feedbackDto = {
+                comprehensiveness: 1,
+                learningUnitID: lu.id,
+                learningValue: 2,
+                overallRating: 3,
+                presentation: 4,
+                structure: 5,
+                userID: user.id,
+            };
+
+            const response = await request(app.getHttpServer())
+                .post("/feedbacks")
+                .send(feedbackDto);
+            expect(response.status).toBe(201);
+            const feedbackFromResponse = response.body as FeedbackDto;
+            expect(feedbackFromResponse).toMatchObject(feedbackDto);
+        });
+
+        it("Invalid feedback -> 400", async () => {
+            // Test data: Invalid feedback object
+            const response = await request(app.getHttpServer()).post("/feedbacks").send({}); // Invalid feedback object
+            expect(response.status).toBe(400);
+            const error = response.body as BadRequestException;
+            expect(error.message).toContain("Invalid input data");
+        });
+
+        it("Feedback for non-existent learning unit -> 404", async () => {
+            // Test data: Feedback object for non-existent learning unit
+            const user = await dbUtils.createUserProfile("testUser");
+            const feedbackDto = {
+                comprehensiveness: 1,
+                learningUnitID: "non-existing-id",
+                learningValue: 2,
+                overallRating: 3,
+                presentation: 4,
+                structure: 5,
+                userID: user.id,
+            };
+
+            const response = await request(app.getHttpServer())
+                .post("/feedbacks")
+                .send(feedbackDto);
+            expect(response.status).toBe(404);
+            const error = response.body as NotFoundException;
+            expect(error.message).toEqual(
+                `No learning unit \"${feedbackDto.learningUnitID}\" found.`,
+            );
         });
     });
 });
