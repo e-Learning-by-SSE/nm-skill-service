@@ -6,7 +6,7 @@ import { SkillMap, Skill, LearningUnit, UserProfile, LearningPath } from "@prism
 import { validate } from "class-validator";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaModule } from "../prisma/prisma.module";
-import { EnrollmentRequestDto, PathDto, PathRequestDto } from "./dto";
+import { EnrollmentPreviewResponseDto, EnrollmentRequestDto, PathDto, PathRequestDto } from "./dto";
 import { PathFinderModule } from "./pathFinder.module";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserMgmtService } from "../user/user.service";
@@ -56,11 +56,11 @@ describe("PathFinder Controller Tests", () => {
         await db.$disconnect();
     });
 
-    describe("GET/PathFinder/adapted-path", () => {
+    describe("GET:/PathFinder/adapted-path", () => {
         // Test data
         let skillMap1: SkillMap;
         let [skill1, skill2, skill3, skill4]: Skill[] = [];
-        let [lu1, lu2, lu3, lu4]: LearningUnit[] = [];
+        let [lu2, lu3, lu4]: LearningUnit[] = [];
         let [user1, user2]: UserProfile[] = [];
         let pathDefinition: LearningPath;
 
@@ -88,7 +88,7 @@ describe("PathFinder Controller Tests", () => {
              *   - Skill 4: LU2 -> LU3 -> LU4
              *   -> LU1 -> LU2 -> LU3 -> LU4
              */
-            lu1 = await dbUtils.createLearningUnit([skill2], []);
+            await dbUtils.createLearningUnit([skill2], []);
             lu2 = await dbUtils.createLearningUnit([skill1], []);
             lu3 = await dbUtils.createLearningUnit([skill2, skill3], [skill1]);
             lu4 = await dbUtils.createLearningUnit([skill4], [skill3]);
@@ -96,7 +96,187 @@ describe("PathFinder Controller Tests", () => {
             pathDefinition = await dbUtils.createLearningPath(skillMap1.ownerId, [skill4]);
         });
 
-        it("Multiple users enroll to same path -> 200", async () => {
+        it("1 user enroll (preview) to path -> 200", async () => {
+            // Input
+            const enrollmentRequest: EnrollmentRequestDto = {
+                userId: user1.id,
+                learningPathId: pathDefinition.id,
+                optimalSolution: true,
+            };
+
+            const expectedResponse: EnrollmentPreviewResponseDto = {
+                learningPathId: pathDefinition.id,
+                learningUnits: [lu2.id, lu3.id, lu4.id],
+            };
+
+            // Act: Enroll user -> success
+            let response = await request(app.getHttpServer())
+                .get("/PathFinder/adapted-path")
+                .query(enrollmentRequest);
+
+            // Check response
+            expect(response.status).toEqual(200);
+            const enrolledPath = response.body as EnrollmentPreviewResponseDto;
+            expect(enrolledPath).toMatchObject(expectedResponse);
+        });
+
+        it("Multiple users enroll (preview) to same path -> 200", async () => {
+            // Input
+            const enrollmentRequest: EnrollmentRequestDto = {
+                userId: user1.id,
+                learningPathId: pathDefinition.id,
+                optimalSolution: true,
+            };
+
+            const expectedResponse: EnrollmentPreviewResponseDto = {
+                learningPathId: pathDefinition.id,
+                learningUnits: [lu2.id, lu3.id, lu4.id],
+            };
+
+            // Act 1: Enroll first user -> success
+            let response = await request(app.getHttpServer())
+                .get("/PathFinder/adapted-path")
+                .query(enrollmentRequest);
+            // Check response
+            expect(response.status).toEqual(200);
+            let enrolledPath = response.body as EnrollmentPreviewResponseDto;
+            expect(enrolledPath).toMatchObject(expectedResponse);
+
+            // Act 2: Enroll second user -> success
+            enrollmentRequest.userId = user2.id;
+            response = await request(app.getHttpServer())
+                .get("/PathFinder/adapted-path")
+                .query(enrollmentRequest);
+            // Check response -> Should be identical
+            expect(response.status).toEqual(200);
+            enrolledPath = response.body as EnrollmentPreviewResponseDto;
+            expect(enrolledPath).toMatchObject(expectedResponse);
+        });
+
+        it("User enrolls to course twice (preview) -> 200 (success)", async () => {
+            // Input
+            const enrollmentRequest: EnrollmentRequestDto = {
+                userId: user1.id,
+                learningPathId: pathDefinition.id,
+                optimalSolution: true,
+            };
+
+            const expectedResponse: EnrollmentPreviewResponseDto = {
+                learningPathId: pathDefinition.id,
+                learningUnits: [lu2.id, lu3.id, lu4.id],
+            };
+
+            // Act 1: Enroll first time -> success
+            let response = await request(app.getHttpServer())
+                .get("/PathFinder/adapted-path")
+                .query(enrollmentRequest);
+            // Check response
+            expect(response.status).toEqual(200);
+            let enrolledPath = response.body as PersonalizedPathDto;
+            expect(enrolledPath).toMatchObject(expectedResponse);
+
+            // Act 2: Enroll second time -> success
+            response = await request(app.getHttpServer())
+                .get("/PathFinder/adapted-path")
+                .query(enrollmentRequest);
+            // Check response
+            expect(response.status).toEqual(200);
+            enrolledPath = response.body as PersonalizedPathDto;
+            expect(enrolledPath).toMatchObject(expectedResponse);
+        });
+
+        it("Invalid user enroll to path -> 404", async () => {
+            // Input
+            const enrollmentRequest: EnrollmentRequestDto = {
+                userId: "Invalid::ID",
+                learningPathId: pathDefinition.id,
+                optimalSolution: true,
+            };
+
+            // Act: Enroll user -> fail
+            let response = await request(app.getHttpServer())
+                .get("/PathFinder/adapted-path")
+                .query(enrollmentRequest);
+
+            // Check response
+            expect(response.status).toEqual(404);
+            const exc = response.body as NotFoundException;
+            expect(exc.message).toContain(`Specified user not found: ${enrollmentRequest.userId}`);
+        });
+    });
+
+    describe("POST:/PathFinder/adapted-path", () => {
+        // Test data
+        let skillMap1: SkillMap;
+        let [skill1, skill2, skill3, skill4]: Skill[] = [];
+        let [lu2, lu3, lu4]: LearningUnit[] = [];
+        let [user1, user2]: UserProfile[] = [];
+        let pathDefinition: LearningPath;
+
+        beforeEach(async () => {
+            // Wipe DB before test
+            await dbUtils.wipeDb();
+
+            user1 = await dbUtils.createUserProfile("User 1");
+            user2 = await dbUtils.createUserProfile("User 2");
+
+            skillMap1 = await dbUtils.createSkillMap(
+                "Instructor 1",
+                "Test Map for LearningUnit Controller Tests",
+            );
+            skill1 = await dbUtils.createSkill(skillMap1, "Skill 1");
+            skill2 = await dbUtils.createSkill(skillMap1, "Skill 2");
+            skill3 = await dbUtils.createSkill(skillMap1, "Skill 3");
+            skill4 = await dbUtils.createSkill(skillMap1, "Skill 4");
+
+            /**
+             * Skill 2 is provided by LU1 and LU3, thus, learning Skill 2 & 4 can be done by two different paths:
+             * Optimal: LU2 -> LU3 -> LU4
+             * Greedy:
+             *   - Skill 2: LU1
+             *   - Skill 4: LU2 -> LU3 -> LU4
+             *   -> LU1 -> LU2 -> LU3 -> LU4
+             */
+            await dbUtils.createLearningUnit([skill2], []);
+            lu2 = await dbUtils.createLearningUnit([skill1], []);
+            lu3 = await dbUtils.createLearningUnit([skill2, skill3], [skill1]);
+            lu4 = await dbUtils.createLearningUnit([skill4], [skill3]);
+
+            pathDefinition = await dbUtils.createLearningPath(skillMap1.ownerId, [skill4]);
+        });
+
+        it("1 user enroll to path -> 201", async () => {
+            // Input
+            const enrollmentRequest: EnrollmentRequestDto = {
+                userId: user1.id,
+                learningPathId: pathDefinition.id,
+                optimalSolution: true,
+            };
+
+            const expectedResponse: PersonalizedPathDto = {
+                personalizedPathId: expect.any(String),
+                learningPathId: pathDefinition.id,
+                learningUnitInstances: [
+                    { unitId: lu2.id, status: "OPEN" },
+                    { unitId: lu3.id, status: "OPEN" },
+                    { unitId: lu4.id, status: "OPEN" },
+                ],
+                status: "OPEN",
+                goals: [],
+            };
+
+            // Act: Enroll user -> success
+            let response = await request(app.getHttpServer())
+                .post("/PathFinder/adapted-path")
+                .send(enrollmentRequest);
+
+            // Check response
+            expect(response.status).toEqual(201);
+            const enrolledPath = response.body as PersonalizedPathDto;
+            expect(enrolledPath).toMatchObject(expectedResponse);
+        });
+
+        it("Multiple users enroll to same path -> 201", async () => {
             // Input
             const enrollmentRequest: EnrollmentRequestDto = {
                 userId: user1.id,
@@ -175,6 +355,25 @@ describe("PathFinder Controller Tests", () => {
             expect(exc.message).toContain(
                 `User ${user1.id} is already enrolled in the specified path: ${enrolledPath.learningPathId}`,
             );
+        });
+
+        it("Invalid user enroll to path -> 404", async () => {
+            // Input
+            const enrollmentRequest: EnrollmentRequestDto = {
+                userId: "Invalid::ID",
+                learningPathId: pathDefinition.id,
+                optimalSolution: true,
+            };
+
+            // Act: Enroll user -> fail
+            let response = await request(app.getHttpServer())
+                .post("/PathFinder/adapted-path")
+                .send(enrollmentRequest);
+
+            // Check response
+            expect(response.status).toEqual(404);
+            const exc = response.body as NotFoundException;
+            expect(exc.message).toContain(`Specified user not found: ${enrollmentRequest.userId}`);
         });
     });
 
