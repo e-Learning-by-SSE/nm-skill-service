@@ -91,17 +91,17 @@ export class FeedbackService {
     /**
      * Deletes the specified feedback from the database
      * @param id The unique database id of the feedback to be deleted
-     * @returns True if deletion was successful, false otherwise
+     * @returns True the deleted feedback
+     * @throws NotFoundException if the feedback to be deleted is not found in the database
      */
     public async deleteFeedbackById(feedbackId: string) {
         try {
-            await this.db.feedback.delete({ where: { id: feedbackId } });
-            return true;
+            const dao = await this.db.feedback.delete({ where: { id: feedbackId } });
+            return FeedbackDto.createFromDao(dao);
         } catch (error) {
             throw new NotFoundException(
                 `Feedback to be deleted not found in database: ${feedbackId}`,
             );
-            return false;
         }
     }
 }

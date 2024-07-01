@@ -116,4 +116,43 @@ describe("Feedback Controller Tests", () => {
             expect(response.body).toMatchObject(feedback);
         });
     });
+
+    describe("DELETE:/feedbacks/{feedbackId}", () => {
+        it("Non-existent feedback -> 404", async () => {
+            const response = await request(app.getHttpServer()).delete(
+                "/feedbacks/non-existing-id",
+            );
+            expect(response.status).toBe(404);
+        });
+
+        it("Existent feedback -> 200; Deleted feedback", async () => {
+            // Test data: Feedback object
+            const user = await dbUtils.createUserProfile("testUser");
+            const skillMap = await dbUtils.createSkillMap("An owner", "A Skill-Map");
+            const goal = await dbUtils.createSkill(skillMap, "A Skill");
+            const lu = await dbUtils.createLearningUnit([goal], []);
+            const feedback = await feedbackService.createFeedback({
+                comprehensiveness: 1,
+                learningUnitID: lu.id,
+                learningValue: 2,
+                overallRating: 3,
+                presentation: 4,
+                structure: 5,
+                userID: user.id,
+            });
+
+            const response = await request(app.getHttpServer()).delete(
+                `/feedbacks/${feedback.feedbackID}`,
+            );
+            expect(response.status).toBe(200);
+            const feedbackFromResponse = response.body as FeedbackDto;
+            expect(feedbackFromResponse).toMatchObject(feedback);
+
+            // Check if feedback was deleted
+            const response2 = await request(app.getHttpServer()).get(
+                `/feedbacks/${feedback.feedbackID}`,
+            );
+            expect(response2.status).toBe(404);
+        });
+    });
 });

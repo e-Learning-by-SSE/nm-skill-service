@@ -75,7 +75,8 @@ describe("Feedback Service", () => {
             const retrievedAnswer = await feedbackService.deleteFeedbackById(feedbackId);
 
             // Assert: Check if the deletion was successful
-            expect(retrievedAnswer).toEqual(true);
+            feedbackCreationDto.optionalTextComment = "";
+            expect(retrievedAnswer).toMatchObject(feedbackCreationDto);
         });
 
         it("should delete the feedback entry only and exactly if the corresponding learning unit is deleted", async () => {
