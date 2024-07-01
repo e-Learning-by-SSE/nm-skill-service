@@ -286,68 +286,55 @@ export class LearningUnitFactory {
         return results;
     }
 
+    private optionalSkillRelationFilter(
+        ids?: string[],
+    ): Prisma.SkillListRelationFilter | undefined {
+        let result: Prisma.SkillListRelationFilter | undefined = undefined;
+        if (ids && Array.isArray(ids)) {
+            // At least one of the skills should be in the specified list
+            result = { some: { id: { in: ids } } };
+        } else if (ids && typeof ids === "string") {
+            // If only one owner is given, Swagger passes a String instead of an array
+            result = { some: { id: ids } };
+        } else if (ids == "") {
+            // Query for empty list
+            result = { none: {} };
+        }
+        return result;
+    }
+
     async getLearningUnitByFilter(
         filter: LearningUnitFilterDto,
     ): Promise<SearchLearningUnitListDto> {
-        const query: Prisma.LearningUnitFindManyArgs = {};
-
-        if (filter.requiredSkills && filter.requiredSkills.length > 0) {
-            if (!Array.isArray(filter.requiredSkills)) {
-                // If filter.owners is not an array, convert it to an array
-                filter.owners = [filter.requiredSkills as string];
-            }
-            if (!query.where) {
-                query.where = {};
-            }
-            query.where.requirements = {
-                some: {
-                    id: {
-                        in: filter.requiredSkills,
-                    },
-                },
-            };
-        }
-
-        if (filter.teachingGoals && filter.teachingGoals.length > 0) {
-            if (!Array.isArray(filter.teachingGoals)) {
-                // If filter.owners is not an array, convert it to an array
-                filter.owners = [filter.teachingGoals as string];
-            }
-            if (!query.where) {
-                query.where = {};
-            }
-            query.where.teachingGoals = {
-                some: {
-                    id: {
-                        in: filter.teachingGoals,
-                    },
-                },
-            };
-        }
-
-        if (filter.owners && filter.owners.length > 0) {
-            if (!Array.isArray(filter.owners)) {
-                // If filter.owners is not an array, convert it to an array
-                filter.owners = [filter.owners as string];
-            }
-            if (!query.where) {
-                query.where = {};
-            }
-            query.where.orga_id = {
+        // If only one owner is given, Swagger passes a String instead of an array
+        let ownersFilter: Prisma.StringFilter<"LearningUnit"> | string | undefined = undefined;
+        if (filter.owners && Array.isArray(filter.owners)) {
+            ownersFilter = {
                 in: filter.owners,
             };
+        } else if (filter.owners && typeof filter.owners === "string") {
+            ownersFilter = filter.owners as string;
         }
-        query.include = {
-            teachingGoals: true,
-            requirements: true,
-        };
-        const result = await this.db.learningUnit.findMany(query);
 
-        const res: SearchLearningUnitListDto = new SearchLearningUnitListDto();
-        result.forEach((element) => {
-            res.learningUnits.push(SearchLearningUnitDto.createFromDao(element));
+        const result = await this.db.learningUnit.findMany({
+            where: {
+                AND: {
+                    requirements: this.optionalSkillRelationFilter(filter.requiredSkills),
+                    teachingGoals: this.optionalSkillRelationFilter(filter.teachingGoals),
+                    orga_id: ownersFilter,
+                },
+            },
+            include: {
+                teachingGoals: true,
+                requirements: true,
+            },
+            orderBy: {
+                createdAt: "asc",
+            },
         });
 
-        return res;
+        const dto: SearchLearningUnitListDto = new SearchLearningUnitListDto();
+        dto.learningUnits = result.map((unit) => SearchLearningUnitDto.createFromDao(unit));
+        return dto;
     }
 }
