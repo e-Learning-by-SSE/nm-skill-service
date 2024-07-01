@@ -38,7 +38,7 @@ describe("Career-Profile Controller Tests", () => {
     describe("GET:/career-profiles/{career_profile_id}", () => {
         it("Existent user -> 200", async () => {
             const userId = "1";
-            dbUtils.createUserProfile(userId);
+            await dbUtils.createUserProfile(userId);
 
             const response = await request(app.getHttpServer())
                 .get(`/career-profiles/${userId}`)

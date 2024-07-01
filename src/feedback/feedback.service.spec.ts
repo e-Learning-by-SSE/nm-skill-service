@@ -4,7 +4,6 @@ import { PrismaService } from "../prisma/prisma.service";
 import { FeedbackService } from "./feedback.service";
 import { FeedbackCreationDto } from "./dto";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
-import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { UserMgmtService } from "../user/user.service";
 
 describe("Feedback Service", () => {
@@ -162,7 +161,7 @@ describe("Feedback Service", () => {
 
             // Act and assert: Call the createFeedback method with a non-existing user/LU id and expect an error
             await expect(feedbackService.createFeedback(feedbackCreationDto)).rejects.toThrow(
-                ForbiddenException,
+                NotFoundException,
             );
         });
     });
