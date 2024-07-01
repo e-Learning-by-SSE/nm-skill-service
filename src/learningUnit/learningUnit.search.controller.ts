@@ -74,9 +74,4 @@ export class SearchLearningUnitController {
     ) {
         return this.learningUnitService.patchLearningUnit(learningUnitId, dto);
     }
-
-    @Put(":learningUnitId/checks")
-    checkLearningUnit(@Param("learningUnitId") learningUnitId: string) {
-        return this.learningUnitService.checkLearningUnit(learningUnitId);
-    }
 }

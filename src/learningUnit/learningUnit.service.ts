@@ -20,9 +20,6 @@ export class LearningUnitMgmtService {
     getLearningUnitByFilter(filter: LearningUnitFilterDto) {
         return this.luService.getLearningUnitByFilter(filter);
     }
-    checkLearningUnit(learningUnitId: string) {
-        throw new Error("Method not implemented.");
-    }
 
     /**
      * Adds a new LearningUnit
