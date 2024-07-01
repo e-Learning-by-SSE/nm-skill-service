@@ -9,7 +9,7 @@ import { CustomCoursePreviewResponseDto, EnrollmentPreviewResponseDto } from "./
 import { PersonalizedPathDto } from "../user/learningHistoryService/dto";
 import { UserMgmtService } from "../user/user.service";
 
-describe("LearningHistoryService", () => {
+describe("PathFinder Service", () => {
     const config = new ConfigService();
     const db = new PrismaService(config);
     const luFactory = new LearningUnitFactory(db);
@@ -61,10 +61,9 @@ describe("LearningHistoryService", () => {
                 expect(history).toHaveLength(0);
 
                 // Act
-                const result = await pathFinderService.enrollment(
+                const result = await pathFinderService.enrollmentSimulation(
                     learner.id,
                     pathDefinition.id,
-                    false,
                 );
 
                 // Assert: All 3 units are part of path; Path not saved
@@ -124,10 +123,9 @@ describe("LearningHistoryService", () => {
                 await historyService.addLearnedSkillToUser(learner.id, skill2.id);
 
                 // Act
-                const result = await pathFinderService.enrollment(
+                const result = await pathFinderService.enrollmentSimulation(
                     learner.id,
                     pathDefinition.id,
-                    false,
                 );
 
                 // Assert: Only last is part of path; Path not saved
