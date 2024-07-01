@@ -10,3 +10,4 @@ export * from "./skill-repository-update.dto";
 export * from "./skill-search.dto";
 export * from "./skill-list-resolved.dto";
 export * from "./skill.resolved.dto";
+export * from "./unresolved-skill-repository.dto";

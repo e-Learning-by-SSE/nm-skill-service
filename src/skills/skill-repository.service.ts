@@ -6,9 +6,9 @@ import {
     SkillRepositoryDto,
     SkillRepositoryCreationDto,
     SkillRepositoryUpdateDto,
+    UnresolvedSkillRepositoryDto,
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
 
 /**
  * Service that manages the creation/update/deletion of repositories.
@@ -157,11 +157,7 @@ export class SkillRepositoryService {
             throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
         }
 
-        const result: UnresolvedSkillRepositoryDto = {
-            ...SkillRepositoryDto.createFromDao(dao),
-            skills: dao.skills.map((c) => c.id),
-        };
-        return result;
+        return UnresolvedSkillRepositoryDto.createDtoFromDao(dao);
     }
 
     /**
@@ -205,39 +201,8 @@ export class SkillRepositoryService {
 
     public async loadSkillRepository(repositoryId: string) {
         const repository = await this.getSkillRepository(null, repositoryId, true);
-        const result: UnresolvedSkillRepositoryDto = {
-            ...SkillRepositoryDto.createFromDao(repository),
-            skills: repository.skills.map((c) => c.id),
-        };
-
-        return result;
+        return UnresolvedSkillRepositoryDto.createDtoFromDao(repository);
     }
-
-    // public async loadResolvedSkillRepository(repositoryId: string) {
-    //     const repository = await this.getSkillRepository(null, repositoryId, false);
-    //     const result = ResolvedSkillRepositoryDto.createFromDao(repository);
-
-    //     // Search for skills of that repository that do not have a parent -> top-level skills
-    //     const topLevelSkills = await this.db.skill.findMany({
-    //         where: {
-    //             repositoryId: repositoryId,
-    //             parentSkills: {
-    //                 none: {},
-    //             },
-    //         },
-    //         include: {
-    //             nestedSkills: true,
-    //         },
-    //     });
-
-    //     // Load all top-level skills
-    //     const resolved = new Map<string, ResolvedSkillDto>();
-    //     for (const skill of topLevelSkills) {
-    //         result.skills.push(await this.loadNestedSkill(skill, resolved));
-    //     }
-
-    //     return result;
-    // }
 
     /**
      * Returns a list of all repositories owned by the specified user.

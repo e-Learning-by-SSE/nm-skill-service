@@ -11,10 +11,10 @@ import {
     SkillRepositoryUpdateDto,
     SkillDto,
     SkillListDto,
+    UnresolvedSkillRepositoryDto,
 } from "./dto";
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { ACCESS_RIGHTS, Skill, SkillMap } from "@prisma/client";
-import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
 import { SkillRepositoryService } from "./skill-repository.service";
 import { SkillUpdateDto } from "./dto/skill-update.dto";
 
