@@ -1,4 +1,4 @@
-import { IsEnum, IsJSON, IsNotEmpty, IsOptional, IsString, isString} from "class-validator";
+import { IsEnum, IsJSON, IsNotEmpty, IsOptional, IsString, isString } from "class-validator";
 import { MlsActionEntity } from "./mls-actionEntity.dto";
 import { MlsActionType } from "./mls-actionType.dto";
 
@@ -6,11 +6,10 @@ import { MlsActionType } from "./mls-actionType.dto";
  * Wraps an event sent by the MLS system.
  */
 export class MLSEvent {
-
     /**
      * Which entity is concerned by the event? User/Task/TaskTodo/TaskTodoInfo
      */
-    @IsEnum(MlsActionEntity)  
+    @IsEnum(MlsActionEntity)
     @IsNotEmpty()
     entityType: MlsActionEntity;
 
@@ -41,20 +40,4 @@ export class MLSEvent {
     @IsOptional()
     //@IsJSON() This is too restrictive
     taskTodoPayload?: JSON;
-
-    /**
-     * Constructor only used for testing purposes
-     * @param entityType 
-     * @param method 
-     * @param id 
-     * @param payload 
-     * @param taskTodoPayload 
-     */
-    constructor(entityType: MlsActionEntity, method: MlsActionType, id: string, payload: JSON, taskTodoPayload?: JSON) {     
-        this.method = method;
-        this.entityType = entityType;
-        this.id = id;
-        this.payload = payload;
-        this.taskTodoPayload = taskTodoPayload;
-    }
 }
