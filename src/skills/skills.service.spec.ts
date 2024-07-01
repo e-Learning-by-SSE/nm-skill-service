@@ -403,7 +403,7 @@ describe("Skill Service", () => {
 
         it("Existing Repository with skills -> Skills are resolved", async () => {
             // Expected result: skillMap2 with all (toplevel/nested) skills
-            const expectedResult: Partial<UnresolvedSkillRepositoryDto> = {
+            const expectedResult: UnresolvedSkillRepositoryDto = {
                 id: skillMap2.id,
                 name: skillMap2.name,
                 owner: skillMap2.ownerId,
