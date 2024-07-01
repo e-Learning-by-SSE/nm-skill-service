@@ -4,7 +4,6 @@ import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { FeedbackDto } from "./dto/feedback.dto";
-import { FeedbackListDto } from "./dto/feedback-list.dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 /**
@@ -44,12 +43,11 @@ export class FeedbackService {
             where: { learningUnitId: learningUnitId }, //Filter feedback for respective learning unit
         });
 
-        const feedbackList = new FeedbackListDto();
-        feedbackList.feedback = feedbackFromDB.map((feedback) =>
+        let feedbackList: FeedbackDto[] = feedbackFromDB.map((feedback) =>
             FeedbackDto.createFromDao(feedback),
         );
 
-        return feedbackFromDB;
+        return feedbackList;
     }
 
     /**

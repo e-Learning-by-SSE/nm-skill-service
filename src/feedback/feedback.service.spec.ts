@@ -2,7 +2,7 @@ import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaService } from "../prisma/prisma.service";
 import { FeedbackService } from "./feedback.service";
-import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
+import { FeedbackCreationDto } from "./dto";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { UserMgmtService } from "../user/user.service";
@@ -32,7 +32,7 @@ describe("Feedback Service", () => {
 
             //Create test user profile
             const userId = "testId";
-            await userService.createUser({id: userId});
+            await userService.createUser({ id: userId });
 
             //Create test learning unit
             const unit = await dbUtils.createLearningUnit([], []);
@@ -83,7 +83,7 @@ describe("Feedback Service", () => {
 
             //Create test user profile
             const userId = "testId2";
-            await userService.createUser({id: userId});
+            await userService.createUser({ id: userId });
 
             //Create test learning unit
             const unit = await dbUtils.createLearningUnit([], []);

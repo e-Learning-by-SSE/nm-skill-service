@@ -8,8 +8,6 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { validate } from "class-validator";
 import { EventsModule } from "./events.module";
 import { LearningUnitModule } from "../learningUnit/learningUnit.module";
-import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
-import { USERSTATUS } from "@prisma/client";
 
 describe("Event-System Controller Tests", () => {
     let app: INestApplication;

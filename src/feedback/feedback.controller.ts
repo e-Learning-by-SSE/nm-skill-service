@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { FeedbackService } from "./feedback.service";
-import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
+import { FeedbackCreationDto } from "./dto";
 
 @ApiTags("Feedback")
 @Controller("")
