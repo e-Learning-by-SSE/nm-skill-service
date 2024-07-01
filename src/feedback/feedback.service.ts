@@ -30,7 +30,7 @@ export class FeedbackService {
             throw new NotFoundException("Specified feedback not found: " + feedbackId);
         }
 
-        return feedback;
+        return FeedbackDto.createFromDao(feedback);
     }
 
     /**

@@ -63,7 +63,7 @@ describe("Feedback Service", () => {
             const retrievedEntry = await feedbackService.getFeedback(feedbackId);
 
             // Assert: Check that we retrieved the correct feedback
-            expect(retrievedEntry.id).toEqual(feedbackId);
+            expect(retrievedEntry.feedbackID).toEqual(feedbackId);
 
             // Act: Finally, receive a list of all feedback objects for the learning unit
             const retrievedEntryList = await feedbackService.loadAllFeedback(learningUnitId);
@@ -105,14 +105,14 @@ describe("Feedback Service", () => {
 
             //Update + delete user currently not tested as intended, as onDelete relation is not working properly.
             let retrievedEntry = await feedbackService.getFeedback(feedbackId);
-            expect(retrievedEntry.userId).toEqual(createdFeedbackEntry.userID);
+            expect(retrievedEntry.userID).toEqual(createdFeedbackEntry.userID);
 
             // Act: Update the learning unit
             // To be done when LU has an update function/endpoint
             retrievedEntry = await feedbackService.getFeedback(feedbackId);
 
             // Assert: Check that the learning unit id is unchanged
-            expect(retrievedEntry.learningUnitId).toEqual(createdFeedbackEntry.learningUnitID);
+            expect(retrievedEntry.learningUnitID).toEqual(createdFeedbackEntry.learningUnitID);
 
             // Act: Delete user
             db.userProfile.delete({ where: { id: userId } });
@@ -120,7 +120,7 @@ describe("Feedback Service", () => {
 
             // Assert: Check that the feedback author is set to "anonymous" (to be corrected)
             //expect(retrievedEntry.userId).toEqual("Anonymous");
-            expect(retrievedEntry.userId).toEqual(userId);
+            expect(retrievedEntry.userID).toEqual(userId);
 
             // Act: Delete the learning unit
             db.learningUnit.delete({ where: { id: learningUnitId } });

@@ -38,7 +38,7 @@ describe("Feedback Controller Tests", () => {
         await dbUtils.wipeDb();
     });
 
-    describe("GET:learning-units/:learningUnitId/feedbacks/", () => {
+    describe("GET:/learning-units/{learningUnitId}/feedbacks", () => {
         it("Non-existent learning unit -> 200; Empty list", async () => {
             const response = await request(app.getHttpServer()).get(
                 "/learning-units/non-existing-id/feedbacks/",
@@ -84,6 +84,36 @@ describe("Feedback Controller Tests", () => {
             const feedbackList = response.body as FeedbackDto[];
             expect(feedbackList.length).toBe(1);
             expect(feedbackList[0]).toMatchObject(feedback);
+        });
+    });
+
+    describe("GET:/feedbacks/{feedbackId}", () => {
+        it("Non-existent feedback -> 404", async () => {
+            const response = await request(app.getHttpServer()).get("/feedbacks/non-existing-id");
+            expect(response.status).toBe(404);
+        });
+
+        it("Existent feedback -> 200; Feedback object", async () => {
+            // Test data: Feedback object
+            const user = await dbUtils.createUserProfile("testUser");
+            const skillMap = await dbUtils.createSkillMap("An owner", "A Skill-Map");
+            const goal = await dbUtils.createSkill(skillMap, "A Skill");
+            const lu = await dbUtils.createLearningUnit([goal], []);
+            const feedback = await feedbackService.createFeedback({
+                comprehensiveness: 1,
+                learningUnitID: lu.id,
+                learningValue: 2,
+                overallRating: 3,
+                presentation: 4,
+                structure: 5,
+                userID: user.id,
+            });
+
+            const response = await request(app.getHttpServer()).get(
+                `/feedbacks/${feedback.feedbackID}`,
+            );
+            expect(response.status).toBe(200);
+            expect(response.body).toMatchObject(feedback);
         });
     });
 });
