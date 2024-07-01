@@ -10,7 +10,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { LIFECYCLE, Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 import { LearningUnit } from "../../nm-skill-lib/src";
-import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";
+import { LearningUnitFilterDto } from "./dto/";
 
 /**
  * This factory is responsible for database-based operations on Learning Units. It is used to:
@@ -87,7 +87,7 @@ export class LearningUnitFactory {
             }
             if (existingLearningUnit.lifecycle != LIFECYCLE.DRAFT) {
                 throw new ForbiddenException(
-                    `Learning Unit : ${learningUnitId} is not in LIFECYCLE DRAFT State`,
+                    `Learning Unit : ${learningUnitId} is not in lifecycle DRAFT state`,
                 );
             }
 
@@ -109,6 +109,12 @@ export class LearningUnitFactory {
         }
     }
 
+    /**
+     * Returns the specified learningUnit.
+     * @param learningUnitId The ID of the learningUnit, that shall be returned
+     * @returns The DAO representation of the specified learningUnit.
+     * @throws NotFoundException If the learning unit does not exist.
+     */
     public async loadLearningUnit(learningUnitId: string) {
         const learningUnit = await this.db.learningUnit.findUnique({
             where: { id: learningUnitId },
@@ -123,12 +129,6 @@ export class LearningUnitFactory {
         }
 
         return learningUnit;
-    }
-
-    public async getLearningUnit(learningUnitId: string) {
-        const dao = await this.loadLearningUnit(learningUnitId);
-
-        return SearchLearningUnitDto.createFromDao(dao);
     }
 
     private async loadManyLearningUnits(args?: Prisma.LearningUnitFindManyArgs) {

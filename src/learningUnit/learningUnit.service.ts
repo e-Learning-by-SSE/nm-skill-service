@@ -1,5 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { SearchLearningUnitCreationDto, SearchLearningUnitUpdateDto } from "./dto";
+import {
+    SearchLearningUnitCreationDto,
+    SearchLearningUnitDto,
+    SearchLearningUnitUpdateDto,
+} from "./dto";
 import { LearningUnitFactory } from "./learningUnitFactory";
 import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";
 
@@ -29,9 +33,17 @@ export class LearningUnitMgmtService {
         return this.luService.createLearningUnit(dto);
     }
 
+    /**
+     * Returns the specified learningUnit.
+     * @param learningUnitId The ID of the learningUnit, that shall be returned
+     * @returns The DTO representation of the specified learningUnit.
+     * @throws NotFoundException If the learning unit does not exist.
+     */
     public async getLearningUnit(learningUnitId: string) {
-        return this.luService.getLearningUnit(learningUnitId);
+        const dao = await this.luService.loadLearningUnit(learningUnitId);
+        return SearchLearningUnitDto.createFromDao(dao);
     }
+
     public async deleteLearningUnit(learningUnitId: string) {
         return this.luService.deleteLearningUnit(learningUnitId);
     }

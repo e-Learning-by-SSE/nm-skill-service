@@ -100,6 +100,10 @@ export class DbTestUtils {
                     connect: requirements.map((req) => ({ id: req.id })),
                 },
             },
+            include: {
+                teachingGoals: true,
+                requirements: true,
+            },
         };
 
         return this.db.learningUnit.create(createInput);
