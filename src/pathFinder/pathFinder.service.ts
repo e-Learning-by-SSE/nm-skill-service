@@ -90,56 +90,97 @@ export class PathFinderService {
     }
 
     /**
-     * For a specified pre-defined path, the path is personalized to the given user and returns the result.
+     * Pre-check of `enrollment` and `enrollmentSimulation` to avoid code duplication.
+     * Checks if the specified path exists, if the user is already enrolled in the path,
+     * and computes the personalized path.
+     * @param userId The user for whom the course should be personalized to
+     * @param pathId The pre-defined path that should be personalized
+     * @param optimalSolution If true, the algorithm will try to find an optimal path, at cost of performance.
+     * @returns If the path exists, the personalized path
+     * @throws NotFoundException if the path definition does not exist
+     * @throws ConflictException if the user is already enrolled in the path
+     */
+    private computePathForEnrollment(
+        userId: string,
+        pathId: string,
+        optimalSolution: boolean = false,
+    ) {
+        return this.db.$transaction(async (tx) => {
+            // Load pre-defined path (defined by content creators)
+            const pathDefinition = await this.db.learningPath.findUnique({
+                where: {
+                    id: pathId,
+                },
+                include: {
+                    pathTeachingGoals: true,
+                },
+            });
+
+            if (!pathDefinition) {
+                throw new NotFoundException(`Specified path not found: ${pathId}`);
+            }
+
+            // Check if user is already enrolled in the path
+            const enrolledPath = await this.db.personalizedLearningPath.findFirst({
+                where: {
+                    learningHistoryId: userId,
+                    learningPathId: pathId,
+                },
+            });
+
+            if (enrolledPath) {
+                throw new ConflictException(
+                    `User ${userId} is already enrolled in the specified path: ${pathId}`,
+                );
+            }
+
+            // Compute path for the user
+            const path = await this.computePath({
+                goal: pathDefinition.pathTeachingGoals.map((goal) => goal.id),
+                userId: userId,
+                optimalSolution: optimalSolution,
+            });
+
+            return path;
+        });
+    }
+
+    /**
+     * For a specified pre-defined path, the path is personalized to the given user and returns the **enrollment result**.
      * @param userId The user for whom the course should be personalized to
      * @param pathId The pre-defined path that should be personalized
      * @param storePath if true, the path will be stored in the user's learning history otherwise only the path will be returned as a preview
      * @param optimalSolution If true, the algorithm will try to find an optimal path, at cost of performance.
-     * @returns Either the stored personalized path (storePath = true) or a preview of the path (storePath = false)
+     * @returns The stored personalized path
      */
-    public async enrollment(
+    public async enrollment(userId: string, pathId: string, optimalSolution: boolean = false) {
+        const path = await this.computePathForEnrollment(userId, pathId, optimalSolution);
+        const learningUnitsIds = [...path.learningUnits];
+
+        return await this.historyService.addPersonalizedLearningPathToUser({
+            userId,
+            learningUnitsIds,
+            pathId,
+        });
+    }
+
+    /**
+     * For a specified pre-defined path, the path is personalized to the given user and returns the **preview**.
+     * @param userId The user for whom the course should be personalized to
+     * @param pathId The pre-defined path that should be personalized
+     * @param optimalSolution If true, the algorithm will try to find an optimal path, at cost of performance.
+     * @returns A **preview** of the path
+     */
+    public async enrollmentSimulation(
         userId: string,
         pathId: string,
-        storePath: boolean = true,
         optimalSolution: boolean = false,
     ) {
-        // Load pre-defined path (defined by content creators)
-        const pathDefinition = await this.db.learningPath.findUnique({
-            where: {
-                id: pathId,
-            },
-            include: {
-                pathTeachingGoals: true,
-            },
+        const path = await this.computePathForEnrollment(userId, pathId, optimalSolution);
+        return EnrollmentPreviewResponseDto.createFromDao({
+            unitSequence: path.learningUnits,
+            learningPathId: pathId,
         });
-
-        if (!pathDefinition) {
-            throw new NotFoundException(`Specified path not found: ${pathId}`);
-        }
-
-        // Compute path for the user
-        const path = await this.computePath({
-            goal: pathDefinition.pathTeachingGoals.map((goal) => goal.id),
-            userId: userId,
-            optimalSolution: optimalSolution,
-        });
-
-        // Store path if requested
-        if (storePath) {
-            // Convert from readonly API to string[]
-            const learningUnitsIds = [...path.learningUnits];
-
-            return await this.historyService.addPersonalizedLearningPathToUser({
-                userId,
-                learningUnitsIds,
-                pathId,
-            });
-        } else {
-            return EnrollmentPreviewResponseDto.createFromDao({
-                unitSequence: path.learningUnits,
-                learningPathId: pathId,
-            });
-        }
     }
 
     /**

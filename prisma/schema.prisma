@@ -227,7 +227,7 @@ model PersonalizedLearningPath {
 
   // Origin either are path or custom goals
   learningPath   LearningPath? @relation(fields: [learningPathId], references: [id])
-  learningPathId String?       @unique // Existent if the path is based on a learning path (source = path)
+  learningPathId String?       // Existent if the path is based on a learning path (source = path)
 
   pathTeachingGoals Skill[] @relation("proposedpathGoals") // Has entries if the learning path is created by a user (source = goals)
 

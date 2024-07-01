@@ -9,7 +9,7 @@ import {
     PathRequestDto,
     SkillsToAnalyze,
 } from "./dto";
-import { PersonalizedLearningPath } from "@prisma/client";
+import { PersonalizedPathDto } from "../user/learningHistoryService/dto";
 
 @ApiTags("PathFinder")
 @Controller("PathFinder")
@@ -79,22 +79,12 @@ export class PathFinderController {
         @Query("learningPathId") pathId: string,
         @Query("optimalSolution") optimalSolution?: boolean,
     ) {
-        return this.pfService.enrollment(
-            userId,
-            pathId,
-            false,
-            optimalSolution,
-        ) as unknown as EnrollmentPreviewResponseDto;
+        return this.pfService.enrollmentSimulation(userId, pathId, optimalSolution);
     }
 
     @Post("adapted-path")
     enrollment(@Body() dto: EnrollmentRequestDto) {
-        return this.pfService.enrollment(
-            dto.userId,
-            dto.learningPathId,
-            true,
-            dto.optimalSolution,
-        ) as unknown as PersonalizedLearningPath;
+        return this.pfService.enrollment(dto.userId, dto.learningPathId, dto.optimalSolution);
     }
 
     @Post("calculated-path")
@@ -120,10 +110,4 @@ export class PathFinderController {
             optimalSolution,
         ) as unknown as EnrollmentPreviewResponseDto;
     }
-
-    // @ApiOperation({ summary: "Experimental (WIP)" })
-    // @Post(":userId")
-    // storePersonalizedPath(@Param("userId") userId: string, @Body() dto: PathStorageRequestDto) {
-    //     return this.pfService.storePersonalizedPath(userId, dto);
-    // }
 }
