@@ -25,8 +25,8 @@ export class SearchLearningUnitController {
      * @returns The created learningUnit.
      */
     @Post("/")
-    addLearningUnitSearch(@Body() dto: SearchLearningUnitCreationDto) {
-        return this.learningUnitService.createLearningUnit(dto);
+    async addLearningUnitSearch(@Body() dto: SearchLearningUnitCreationDto) {
+        return await this.learningUnitService.createLearningUnit(dto);
     }
 
     @Get("/")

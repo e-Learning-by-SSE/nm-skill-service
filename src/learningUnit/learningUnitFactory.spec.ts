@@ -64,8 +64,8 @@ describe("LearningUnit Factory", () => {
             const creationDtoNoMatch = SearchLearningUnitCreationDto.createForTesting({
                 id: "2",
             });
-            await factory.createLearningUnit(creationDtoMatch);
-            await factory.createLearningUnit(creationDtoNoMatch);
+            await factory.createSearchLearningUnit(creationDtoMatch);
+            await factory.createSearchLearningUnit(creationDtoNoMatch);
 
             // Should return only the first object
             const result = await factory.loadAllLearningUnits({
@@ -85,12 +85,12 @@ describe("LearningUnit Factory", () => {
         });
     });
 
-    describe("createLearningUnit", () => {
+    describe("createSearchLearningUnit", () => {
         it("Empty DB, no Skills -> Create Learning Unit", async () => {
             const creationDto = SearchLearningUnitCreationDto.createForTesting({
                 id: "Awesome Id",
             });
-            const result = await factory.createLearningUnit(creationDto);
+            const result = await factory.createSearchLearningUnit(creationDto);
 
             // Expected DTO class and values
             const expected: Partial<SearchLearningUnitDto> = {
@@ -108,7 +108,7 @@ describe("LearningUnit Factory", () => {
                 id: "Awesome id",
                 requiredSkills: [reqSkill.id],
             });
-            const result = await factory.createLearningUnit(creationDto);
+            const result = await factory.createSearchLearningUnit(creationDto);
 
             // Expected DTO class and values
             const expected: Partial<SearchLearningUnitDto> = {
@@ -126,7 +126,7 @@ describe("LearningUnit Factory", () => {
                 requiredSkills: [reqSkill.id],
                 teachingGoals: [goalSkill.id],
             });
-            const result = await factory.createLearningUnit(creationDto);
+            const result = await factory.createSearchLearningUnit(creationDto);
 
             // Expected DTO class and values
             const expected: Partial<SearchLearningUnitDto> = {
@@ -144,7 +144,7 @@ describe("LearningUnit Factory", () => {
                 id: "Awesome id",
                 teachingGoals: [goalSkill.id],
             });
-            const result = await factory.createLearningUnit(creationDto);
+            const result = await factory.createSearchLearningUnit(creationDto);
 
             // Expected DTO class and values
             const expected: Partial<SearchLearningUnitDto> = {
@@ -184,7 +184,7 @@ describe("LearningUnit Factory", () => {
                 lifecycle: LIFECYCLE.DRAFT,
                 language: "en",
             };
-            unit = await factory.createLearningUnit(creationDto);
+            unit = await factory.createSearchLearningUnit(creationDto);
 
             expect(unit, "patchLearningUnit::beforeEach broken").toMatchObject(creationDto);
             // Prepare expected object:
@@ -434,7 +434,7 @@ describe("LearningUnit Factory", () => {
             };
             const creationDto =
                 SearchLearningUnitCreationDto.createForTesting(existingLearningUnit);
-            const result1 = await factory.createLearningUnit(creationDto);
+            const result1 = await factory.createSearchLearningUnit(creationDto);
 
             const learningUnit = await db.learningUnit.findUnique({
                 where: {
@@ -473,7 +473,7 @@ describe("LearningUnit Factory", () => {
 
             const creationDto =
                 SearchLearningUnitCreationDto.createForTesting(existingLearningUnit);
-            const result1 = await factory.createLearningUnit(creationDto);
+            const result1 = await factory.createSearchLearningUnit(creationDto);
             // Attempt to delete a learning unit in a non-DRAFT state
             await expect(factory.deleteLearningUnit("789")).rejects.toThrowError(
                 ForbiddenException,

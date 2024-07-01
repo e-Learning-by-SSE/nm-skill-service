@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import {
     SearchLearningUnitCreationDto,
@@ -6,7 +11,10 @@ import {
     SearchLearningUnitListDto,
     SearchLearningUnitUpdateDto,
 } from "./dto";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+    PrismaClientKnownRequestError,
+    PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
 import { LIFECYCLE, Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 import { LearningUnit } from "../../nm-skill-lib/src";
@@ -156,12 +164,15 @@ export class LearningUnitFactory {
     }
 
     /**
-   * Create a new Search-LearningUnit.
-   * @param dto Specifies the learningUnit to be created
-   * @returns The newly created learningUnit
+     * Create a new Search-LearningUnit.
+     * @param dto Specifies the learningUnit to be created
+     * @returns The newly created learningUnit
+     */
+    public async createSearchLearningUnit(dto: SearchLearningUnitCreationDto) {
+        if (!dto || !dto.id) {
+            throw new BadRequestException(`Invalid input data: ${JSON.stringify(dto)}`);
+        }
 
-   */
-    private async createSearchLearningUnit(dto: SearchLearningUnitCreationDto) {
         // Create and return learningUnit
         try {
             const learningUnit = await this.db.learningUnit.create({
@@ -191,7 +202,6 @@ export class LearningUnitFactory {
                 },
                 include: {
                     requirements: true,
-
                     teachingGoals: true,
                 },
             });
@@ -201,15 +211,13 @@ export class LearningUnitFactory {
             if (error instanceof PrismaClientKnownRequestError) {
                 // unique field already exists
                 if (error.code === "P2002") {
-                    throw new ForbiddenException("Learning Unit already exists");
+                    throw new ForbiddenException(
+                        `Learning unit with id \"${dto.id}\" already exists`,
+                    );
                 }
             }
             throw error;
         }
-    }
-
-    public async createLearningUnit(dto: SearchLearningUnitCreationDto) {
-        return this.createSearchLearningUnit(dto);
     }
 
     /**

@@ -30,7 +30,7 @@ export class LearningUnitMgmtService {
      * @returns The newly created learningUnit
      */
     async createLearningUnit(dto: SearchLearningUnitCreationDto) {
-        return this.luService.createLearningUnit(dto);
+        return await this.luService.createSearchLearningUnit(dto);
     }
 
     /**
