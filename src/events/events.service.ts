@@ -294,6 +294,17 @@ export class EventMgmtService {
                         );
                     }
 
+                    if (typeof mlsEvent.taskTodoPayload === "string") {
+                        LoggerUtil.logInfo("EventService::payloadFix (string)");
+                        // Try to parse the payload as JSON
+                        try {
+                            mlsEvent.taskTodoPayload = JSON.parse(mlsEvent.taskTodoPayload);
+                            LoggerUtil.logInfo("EventService::payloadFixed");
+                        } catch (e) {
+                            LoggerUtil.logInfo("EventService::payloadFix (failed)", { cause: e });
+                        }
+                    }
+
                     return await this.updateLearnedSkills(mlsEvent);
                 } else {
                     throw new ForbiddenException(
