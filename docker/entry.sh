@@ -39,7 +39,7 @@ case "${DB_ACTION}" in
         cd /usr/src/app/
         npx prisma db push --accept-data-loss
         npx prisma db seed
-		detect_migrations()
+		detect_migrations
         echo "Database initialization completed."
         
         node /usr/src/app/dist/src/main.js
@@ -52,7 +52,7 @@ case "${DB_ACTION}" in
         # Initilize, but do not reset existing data
         cd /usr/src/app/
         npx prisma db push
-		detect_migrations()
+		detect_migrations
         
         node /usr/src/app/dist/src/main.js
         ;;
@@ -64,7 +64,7 @@ case "${DB_ACTION}" in
         # Reset the database
         cd /usr/src/app/
         npx prisma db push --force-reset
-		detect_migrations()
+		detect_migrations
 
         node /usr/src/app/dist/src/main.js
         ;;
