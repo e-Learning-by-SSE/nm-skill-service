@@ -384,6 +384,20 @@ export class EventMgmtService {
         return learningUnitDto;
     }
 
+    private extractId(payload: JSON | undefined, key: string) {
+        let id = undefined;
+        if (payload) {
+            id = "" + payload["task" as keyof JSON]?.toString();
+            if (id.includes("/")) {
+                // IDs may be transmitted as IRI/URI, extract ID (part after last /)
+                const parts = id.split("/");
+                id = parts[parts.length - 1];
+            }
+        }
+
+        return id;
+    }
+
     async updateLearnedSkills(mlsEvent: MLSEvent) {
         //Try to read the required values.
         //If field not existing or not a number, variables will be NaN or undefined and the condition evaluates to false (the ! is necessary to force typescript to access the object, though)
@@ -391,13 +405,17 @@ export class EventMgmtService {
         const maxPoints = +mlsEvent.taskTodoPayload!["maxPoints" as keyof JSON]; // caution: can be 0
         const STATUS = mlsEvent.payload["status" as keyof JSON];
         //Get the id of the user that updated the task
-        const userID = "" + mlsEvent.taskTodoPayload!["user" as keyof JSON]?.toString();
-        //Get the id of the task
-        let taskID = "" + mlsEvent.taskTodoPayload!["task" as keyof JSON]?.toString();
-        if (taskID.includes("/")) {
-            // TaskID is an IRI, need only the ID
-            const parts = taskID.split("/");
-            taskID = parts[parts.length - 1];
+        const userID = this.extractId(mlsEvent.taskTodoPayload, "user");
+        const taskID = this.extractId(mlsEvent.taskTodoPayload, "task");
+
+        if (!userID || !taskID) {
+            LoggerUtil.logInfo(
+                "EventService::TaskToDoInfoLearnSkill:Error",
+                `User "${userID}" or task "${taskID}" ID not found`,
+            );
+            throw new UnprocessableEntityException(
+                `User "${userID}" or task "${taskID}" ID not found`,
+            );
         }
 
         LoggerUtil.logInfo(
@@ -410,7 +428,7 @@ export class EventMgmtService {
             "scored(" + scoredPoints + ") max(" + maxPoints + ") status(" + STATUS + ")",
         );
 
-        //If the user has started the task
+        // If the user has started the task
         if (STATUS == "IN_PROGRESS") {
             LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill: Task started", taskID);
             return await this.learningHistoryService.updateLearningUnitInstanceAndPersonalizedPathStatus(
