@@ -35,6 +35,48 @@ describe("Career-Profile Controller Tests", () => {
         await dbUtils.wipeDb();
     });
 
+    describe("GET:/career-profiles", () => {
+        it("Empty database -> 200", async () => {
+            // Act
+            const response = await request(app.getHttpServer()).get("/career-profiles");
+
+            // Assert: Empty result
+            expect(response.status).toBe(200);
+            const responseDto = response.body as CareerProfileDto[];
+            expect(responseDto).toEqual([]);
+        });
+
+        it("Multiple (empty) profiles -> 200; All profiles", async () => {
+            // Test data
+            const profile1 = await dbUtils.createUserProfile("1");
+            const profile2 = await dbUtils.createUserProfile("2");
+
+            // Act
+            const response = await request(app.getHttpServer()).get("/career-profiles");
+
+            // Assert: Both profiles returned
+            const expected: CareerProfileDto[] = [
+                {
+                    id: profile1.id,
+                    jobHistory: [],
+                    professionalInterests: [],
+                    qualifications: [],
+                    selfReportedSkills: [],
+                },
+                {
+                    id: profile2.id,
+                    jobHistory: [],
+                    professionalInterests: [],
+                    qualifications: [],
+                    selfReportedSkills: [],
+                },
+            ];
+            expect(response.status).toBe(200);
+            const responseDto = response.body as CareerProfileDto[];
+            expect(responseDto).toMatchObject(expected);
+        });
+    });
+
     describe("GET:/career-profiles/{career_profile_id}", () => {
         it("Existent user -> 200", async () => {
             const userId = "1";
