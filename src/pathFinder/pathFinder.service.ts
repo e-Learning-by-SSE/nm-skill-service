@@ -318,9 +318,7 @@ export class PathFinderService {
             },
         });
 
-        if (!skillDAOs) {
-            throw new NotFoundException(`Specified skills not found: ${skillIds}`);
-        } else if (skillDAOs.length < skillIds.length) {
+        if (skillDAOs.length < skillIds.length) {
             const missedIds = skillIds.filter((id) => !skillDAOs.map((dao) => dao.id).includes(id));
             throw new NotFoundException(`Not all specified skills could be found: ${missedIds}`);
         }

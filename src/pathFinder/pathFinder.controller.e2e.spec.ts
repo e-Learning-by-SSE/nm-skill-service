@@ -695,6 +695,46 @@ describe("PathFinder Controller Tests", () => {
                     `Specified user not found: ${enrollmentRequest.userId}`,
                 );
             });
+
+            it("User enrolls to goal w/ invalid goal -> 404", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: user1.id,
+                    goals: ["Invalid::ID"],
+                };
+
+                // Act: Enroll user -> fail
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/calculated-path")
+                    .send(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(404);
+                const exc = response.body as NotFoundException;
+                expect(exc.message).toContain(
+                    `Not all specified skills could be found: ${enrollmentRequest.goals}`,
+                );
+            });
+
+            it("User enrolls to goal w/ invalid sub-goal -> 404", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: user1.id,
+                    goals: [skill4.id, "Invalid::ID"],
+                };
+
+                // Act: Enroll user -> fail
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/calculated-path")
+                    .send(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(404);
+                const exc = response.body as NotFoundException;
+                expect(exc.message).toContain(
+                    `Not all specified skills could be found: Invalid::ID`,
+                );
+            });
         });
     });
 
