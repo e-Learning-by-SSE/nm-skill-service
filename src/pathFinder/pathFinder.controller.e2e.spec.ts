@@ -396,11 +396,35 @@ describe("PathFinder Controller Tests", () => {
         });
 
         describe("GET:/PathFinder/calculated-path", () => {
-            it("1 user enroll (preview) to goal -> 200", async () => {
+            it("1 user enrolls (preview) to goal -> 200", async () => {
                 // Input
                 const enrollmentRequest: CustomCourseRequestDto = {
                     userId: user1.id,
                     goals: [skill4.id],
+                    optimalSolution: true,
+                };
+
+                const expectedResponse: CustomCoursePreviewResponseDto = {
+                    goal: [skill4.id],
+                    learningUnits: [lu2.id, lu3.id, lu4.id],
+                };
+
+                // Act: Enroll user -> success
+                let response = await request(app.getHttpServer())
+                    .get("/PathFinder/calculated-path")
+                    .query(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(200);
+                const enrolledPath = response.body as CustomCoursePreviewResponseDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
+
+            it("1 user enrolls (preview) to goal (as string) -> 200", async () => {
+                // Input
+                const enrollmentRequest = {
+                    userId: user1.id,
+                    goals: skill4.id,
                     optimalSolution: true,
                 };
 
@@ -508,7 +532,7 @@ describe("PathFinder Controller Tests", () => {
         });
 
         describe("POST:/PathFinder/calculated-path", () => {
-            it("1 user enroll to goal -> 201", async () => {
+            it("1 user enrolls to goal -> 201", async () => {
                 // Input
                 const enrollmentRequest: CustomCourseRequestDto = {
                     userId: user1.id,
@@ -536,6 +560,37 @@ describe("PathFinder Controller Tests", () => {
                 // Check response
                 expect(response.status).toEqual(201);
                 const enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
+
+            it("1 user enrolls to goal (as string) -> 201", async () => {
+                // Input
+                const enrollmentRequest = {
+                    userId: user1.id,
+                    goals: skill4.id,
+                    optimalSolution: true,
+                };
+
+                const expectedResponse: PersonalizedPathDto = {
+                    personalizedPathId: expect.any(String),
+                    learningPathId: null,
+                    learningUnitInstances: [
+                        { unitId: lu2.id, status: "OPEN" },
+                        { unitId: lu3.id, status: "OPEN" },
+                        { unitId: lu4.id, status: "OPEN" },
+                    ],
+                    status: "OPEN",
+                    goals: [skill4.id],
+                };
+
+                // Act: Enroll user -> success
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/calculated-path")
+                    .send(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(201);
+                const enrolledPath = response.body as CustomCoursePreviewResponseDto;
                 expect(enrolledPath).toMatchObject(expectedResponse);
             });
 
