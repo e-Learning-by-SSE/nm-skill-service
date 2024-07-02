@@ -6,7 +6,14 @@ import { SkillMap, Skill, LearningUnit, UserProfile, LearningPath } from "@prism
 import { validate } from "class-validator";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaModule } from "../prisma/prisma.module";
-import { EnrollmentPreviewResponseDto, EnrollmentRequestDto, PathDto, PathRequestDto } from "./dto";
+import {
+    CustomCoursePreviewResponseDto,
+    CustomCourseRequestDto,
+    EnrollmentPreviewResponseDto,
+    EnrollmentRequestDto,
+    PathDto,
+    PathRequestDto,
+} from "./dto";
 import { PathFinderModule } from "./pathFinder.module";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserMgmtService } from "../user/user.service";
@@ -56,7 +63,7 @@ describe("PathFinder Controller Tests", () => {
         await db.$disconnect();
     });
 
-    describe("GET:/PathFinder/adapted-path", () => {
+    describe("adapted-path", () => {
         // Test data
         let skillMap1: SkillMap;
         let [skill1, skill2, skill3, skill4]: Skill[] = [];
@@ -96,122 +103,260 @@ describe("PathFinder Controller Tests", () => {
             pathDefinition = await dbUtils.createLearningPath(skillMap1.ownerId, [skill4]);
         });
 
-        it("1 user enroll (preview) to path -> 200", async () => {
-            // Input
-            const enrollmentRequest: EnrollmentRequestDto = {
-                userId: user1.id,
-                learningPathId: pathDefinition.id,
-                optimalSolution: true,
-            };
+        describe("GET:/PathFinder/adapted-path", () => {
+            it("1 user enroll (preview) to path -> 200", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: user1.id,
+                    learningPathId: pathDefinition.id,
+                    optimalSolution: true,
+                };
 
-            const expectedResponse: EnrollmentPreviewResponseDto = {
-                learningPathId: pathDefinition.id,
-                learningUnits: [lu2.id, lu3.id, lu4.id],
-            };
+                const expectedResponse: EnrollmentPreviewResponseDto = {
+                    learningPathId: pathDefinition.id,
+                    learningUnits: [lu2.id, lu3.id, lu4.id],
+                };
 
-            // Act: Enroll user -> success
-            let response = await request(app.getHttpServer())
-                .get("/PathFinder/adapted-path")
-                .query(enrollmentRequest);
+                // Act: Enroll user -> success
+                let response = await request(app.getHttpServer())
+                    .get("/PathFinder/adapted-path")
+                    .query(enrollmentRequest);
 
-            // Check response
-            expect(response.status).toEqual(200);
-            const enrolledPath = response.body as EnrollmentPreviewResponseDto;
-            expect(enrolledPath).toMatchObject(expectedResponse);
+                // Check response
+                expect(response.status).toEqual(200);
+                const enrolledPath = response.body as EnrollmentPreviewResponseDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
+
+            it("Multiple users enroll (preview) to same path -> 200", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: user1.id,
+                    learningPathId: pathDefinition.id,
+                    optimalSolution: true,
+                };
+
+                const expectedResponse: EnrollmentPreviewResponseDto = {
+                    learningPathId: pathDefinition.id,
+                    learningUnits: [lu2.id, lu3.id, lu4.id],
+                };
+
+                // Act 1: Enroll first user -> success
+                let response = await request(app.getHttpServer())
+                    .get("/PathFinder/adapted-path")
+                    .query(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(200);
+                let enrolledPath = response.body as EnrollmentPreviewResponseDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+
+                // Act 2: Enroll second user -> success
+                enrollmentRequest.userId = user2.id;
+                response = await request(app.getHttpServer())
+                    .get("/PathFinder/adapted-path")
+                    .query(enrollmentRequest);
+                // Check response -> Should be identical
+                expect(response.status).toEqual(200);
+                enrolledPath = response.body as EnrollmentPreviewResponseDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
+
+            it("User enrolls to course twice (preview) -> 200 (success)", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: user1.id,
+                    learningPathId: pathDefinition.id,
+                    optimalSolution: true,
+                };
+
+                const expectedResponse: EnrollmentPreviewResponseDto = {
+                    learningPathId: pathDefinition.id,
+                    learningUnits: [lu2.id, lu3.id, lu4.id],
+                };
+
+                // Act 1: Enroll first time -> success
+                let response = await request(app.getHttpServer())
+                    .get("/PathFinder/adapted-path")
+                    .query(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(200);
+                let enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+
+                // Act 2: Enroll second time -> success
+                response = await request(app.getHttpServer())
+                    .get("/PathFinder/adapted-path")
+                    .query(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(200);
+                enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
+
+            it("Invalid user enroll to path -> 404", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: "Invalid::ID",
+                    learningPathId: pathDefinition.id,
+                    optimalSolution: true,
+                };
+
+                // Act: Enroll user -> fail
+                let response = await request(app.getHttpServer())
+                    .get("/PathFinder/adapted-path")
+                    .query(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(404);
+                const exc = response.body as NotFoundException;
+                expect(exc.message).toContain(
+                    `Specified user not found: ${enrollmentRequest.userId}`,
+                );
+            });
         });
 
-        it("Multiple users enroll (preview) to same path -> 200", async () => {
-            // Input
-            const enrollmentRequest: EnrollmentRequestDto = {
-                userId: user1.id,
-                learningPathId: pathDefinition.id,
-                optimalSolution: true,
-            };
+        describe("POST:/PathFinder/adapted-path", () => {
+            it("1 user enroll to path -> 201", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: user1.id,
+                    learningPathId: pathDefinition.id,
+                    optimalSolution: true,
+                };
 
-            const expectedResponse: EnrollmentPreviewResponseDto = {
-                learningPathId: pathDefinition.id,
-                learningUnits: [lu2.id, lu3.id, lu4.id],
-            };
+                const expectedResponse: PersonalizedPathDto = {
+                    personalizedPathId: expect.any(String),
+                    learningPathId: pathDefinition.id,
+                    learningUnitInstances: [
+                        { unitId: lu2.id, status: "OPEN" },
+                        { unitId: lu3.id, status: "OPEN" },
+                        { unitId: lu4.id, status: "OPEN" },
+                    ],
+                    status: "OPEN",
+                    goals: [],
+                };
 
-            // Act 1: Enroll first user -> success
-            let response = await request(app.getHttpServer())
-                .get("/PathFinder/adapted-path")
-                .query(enrollmentRequest);
-            // Check response
-            expect(response.status).toEqual(200);
-            let enrolledPath = response.body as EnrollmentPreviewResponseDto;
-            expect(enrolledPath).toMatchObject(expectedResponse);
+                // Act: Enroll user -> success
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/adapted-path")
+                    .send(enrollmentRequest);
 
-            // Act 2: Enroll second user -> success
-            enrollmentRequest.userId = user2.id;
-            response = await request(app.getHttpServer())
-                .get("/PathFinder/adapted-path")
-                .query(enrollmentRequest);
-            // Check response -> Should be identical
-            expect(response.status).toEqual(200);
-            enrolledPath = response.body as EnrollmentPreviewResponseDto;
-            expect(enrolledPath).toMatchObject(expectedResponse);
-        });
+                // Check response
+                expect(response.status).toEqual(201);
+                const enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
 
-        it("User enrolls to course twice (preview) -> 200 (success)", async () => {
-            // Input
-            const enrollmentRequest: EnrollmentRequestDto = {
-                userId: user1.id,
-                learningPathId: pathDefinition.id,
-                optimalSolution: true,
-            };
+            it("Multiple users enroll to same path -> 201", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: user1.id,
+                    learningPathId: pathDefinition.id,
+                    optimalSolution: true,
+                };
 
-            const expectedResponse: EnrollmentPreviewResponseDto = {
-                learningPathId: pathDefinition.id,
-                learningUnits: [lu2.id, lu3.id, lu4.id],
-            };
+                const expectedResponse: PersonalizedPathDto = {
+                    personalizedPathId: expect.any(String),
+                    learningPathId: pathDefinition.id,
+                    learningUnitInstances: [
+                        { unitId: lu2.id, status: "OPEN" },
+                        { unitId: lu3.id, status: "OPEN" },
+                        { unitId: lu4.id, status: "OPEN" },
+                    ],
+                    status: "OPEN",
+                    goals: [],
+                };
 
-            // Act 1: Enroll first time -> success
-            let response = await request(app.getHttpServer())
-                .get("/PathFinder/adapted-path")
-                .query(enrollmentRequest);
-            // Check response
-            expect(response.status).toEqual(200);
-            let enrolledPath = response.body as PersonalizedPathDto;
-            expect(enrolledPath).toMatchObject(expectedResponse);
+                // Act 1: Enroll first user -> success
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/adapted-path")
+                    .send(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(201);
+                let enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
 
-            // Act 2: Enroll second time -> success
-            response = await request(app.getHttpServer())
-                .get("/PathFinder/adapted-path")
-                .query(enrollmentRequest);
-            // Check response
-            expect(response.status).toEqual(200);
-            enrolledPath = response.body as PersonalizedPathDto;
-            expect(enrolledPath).toMatchObject(expectedResponse);
-        });
+                // Act 2: Enroll second user -> success
+                enrollmentRequest.userId = user2.id;
+                response = await request(app.getHttpServer())
+                    .post("/PathFinder/adapted-path")
+                    .send(enrollmentRequest);
+                // Check response -> Should be identical
+                expect(response.status).toEqual(201);
+                enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
 
-        it("Invalid user enroll to path -> 404", async () => {
-            // Input
-            const enrollmentRequest: EnrollmentRequestDto = {
-                userId: "Invalid::ID",
-                learningPathId: pathDefinition.id,
-                optimalSolution: true,
-            };
+            it("User enrolls to course twice -> 409 (fail)", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: user1.id,
+                    learningPathId: pathDefinition.id,
+                    optimalSolution: true,
+                };
 
-            // Act: Enroll user -> fail
-            let response = await request(app.getHttpServer())
-                .get("/PathFinder/adapted-path")
-                .query(enrollmentRequest);
+                const expectedResponse: PersonalizedPathDto = {
+                    personalizedPathId: expect.any(String),
+                    learningPathId: pathDefinition.id,
+                    learningUnitInstances: [
+                        { unitId: lu2.id, status: "OPEN" },
+                        { unitId: lu3.id, status: "OPEN" },
+                        { unitId: lu4.id, status: "OPEN" },
+                    ],
+                    status: "OPEN",
+                    goals: [],
+                };
 
-            // Check response
-            expect(response.status).toEqual(404);
-            const exc = response.body as NotFoundException;
-            expect(exc.message).toContain(`Specified user not found: ${enrollmentRequest.userId}`);
+                // Act 1: Enroll first time -> success
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/adapted-path")
+                    .send(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(201);
+                let enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+
+                // Act 2: Enroll second time -> fail
+                response = await request(app.getHttpServer())
+                    .post("/PathFinder/adapted-path")
+                    .send(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(409);
+                const exc = response.body as ForbiddenException;
+                expect(exc.message).toContain(
+                    `User ${user1.id} is already enrolled in the specified path: ${enrolledPath.learningPathId}`,
+                );
+            });
+
+            it("Invalid user enroll to path -> 404", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: "Invalid::ID",
+                    learningPathId: pathDefinition.id,
+                    optimalSolution: true,
+                };
+
+                // Act: Enroll user -> fail
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/adapted-path")
+                    .send(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(404);
+                const exc = response.body as NotFoundException;
+                expect(exc.message).toContain(
+                    `Specified user not found: ${enrollmentRequest.userId}`,
+                );
+            });
         });
     });
 
-    describe("POST:/PathFinder/adapted-path", () => {
-        // Test data
+    describe("calculated-path", () => {
+        // Test data (like in adapted-path, but without path definition)
         let skillMap1: SkillMap;
         let [skill1, skill2, skill3, skill4]: Skill[] = [];
         let [lu2, lu3, lu4]: LearningUnit[] = [];
         let [user1, user2]: UserProfile[] = [];
-        let pathDefinition: LearningPath;
 
         beforeEach(async () => {
             // Wipe DB before test
@@ -241,139 +386,253 @@ describe("PathFinder Controller Tests", () => {
             lu2 = await dbUtils.createLearningUnit([skill1], []);
             lu3 = await dbUtils.createLearningUnit([skill2, skill3], [skill1]);
             lu4 = await dbUtils.createLearningUnit([skill4], [skill3]);
-
-            pathDefinition = await dbUtils.createLearningPath(skillMap1.ownerId, [skill4]);
         });
 
-        it("1 user enroll to path -> 201", async () => {
-            // Input
-            const enrollmentRequest: EnrollmentRequestDto = {
-                userId: user1.id,
-                learningPathId: pathDefinition.id,
-                optimalSolution: true,
-            };
+        describe("GET:/PathFinder/calculated-path", () => {
+            it("1 user enroll (preview) to goal -> 200", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: user1.id,
+                    goals: [skill4.id],
+                    optimalSolution: true,
+                };
 
-            const expectedResponse: PersonalizedPathDto = {
-                personalizedPathId: expect.any(String),
-                learningPathId: pathDefinition.id,
-                learningUnitInstances: [
-                    { unitId: lu2.id, status: "OPEN" },
-                    { unitId: lu3.id, status: "OPEN" },
-                    { unitId: lu4.id, status: "OPEN" },
-                ],
-                status: "OPEN",
-                goals: [],
-            };
+                const expectedResponse: CustomCoursePreviewResponseDto = {
+                    goal: [skill4.id],
+                    learningUnits: [lu2.id, lu3.id, lu4.id],
+                };
 
-            // Act: Enroll user -> success
-            let response = await request(app.getHttpServer())
-                .post("/PathFinder/adapted-path")
-                .send(enrollmentRequest);
+                // Act: Enroll user -> success
+                let response = await request(app.getHttpServer())
+                    .get("/PathFinder/calculated-path")
+                    .query(enrollmentRequest);
 
-            // Check response
-            expect(response.status).toEqual(201);
-            const enrolledPath = response.body as PersonalizedPathDto;
-            expect(enrolledPath).toMatchObject(expectedResponse);
+                // Check response
+                expect(response.status).toEqual(200);
+                const enrolledPath = response.body as CustomCoursePreviewResponseDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
+
+            it("Multiple users enroll (preview) to same goal -> 200", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: user1.id,
+                    goals: [skill4.id],
+                    optimalSolution: true,
+                };
+
+                const expectedResponse: CustomCoursePreviewResponseDto = {
+                    goal: [skill4.id],
+                    learningUnits: [lu2.id, lu3.id, lu4.id],
+                };
+
+                // Act 1: Enroll first user -> success
+                let response = await request(app.getHttpServer())
+                    .get("/PathFinder/calculated-path")
+                    .query(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(200);
+                let enrolledPath = response.body as CustomCoursePreviewResponseDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+
+                // Act 2: Enroll second user -> success
+                enrollmentRequest.userId = user2.id;
+                response = await request(app.getHttpServer())
+                    .get("/PathFinder/calculated-path")
+                    .query(enrollmentRequest);
+                // Check response -> Should be identical
+                expect(response.status).toEqual(200);
+                enrolledPath = response.body as CustomCoursePreviewResponseDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
+
+            it("User enrolls to goal twice (preview) -> 200 (success)", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: user1.id,
+                    goals: [skill4.id],
+                    optimalSolution: true,
+                };
+
+                const expectedResponse: CustomCoursePreviewResponseDto = {
+                    goal: [skill4.id],
+                    learningUnits: [lu2.id, lu3.id, lu4.id],
+                };
+
+                // Act 1: Enroll first time -> success
+                let response = await request(app.getHttpServer())
+                    .get("/PathFinder/calculated-path")
+                    .query(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(200);
+                let enrolledPath = response.body as CustomCoursePreviewResponseDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+
+                // Act 2: Enroll second time -> success
+                response = await request(app.getHttpServer())
+                    .get("/PathFinder/calculated-path")
+                    .query(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(200);
+                enrolledPath = response.body as CustomCoursePreviewResponseDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
+
+            it("Invalid user enroll to goal -> 404", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: "Invalid::ID",
+                    goals: [skill4.id],
+                    optimalSolution: true,
+                };
+
+                // Act: Enroll user -> fail
+                let response = await request(app.getHttpServer())
+                    .get("/PathFinder/calculated-path")
+                    .query(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(404);
+                const exc = response.body as NotFoundException;
+                expect(exc.message).toContain(
+                    `Specified user not found: ${enrollmentRequest.userId}`,
+                );
+            });
         });
 
-        it("Multiple users enroll to same path -> 201", async () => {
-            // Input
-            const enrollmentRequest: EnrollmentRequestDto = {
-                userId: user1.id,
-                learningPathId: pathDefinition.id,
-                optimalSolution: true,
-            };
+        describe("POST:/PathFinder/calculated-path", () => {
+            it("1 user enroll to goal -> 201", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: user1.id,
+                    goals: [skill4.id],
+                    optimalSolution: true,
+                };
 
-            const expectedResponse: PersonalizedPathDto = {
-                personalizedPathId: expect.any(String),
-                learningPathId: pathDefinition.id,
-                learningUnitInstances: [
-                    { unitId: lu2.id, status: "OPEN" },
-                    { unitId: lu3.id, status: "OPEN" },
-                    { unitId: lu4.id, status: "OPEN" },
-                ],
-                status: "OPEN",
-                goals: [],
-            };
+                const expectedResponse: PersonalizedPathDto = {
+                    personalizedPathId: expect.any(String),
+                    learningPathId: null,
+                    learningUnitInstances: [
+                        { unitId: lu2.id, status: "OPEN" },
+                        { unitId: lu3.id, status: "OPEN" },
+                        { unitId: lu4.id, status: "OPEN" },
+                    ],
+                    status: "OPEN",
+                    goals: [skill4.id],
+                };
 
-            // Act 1: Enroll first user -> success
-            let response = await request(app.getHttpServer())
-                .post("/PathFinder/adapted-path")
-                .send(enrollmentRequest);
-            // Check response
-            expect(response.status).toEqual(201);
-            let enrolledPath = response.body as PersonalizedPathDto;
-            expect(enrolledPath).toMatchObject(expectedResponse);
+                // Act: Enroll user -> success
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/calculated-path")
+                    .send(enrollmentRequest);
 
-            // Act 2: Enroll second user -> success
-            enrollmentRequest.userId = user2.id;
-            response = await request(app.getHttpServer())
-                .post("/PathFinder/adapted-path")
-                .send(enrollmentRequest);
-            // Check response -> Should be identical
-            expect(response.status).toEqual(201);
-            enrolledPath = response.body as PersonalizedPathDto;
-            expect(enrolledPath).toMatchObject(expectedResponse);
-        });
+                // Check response
+                expect(response.status).toEqual(201);
+                const enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
 
-        it("User enrolls to course twice -> 409 (fail)", async () => {
-            // Input
-            const enrollmentRequest: EnrollmentRequestDto = {
-                userId: user1.id,
-                learningPathId: pathDefinition.id,
-                optimalSolution: true,
-            };
+            it("Multiple users enroll to same goal -> 201", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: user1.id,
+                    goals: [skill4.id],
+                    optimalSolution: true,
+                };
 
-            const expectedResponse: PersonalizedPathDto = {
-                personalizedPathId: expect.any(String),
-                learningPathId: pathDefinition.id,
-                learningUnitInstances: [
-                    { unitId: lu2.id, status: "OPEN" },
-                    { unitId: lu3.id, status: "OPEN" },
-                    { unitId: lu4.id, status: "OPEN" },
-                ],
-                status: "OPEN",
-                goals: [],
-            };
+                const expectedResponse: PersonalizedPathDto = {
+                    personalizedPathId: expect.any(String),
+                    learningPathId: null,
+                    learningUnitInstances: [
+                        { unitId: lu2.id, status: "OPEN" },
+                        { unitId: lu3.id, status: "OPEN" },
+                        { unitId: lu4.id, status: "OPEN" },
+                    ],
+                    status: "OPEN",
+                    goals: [skill4.id],
+                };
 
-            // Act 1: Enroll first time -> success
-            let response = await request(app.getHttpServer())
-                .post("/PathFinder/adapted-path")
-                .send(enrollmentRequest);
-            // Check response
-            expect(response.status).toEqual(201);
-            let enrolledPath = response.body as PersonalizedPathDto;
-            expect(enrolledPath).toMatchObject(expectedResponse);
+                // Act 1: Enroll first user -> success
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/calculated-path")
+                    .send(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(201);
+                let enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
 
-            // Act 2: Enroll second time -> fail
-            response = await request(app.getHttpServer())
-                .post("/PathFinder/adapted-path")
-                .send(enrollmentRequest);
-            // Check response
-            expect(response.status).toEqual(409);
-            const exc = response.body as ForbiddenException;
-            expect(exc.message).toContain(
-                `User ${user1.id} is already enrolled in the specified path: ${enrolledPath.learningPathId}`,
-            );
-        });
+                // Act 2: Enroll second user -> success
+                enrollmentRequest.userId = user2.id;
+                response = await request(app.getHttpServer())
+                    .post("/PathFinder/calculated-path")
+                    .send(enrollmentRequest);
+                // Check response -> Should be identical
+                expect(response.status).toEqual(201);
+                enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
 
-        it("Invalid user enroll to path -> 404", async () => {
-            // Input
-            const enrollmentRequest: EnrollmentRequestDto = {
-                userId: "Invalid::ID",
-                learningPathId: pathDefinition.id,
-                optimalSolution: true,
-            };
+            it("User enrolls to goal twice -> 409 (fail)", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: user1.id,
+                    goals: [skill4.id],
+                    optimalSolution: true,
+                };
 
-            // Act: Enroll user -> fail
-            let response = await request(app.getHttpServer())
-                .post("/PathFinder/adapted-path")
-                .send(enrollmentRequest);
+                const expectedResponse: PersonalizedPathDto = {
+                    personalizedPathId: expect.any(String),
+                    learningPathId: null,
+                    learningUnitInstances: [
+                        { unitId: lu2.id, status: "OPEN" },
+                        { unitId: lu3.id, status: "OPEN" },
+                        { unitId: lu4.id, status: "OPEN" },
+                    ],
+                    status: "OPEN",
+                    goals: [skill4.id],
+                };
 
-            // Check response
-            expect(response.status).toEqual(404);
-            const exc = response.body as NotFoundException;
-            expect(exc.message).toContain(`Specified user not found: ${enrollmentRequest.userId}`);
+                // Act 1: Enroll first time -> success
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/calculated-path")
+                    .send(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(201);
+                let enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+
+                // Act 2: Enroll second time -> fail
+                response = await request(app.getHttpServer())
+                    .post("/PathFinder/calculated-path")
+                    .send(enrollmentRequest);
+                // Check response
+                expect(response.status).toEqual(409);
+                const exc = response.body as ForbiddenException;
+                expect(exc.message).toContain(
+                    `User ${user1.id} has already specified a personalized path with goal: ${enrolledPath.goals}`,
+                );
+            });
+
+            it("Invalid user enroll to goal -> 404", async () => {
+                // Input
+                const enrollmentRequest: CustomCourseRequestDto = {
+                    userId: "Invalid::ID",
+                    goals: [skill4.id],
+                    optimalSolution: true,
+                };
+
+                // Act: Enroll user -> fail
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/calculated-path")
+                    .send(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(404);
+                const exc = response.body as NotFoundException;
+                expect(exc.message).toContain(
+                    `Specified user not found: ${enrollmentRequest.userId}`,
+                );
+            });
         });
     });
 

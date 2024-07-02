@@ -16,6 +16,7 @@ import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 import { UserMgmtService } from "../user/user.service";
+import { Prisma } from "@prisma/client";
 
 /**
  * Service for Graph requests
@@ -107,7 +108,7 @@ export class PathFinderService {
     ) {
         return this.db.$transaction(async (tx) => {
             // Load pre-defined path (defined by content creators)
-            const pathDefinition = await this.db.learningPath.findUnique({
+            const pathDefinition = await tx.learningPath.findUnique({
                 where: {
                     id: pathId,
                 },
@@ -121,7 +122,7 @@ export class PathFinderService {
             }
 
             // Check if user is already enrolled in the path
-            const enrolledPath = await this.db.personalizedLearningPath.findFirst({
+            const enrolledPath = await tx.personalizedLearningPath.findFirst({
                 where: {
                     learningHistoryId: userId,
                     learningPathId: pathId,
@@ -184,6 +185,49 @@ export class PathFinderService {
     }
 
     /**
+     * Pre-check of `enrollment` and `enrollmentSimulation` to avoid code duplication.
+     * Checks if the specified path exists or if the user has already specified a path with the same goal,
+     * and computes the personalized path.
+     * @param userId The user for whom the course should be personalized to
+     * @param goal The targeted skills to be obtained by the custom path
+     * @param optimalSolution If true, the algorithm will try to find an optimal path, at cost of performance.
+     * @returns If the path exists, the personalized path
+     * @throws NotFoundException if no path can be computed for the specified goal
+     * @throws ConflictException if the user has already specified a path with the same goal
+     */
+    private async computeGoalBasedPathForEnrollment(
+        userId: string,
+        goal: string[],
+        optimalSolution: boolean = false,
+    ) {
+        // Check if user has already defined a path with exactly the same goals
+        const enrolledPath = await this.db.personalizedLearningPath.findFirst({
+            where: {
+                learningHistoryId: userId,
+                pathTeachingGoals: {
+                    // All goals must be in the path
+                    every: { id: { in: goal } },
+                    // No additional goals must be in the path
+                    none: { id: { notIn: goal } },
+                },
+            },
+        });
+
+        if (enrolledPath) {
+            throw new ConflictException(
+                `User ${userId} has already specified a personalized path with goal: ${goal}`,
+            );
+        }
+
+        // Compute path for the user
+        return await this.computePath({
+            goal: goal,
+            userId: userId,
+            optimalSolution: optimalSolution,
+        });
+    }
+
+    /**
      * Specifies a custom, self-defined learning path created the user by specifying the goal.
      * @param userId The user for whom the course should be personalized to
      * @param goal The targeted skills to be obtained by the custom path
@@ -194,32 +238,41 @@ export class PathFinderService {
     public async enrollmentByGoal(
         userId: string,
         goal: string[],
-        storePath: boolean = true,
         optimalSolution: boolean = false,
     ) {
-        // Compute path for the user
-        const path = await this.computePath({
-            goal: goal,
-            userId: userId,
-            optimalSolution: optimalSolution,
-        });
-
-        // Store path if requested
-        if (storePath) {
-            // Convert from readonly API to string[]
-            const learningUnitsIds = [...path.learningUnits];
-
-            return await this.historyService.addPersonalizedLearningPathToUser({
-                userId,
-                learningUnitsIds,
-                pathTeachingGoalsIds: goal,
-            });
-        } else {
-            return CustomCoursePreviewResponseDto.createFromDao({
-                unitSequence: path.learningUnits,
-                goal: goal,
-            });
+        // If only 1 goal is specified via GET query, Swagger passes a string instead of an array
+        if (!Array.isArray(goal)) {
+            // Convert to array to ensure that the following code works
+            goal = [goal];
         }
+
+        const path = await this.computeGoalBasedPathForEnrollment(userId, goal, optimalSolution);
+        // Convert from readonly API to string[]
+        const learningUnitsIds = [...path.learningUnits];
+
+        return await this.historyService.addPersonalizedLearningPathToUser({
+            userId,
+            learningUnitsIds,
+            pathTeachingGoalsIds: goal,
+        });
+    }
+
+    public async enrollmentByGoalPreview(
+        userId: string,
+        goal: string[],
+        optimalSolution: boolean = false,
+    ) {
+        // If only 1 goal is specified via GET query, Swagger passes a string instead of an array
+        if (!Array.isArray(goal)) {
+            // Convert to array to ensure that the following code works
+            goal = [goal];
+        }
+
+        const path = await this.computeGoalBasedPathForEnrollment(userId, goal, optimalSolution);
+        return CustomCoursePreviewResponseDto.createFromDao({
+            unitSequence: path.learningUnits,
+            goal: goal,
+        });
     }
 
     /**
@@ -261,9 +314,7 @@ export class PathFinderService {
     private async loadSkills(skillIds: string[]) {
         const skillDAOs = await this.db.skill.findMany({
             where: {
-                id: {
-                    in: skillIds,
-                },
+                id: { in: skillIds },
             },
             include: {
                 nestedSkills: true,

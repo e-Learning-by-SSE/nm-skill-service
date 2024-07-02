@@ -89,12 +89,7 @@ export class PathFinderController {
 
     @Post("calculated-path")
     enrollmentByGoal(@Body() dto: CustomCourseRequestDto) {
-        return this.pfService.enrollmentByGoal(
-            dto.userId,
-            dto.goals,
-            true,
-            dto.optimalSolution,
-        ) as unknown as CustomCoursePreviewResponseDto;
+        return this.pfService.enrollmentByGoal(dto.userId, dto.goals, dto.optimalSolution);
     }
 
     @Get("calculated-path")
@@ -103,11 +98,6 @@ export class PathFinderController {
         @Query("goals") goals: string[],
         @Query("optimalSolution") optimalSolution?: boolean,
     ) {
-        return this.pfService.enrollmentByGoal(
-            userId,
-            goals,
-            false,
-            optimalSolution,
-        ) as unknown as EnrollmentPreviewResponseDto;
+        return this.pfService.enrollmentByGoalPreview(userId, goals, optimalSolution);
     }
 }

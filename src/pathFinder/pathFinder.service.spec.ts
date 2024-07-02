@@ -207,7 +207,7 @@ describe("PathFinder Service", () => {
                 expect(history).toHaveLength(0);
 
                 // Act
-                const result = await pathFinderService.enrollmentByGoal(
+                const result = await pathFinderService.enrollmentByGoalPreview(
                     learner.id,
                     [skill3.id],
                     false,
@@ -215,8 +215,8 @@ describe("PathFinder Service", () => {
 
                 // Assert: All 3 units are part of path; Path not saved
                 const expected: CustomCoursePreviewResponseDto = {
-                    goal: [skill3.id],
                     learningUnits: [unit1.id, unit2.id, unit3.id],
+                    goal: [skill3.id],
                 };
                 expect(result).toMatchObject(expected);
                 history = await db.personalizedLearningPath.findMany({
@@ -270,7 +270,7 @@ describe("PathFinder Service", () => {
                 await historyService.addLearnedSkillToUser(learner.id, skill2.id);
 
                 // Act
-                const result = await pathFinderService.enrollmentByGoal(
+                const result = await pathFinderService.enrollmentByGoalPreview(
                     learner.id,
                     [skill3.id],
                     false,
@@ -278,8 +278,8 @@ describe("PathFinder Service", () => {
 
                 // Assert: Only last is part of path; Path not saved
                 const expected: CustomCoursePreviewResponseDto = {
-                    goal: [skill3.id],
                     learningUnits: [unit3.id],
+                    goal: [skill3.id],
                 };
                 expect(result).toMatchObject(expected);
                 history = await db.personalizedLearningPath.findMany({

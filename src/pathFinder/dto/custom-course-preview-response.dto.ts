@@ -1,4 +1,4 @@
-import { IsDefined, IsNotEmpty, IsString } from "class-validator";
+import { IsDefined, IsNotEmpty } from "class-validator";
 
 /**
  * Representation of a personalized if the user probes only the enrollment (preview) without actually enrolling (saving).
