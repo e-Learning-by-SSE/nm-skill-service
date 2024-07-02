@@ -6,8 +6,6 @@ import {
     EnrollmentPreviewResponseDto,
     PathDto,
     PathRequestDto,
-    PathStorageRequestDto,
-    PathStorageResponseDto,
     SkillsToAnalyze,
     SubPathDto,
     SubPathListDto,
@@ -16,7 +14,6 @@ import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 import { UserMgmtService } from "../user/user.service";
-import { Prisma } from "@prisma/client";
 
 /**
  * Service for Graph requests

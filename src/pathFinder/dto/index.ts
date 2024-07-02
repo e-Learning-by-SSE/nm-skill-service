@@ -3,8 +3,6 @@ export * from "./path.dto";
 export * from "./pathRequest.dto";
 export * from "./search-edge.dto";
 export * from "./search-graph.dto";
-export * from "./path-storage-request.dto";
-export * from "./path-storage-response.dto";
 export * from "./subPath.dto";
 export * from "./subPathList.dto";
 export * from "./skillToAnalyze.dto";
