@@ -1,6 +1,23 @@
 #!/bin/bash
+#!/bin/bash
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 printf "${DB_ACTION}"
 printf "${DB_HOST}"
+
+detect_migrations() {
+    # Based on: https://stackoverflow.com/a/2108296
+    for dir in /usr/src/app/prisma/migrations/*/
+        do
+        # Extract migration name
+        dir=${dir%*/}
+        migration="${dir##*/}"
+
+        echo -e "Found migration ${RED}${migration}${NC}; marked as applied"
+        npx prisma migrate resolve --applied $migration
+    done
+}
+
 
 # Wait until DB is running (only if a host was specified)
 if [[ ! -z "${DB_HOST}" ]]; then
@@ -22,6 +39,7 @@ case "${DB_ACTION}" in
         cd /usr/src/app/
         npx prisma db push --accept-data-loss
         npx prisma db seed
+		detect_migrations()
         echo "Database initialization completed."
         
         node /usr/src/app/dist/src/main.js
@@ -34,6 +52,7 @@ case "${DB_ACTION}" in
         # Initilize, but do not reset existing data
         cd /usr/src/app/
         npx prisma db push
+		detect_migrations()
         
         node /usr/src/app/dist/src/main.js
         ;;
@@ -45,6 +64,7 @@ case "${DB_ACTION}" in
         # Reset the database
         cd /usr/src/app/
         npx prisma db push --force-reset
+		detect_migrations()
 
         node /usr/src/app/dist/src/main.js
         ;;
@@ -55,7 +75,6 @@ case "${DB_ACTION}" in
         
         # Apply only migrations
         cd /usr/src/app/
-		npx prisma migrate resolve --applied 0_init
         npx prisma migrate deploy
 
         # Start the server
