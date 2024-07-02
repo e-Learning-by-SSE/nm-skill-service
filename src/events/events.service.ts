@@ -57,6 +57,13 @@ export class EventMgmtService {
             }
         }
 
+        LoggerUtil.logInfo("EventService Event received", {
+            entity: mlsEvent.entityType,
+            id: mlsEvent.id,
+            method: mlsEvent.method,
+            payload: mlsEvent.payload,
+        });
+
         switch (mlsEvent.entityType) {
             //MLS tasks are called learning units in this system
             case MlsActionEntity.Task: {
