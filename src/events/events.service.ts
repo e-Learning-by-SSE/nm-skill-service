@@ -393,7 +393,12 @@ export class EventMgmtService {
         //Get the id of the user that updated the task
         const userID = "" + mlsEvent.taskTodoPayload!["user" as keyof JSON]?.toString();
         //Get the id of the task
-        const taskID = "" + mlsEvent.taskTodoPayload!["task" as keyof JSON]?.toString();
+        let taskID = "" + mlsEvent.taskTodoPayload!["task" as keyof JSON]?.toString();
+        if (taskID.includes("/")) {
+            // TaskID is an IRI, need only the ID
+            const parts = taskID.split("/");
+            taskID = parts[parts.length - 1];
+        }
 
         LoggerUtil.logInfo(
             "EventService::TaskToDoInfoLearnSkill:getIDs",
