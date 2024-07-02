@@ -387,7 +387,7 @@ export class EventMgmtService {
     private extractId(payload: JSON | undefined, key: string) {
         let id = undefined;
         if (payload) {
-            id = "" + payload["task" as keyof JSON]?.toString();
+            id = "" + payload[key as keyof JSON]?.toString();
             if (id.includes("/")) {
                 // IDs may be transmitted as IRI/URI, extract ID (part after last /)
                 const parts = id.split("/");
