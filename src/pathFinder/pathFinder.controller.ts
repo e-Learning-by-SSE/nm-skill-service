@@ -2,14 +2,11 @@ import { Body, Controller, Get, Post, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { PathFinderService } from "./pathFinder.service";
 import {
-    CustomCoursePreviewResponseDto,
     CustomCourseRequestDto,
-    EnrollmentPreviewResponseDto,
     EnrollmentRequestDto,
     PathRequestDto,
     SkillsToAnalyze,
 } from "./dto";
-import { PersonalizedPathDto } from "../user/learningHistoryService/dto";
 
 @ApiTags("PathFinder")
 @Controller("PathFinder")
