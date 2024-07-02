@@ -47,11 +47,13 @@ export class PathFinderController {
 
     /**
      * Analysis a skill (goal) to find the missing skills in the learning path.
+     * Should only be called if **no** path can be found via `computePath`.
      *
      * Parameters:
      * - goal (mandatory): The list of skills to be learned.
      *
      * Returns:
+     * - 409 - If there exist a path to the goal, use `computePath` instead.
      * - If the return path is empty, then there are no learning units for the skill.
      *
      * @param dto Specifies the search parameters (see above)

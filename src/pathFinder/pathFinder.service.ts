@@ -291,7 +291,7 @@ export class PathFinderService {
         });
 
         if (!skillAnalyzedPath) {
-            throw new NotFoundException(
+            throw new ConflictException(
                 `There is a learning path for the goal: ${dto.goal}, try to use computePath`,
             );
         }

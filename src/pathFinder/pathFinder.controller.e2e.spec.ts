@@ -1,4 +1,9 @@
-import { ForbiddenException, INestApplication, NotFoundException } from "@nestjs/common";
+import {
+    ConflictException,
+    ForbiddenException,
+    INestApplication,
+    NotFoundException,
+} from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import * as request from "supertest";
 import { Test } from "@nestjs/testing";
@@ -13,6 +18,8 @@ import {
     EnrollmentRequestDto,
     PathDto,
     PathRequestDto,
+    SkillsToAnalyze,
+    SubPathListDto,
 } from "./dto";
 import { PathFinderModule } from "./pathFinder.module";
 import { PrismaService } from "../prisma/prisma.service";
@@ -974,6 +981,55 @@ describe("PathFinder Controller Tests", () => {
                         );
                     });
             });
+        });
+    });
+
+    describe("POST:/skillAnalysis", () => {
+        // Test data
+        let skillMap1: SkillMap;
+        let [skill1, skill2, skill3, skill4, skill5]: Skill[] = [];
+        let [lu1, lu2, lu3, lu4]: LearningUnit[] = [];
+
+        beforeEach(async () => {
+            // Wipe DB before test
+            await dbUtils.wipeDb();
+
+            skillMap1 = await dbUtils.createSkillMap(
+                "User 1",
+                "Test Map for LearningUnit Controller Tests",
+            );
+            skill1 = await dbUtils.createSkill(skillMap1, "Skill 1");
+            skill2 = await dbUtils.createSkill(skillMap1, "Skill 2");
+            skill3 = await dbUtils.createSkill(skillMap1, "Skill 3");
+            skill4 = await dbUtils.createSkill(skillMap1, "Skill 4");
+            skill5 = await dbUtils.createSkill(skillMap1, "Skill 5");
+
+            /**
+             * Available paths:
+             * LU1 (Skill 1) -> LU2 (Skill 2) -> * MISSING * -> LU3  (Skill 3) -> LU4  (Skill 4)
+             */
+            lu1 = await dbUtils.createLearningUnit([skill1], []);
+            lu2 = await dbUtils.createLearningUnit([skill2], [skill1]);
+            lu3 = await dbUtils.createLearningUnit([skill4], [skill3]);
+            lu4 = await dbUtils.createLearningUnit([skill5], [skill4]);
+        });
+
+        it("Path exist -> 409 (analysis not required)", async () => {
+            // Input
+            const input: SkillsToAnalyze = {
+                goal: [skill2.id],
+            };
+
+            // Test: Analyze Skill 2
+            return request(app.getHttpServer())
+                .post("/PathFinder/skillAnalysis")
+                .send(input)
+                .expect(409)
+                .expect((res) => {
+                    expect((res.body as ConflictException).message).toEqual(
+                        `There is a learning path for the goal: ${skill2.id}, try to use computePath`,
+                    );
+                });
         });
     });
 });
