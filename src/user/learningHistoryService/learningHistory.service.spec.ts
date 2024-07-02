@@ -3,8 +3,8 @@ import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
 import { LearningHistoryService } from "./learningHistory.service";
 import { UserMgmtService } from "../user.service";
-import { ForbiddenException } from "@nestjs/common";
-import { LearningPath, LearningUnit, STATUS, Skill } from "@prisma/client";
+import { NotFoundException } from "@nestjs/common";
+import { LearningPath, LearningUnit, STATUS, Skill, UserProfile } from "@prisma/client";
 import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
 import { PathFinderService } from "../../pathFinder/pathFinder.service";
 import { PersonalizedPathDto } from "./dto/personalizedPath.dto";
@@ -104,14 +104,14 @@ describe("LearningHistoryService", () => {
             //Act and assert: Reject to add a non-existent skill to the learning history
             await expect(
                 historyService.addLearnedSkillToUser(expectedUser1.id, "non-existent"),
-            ).rejects.toThrowError(ForbiddenException);
+            ).rejects.toThrowError(NotFoundException);
         });
 
         it("should not update the learning history of a non existent user", async () => {
             //Act and assert: Reject to add a learned skill to a non-existent user
             await expect(
                 historyService.addLearnedSkillToUser("non-existent", skill2.id),
-            ).rejects.toThrowError(ForbiddenException);
+            ).rejects.toThrowError(NotFoundException);
         });
 
         it("should update the learning history with multiple learned skills", async () => {
@@ -137,11 +137,11 @@ describe("LearningHistoryService", () => {
             const learnedSkills = await historyService.getLearnedSkillsOfUser(expectedUser1.id);
 
             // Assert: Check the results (the additional skill should now be contained twice (first and last), and the other skills should be unchanged)
-            expect(learnedSkills).toHaveLength(4);
-            expect(learnedSkills[3]).toEqual(skill1.id);
-            expect(learnedSkills[2]).toEqual(skill2.id);
-            expect(learnedSkills[1]).toEqual(skill3.id);
-            expect(learnedSkills[0]).toEqual(skill1.id);
+            expect(learnedSkills).toHaveLength(3);
+
+            expect(learnedSkills[2]).toEqual(skill1.id);
+            expect(learnedSkills[1]).toEqual(skill2.id);
+            expect(learnedSkills[0]).toEqual(skill3.id);
         });
     });
 
@@ -299,6 +299,109 @@ describe("LearningHistoryService", () => {
                 STATUS.FINISHED,
             );
             expect(result).toContain("found for user:");
+        });
+    });
+});
+
+describe("LearningHistoryService", () => {
+    //Required classes
+    const config = new ConfigService();
+    const db = new PrismaService(config);
+    const learningUnitFactoryService = new LearningUnitFactory(db);
+    const dbUtils = DbTestUtils.getInstance();
+    const historyService = new LearningHistoryService(db, learningUnitFactoryService);
+
+    //Preparation of input data
+    let skill1: Skill;
+    let [user1, user2]: UserProfile[] = [];
+
+    beforeEach(async () => {
+        // Wipe DB once before test (as we reuse data)
+        await dbUtils.wipeDb();
+
+        // Learning units and skills to be reused in the tests
+        const skillMap1 = await dbUtils.createSkillMap("Instructor-1", "Map 1");
+
+        skill1 = await dbUtils.createSkill(skillMap1, "Skill 1", []);
+
+        user1 = await dbUtils.createUserProfile("testUser1");
+        user2 = await dbUtils.createUserProfile("testUser2");
+    });
+
+    describe("addLearnedSkillToUser", () => {
+        it("Valid user; new Skill -> Skill learned", async () => {
+            // Act: Add a learned skill to the learning history
+            const result = await historyService.addLearnedSkillToUser(user1.id, skill1.id);
+
+            const expected = {
+                id: expect.any(String),
+                skillId: skill1.id,
+                learningHistoryId: user1.id,
+                createdAt: expect.any(Date),
+            };
+
+            // Assert: Check the results (there should now be one learned skill)
+            expect(result).toMatchObject(expected);
+        });
+
+        it("2 Valid users; same Skill -> Skill learned", async () => {
+            const expected = {
+                id: expect.any(String),
+                skillId: skill1.id,
+                learningHistoryId: user1.id,
+                createdAt: expect.any(Date),
+            };
+
+            // Act 1: Add a learned skill to the learning history of user 1
+            const result = await historyService.addLearnedSkillToUser(user1.id, skill1.id);
+            // Assert: Check the results (there should now be one learned skill)
+            expect(result).toMatchObject(expected);
+
+            // Act 2: Add a learned skill to the learning history of user 2
+            const result2 = await historyService.addLearnedSkillToUser(user2.id, skill1.id);
+            expected.learningHistoryId = user2.id;
+            // Assert: Check the results (there should now be one learned skill)
+            expect(result2).toMatchObject(expected);
+        });
+
+        it("Valid user; non-existent Skill -> NotFoundException", async () => {
+            // Act and assert: Reject to add a non-existent skill to the learning history
+            const exc = historyService.addLearnedSkillToUser(user1.id, "non-existent");
+
+            await expect(exc).rejects.toThrowError(NotFoundException);
+        });
+
+        it("Invalid user; existent Skill -> NotFoundException", async () => {
+            // Act and assert: Reject to add a skill to imaginary learning history
+            const exc = historyService.addLearnedSkillToUser("non-existent", skill1.id);
+
+            await expect(exc).rejects.toThrowError(NotFoundException);
+        });
+
+        it("Valid user; new Skill twice -> Skill Learned once", async () => {
+            const expected = {
+                id: expect.any(String),
+                skillId: skill1.id,
+                learningHistoryId: user1.id,
+                createdAt: expect.any(Date),
+            };
+
+            // Act 1: Add a learned skill for the first time
+            const result = await historyService.addLearnedSkillToUser(user1.id, skill1.id);
+            // Assert: Check the results (there should now be one learned skill)
+            expect(result).toMatchObject(expected);
+
+            // Act 2: Add the same learned skill a second time
+            const result2 = await historyService.addLearnedSkillToUser(user1.id, skill1.id);
+            // Assert: No change, first result re-returned
+            expect(result2).toMatchObject(result);
+            const nEntries = await db.learnedSkill.count({
+                where: {
+                    learningHistoryId: user1.id,
+                    skillId: skill1.id,
+                },
+            });
+            expect(nEntries).toEqual(1);
         });
     });
 });

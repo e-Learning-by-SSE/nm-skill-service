@@ -8,6 +8,7 @@ import { PathEnrollment } from "./types";
 import { ConflictException } from "@nestjs/common";
 import LoggerUtil from "../../logger/logger";
 import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 /**
  * Service that manages updating and retrieving of a learningHistory (which stores the learned skills and the personalized paths of a user).
@@ -50,15 +51,30 @@ export class LearningHistoryService {
     async addLearnedSkillToUser(userId: string, skillId: string) {
         try {
             // The created entry automatically gets a unique id and a creation date
-            const createEntry = await this.db.learnedSkill.create({
-                data: {
+            const createEntry = await this.db.learnedSkill.upsert({
+                create: {
                     LearningHistory: { connect: { userId: userId } }, //User id and its history id are the same (and the id field of the history is named userId)
                     Skill: { connect: { id: skillId } },
+                },
+                update: {}, // Create only if new, based on https://github.com/prisma/prisma/discussions/5815#discussioncomment-3641585
+                where: {
+                    skillId_learningHistoryId: {
+                        learningHistoryId: userId,
+                        skillId: skillId,
+                    },
                 },
             });
             return createEntry;
         } catch (error) {
-            throw new ForbiddenException("Error creating learned skill");
+            if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+                const prismaException = error as PrismaClientKnownRequestError;
+                if (prismaException.message.includes("No 'Skill' record(s)")) {
+                    throw new NotFoundException(`Skill not found: ${skillId}`);
+                } else if (prismaException.message.includes("No 'LearningHistory' record(s)")) {
+                    throw new NotFoundException(`UserProfile not found: ${userId}`);
+                }
+            }
+            throw new ConflictException("Error creating learned skill");
         }
     }
 

@@ -350,6 +350,7 @@ model LearnedSkill {
   LearningHistory   LearningHistory @relation(fields: [learningHistoryId], references: [userId], onDelete: Cascade)
   learningHistoryId String
 
+  @@unique([skillId, learningHistoryId]) // Users may learn skills only once
   @@map("LearningProgress")
 }
 
