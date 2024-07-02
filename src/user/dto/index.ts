@@ -5,7 +5,6 @@ export * from "../learningProfileService/dto/learningProfile-update.dto";
 export * from "../careerProfileService/dto/careerProfile.dto";
 export * from "../careerProfileService/dto/careerProfileUpdate.dto";
 export * from "../careerProfileService/dto/qualification.dto";
-export * from "./user-list.dto";
 export * from "../learningHistoryService/dto/learnedSkill.dto";
 export * from "../learningHistoryService/dto/personalizedLearningPathsList.dto";
 export * from "../learningHistoryService/dto/learningUnitInstance.dto";
