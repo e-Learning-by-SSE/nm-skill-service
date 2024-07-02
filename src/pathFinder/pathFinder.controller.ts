@@ -54,10 +54,10 @@ export class PathFinderController {
      *
      * Returns:
      * - 409 - If there exist a path to the goal, use `computePath` instead.
-     * - If the return path is empty, then there are no learning units for the skill.
+     * - A skill with an empty list of skills: The skill is needed to learn the goal, but there is no path to learn this skill
      *
      * @param dto Specifies the search parameters (see above)
-     * @returns The list os the missing skill with the sub paths for them
+     * @returns The list os the missing skills with the sub paths for them
      *
      * @example
      * Default path for learning Java (skill 1009)

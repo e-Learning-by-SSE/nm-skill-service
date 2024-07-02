@@ -1020,7 +1020,7 @@ describe("PathFinder Controller Tests", () => {
                 goal: [skill2.id],
             };
 
-            // Test: Analyze Skill 2
+            // Test: Detect problems to learn Skill 2 (no errors)
             return request(app.getHttpServer())
                 .post("/PathFinder/skillAnalysis")
                 .send(input)
@@ -1030,6 +1030,31 @@ describe("PathFinder Controller Tests", () => {
                         `There is a learning path for the goal: ${skill2.id}, try to use computePath`,
                     );
                 });
+        });
+
+        it("Path does not exist -> 201 (Missing Skill)", async () => {
+            // Input
+            const input: SkillsToAnalyze = {
+                goal: [skill4.id],
+            };
+
+            // Expected result (No path to Skill 3)
+            const expectedResult: SubPathListDto = {
+                subPaths: [
+                    {
+                        skill: skill3.id,
+                        learningUnits: [],
+                    },
+                ],
+            };
+
+            // Test: Detect problems to learn Skill 4 (skill 3 cannot be learned)
+            const result = await request(app.getHttpServer())
+                .post("/PathFinder/skillAnalysis")
+                .send(input);
+            expect(result.status).toEqual(201);
+            const analysisResult = result.body as SubPathListDto;
+            expect(analysisResult).toMatchObject(expectedResult);
         });
     });
 });
