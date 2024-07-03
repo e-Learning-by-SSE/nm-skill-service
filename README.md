@@ -1,6 +1,8 @@
-# Competence Repository Service
+# Skill Service
 
 ![Build Status](https://jenkins-2.sse.uni-hildesheim.de/buildStatus/icon?job=Teaching_NM-Skill-Service/main/)
+![Line Coverage](https://jenkins-2.sse.uni-hildesheim.de/buildStatus/icon?job=Teaching_NM-Skill-Service/main&subject=Coverage&status=${lineCoverage})
+![Lines of Code](https://jenkins-2.sse.uni-hildesheim.de/buildStatus/icon?job=Teaching_NM-Skill-Service/main&subject=Lines%20of%20Code&status=${lineOfCode}&color=blue)
 
 The Competence Repository Service allows content creators / teachers to develop their own competence repositories (i.e., taxonomies), share them with others, and use them to model required and offered competencies of a course.
 
