@@ -25,7 +25,6 @@ import {
     isSkill,
 } from "../../nm-skill-lib/src";
 import { PrismaService } from "../prisma/prisma.service";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 
@@ -197,6 +196,26 @@ export class LearningPathMgmtService {
         return LearningPathDto.createFromDao(result);
     }
 
+    /**
+     * Part of `checkPath` to load a supt set of skills that are needed as all/goal/knowledge during path computation.
+     * @param ids The IDs of the skills that shall be loaded (probably empty). `undefined` will load all skills.
+     * @returns The loaded skills (probably empty)
+     */
+    private async loadSkills(ids?: string[]) {
+        const skills = await this.db.skill.findMany({
+            where: {
+                id: {
+                    in: ids,
+                },
+            },
+            include: {
+                nestedSkills: true,
+            },
+        });
+
+        return skills.map((skill) => SkillDto.createFromDao(skill));
+    }
+
     private async checkPath(path: LearningPathDto) {
         // Check for cycles on minimal dataset to avoid incomprehensible error messages
         const units = await this.luFactory.getLearningUnits({
@@ -233,43 +252,9 @@ export class LearningPathMgmtService {
         }
 
         // Check if there exist a path at all (full data set)
-        const skills = (
-            await this.db.skill.findMany({
-                include: {
-                    nestedSkills: true,
-                },
-            })
-        ).map((skill) => SkillDto.createFromDao(skill));
-        const goalSkills = await this.db.skill.findMany({
-            where: {
-                id: {
-                    in: path.pathGoals,
-                },
-            },
-            include: {
-                nestedSkills: true,
-            },
-        });
-        const goal = goalSkills.map((skill) => ({
-            id: skill.id,
-            repositoryId: skill.repositoryId,
-            nestedSkills: skill.nestedSkills.map((skill) => skill.id),
-        }));
-        const knownSkills = await this.db.skill.findMany({
-            where: {
-                id: {
-                    in: path.requirements,
-                },
-            },
-            include: {
-                nestedSkills: true,
-            },
-        });
-        const knowledge = knownSkills.map((skill) => ({
-            id: skill.id,
-            repositoryId: skill.repositoryId,
-            nestedSkills: skill.nestedSkills.map((skill) => skill.id),
-        }));
+        const skills = await this.loadSkills();
+        const goal = await this.loadSkills(path.pathGoals);
+        const knowledge = await this.loadSkills(path.requirements);
 
         let computedPath: Path | null = null;
         if (path.recommendedUnitSequence.length > 0) {
