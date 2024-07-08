@@ -207,6 +207,21 @@ describe("LearningUnit Factory", () => {
             expect(updatedUnit).toMatchObject(expected);
         });
 
+        it("Required Skills (NULL) -> Clears all", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                requiredSkills: null,
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                requiredSkills: [],
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
         it("Teaching Goals", async () => {
             // Act
             const updateDto: SearchLearningUnitUpdateDto = {
@@ -218,6 +233,21 @@ describe("LearningUnit Factory", () => {
             const expected: SearchLearningUnitDto = {
                 ...unit,
                 teachingGoals: updateDto.teachingGoals!,
+            };
+            expect(updatedUnit).toMatchObject(expected);
+        });
+
+        it("Teaching Goals (NULL) -> Clears all", async () => {
+            // Act
+            const updateDto: SearchLearningUnitUpdateDto = {
+                id: unit.id,
+                teachingGoals: null,
+            };
+            const updatedUnit = await factory.patchLearningUnit(updateDto);
+
+            const expected: SearchLearningUnitDto = {
+                ...unit,
+                teachingGoals: [],
             };
             expect(updatedUnit).toMatchObject(expected);
         });

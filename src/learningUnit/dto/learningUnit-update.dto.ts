@@ -16,11 +16,23 @@ export class SearchLearningUnitUpdateDto {
     @IsOptional()
     language?: string;
 
+    /**
+     * Tristate update logic:
+     * - Undefined: No change
+     * - Null: Removes all existing goals
+     * - Array: Sets / Overwrites new goals
+     */
     @IsOptional()
-    teachingGoals?: string[];
+    teachingGoals?: string[] | null;
 
+    /**
+     * Tristate update logic:
+     * - Undefined: No change
+     * - Null: Removes all existing requirements
+     * - Array: Sets / Overwrites new requirements
+     */
     @IsDefined()
-    requiredSkills?: string[];
+    requiredSkills?: string[] | null;
 
     @IsOptional()
     processingTime?: string;

@@ -12,7 +12,6 @@ import {
     SearchLearningUnitDto,
     SearchLearningUnitListDto,
 } from "./dto";
-import { de } from "@faker-js/faker";
 import { LearningUnit, Skill, SkillMap } from "@prisma/client";
 
 describe("Feedback Controller Tests", () => {

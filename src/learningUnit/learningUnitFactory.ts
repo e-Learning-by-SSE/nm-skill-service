@@ -11,10 +11,7 @@ import {
     SearchLearningUnitListDto,
     SearchLearningUnitUpdateDto,
 } from "./dto";
-import {
-    PrismaClientKnownRequestError,
-    PrismaClientValidationError,
-} from "@prisma/client/runtime/library";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { LIFECYCLE, Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 import { LearningUnit } from "../../nm-skill-lib/src";
