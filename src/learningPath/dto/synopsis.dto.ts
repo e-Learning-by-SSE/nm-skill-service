@@ -18,14 +18,14 @@ export class ErrorSynopsisDto {
      * Possibly empty.
      */
     @IsDefined()
-    affectedSkills: string[] = [];
+    affectedSkills: string[];
 
     /**
      * The list of learning units that are affected by the error.
      * Possibly empty.
      */
     @IsDefined()
-    affectedLearningUnits: string[] = [];
+    affectedLearningUnits: string[];
 }
 
 export enum ErrorType {
