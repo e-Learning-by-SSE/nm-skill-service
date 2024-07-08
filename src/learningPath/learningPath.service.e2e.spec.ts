@@ -1,4 +1,4 @@
-import { ConflictException, INestApplication } from "@nestjs/common";
+import { ConflictException, INestApplication, NotFoundException } from "@nestjs/common";
 import { DbTestUtils } from "../DbTestUtils";
 import * as request from "supertest";
 import { Test } from "@nestjs/testing";
@@ -1040,6 +1040,17 @@ describe("Learning-Path Controller E2E-Tests", () => {
             return request(app.getHttpServer())
                 .delete(`/learning-paths/${createdPath.id}`)
                 .expect(403);
+        });
+
+        it("Delete Not-Existing -> 404", async () => {
+            // Test: Delete drafted path
+            return request(app.getHttpServer())
+                .delete("/learning-paths/non-existing-id")
+                .expect(404)
+                .expect((res) => {
+                    const result = res.body as NotFoundException;
+                    expect(result.message).toEqual("LearningPath not found: non-existing-id");
+                });
         });
     });
 });

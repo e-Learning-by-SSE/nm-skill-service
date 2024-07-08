@@ -341,7 +341,7 @@ export class LearningPathMgmtService {
         });
 
         if (!oldLearningPath) {
-            throw new NotFoundException(`Can not find learningPath with id ${learningPathId}`);
+            throw new NotFoundException(`LearningPath not found: ${learningPathId}`);
         }
 
         if (oldLearningPath.lifecycle !== "DRAFT") {
