@@ -386,6 +386,25 @@ describe("PathFinder Controller Tests", () => {
                     `Specified user not found: ${enrollmentRequest.userId}`,
                 );
             });
+
+            it("User enrolls to invalid path -> 404", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: user1.id,
+                    learningPathId: "invalid-path-id",
+                    optimalSolution: true,
+                };
+
+                // Act: Enroll user -> fail
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/adapted-path")
+                    .send(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(404);
+                const exc = response.body as NotFoundException;
+                expect(exc.message).toContain("Specified path not found: invalid-path-id");
+            });
         });
     });
 
