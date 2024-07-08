@@ -17,10 +17,10 @@ export class SearchLearningUnitCreationDto {
     language?: string;
 
     @IsDefined()
-    teachingGoals: string[] = [];
+    teachingGoals: string[];
 
     @IsDefined()
-    requiredSkills: string[] = [];
+    requiredSkills: string[];
 
     @IsOptional()
     processingTime?: string;
@@ -35,7 +35,7 @@ export class SearchLearningUnitCreationDto {
     contentProvider?: string;
 
     @IsDefined()
-    targetAudience: string[] = [];
+    targetAudience: string[];
 
     @IsOptional()
     semanticDensity?: string;
