@@ -45,27 +45,17 @@ export class LearningPathMgmtService {
      */
     async createEmptyLearningPath(dto: CreateEmptyPathRequestDto) {
         // Create and return learningPath
-        try {
-            const learningPath = await this.db.learningPath.create({
-                data: {
-                    owner: dto.owner,
-                },
-                include: {
-                    requirements: true,
-                    pathTeachingGoals: true,
-                },
-            });
+        const learningPath = await this.db.learningPath.create({
+            data: {
+                owner: dto.owner,
+            },
+            include: {
+                requirements: true,
+                pathTeachingGoals: true,
+            },
+        });
 
-            return LearningPathDto.createFromDao(learningPath);
-        } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                // unique field already exists
-                if (error.code === "P2002") {
-                    throw new ForbiddenException("LearningPath already exists");
-                }
-            }
-            throw error;
-        }
+        return LearningPathDto.createFromDao(learningPath);
     }
 
     /**
