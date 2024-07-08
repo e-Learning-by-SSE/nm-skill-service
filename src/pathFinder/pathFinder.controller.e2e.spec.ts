@@ -254,6 +254,37 @@ describe("PathFinder Controller Tests", () => {
                 expect(enrolledPath).toMatchObject(expectedResponse);
             });
 
+            it("1 user enroll to path (omitting optional property) -> 201", async () => {
+                // Input
+                const enrollmentRequest: EnrollmentRequestDto = {
+                    userId: user1.id,
+                    learningPathId: pathDefinition.id,
+                    // optimalSolution is optional, tests that omitting is also allowed
+                };
+
+                const expectedResponse: PersonalizedPathDto = {
+                    personalizedPathId: expect.any(String),
+                    learningPathId: pathDefinition.id,
+                    learningUnitInstances: [
+                        { unitId: lu2.id, status: "OPEN" },
+                        { unitId: lu3.id, status: "OPEN" },
+                        { unitId: lu4.id, status: "OPEN" },
+                    ],
+                    status: "OPEN",
+                    goals: [],
+                };
+
+                // Act: Enroll user -> success
+                let response = await request(app.getHttpServer())
+                    .post("/PathFinder/adapted-path")
+                    .send(enrollmentRequest);
+
+                // Check response
+                expect(response.status).toEqual(201);
+                const enrolledPath = response.body as PersonalizedPathDto;
+                expect(enrolledPath).toMatchObject(expectedResponse);
+            });
+
             it("Multiple users enroll to same path -> 201", async () => {
                 // Input
                 const enrollmentRequest: EnrollmentRequestDto = {

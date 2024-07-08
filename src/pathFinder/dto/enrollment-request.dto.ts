@@ -24,5 +24,5 @@ export class EnrollmentRequestDto {
      * If true, the algorithm will try to find an optimal path, at cost of performance.
      */
     @IsOptional()
-    optimalSolution?: boolean = false;
+    optimalSolution?: boolean;
 }
