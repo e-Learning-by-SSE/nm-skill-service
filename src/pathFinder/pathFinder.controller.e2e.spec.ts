@@ -701,6 +701,7 @@ describe("PathFinder Controller Tests", () => {
                 const enrollmentRequest: CustomCourseRequestDto = {
                     userId: user1.id,
                     goals: ["Invalid::ID"],
+                    // optimal Solution is optional, test that omitting is also allowed
                 };
 
                 // Act: Enroll user -> fail
