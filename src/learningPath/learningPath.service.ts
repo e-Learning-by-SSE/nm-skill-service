@@ -142,36 +142,24 @@ export class LearningPathMgmtService {
         const recommendedUnits =
             dto.recommendedUnitSequence === null ? [] : dto.recommendedUnitSequence;
 
-        let result = await this.db.learningPath
-            .update({
-                where: {
-                    id: learningPathId,
-                },
-                data: {
-                    owner: dto.owner,
-                    title: dto.title,
-                    description: dto.description,
-                    targetAudience: dto.targetAudience === null ? [] : dto.targetAudience,
-                    requirements: this.updateQuery(dto.requirements),
-                    pathTeachingGoals: this.updateQuery(dto.pathGoals),
-                    recommendedUnitSequence: recommendedUnits,
-                },
-                include: {
-                    requirements: true,
-                    pathTeachingGoals: true,
-                },
-            })
-            .catch((error) => {
-                if (error instanceof PrismaClientKnownRequestError) {
-                    // Specified Learning not found
-                    if (error.code === "P2025") {
-                        throw new NotFoundException(
-                            `LearningPath "${learningPathId}" could not be loaded due to: ${error.message}`,
-                        );
-                    }
-                }
-                throw error;
-            });
+        let result = await this.db.learningPath.update({
+            where: {
+                id: learningPathId,
+            },
+            data: {
+                owner: dto.owner,
+                title: dto.title,
+                description: dto.description,
+                targetAudience: dto.targetAudience === null ? [] : dto.targetAudience,
+                requirements: this.updateQuery(dto.requirements),
+                pathTeachingGoals: this.updateQuery(dto.pathGoals),
+                recommendedUnitSequence: recommendedUnits,
+            },
+            include: {
+                requirements: true,
+                pathTeachingGoals: true,
+            },
+        });
 
         if (dto.recommendedUnitSequence) {
             // Define / Update preferred path
