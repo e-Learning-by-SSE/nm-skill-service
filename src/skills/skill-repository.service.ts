@@ -153,10 +153,6 @@ export class SkillRepositoryService {
                 throw error;
             });
 
-        if (!dao) {
-            throw new NotFoundException(`Specified repository not found: ${repositoryId}`);
-        }
-
         return UnresolvedSkillRepositoryDto.createDtoFromDao(dao);
     }
 
