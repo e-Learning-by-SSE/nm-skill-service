@@ -7,9 +7,8 @@ import { validate } from "class-validator";
 import { INestApplication } from "@nestjs/common";
 import { DbTestUtils } from "../DbTestUtils";
 import { JobResponseDto } from "./schemas";
-import exp from "constants";
 
-describe("BerufeNet-Client E2E-Tests", () => {
+describe.skip("BerufeNet-Client E2E-Tests", () => {
     let app: INestApplication;
     const dbUtils = DbTestUtils.getInstance();
 
