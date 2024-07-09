@@ -98,6 +98,13 @@
             "cobertura",
             "text"
         ],
+        "_comment_on_coveragePathIgnorePatterns": "Ignore framework assembly files that cannot be tested",
+        "coveragePathIgnorePatterns": [
+            "/node_modules/",
+            "<rootDir>/app.module.ts",
+            "<rootDir>/main.ts",
+            "<rootDir>/version.ts"
+        ],
         "testEnvironment": "node",
         "setupFilesAfterEnv": [
             "jest-expect-message"
