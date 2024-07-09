@@ -54,20 +54,9 @@ export class SkillMgmtController {
      */
     @Get("byOwner/:ownerId")
     async listRepositories(@Param("ownerId") owner: string) {
-        try {
-            LoggerUtil.logInfo("Skill::listRepositories", { ownerId: owner });
-            // SE: I do not expect so many repositories per user that we need pagination here
-            return await this.repositoryService.findSkillRepositories(
-                null,
-                null,
-                owner,
-                null,
-                null,
-            );
-        } catch (error) {
-            LoggerUtil.logError("Skill::listRepositories", error);
-            throw error;
-        }
+        LoggerUtil.logInfo("Skill::listRepositories", { ownerId: owner });
+        // SE: I do not expect so many repositories per user that we need pagination here
+        return await this.repositoryService.findSkillRepositories(null, null, owner, null, null);
     }
 
     /**
