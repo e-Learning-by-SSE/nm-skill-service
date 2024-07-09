@@ -92,9 +92,9 @@ describe("Skill Controller Tests", () => {
             const expectedObject: SkillListDto = {
                 skills: [
                     SkillDto.createFromDao(skill1),
-                    SkillDto.createFromDao(skill2),
+                    SkillDto.createFromDao({ ...skill2, nestedSkills: [nestedSkill1] }),
                     SkillDto.createFromDao(skill3),
-                    SkillDto.createFromDao(nestedSkill1),
+                    SkillDto.createFromDao({ ...nestedSkill1, parentSkills: [skill2] }),
                 ],
             };
 
@@ -102,7 +102,8 @@ describe("Skill Controller Tests", () => {
                 .get("/skill-repositories/getAllSkills")
                 .expect(200)
                 .expect((res) => {
-                    dbUtils.assert(res.body, expectedObject);
+                    const result = res.body as SkillListDto;
+                    expect(result).toEqual(expectedObject);
                 });
         });
 
@@ -131,7 +132,8 @@ describe("Skill Controller Tests", () => {
                 .send(input)
                 .expect(201)
                 .expect((res) => {
-                    dbUtils.assert(res.body, emptyList);
+                    const result = res.body as SkillRepositoryListDto;
+                    expect(result).toMatchObject(emptyList);
                 });
         });
 
@@ -142,7 +144,7 @@ describe("Skill Controller Tests", () => {
             };
 
             // Expected result
-            const emptyList: SkillRepositoryListDto = {
+            const expectedList: SkillRepositoryListDto = {
                 repositories: [
                     SkillRepositoryDto.createFromDao(skillMap1),
                     SkillRepositoryDto.createFromDao(skillMap2),
@@ -155,7 +157,8 @@ describe("Skill Controller Tests", () => {
                 .send(input)
                 .expect(201)
                 .expect((res) => {
-                    dbUtils.assert(res.body, emptyList);
+                    const result = res.body as SkillRepositoryListDto;
+                    expect(result).toEqual(expectedList);
                 });
         });
 
@@ -166,7 +169,7 @@ describe("Skill Controller Tests", () => {
             };
 
             // Expected result
-            const emptyList: SkillRepositoryListDto = {
+            const expectedList: SkillRepositoryListDto = {
                 repositories: [
                     SkillRepositoryDto.createFromDao(skillMap1),
                     SkillRepositoryDto.createFromDao(skillMap3),
@@ -179,7 +182,8 @@ describe("Skill Controller Tests", () => {
                 .send(input)
                 .expect(201)
                 .expect((res) => {
-                    dbUtils.assert(res.body, emptyList);
+                    const result = res.body as SkillRepositoryListDto;
+                    expect(result).toEqual(expectedList);
                 });
         });
     });
@@ -382,7 +386,8 @@ describe("Skill Controller Tests", () => {
                 .get(`/skill-repositories/byId/${skillMap1.id}`)
                 .expect(200)
                 .expect((res) => {
-                    dbUtils.assert(res.body, expectedObject);
+                    const result = res.body as UnresolvedSkillRepositoryDto;
+                    expect(result).toEqual(expectedObject);
                 });
         });
 
@@ -588,7 +593,8 @@ describe("Skill Controller Tests", () => {
                     .get(`/skill-repositories/resolve/skill/${skill2.id}`)
                     .expect(200)
                     .expect((res) => {
-                        dbUtils.assert(res.body, expectedObject);
+                        const result = res.body as ResolvedSkillDto;
+                        expect(result).toMatchObject(expectedObject);
                     });
             });
         });
@@ -739,7 +745,8 @@ describe("Skill Controller Tests", () => {
                 .get(`/skill-repositories/skill/${skill2.id}`)
                 .expect(200)
                 .expect((res) => {
-                    dbUtils.assert(res.body, expectedObject);
+                    const result = res.body as SkillDto;
+                    expect(result).toMatchObject(expectedObject);
                 });
         });
     });
