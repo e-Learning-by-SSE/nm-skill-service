@@ -8,7 +8,7 @@ import { INestApplication } from "@nestjs/common";
 import { DbTestUtils } from "../DbTestUtils";
 import { JobResponseDto } from "./schemas";
 
-describe.skip("BerufeNet-Client E2E-Tests", () => {
+describe("BerufeNet-Client E2E-Tests", () => {
     let app: INestApplication;
     const dbUtils = DbTestUtils.getInstance();
 
