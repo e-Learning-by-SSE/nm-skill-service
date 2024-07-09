@@ -22,7 +22,6 @@ import {
 import { Skill, SkillMap } from "@prisma/client";
 import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
 import { SkillUpdateDto } from "./dto/skill-update.dto";
-import exp from "constants";
 
 type SkillWithChildren = Skill & { nestedSkills: { id: string }[] };
 
@@ -114,7 +113,7 @@ describe("Skill Controller Tests", () => {
         });
     });
 
-    describe("/skill-repositories", () => {
+    describe("POST:/skill-repositories", () => {
         it("Search for Skill Maps of not existing user -> Empty list", () => {
             // Search DTO
             const input: SkillRepositorySearchDto = {

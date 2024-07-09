@@ -441,18 +441,16 @@ export class SkillMgmtService {
      * Returns all direct children of the specified skill.
      * Won't work recursively.
      * @param parentSkillId The skill for which the children should be returned.
-     * @param prisma Optional `transaction instance` to be used for the check
+     * @param db `transaction instance` to be used for the check
      * @returns All direct children of the specified skill, may be empty
      */
-    public async getChildSkills(
+    private async getChildSkills(
         parentSkillId: string,
-        prisma?: Omit<
+        db: Omit<
             PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
             "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
         >,
     ): Promise<Skill[]> {
-        const db = prisma || this.db;
-
         // Query to retrieve children of the skill
         return await db.skill.findMany({
             where: { parentSkills: { some: { id: parentSkillId } } },

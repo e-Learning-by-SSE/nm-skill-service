@@ -33,23 +33,18 @@ export class SkillMgmtController {
 
     @Post()
     async searchForRepositories(@Body() dto?: SkillRepositorySearchDto) {
-        try {
-            LoggerUtil.logInfo("Skill::searchForRepositories");
-            const mapName: Prisma.StringFilter | null = dto?.name
-                ? { contains: dto.name, mode: "insensitive" }
-                : null;
+        LoggerUtil.logInfo("Skill::searchForRepositories");
+        const mapName: Prisma.StringFilter | null = dto?.name
+            ? { contains: dto.name, mode: "insensitive" }
+            : null;
 
-            return await this.repositoryService.findSkillRepositories(
-                dto?.page ?? null,
-                dto?.pageSize ?? null,
-                dto?.owner ?? null,
-                mapName,
-                dto?.version ?? null,
-            );
-        } catch (error) {
-            LoggerUtil.logError("searchForRepositories", error);
-            throw error;
-        }
+        return await this.repositoryService.findSkillRepositories(
+            dto?.page ?? null,
+            dto?.pageSize ?? null,
+            dto?.owner ?? null,
+            mapName,
+            dto?.version ?? null,
+        );
     }
 
     /**
