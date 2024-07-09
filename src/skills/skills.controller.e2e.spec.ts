@@ -1,6 +1,6 @@
 import * as request from "supertest";
 import { Test } from "@nestjs/testing";
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, NotFoundException } from "@nestjs/common";
 import { SkillModule } from "./skill.module";
 import { DbTestUtils } from "../DbTestUtils";
 import { PrismaModule } from "../prisma/prisma.module";
@@ -370,7 +370,7 @@ describe("Skill Controller Tests", () => {
         });
     });
 
-    describe("/byId", () => {
+    describe("GET:/byId", () => {
         it("Skill Map by ID", () => {
             // Expected result
             const expectedObject: UnresolvedSkillRepositoryDto = {
@@ -400,6 +400,16 @@ describe("Skill Controller Tests", () => {
                 .expect((res) => {
                     res.body.skills.sort();
                     expect(res.body as UnresolvedSkillRepositoryDto).toMatchObject(expectedObject);
+                });
+        });
+
+        it("Non-existing ID -> 404", () => {
+            return request(app.getHttpServer())
+                .get("/skill-repositories/byId/not-existing-id")
+                .expect(404)
+                .expect((res) => {
+                    const exc = res.body as NotFoundException;
+                    expect(exc.message).toBe("Specified repository not found: not-existing-id");
                 });
         });
     });
