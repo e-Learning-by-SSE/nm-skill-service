@@ -487,6 +487,34 @@ describe("Skill Controller Tests", () => {
                 });
         });
 
+        it("Incomplete Pagination -> Fix", async () => {
+            await dbUtils.wipeDb();
+            // Create more skills than default page size
+            const skillMap = await dbUtils.createSkillMap("User-1", "Test Map of Anonymous Skills");
+
+            const defaultPageSize = 10;
+            await Promise.all(
+                Array.from(Array(defaultPageSize + 1).keys()).map((i) =>
+                    dbUtils.createSkill(skillMap, `Anonymous Skill ${i}`),
+                ),
+            );
+
+            // Search DTO (missing pagesize, should be set to default)
+            const input: SkillSearchDto = {
+                page: 1,
+            };
+
+            // Test: Search for Skills (only 2 of 4 Skills should be returned)
+            return request(app.getHttpServer())
+                .post("/skill-repositories/findSkills")
+                .send(input)
+                .expect(201)
+                .expect((res) => {
+                    const result = res.body as SkillListDto;
+                    expect(result.skills.length).toBe(1);
+                });
+        });
+
         it("Search for Skills by non-existent name -> 404", () => {
             // Search DTO
             const input: SkillSearchDto = {

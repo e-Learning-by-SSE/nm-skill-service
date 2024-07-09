@@ -198,7 +198,7 @@ export class SkillMgmtService {
      * @param resolved A map of already resolved skills, to prevent duplicate resolving
      * @returns The resolved skill
      */
-    public async getNestedSkill(skillId: string, resolved: Map<string, ResolvedSkillDto>) {
+    private async getNestedSkill(skillId: string, resolved: Map<string, ResolvedSkillDto>) {
         const resolvedSkill = resolved.get(skillId);
         let result: ResolvedSkillDto;
 
