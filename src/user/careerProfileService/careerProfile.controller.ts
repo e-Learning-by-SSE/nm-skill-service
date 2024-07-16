@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Param, Delete, Patch } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { CareerProfileService } from "./careerProfile.service";
-import { CareerProfileDto } from "./dto/careerProfile.dto";
 import { JobDto } from "./dto/job.dto";
 import { QualificationDto } from "./dto/qualification.dto";
+import { CareerProfileUpdateDto } from "./dto/careerProfileUpdate.dto";
 
 /**
  * Controller for managing the career profiles of users
@@ -33,7 +33,7 @@ export class CareerProfileController {
     }
 
     /**
-     * Allows a user to update their career profile
+     * Allows a user to update parts of their career profile (professionalInterests and selfReportedSkills, other attributes have a separate API)
      * @param careerProfileId The id of the career profile to update (and of the belonging user)
      * @param dto The new data for the career profile
      * @returns The updated part of the career profile
@@ -41,13 +41,13 @@ export class CareerProfileController {
     @Patch("career-profiles/:career_profile_id")
     patchCareerProfileByID(
         @Param("career_profile_id") careerProfileId: string,
-        @Body() dto: CareerProfileDto,
+        @Body() dto: CareerProfileUpdateDto,
     ) {
         return this.careerService.patchCareerProfileByID(careerProfileId, dto);
     }
 
     /**
-     * Creates a new job object and adds it to the user's job history and their career profile
+     * Creates a new job object and adds it to the user's job history and their career profile. Requires title, startDate (yyyy-mm-ddThh:mm:ssZ) and company, endDate is optional
      * @param careerProfileId Id of the user and its career profile (both are the same) to which the job shall be added
      * @param dto The job data to add
      * @returns A success message if successful (there is no use case where we need the job object itself, so we don't return it)
@@ -58,7 +58,7 @@ export class CareerProfileController {
     }
 
     /**
-     * Updates the values of an existing job in the job history of a user
+     * Updates the values of an existing job in the job history of a user. Requires title, startDate (yyyy-mm-ddThh:mm:ssZ) and company, endDate is optional
      * @param jobId The id of the job to update
      * @param dto The new data for the job
      * @returns A success message if successful (there is no use case where we need the job object itself, so we don't return it)

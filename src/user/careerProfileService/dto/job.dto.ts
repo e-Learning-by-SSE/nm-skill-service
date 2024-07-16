@@ -1,4 +1,4 @@
-import { IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsDate, IsDateString, IsNotEmpty, IsOptional, IsString, isDateString } from "class-validator";
 import { Job } from "@prisma/client";
 
 /**
@@ -11,10 +11,10 @@ export class JobDto {
     @IsString()
     @IsNotEmpty()
     jobTitle: string;
-    @IsDate()
+    @IsDateString()
     @IsNotEmpty()
     startDate: Date;
-    @IsDate()
+    @IsDateString()
     @IsOptional()
     endDate?: Date;
     @IsString()

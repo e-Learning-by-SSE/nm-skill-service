@@ -1,4 +1,4 @@
-import { IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsDate, IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { Qualification } from "@prisma/client";
 
 /**
@@ -12,7 +12,7 @@ export class QualificationDto {
     @IsString()
     title: string;
     @IsNotEmpty()
-    @IsDate()
+    @IsDateString()
     date: Date;
     @IsOptional()
     @IsString()

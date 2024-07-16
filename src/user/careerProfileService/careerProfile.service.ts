@@ -112,14 +112,14 @@ export class CareerProfileService {
                 data: {
                     id: dto.id, //Optionally used when desired, can be undefined
                     jobTitle: dto.jobTitle,
-                    startTime: dto.startDate,
+                    startTime: dto.startDate,  //Expects ISO-8601 DateTime (like 2024-07-16T11:38:01.448Z)
                     endTime: dto.endDate, //Can be undefined
                     company: dto.company,
                     careerProfile: { connect: { userId: careerProfileId } },
                 },
             });
 
-            return "Successfully added job to job history of user with id: ${careerProfileId}";
+            return "Successfully added job to job history of user with id: "+careerProfileId;
         } catch (error) {
             throw new ForbiddenException(`Failed to add job to job history: ${error.message}`);
         }
