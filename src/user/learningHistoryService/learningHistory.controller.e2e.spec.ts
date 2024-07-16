@@ -68,6 +68,11 @@ describe("Learning History Controller Tests", () => {
         path2 = await dbUtils.createLearningPath(instructor, [skill1]);
     });
 
+    afterAll(async () => {
+        await dbUtils.wipeDb();
+        await app.close();
+    });
+
     describe("GET:learning-history/{history_id}/learned-skills", () => {
         it("Empty profile -> 200", async () => {
             const response = await request(app.getHttpServer())
