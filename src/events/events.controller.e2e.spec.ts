@@ -8,6 +8,7 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { validate } from "class-validator";
 import { EventsModule } from "./events.module";
 import { LearningUnitModule } from "../learningUnit/learningUnit.module";
+import { MlsActionEntity } from "./dtos/mls-actionEntity.dto";
 
 describe("Event-System Controller Tests", () => {
     let app: INestApplication;
@@ -38,6 +39,68 @@ describe("Event-System Controller Tests", () => {
         await dbUtils.wipeDb();
     });
 
+    describe("Negative tests", () => {
+        it("should call the event API with an invalid input (not JSON) -> 403", async () => {
+            //Prepare an input that is not JSON
+            const response = await request(app.getHttpServer())
+                .post(`/events/`)
+                .send("invalid event")
+                .expect(403);
+            //Expect a proper error message
+            expect(response.body).toBeDefined();
+            expect(response.body).toEqual({
+                statusCode: 403,
+                message: "MlsActionEntity unknown",
+                error: "Forbidden",
+            });
+        });
+
+        it("should call the event API with an invalid payload (not JSON) -> 403", async () => {
+            //Prepare an input where the payload is not valid JSON
+            const mlsEvent = {
+                method: "PUT",
+                entityType: MlsActionEntity.User,
+                id: "2",
+                payload: "invalid payload",
+            };
+            //Act: Call the API
+            const response = await request(app.getHttpServer())
+                .post(`/events/`)
+                .send(mlsEvent)
+                .expect(403);
+            //Assert that the right error is thrown
+            expect(response.body).toBeDefined();
+            expect(response.body).toEqual({
+                statusCode: 403,
+                message: "Payload is not a valid JSON object",
+                error: "Forbidden",
+            });
+        });
+
+        it("should call the event API with an invalid taskTodoPayload (not JSON) -> 403", async () => {
+            //Prepare an input where the payload is not valid JSON
+            const mlsEvent = {
+                method: "PUT",
+                entityType: MlsActionEntity.TaskToDoInfo,
+                id: "2",
+                payload: { id: "1" },
+                taskTodoPayload: "invalid taskTodoPayload",
+            };
+            //Act: Call the API
+            const response = await request(app.getHttpServer())
+                .post(`/events/`)
+                .send(mlsEvent)
+                .expect(403);
+            //Assert that the right error is thrown
+            expect(response.body).toBeDefined();
+            expect(response.body).toEqual({
+                statusCode: 403,
+                message: "TaskTodoPayload is not a valid JSON object",
+                error: "Forbidden",
+            });
+        });
+    });
+
     describe("PATCH:User", () => {
         it("Existent user -> 201", async () => {
             const userId = "2";
@@ -45,7 +108,7 @@ describe("Event-System Controller Tests", () => {
 
             const mlsEvent = {
                 method: "PUT",
-                entityType: "User",
+                entityType: MlsActionEntity.User,
                 id: "2",
                 payload: {
                     keycloakUuid: "11111111-2222-3333-4444-555555555555",

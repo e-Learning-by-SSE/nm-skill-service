@@ -8,7 +8,7 @@ import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
-import { LIFECYCLE, USERSTATUS } from "@prisma/client";
+import { LIFECYCLE, LearningUnit, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
 import { UserWithoutChildrenDto } from "../user/dto";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
@@ -39,7 +39,7 @@ describe("Event Service", () => {
 
     // Wipe DB after all tests are finished
     afterAll(async () => {
-        //await dbUtils.wipeDb();
+        await dbUtils.wipeDb();
     });
 
     /**
@@ -167,6 +167,28 @@ describe("Event Service", () => {
             await expect(eventService.getEvent(invalidMLSEvent)).rejects.toThrow(
                 ForbiddenException,
             );
+        });
+
+        it("should do nothing when trying to update a learning unit with invalid values", async () => {
+            // Arrange: Create events with invalid values for a learning unit update
+            const learningUnit = await dbUtils.createLearningUnit([], []);
+            const invalidMLSEvent: MLSEvent = {
+                entityType: MlsActionEntity.Task,
+                method: MlsActionType.PUT,
+                id: learningUnit.id,
+                payload: JSON.parse('{"invalidAttribute":"invalidValue"}'),
+            };
+
+            // Act: Try to update the learning unit via the event system
+            const result = await eventService.getEvent(invalidMLSEvent);
+
+            // Assert: Check that the learning unit was not updated
+            expect(JSON.stringify(result)).toContain(learningUnit.id);
+            expect(JSON.stringify(result)).toContain(learningUnit.contentCreator);
+            expect(JSON.stringify(result)).toContain(learningUnit.lifecycle);
+            expect(JSON.stringify(result)).toContain(learningUnit.language);
+            expect(JSON.stringify(result)).not.toContain("invalidAttribute");
+            expect(JSON.stringify(result)).not.toContain("invalidValue");
         });
 
         it("should do nothing when there is no taught skill in the existing LU", async () => {
@@ -673,6 +695,40 @@ describe("Event Service", () => {
                 //Skill id and user id should match the input (the order of learnedSkills and idArray are different, so we cannot compare via index)
                 expect(idArray).toContain(entry);
             }
+        });
+
+        it("should trigger the status change of the learning history when a task is started", async () => {
+            // Arrange: Define test data and create event input
+
+            //We need an existing user and a learning unit
+            const userID = "testUserId";
+            await userService.createUser({ id: userID });
+            const learningUnit = await dbUtils.createLearningUnit([], []);
+            //MLS event for updating the status
+            const validMLSPutEvent: MLSEvent = {
+                entityType: MlsActionEntity.TaskToDoInfo,
+                method: MlsActionType.PUT,
+                id: "testTaskToDoInfo",
+                payload: JSON.parse('{"status":"IN_PROGRESS"}'),
+                taskTodoPayload: JSON.parse(
+                    '{"scoredPoints":"0", "maxPoints":100, "user":"' +
+                        userID +
+                        '", "task":"' +
+                        learningUnit.id +
+                        '"}',
+                ),
+            };
+
+            //Act: Call the event system
+            const result = await eventService.getEvent(validMLSPutEvent);
+
+            //Assert: There should be no updates to the learning history (as the user was not enrolled in the course, this is just for testing)
+            expect(result).toEqual(
+                "No personalized path containing unit " +
+                    learningUnit.id +
+                    " found for user: " +
+                    userID,
+            );
         });
     });
 

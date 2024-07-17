@@ -46,6 +46,7 @@ export class EventMgmtService {
      * @returns Depends on the use case?
      */
     async getEvent(mlsEvent: MLSEvent) {
+        //Check if the payload is valid JSON
         if (typeof mlsEvent.payload === "string") {
             LoggerUtil.logInfo("EventService::payloadFix (string)");
             // Try to parse the payload as JSON
@@ -54,6 +55,8 @@ export class EventMgmtService {
                 LoggerUtil.logInfo("EventService::payloadFixed");
             } catch (e) {
                 LoggerUtil.logInfo("EventService::payloadFix (failed)", { cause: e });
+                //We should not continue here
+                throw new ForbiddenException("Payload is not a valid JSON object");
             }
         }
 
@@ -95,7 +98,6 @@ export class EventMgmtService {
                             mlsEvent.id,
                             learningUnitDTO,
                         );
-                        console.log("Updated LU: " + learningUnit);
                         LoggerUtil.logInfo(
                             "EventService::updateLearningUnit(updateResult)",
                             learningUnit,
@@ -106,16 +108,9 @@ export class EventMgmtService {
                             learningUnit = this.learningUnitService.createLearningUnit(
                                 this.createLearningUnitCreationDTOFromMLSEvent(mlsEvent),
                             );
-                            console.log("Created new LU instead of update: " + learningUnit);
                             LoggerUtil.logInfo(
                                 "EventService::updateLearningUnit(createNewLearningUnit)",
                                 learningUnit,
-                            );
-                        } else {
-                            throw new ForbiddenException(
-                                "Update of learning unit: " +
-                                    mlsEvent.id +
-                                    " was aborted due to unknown reasons",
                             );
                         }
                     }
@@ -194,15 +189,10 @@ export class EventMgmtService {
 
                             //Then try to either update the user profile, or create a new one if not existent
                             try {
-                                //Update the existing learning unit in our system with the new values from MLS
+                                //Update the existing learning unit in our system with the new values from MLS (currently this changes nothing, as we only update the state, but it allows us to create missed users)
                                 userProfile = await this.userService.patchUserState(
                                     mlsEvent.id,
                                     USERSTATUS.ACTIVE,
-                                );
-                                console.log("Updated user: " + userProfile);
-                                LoggerUtil.logInfo(
-                                    "EventService::updateUserActive(updateResult)",
-                                    userProfile,
                                 );
 
                                 //When the user profile is not in our database
@@ -213,19 +203,9 @@ export class EventMgmtService {
                                     //Create a new user profile in our system with the new values from MLS (this can happen if we missed a post request or the update is manually triggered by MLS)
                                     await this.userService.createUser({ id: mlsEvent.id });
 
-                                    console.log(
-                                        "Created new user profile instead of update: " +
-                                            mlsEvent.id,
-                                    );
                                     LoggerUtil.logInfo(
                                         "EventService::updateUserActive(createNewUserProfile)",
                                         mlsEvent.id,
-                                    );
-                                } else {
-                                    throw new ForbiddenException(
-                                        "Update of user profile: " +
-                                            mlsEvent.id +
-                                            " was aborted due to unknown reasons",
                                     );
                                 }
                             }
@@ -302,6 +282,10 @@ export class EventMgmtService {
                             LoggerUtil.logInfo("EventService::payloadFixed");
                         } catch (e) {
                             LoggerUtil.logInfo("EventService::payloadFix (failed)", { cause: e });
+                            //We should not continue here
+                            throw new ForbiddenException(
+                                "TaskTodoPayload is not a valid JSON object",
+                            );
                         }
                     }
 
@@ -311,12 +295,6 @@ export class EventMgmtService {
                         "TaskToDoInfoEvent: Method for this action type not implemented.",
                     );
                 }
-            }
-
-            //We do not handle taskToDo events, as they contain taskToDoInfo objects (and the last update is only for the taskToDoInfo object)
-            case MlsActionEntity.TaskToDo: {
-                LoggerUtil.logInfo("EventService::TaskToDoNotRelevant", mlsEvent.id);
-                break;
             }
 
             default:
