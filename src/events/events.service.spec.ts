@@ -15,6 +15,7 @@ import { LearningHistoryService } from "../user/learningHistoryService/learningH
 import { UnprocessableEntityException } from "@nestjs/common";
 import { TaskEventService } from "./taskEvents.service";
 import { TaskToDoEventService } from "./taskToDoEvents.service";
+import { UserEventService } from "./userEvents.service";
 
 describe("Event Service", () => {
     //Required Classes
@@ -26,6 +27,7 @@ describe("Event Service", () => {
     const learningUnitService = new LearningUnitMgmtService(learningUnitFactory);
     const taskEventService = new TaskEventService(learningUnitService);
     const taskToDoEventService = new TaskToDoEventService(learningHistoryService);
+    const userEventService = new UserEventService(userService);
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
@@ -33,7 +35,8 @@ describe("Event Service", () => {
         config,
         userService,
         taskEventService,
-        taskToDoEventService
+        taskToDoEventService,
+        userEventService
     );
 
     // Wipe DB before each test
