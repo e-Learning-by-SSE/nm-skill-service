@@ -5,10 +5,40 @@ import LoggerUtil from "../logger/logger";
 import { UserMgmtService } from "../user/user.service";
 import { ForbiddenException } from "@nestjs/common";
 import { USERSTATUS } from "@prisma/client";
+import { MlsActionType } from "./dtos";
 
 @Injectable()
 export class UserEventService {
     constructor(private userService: UserMgmtService) {}
+
+    /**
+     * Handles events for MLS users
+     * @param mlsEvent The event to handle, contains information about the user to update (or create).
+     * @returns Depends on the case, see the respective methods for more information        
+     */
+    async handleUserEvent(mlsEvent: MLSEvent) {
+        //Create a new empty user profile when a user is created in the MLS system
+        if (mlsEvent.method === MlsActionType.POST) {
+            return await this.handlePOSTEvent(mlsEvent);
+
+            //Change the user profile state when it is changed in MLS
+            //TODO: We could also create a user if it is not in our db, but currently we only get an update when the user should be deleted, so a new creation makes no sense
+        } else if (mlsEvent.method === MlsActionType.PUT) {
+            return await this.handlePUTEvent(mlsEvent);
+
+            //This is the same as PUT state to "inactive"
+        } else if (mlsEvent.method === MlsActionType.DELETE) {
+            LoggerUtil.logInfo("EventService::deleteUser", mlsEvent.id);
+            return this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
+
+            // When the method is not implemented
+        } else {
+            LoggerUtil.logInfo("EventService::deleteUserFailed", mlsEvent.id);
+            throw new ForbiddenException(
+                "UserEvent: Method for this action type (" + mlsEvent.method + ") not implemented.",
+            );
+        }
+    }
 
     /**
      * Handles POST events for MLS users (creates a new user with the same id as in the MLS system)
@@ -72,10 +102,7 @@ export class UserEventService {
                 //This is the same as the DELETE event
             } else if (userState == "0" || userState == "false") {
                 LoggerUtil.logInfo("EventService::updateUserInactive", userState);
-                return await this.userService.patchUserState(
-                    mlsEvent.id,
-                    USERSTATUS.INACTIVE,
-                );
+                return await this.userService.patchUserState(mlsEvent.id, USERSTATUS.INACTIVE);
             } else {
                 LoggerUtil.logInfo("EventService::updateUserFailed", userState);
                 throw new ForbiddenException(

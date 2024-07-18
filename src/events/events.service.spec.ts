@@ -26,17 +26,15 @@ describe("Event Service", () => {
     const learningHistoryService = new LearningHistoryService(db, learningUnitFactory);
     const learningUnitService = new LearningUnitMgmtService(learningUnitFactory);
     const taskEventService = new TaskEventService(learningUnitService);
-    const taskToDoEventService = new TaskToDoEventService(learningHistoryService);
+    const taskToDoEventService = new TaskToDoEventService(config, learningHistoryService);
     const userEventService = new UserEventService(userService);
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
     const eventService = new EventMgmtService(
-        config,
-        userService,
         taskEventService,
         taskToDoEventService,
-        userEventService
+        userEventService,
     );
 
     // Wipe DB before each test

@@ -8,14 +8,44 @@ import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { LearningUnitMgmtService } from "../learningUnit/learningUnit.service";
 import { UnprocessableEntityException } from "@nestjs/common";
+import { MlsActionType } from "./dtos";
 
 @Injectable()
 export class TaskEventService {
     constructor(private learningUnitService: LearningUnitMgmtService) {}
 
     /**
+     * Handles events for MLS tasks
+     * @param mlsEvent The event to handle, contains information about the learning unit to update (or create).
+     * @returns Depends on the case, see the respective methods for more information
+     */
+    async handleTaskEvent(mlsEvent: MLSEvent) {
+        //Create a partly empty learning unit with the provided data from MLS (when a task is created in MLS)
+        if (mlsEvent.method === MlsActionType.POST) {
+            return await this.handlePOSTEvent(mlsEvent);
+
+            //Update an existing learning unit when the corresponding task in MLS is changed
+            //Relevant values are: title, description, lifecycle, and creator
+            //TODO: There is a note about a required values check. If Lifecycle!=DRAFT, teachingGoal must be set. Send 409 exception back.
+        } else if (mlsEvent.method === MlsActionType.PUT) {
+            return await this.handlePUTEvent(mlsEvent);
+
+            //Delete an existing learning unit if the corresponding task in MLS is deleted
+        } else if (mlsEvent.method === MlsActionType.DELETE) {
+            return await this.handleDELETEEvent(mlsEvent);
+
+            //If the method is not implemented, throw an exception
+        } else {
+            LoggerUtil.logInfo("EventService::unknownTaskEventMethod", mlsEvent.method);
+            throw new ForbiddenException(
+                "TaskEvent: Method for this action type (" + mlsEvent.method + ") not implemented.",
+            );
+        }
+    }
+
+    /**
      * Handles POST events for MLS tasks (creates a new learning unit with the same id as in the MLS system)
-     * @param mlsEvent Contains information about the learning unit to create.  
+     * @param mlsEvent Contains information about the learning unit to create.
      * @returns The newly created learning unit
      */
     async handlePOSTEvent(mlsEvent: MLSEvent) {
@@ -78,7 +108,7 @@ export class TaskEventService {
             LoggerUtil.logInfo("EventService::deleteLearningUnit(deleteError)", mlsEvent.id);
             throw new ForbiddenException(
                 "TaskEvent: Cannot delete a task that is not in DRAFT mode. Currently: " +
-                lifecycle,
+                    lifecycle,
             );
         }
     }
@@ -133,9 +163,9 @@ export class TaskEventService {
     }
 
     /** Helper function to get the lifecycle attribute from the payload of a MLS event.
-    * @param mlsEvent The event to extract the lifecycle from
-    * @returns The lifecycle attribute as enum
-    **/
+     * @param mlsEvent The event to extract the lifecycle from
+     * @returns The lifecycle attribute as enum
+     **/
     async getLifecycleAttribute(mlsEvent: MLSEvent) {
         //Lifecycle needs extra handling (save content of JSON as string if key exists)
         const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
