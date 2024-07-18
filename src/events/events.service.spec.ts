@@ -8,11 +8,13 @@ import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
-import { LIFECYCLE, LearningUnit, USERSTATUS } from "@prisma/client";
+import { LIFECYCLE, USERSTATUS } from "@prisma/client";
 import { UserCreationDto } from "../user/dto/user-creation.dto";
 import { UserWithoutChildrenDto } from "../user/dto";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 import { UnprocessableEntityException } from "@nestjs/common";
+import { TaskEventService } from "./taskEvents.service";
+import { TaskToDoEventService } from "./taskToDoEvents.service";
 
 describe("Event Service", () => {
     //Required Classes
@@ -22,14 +24,16 @@ describe("Event Service", () => {
     const learningUnitFactory = new LearningUnitFactory(db);
     const learningHistoryService = new LearningHistoryService(db, learningUnitFactory);
     const learningUnitService = new LearningUnitMgmtService(learningUnitFactory);
+    const taskEventService = new TaskEventService(learningUnitService);
+    const taskToDoEventService = new TaskToDoEventService(learningHistoryService);
     const dbUtils = DbTestUtils.getInstance();
 
     // Test object
     const eventService = new EventMgmtService(
-        learningUnitService,
         config,
         userService,
-        learningHistoryService,
+        taskEventService,
+        taskToDoEventService
     );
 
     // Wipe DB before each test
@@ -97,12 +101,27 @@ describe("Event Service", () => {
                 entityType: MlsActionEntity.TaskToDoInfo,
                 method: MlsActionType.POST,
                 id: "invalidMethodTaskToDoInfo",
-                payload: JSON.parse("{}"),
+                payload: JSON.parse('{"user": "1", "task": "2"}'),
             };
 
             // Act and assert: Call the getEvent method with a non-existing action type for taskTodoInfo
             await expect(eventService.getEvent(invalidMLSEvent)).rejects.toThrow(
                 ForbiddenException,
+            );
+        });
+
+        it("should throw errors when getting invalid payloads (not JSON) for valid entities (taskToDoInfo)", async () => {
+            // Arrange: Create events with invalid payloads for tasks
+            const invalidMLSEvent: MLSEvent = {
+                entityType: MlsActionEntity.TaskToDoInfo,
+                method: MlsActionType.PUT,
+                id: "invalidPayloadTask",
+                payload: JSON.parse("{}"),
+            };
+
+            // Act and assert: Call the getEvent method with a non-existing action type for tasks
+            await expect(eventService.getEvent(invalidMLSEvent)).rejects.toThrow(
+                UnprocessableEntityException,
             );
         });
 

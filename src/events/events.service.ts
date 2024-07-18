@@ -1,19 +1,12 @@
-import {
-    ForbiddenException,
-    Injectable,
-    NotFoundException,
-    UnprocessableEntityException,
-} from "@nestjs/common";
-
+import { ForbiddenException, Injectable, UnprocessableEntityException } from "@nestjs/common";
 import { MLSEvent, MlsActionEntity, MlsActionType } from "./dtos";
-import { SearchLearningUnitCreationDto, SearchLearningUnitUpdateDto } from "../learningUnit/dto";
-import { LearningUnitMgmtService } from "../learningUnit/learningUnit.service";
 import { UserCreationDto } from "../user/dto";
 import { UserMgmtService } from "../user/user.service";
-import { USERSTATUS, LIFECYCLE } from "@prisma/client";
+import { USERSTATUS } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
 import LoggerUtil from "../logger/logger";
-import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
+import { TaskEventService } from "./taskEvents.service";
+import { TaskToDoEventService } from "./taskToDoEvents.service";
 
 /**
  * Triggers actions when certain events related to tasks (like creating a TaskTodo) occur in the MLS system
@@ -27,10 +20,10 @@ export class EventMgmtService {
     private passingThreshold: number;
 
     constructor(
-        private learningUnitService: LearningUnitMgmtService,
         private configService: ConfigService,
         private userService: UserMgmtService,
-        private learningHistoryService: LearningHistoryService,
+        private taskEventService: TaskEventService,
+        private taskToDoEventService: TaskToDoEventService,
     ) {
         // We ensure that all defined environment variables are set, otherwise we use a default value
         this.passingThreshold = this.configService.get("PASSING_THRESHOLD") || 0.5;
@@ -77,70 +70,19 @@ export class EventMgmtService {
 
                 //Create a partly empty learning unit with the provided data from MLS (when a task is created in MLS)
                 if (mlsEvent.method === MlsActionType.POST) {
-                    const learningUnit = this.learningUnitService.createLearningUnit(
-                        this.createLearningUnitCreationDTOFromMLSEvent(mlsEvent),
-                    );
-                    LoggerUtil.logInfo("EventService::createLearningUnit", learningUnit);
-                    return learningUnit;
+                    return this.taskEventService.handlePOSTEvent(mlsEvent);
 
                     //Update an existing learning unit when the corresponding task in MLS is changed
                     //Relevant values are: title, description, lifecycle, and creator
                     //TODO: There is a note about a required values check. If Lifecycle!=DRAFT, teachingGoal must be set. Send 409 exception back.
                 } else if (mlsEvent.method === MlsActionType.PUT) {
-                    //Declare required objects
-                    let learningUnit;
-                    const learningUnitDTO = this.createLearningUnitUpdateDTOFromMLSEvent(mlsEvent);
-
-                    //Then try to either update the learning unit, or create a new one if not existent
-                    try {
-                        //Update the existing learning unit in our system with the new values from MLS
-                        learningUnit = await this.learningUnitService.patchLearningUnit(
-                            mlsEvent.id,
-                            learningUnitDTO,
-                        );
-                        LoggerUtil.logInfo(
-                            "EventService::updateLearningUnit(updateResult)",
-                            learningUnit,
-                        );
-                    } catch (exception) {
-                        if (exception instanceof NotFoundException) {
-                            //Create a new learning unit in our system with the new values from MLS (this can happen if we missed a post request)
-                            learningUnit = this.learningUnitService.createLearningUnit(
-                                this.createLearningUnitCreationDTOFromMLSEvent(mlsEvent),
-                            );
-                            LoggerUtil.logInfo(
-                                "EventService::updateLearningUnit(createNewLearningUnit)",
-                                learningUnit,
-                            );
-                        }
-                    }
-
-                    return learningUnit;
+                    return this.taskEventService.handlePUTEvent(mlsEvent);
 
                     //Delete an existing learning unit if the corresponding task in MLS is deleted
                 } else if (mlsEvent.method === MlsActionType.DELETE) {
-                    //Check that we only delete if lifecycle is draft
-                    const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
+                    return this.taskEventService.handleDELETEEvent(mlsEvent);
 
-                    LoggerUtil.logInfo(
-                        "EventService::deleteLearningUnit(getLifecycle)",
-                        lifecycleString,
-                    );
-
-                    //This works only if we really get the whole object with the DELETE event
-                    if (lifecycleString == "DRAFT" || lifecycleString == "draft") {
-                        LoggerUtil.logInfo("EventService::deleteLearningUnit(delete)", mlsEvent.id);
-                        return this.learningUnitService.deleteLearningUnit(mlsEvent.id);
-                    } else {
-                        LoggerUtil.logInfo(
-                            "EventService::deleteLearningUnit(deleteError)",
-                            mlsEvent.id,
-                        );
-                        throw new ForbiddenException(
-                            "TaskEvent: Cannot delete a task that is not in DRAFT mode. Currently: " +
-                                lifecycleString,
-                        );
-                    }
+                    //If the method is not implemented, throw an exception
                 } else {
                     LoggerUtil.logInfo("EventService::unknownTaskEventMethod", mlsEvent.method);
                     throw new ForbiddenException(
@@ -259,9 +201,13 @@ export class EventMgmtService {
                     method: mlsEvent.method,
                 });
 
+
+
                 // When a TaskTodoInfo is updated in the MLS system, update our user profile accordingly
                 if (mlsEvent.method === MlsActionType.PUT) {
                     LoggerUtil.logInfo("EventService::getTaskToDoInfoPUT", mlsEvent.id);
+
+
 
                     // Make sure taskTodoPayload is existent and not empty
                     if (!mlsEvent.taskTodoPayload) {
@@ -289,7 +235,16 @@ export class EventMgmtService {
                         }
                     }
 
-                    return await this.updateLearnedSkills(mlsEvent);
+                                    //Get the id of the user that updated the task
+                const userID = this.extractId(mlsEvent.taskTodoPayload, "user");
+                const taskID = this.extractId(mlsEvent.taskTodoPayload, "task");
+
+                    return await this.taskToDoEventService.updateLearnedSkills(
+                        mlsEvent,
+                        userID,
+                        taskID,
+                        this.passingThreshold,
+                    );
                 } else {
                     throw new ForbiddenException(
                         "TaskToDoInfoEvent: Method for this action type not implemented.",
@@ -303,65 +258,6 @@ export class EventMgmtService {
         }
     }
 
-    /**
-     * Helper function to create a learning unit DTO from the values of a MLS event.
-     * @param mlsEvent Must contain at least the id, can also contain title, description, and contentCreator as payload.
-     * @returns The newly created learning unit DTO
-     */
-    createLearningUnitUpdateDTOFromMLSEvent(mlsEvent: MLSEvent) {
-        //Lifecycle needs extra handling (save content of JSON as string if key exists)
-        const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
-        //Match string to enum. Can result in undefined. Enum matching is case sensitive.
-        const lifecycle: LIFECYCLE = LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE];
-
-        LoggerUtil.logInfo("EventService::LearningUnit(getLifecycle)", lifecycle);
-
-        //Gets id, title, description, lifecycle, and creator from the MLS system
-        //Caution: An event may contain just a partial update, some values may be undefined
-        //Following values will be updated later by the SEARCH extension and MUST be undefined: requiredSkills, teachingGoals, targetAudience
-        const learningUnitDto: SearchLearningUnitUpdateDto = {
-            id: mlsEvent.id,
-            contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
-            lifecycle: lifecycle,
-        };
-
-        console.log("Created LU DTO: " + learningUnitDto);
-        LoggerUtil.logInfo("EventService::LearningUnit(createDTO)", learningUnitDto);
-
-        return learningUnitDto;
-    }
-
-    /**
-     * Helper function to create a learning unit DTO from the values of a MLS event.
-     * @param mlsEvent Must contain at least the id, can also contain title, description, and contentCreator as payload.
-     * @returns The newly created learning unit DTO
-     */
-    createLearningUnitCreationDTOFromMLSEvent(mlsEvent: MLSEvent) {
-        //Lifecycle needs extra handling (save content of JSON as string if key exists)
-        const lifecycleString = mlsEvent.payload["lifecycle" as keyof JSON]?.toString();
-        //Match string to enum. Can result in undefined. Enum matching is case sensitive.
-        const lifecycle: LIFECYCLE = LIFECYCLE[lifecycleString as keyof typeof LIFECYCLE];
-
-        LoggerUtil.logInfo("EventService::LearningUnit(getLifecycle)", lifecycle);
-
-        //Gets id, title, description, lifecycle, and creator from the MLS system
-        //Caution: An event may contain just a partial update, some values may be undefined
-        //Following values will be updated later by the SEARCH extension and should be empty: requiredSkills, teachingGoals, targetAudience
-        const learningUnitDto: SearchLearningUnitCreationDto = {
-            id: mlsEvent.id,
-            contentCreator: mlsEvent.payload["creator" as keyof JSON]?.toString(),
-            lifecycle: lifecycle,
-            requiredSkills: [],
-            teachingGoals: [],
-            targetAudience: [],
-        };
-
-        console.log("Created LU DTO: " + learningUnitDto);
-        LoggerUtil.logInfo("EventService::LearningUnit(createDTO)", learningUnitDto);
-
-        return learningUnitDto;
-    }
-
     private extractId(payload: JSON | undefined, key: string) {
         let id = undefined;
         if (payload) {
@@ -373,75 +269,14 @@ export class EventMgmtService {
             }
         }
 
-        return id;
-    }
-
-    async updateLearnedSkills(mlsEvent: MLSEvent) {
-        //Try to read the required values.
-        //If field not existing or not a number, variables will be NaN or undefined and the condition evaluates to false (the ! is necessary to force typescript to access the object, though)
-        const scoredPoints = +mlsEvent.taskTodoPayload!["scoredPoints" as keyof JSON]; //The + is used for parsing to a number
-        const maxPoints = +mlsEvent.taskTodoPayload!["maxPoints" as keyof JSON]; // caution: can be 0
-        const STATUS = mlsEvent.payload["status" as keyof JSON];
-        //Get the id of the user that updated the task
-        const userID = this.extractId(mlsEvent.taskTodoPayload, "user");
-        const taskID = this.extractId(mlsEvent.taskTodoPayload, "task");
-
-        if (!userID || !taskID) {
+        if (!id) {
             LoggerUtil.logInfo(
                 "EventService::TaskToDoInfoLearnSkill:Error",
-                `User "${userID}" or task "${taskID}" ID not found`,
+                `ID for ${key} not found`,
             );
-            throw new UnprocessableEntityException(
-                `User "${userID}" or task "${taskID}" ID not found`,
-            );
+            throw new UnprocessableEntityException(`ID for ${key} not found`);
         }
 
-        LoggerUtil.logInfo(
-            "EventService::TaskToDoInfoLearnSkill:getIDs",
-            "User: " + userID + " Task: " + taskID,
-        );
-
-        LoggerUtil.logInfo(
-            "EventService::getTaskToDoInfo:PointsAndStatus",
-            "scored(" + scoredPoints + ") max(" + maxPoints + ") status(" + STATUS + ")",
-        );
-
-        // If the user has started the task
-        if (STATUS == "IN_PROGRESS") {
-            LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill: Task started", taskID);
-            return await this.learningHistoryService.updateLearningUnitInstanceAndPersonalizedPathStatus(
-                userID,
-                taskID,
-                STATUS,
-            );
-        }
-
-        //Check conditions for acquisition
-        if (
-            STATUS == "FINISHED" &&
-            (maxPoints == 0 || //Because some tasks have no points and are finished successfully every time
-                scoredPoints / maxPoints >= this.passingThreshold)
-        ) {
-            LoggerUtil.logInfo(
-                "EventService::TaskToDoInfoLearnSkill: Threshold passed",
-                mlsEvent.id,
-            );
-
-            //Update the learned skills of the user
-            await this.learningHistoryService.updateLearnedSkills(userID, taskID);
-
-            //Update the status of the learning unit instances and the personalized learning paths
-            await this.learningHistoryService.updateLearningUnitInstanceAndPersonalizedPathStatus(
-                userID,
-                taskID,
-                STATUS,
-            );
-
-            return "Update of status and learned skills finished";
-        }
-
-        //When we get irrelevant events, like an unsuccessful attempt to finish a task
-        LoggerUtil.logInfo("EventService::TaskToDoInfoLearnSkill:NothingRelevant", mlsEvent.id);
-        return "Nothing relevant happened";
+        return id;
     }
 }
