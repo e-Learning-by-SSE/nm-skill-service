@@ -68,16 +68,6 @@ export class TaskToDoEventService {
         const maxPoints = +mlsEvent.taskTodoPayload!["maxPoints" as keyof JSON]; // caution: can be 0
         const STATUS = mlsEvent.payload["status" as keyof JSON];
 
-        if (!userID || !taskID) {
-            LoggerUtil.logInfo(
-                "EventService::TaskToDoInfoLearnSkill:Error",
-                `User "${userID}" or task "${taskID}" ID not found`,
-            );
-            throw new UnprocessableEntityException(
-                `User "${userID}" or task "${taskID}" ID not found`,
-            );
-        }
-
         LoggerUtil.logInfo(
             "EventService::TaskToDoInfoLearnSkill:getIDs",
             "User: " + userID + " Task: " + taskID,

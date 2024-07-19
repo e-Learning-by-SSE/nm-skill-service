@@ -79,17 +79,13 @@ export class FeedbackService {
             return FeedbackDto.createFromDao(feedbackModel);
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
-                // Unique field already exists
-                if (error.code === "P2002") {
-                    throw new ForbiddenException("Feedback already exists");
-                }
                 // Learning unit id (foreign key) does not exist
                 if (error.code === "P2003") {
                     throw new NotFoundException(
                         `No learning unit \"${dto.learningUnitID}\" found.`,
                     );
                 }
-                console.log(error);
+                throw error;
             } else if (error instanceof PrismaClientValidationError) {
                 // Input validation error
                 throw new BadRequestException(`Invalid input data: ${dto}`);
