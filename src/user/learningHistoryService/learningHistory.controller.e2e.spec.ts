@@ -12,7 +12,7 @@ import { PathFinderService } from "../../pathFinder/pathFinder.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
 import { LearningHistoryService } from "./learningHistory.service";
-import { PersonalizedPathDto } from "./dto";
+import { PersonalizedLearningPathsListDto, PersonalizedPathDto } from "./dto";
 import { UserMgmtService } from "../user.service";
 
 describe("Learning History Controller Tests", () => {
@@ -82,6 +82,50 @@ describe("Learning History Controller Tests", () => {
             expect(response.body).toBeDefined();
             const responseDto = response.body as string[];
             expect(responseDto).toEqual([]);
+        });
+
+        it("Existing skills -> 200", async () => {
+            // Learn the skills
+            await historyService.addLearnedSkillToUser(learnerId, skill1.id);
+            await historyService.addLearnedSkillToUser(learnerId, skill2.id);
+
+            const response = await request(app.getHttpServer())
+                .get(`/learning-history/${learnerId}/learned-skills`)
+                .expect(200);
+
+            expect(response.body).toBeDefined();
+            const responseDto = response.body as string[];
+            expect(responseDto).toHaveLength(2);
+            expect(responseDto).toContain(skill1.id);
+            expect(responseDto).toContain(skill2.id);
+        });
+    });
+
+    describe("GET:learning-history/{history_id}/personalized-paths", () => {
+        it("Empty profile -> 200", async () => {
+            const response = await request(app.getHttpServer())
+                .get(`/learning-history/${learnerId}/personalized-paths`)
+                .expect(200);
+
+            expect(response.body).toBeDefined();
+            const responseDto = response.body as PersonalizedPathDto[];
+            expect(responseDto).toEqual({"paths": []});
+        });
+
+        it("Existing paths -> 200", async () => {
+            // Enroll into the path
+            await pathFinderService.enrollment(learnerId, path1.id);
+            await pathFinderService.enrollment(learnerId, path2.id);
+
+            const response = await request(app.getHttpServer())
+                .get(`/learning-history/${learnerId}/personalized-paths`)
+                .expect(200);
+
+            expect(response.body).toBeDefined();
+            const responseDto = response.body as PersonalizedLearningPathsListDto;
+            expect(responseDto.paths).toHaveLength(2);
+            expect(responseDto.paths[1].learningPathId).toBe(path1.id);
+            expect(responseDto.paths[0].learningPathId).toBe(path2.id);
         });
     });
 
