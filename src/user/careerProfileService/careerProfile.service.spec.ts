@@ -1,4 +1,4 @@
-import { ForbiddenException } from "@nestjs/common";
+import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
@@ -83,6 +83,16 @@ describe("CareerProfileService", () => {
                     professionalInterests: ["AI", "ML"],
                 }),
             ).rejects.toThrowError(ForbiddenException);
+        });
+
+        it("should handle errors when getting a non-existing career profile", async () => {
+            // Arrange: Prepare invalid test data
+            const invalidUserId = "non-existent-user";
+
+            // Act and Assert: Call the getCareerProfileByID method and expect it to throw an error
+            await expect(careerService.getCareerProfileByID(invalidUserId)).rejects.toThrowError(
+                NotFoundException,
+            );
         });
 
         it("should create and return several career profiles", async () => {
@@ -207,6 +217,16 @@ describe("CareerProfileService", () => {
             const jobHistory = careerProfile.jobHistory;
 
             expect(jobHistory).toHaveLength(0);
+        });
+
+        it("should throw an error when deleting a non-existing job", async () => {
+            // Arrange: Prepare invalid test data
+            const invalidJobId = "non-existent-job";
+
+            // Act and Assert: Call the deleteJobFromHistoryInCareerProfile method and expect it to throw an error
+            await expect(
+                careerService.deleteJobFromHistoryInCareerProfile(invalidJobId),
+            ).rejects.toThrowError(ForbiddenException);
         });
 
         it("should add several jobs to a user's job history and return them ascending by start date", async () => {
@@ -347,6 +367,16 @@ describe("CareerProfileService", () => {
                 .qualifications;
             // Assert: Check that the qualification has been deleted
             expect(userQualifications).toHaveLength(0);
+        });
+
+        it("should throw an error when deleting a non-existing qualification", async () => {
+            // Arrange: Prepare invalid test data
+            const invalidQualificationId = "non-existent-qualification";
+
+            // Act and Assert: Call the deleteQualificationFromCareerProfile method and expect it to throw an error
+            await expect(
+                careerService.deleteQualificationFromCareerProfile(invalidQualificationId),
+            ).rejects.toThrowError(ForbiddenException);
         });
 
         it("should add several qualifications to a user's qualifications and return them ascending by date", async () => {

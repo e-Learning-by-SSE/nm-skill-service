@@ -46,35 +46,31 @@ export class CareerProfileService {
      * @returns A career profile DTO for the specified user (and with the specified career profile id)
      */
     async getCareerProfileByID(careerProfileId: string) {
-        try {
-            const careerProfile = await this.db.careerProfile.findUnique({
-                where: {
-                    userId: careerProfileId,
-                },
-                include: {
-                    jobHistory: {
-                        orderBy: {
-                            startTime: "asc",
-                        },
-                    },
-                    qualifications: {
-                        orderBy: {
-                            date: "asc",
-                        },
+        const careerProfile = await this.db.careerProfile.findUnique({
+            where: {
+                userId: careerProfileId,
+            },
+            include: {
+                jobHistory: {
+                    orderBy: {
+                        startTime: "asc",
                     },
                 },
-            });
+                qualifications: {
+                    orderBy: {
+                        date: "asc",
+                    },
+                },
+            },
+        });
 
-            if (!careerProfile) {
-                throw new NotFoundException(
-                    "Career profile with id " + careerProfileId + " not found.",
-                );
-            }
-
-            return CareerProfileDto.createFromDao(careerProfile);
-        } catch (error) {
-            throw new ForbiddenException(`Error retrieving career profile by ID: ${error.message}`);
+        if (!careerProfile) {
+            throw new NotFoundException(
+                "Career profile with id " + careerProfileId + " not found.",
+            );
         }
+
+        return CareerProfileDto.createFromDao(careerProfile);
     }
 
     /**
@@ -111,14 +107,14 @@ export class CareerProfileService {
                 data: {
                     id: dto.id, //Optionally used when desired, can be undefined
                     jobTitle: dto.jobTitle,
-                    startTime: dto.startDate,  //Expects ISO-8601 DateTime (like 2024-07-16T11:38:01.448Z)
+                    startTime: dto.startDate, //Expects ISO-8601 DateTime (like 2024-07-16T11:38:01.448Z)
                     endTime: dto.endDate, //Can be undefined
                     company: dto.company,
                     careerProfile: { connect: { userId: careerProfileId } },
                 },
             });
 
-            return "Successfully added job to job history of user with id: "+careerProfileId;
+            return "Successfully added job to job history of user with id: " + careerProfileId;
         } catch (error) {
             throw new ForbiddenException(`Failed to add job to job history: ${error.message}`);
         }
