@@ -156,21 +156,21 @@ export class LearningHistoryService {
      * @returns The personalized learning path of a user
      */
     async getPersonalizedPath(pathId: string) {
-            const path = await this.db.personalizedLearningPath.findUnique({
-                where: { id: pathId },
-                include: {
-                    pathTeachingGoals: { select: { id: true } }, //Ids of the taught skills
-                    unitSequence: {
-                        include: { unitInstance: { select: { unitId: true, status: true } } }, //Id of the learning unit and state of the belonging learningUnitInstances contained in the path
-                    },
+        const path = await this.db.personalizedLearningPath.findUnique({
+            where: { id: pathId },
+            include: {
+                pathTeachingGoals: { select: { id: true } }, //Ids of the taught skills
+                unitSequence: {
+                    include: { unitInstance: { select: { unitId: true, status: true } } }, //Id of the learning unit and state of the belonging learningUnitInstances contained in the path
                 },
-            });
+            },
+        });
 
-            if (!path) {
-                throw new NotFoundException(`Personalized path not found: ${pathId}`);
-            }
+        if (!path) {
+            throw new NotFoundException(`Personalized path not found: ${pathId}`);
+        }
 
-            return PersonalizedPathDto.createFromDao(path);
+        return PersonalizedPathDto.createFromDao(path);
     }
 
     /**

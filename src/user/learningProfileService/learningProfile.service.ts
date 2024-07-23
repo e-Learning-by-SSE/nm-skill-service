@@ -21,22 +21,17 @@ export class LearningProfileService {
      * @returns Either the learningProfile with the specified ID, or an exception if it does not exist
      */
     async getLearningProfileByID(learningProfileId: string) {
-        try {
-            const learningProfile = await this.db.learningProfile.findUnique({
-                where: { userId: learningProfileId },
-            });
+        const learningProfile = await this.db.learningProfile.findUnique({
+            where: { userId: learningProfileId },
+        });
 
-            if (!learningProfile) {
-                throw new ForbiddenException("No learning profile found with id "+learningProfileId);
-            }
-            
-            //Return the learningProfile as DTO
-            return LearningProfileDto.createFromDao(learningProfile);   
-        } catch (error) {
-            throw new ForbiddenException("Error retrieving learning profile with id "+learningProfileId+": "+error.message);
+        if (!learningProfile) {
+            throw new ForbiddenException("No learning profile found with id " + learningProfileId);
         }
-    }
 
+        //Return the learningProfile as DTO
+        return LearningProfileDto.createFromDao(learningProfile);
+    }
 
     /**
      * Updates the specified learningProfile according to the DTO.
@@ -44,19 +39,23 @@ export class LearningProfileService {
      * @returns Success if successful, or an exception if the learningProfile does not exist
      */
     async updateLearningProfile(learningProfileId: string, dto: LearningProfileUpdateDto) {
+        //Check values again
+        if (dto.semanticDensity && (dto.semanticDensity < 0 || dto.semanticDensity > 1)) {
+            throw new ForbiddenException("semanticDensity must be between 0 and 1");
+        }
+        if (dto.semanticGravity && (dto.semanticGravity < 0 || dto.semanticGravity > 1)) {
+            throw new ForbiddenException("semanticGravity must be between 0 and 1");
+        }
+        if (
+            dto.processingTimePerUnit &&
+            (dto.processingTimePerUnit < 0 || dto.processingTimePerUnit % 1 !== 0)
+        ) {
+            throw new ForbiddenException(
+                "processingTimePerUnit must be at least 0 and a whole number (minutes)",
+            );
+        }
 
-            //Check values again
-            if (dto.semanticDensity && (dto.semanticDensity < 0 || dto.semanticDensity > 1)) {
-                throw new Error("semanticDensity must be between 0 and 1");
-            }
-            if (dto.semanticGravity && (dto.semanticGravity < 0 || dto.semanticGravity > 1)) {
-                throw new Error("semanticGravity must be between 0 and 1");
-            }
-            if (dto.processingTimePerUnit && (dto.processingTimePerUnit < 0 || dto.processingTimePerUnit % 1 !== 0)) {
-                throw new Error("processingTimePerUnit must be at least 0 and a whole number (minutes)");
-            }
-
-            try{
+        try {
             //Update the learningProfile with the specified ID according to the DTO
             await this.db.learningProfile.update({
                 where: { userId: learningProfileId },
@@ -67,13 +66,12 @@ export class LearningProfileService {
                     mediaType: dto.mediaType || undefined,
                     language: dto.language || undefined,
                     processingTimePerUnit: dto.processingTimePerUnit || undefined,
-                    preferredDidacticMethod: dto.preferredDidacticMethod || undefined,      
+                    preferredDidacticMethod: dto.preferredDidacticMethod || undefined,
                 },
             });
             return "Success!";
-        } catch (error) {   
-            throw new ForbiddenException("Error updating learning profile: "+error.message);
+        } catch (error) {
+            throw new ForbiddenException("Error updating learning profile: " + error.message);
         }
-            
     }
 }

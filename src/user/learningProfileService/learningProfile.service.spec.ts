@@ -3,6 +3,7 @@ import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
 import { LearningProfileService } from "./learningProfile.service";
 import { UserMgmtService } from "../user.service";
+import { ForbiddenException } from "@nestjs/common";
 
 describe("LearningProfileService", () => {
     const config = new ConfigService();
@@ -114,6 +115,14 @@ describe("LearningProfileService", () => {
             expect(updatedLearningProfile.preferredDidacticMethod).toEqual(
                 updateDto.preferredDidacticMethod,
             );
+        });
+
+        it("rejects to get a non-existing learningProfile", async () => {
+            // Arrange: Create a user object with a non-existing ID
+            const nonExistentUserId = "nonExistingTestUser";
+
+            // Act and Assert: Check if the user retrieval was rejected correctly
+            await expect(learningProfileService.getLearningProfileByID(nonExistentUserId)).rejects.toThrow(ForbiddenException);
         });
 
         it("rejects to update a non-existing learningProfile", async () => {
