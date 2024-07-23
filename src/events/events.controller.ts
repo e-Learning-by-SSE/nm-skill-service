@@ -8,6 +8,12 @@ import LoggerUtil from "../logger/logger";
 @Controller("events")
 export class EventsController {
     constructor(private eventService: EventMgmtService) {}
+
+    /**
+     * Handles MLS events based on their entity type and action
+     * @param dto The event to handle
+     * @returns Depending on the event, the result of the operation
+     */
     @Post("")
     async getEvents(@Body() dto: MLSEvent) {
         LoggerUtil.logInfo("EventsController::getEvents", { request: dto });
