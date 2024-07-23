@@ -45,23 +45,4 @@ export class LearningUnitInstanceDto {
     @IsDefined()
     learningPaths: string[];
 
-    static createFromDao(
-        dao: LearningUnitInstance & {
-            path: {
-                position: number;
-                pathId: string;
-            }[];
-        },
-    ) {
-        const dto: LearningUnitInstanceDto = {
-            unitId: dao.unitId,
-            status: dao.status,
-            learningPaths: dao.path.map((p) => p.pathId),
-            date: dao.date.toISOString(),
-            actualProcessingTime: dao.actualProcessingTime,
-            testPerformance: dao.testPerformance.toNumber(),
-        };
-
-        return dto;
-    }
 }

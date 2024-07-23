@@ -35,7 +35,6 @@ export class LearningHistoryService {
 
             return learnedSkills.map((learnedSkill) => learnedSkill.skillId);
         } catch (error) {
-            console.error("Error finding learned skills for user: " + userId, error);
             throw new ForbiddenException("Error finding learned skills for user: " + userId);
         }
     }
@@ -157,7 +156,6 @@ export class LearningHistoryService {
      * @returns The personalized learning path of a user
      */
     async getPersonalizedPath(pathId: string) {
-        try {
             const path = await this.db.personalizedLearningPath.findUnique({
                 where: { id: pathId },
                 include: {
@@ -173,9 +171,6 @@ export class LearningHistoryService {
             }
 
             return PersonalizedPathDto.createFromDao(path);
-        } catch (error) {
-            throw new ForbiddenException("Error finding personalized path: " + pathId);
-        }
     }
 
     /**

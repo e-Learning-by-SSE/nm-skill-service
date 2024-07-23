@@ -143,6 +143,14 @@ describe("LearningHistoryService", () => {
             expect(learnedSkills[1]).toEqual(skill2.id);
             expect(learnedSkills[0]).toEqual(skill3.id);
         });
+
+        it("should return an empty result getting the learned skills of a non-existent user", async () => {
+            //Act: Get the learned skills of a non-existent user
+            const result = await historyService.getLearnedSkillsOfUser("non-existent");
+
+            //Assert: Check the results (there should be no learned skills)
+            expect(result).toHaveLength(0);
+        });
     });
 
     describe("createAndUpdateLearningHistoriesPersonalizedPaths", () => {
@@ -299,6 +307,19 @@ describe("LearningHistoryService", () => {
                 STATUS.FINISHED,
             );
             expect(result).toContain("found for user:");
+        });
+
+        it("should throw an error when getting a non-existent path", async () => {
+            //Act and assert: There should be an error thrown
+            await expect(historyService.getPersonalizedPath("non-existent")).rejects.toThrowError(NotFoundException);
+        });
+
+        it("return an empty DTO when getting paths of a non-existent user", async () => {
+            //Act:Get paths of non-existing user
+            const result = await historyService.getPersonalizedPathsOfUser("non-existent");
+
+            //Assert: Check the results (there should be no paths)
+            expect(result.paths).toHaveLength(0);
         });
     });
 });
