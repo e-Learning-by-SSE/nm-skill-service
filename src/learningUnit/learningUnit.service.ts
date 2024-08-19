@@ -3,9 +3,9 @@ import {
     SearchLearningUnitCreationDto,
     SearchLearningUnitDto,
     SearchLearningUnitUpdateDto,
+    LearningUnitFilterDto,
 } from "./dto";
 import { LearningUnitFactory } from "./learningUnitFactory";
-import { LearningUnitFilterDto } from "./dto/learningUnit-filter.dto";
 
 /**
  * Service that manages the creation/update/deletion of learning units.

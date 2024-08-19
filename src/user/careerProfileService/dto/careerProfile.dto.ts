@@ -1,6 +1,6 @@
 import { IsArray, IsNotEmpty } from "class-validator";
 import { CareerProfile, Job, Qualification } from "@prisma/client";
-import { JobDto, QualificationDto } from "../../dto";
+import { JobDto, QualificationDto } from ".";
 
 /**
  * Models a complete career profile

@@ -13,8 +13,8 @@ import {
     SkillListDto,
     SkillDto,
     ResolvedSkillListDto,
+    SkillUpdateDto,
 } from "./dto";
-import { SkillUpdateDto } from "./dto/skill-update.dto";
 import { SkillRepositoryService } from "./skill-repository.service";
 import { findCycles } from "../../nm-skill-lib/src";
 

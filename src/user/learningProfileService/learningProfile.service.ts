@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
-import { LearningProfileDto } from "./dto/learningProfile.dto";
-import { LearningProfileUpdateDto } from "./dto/learningProfile-update.dto";
+import { LearningProfileDto, LearningProfileUpdateDto } from "./dto";
 import { ForbiddenException } from "@nestjs/common";
 
 /**

@@ -1,11 +1,10 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
-import { MLSEvent } from "./dtos/mls-event.dto";
-import { UserCreationDto } from "../user/dto/user-creation.dto";
+import { UserCreationDto } from "../user/dto";
 import LoggerUtil from "../logger/logger";
 import { UserMgmtService } from "../user/user.service";
 import { ForbiddenException } from "@nestjs/common";
 import { USERSTATUS } from "@prisma/client";
-import { MlsActionType } from "./dtos";
+import { MlsActionType, MLSEvent } from "./dtos";
 
 @Injectable()
 export class UserEventService {
@@ -14,7 +13,7 @@ export class UserEventService {
     /**
      * Handles events for MLS users
      * @param mlsEvent The event to handle, contains information about the user to update (or create).
-     * @returns Depends on the case, see the respective methods for more information        
+     * @returns Depends on the case, see the respective methods for more information
      */
     async handleUserEvent(mlsEvent: MLSEvent) {
         //Create a new empty user profile when a user is created in the MLS system

@@ -1,6 +1,6 @@
 import { Controller, Get, Body, Param, Patch } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { LearningProfileUpdateDto } from "../dto";
+import { LearningProfileUpdateDto } from "./dto";
 import { LearningProfileService } from "./learningProfile.service";
 
 /**

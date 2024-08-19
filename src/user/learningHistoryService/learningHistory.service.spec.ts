@@ -7,7 +7,7 @@ import { NotFoundException } from "@nestjs/common";
 import { LearningPath, LearningUnit, STATUS, Skill, UserProfile } from "@prisma/client";
 import { LearningUnitFactory } from "../../learningUnit/learningUnitFactory";
 import { PathFinderService } from "../../pathFinder/pathFinder.service";
-import { PersonalizedPathDto } from "./dto/personalizedPath.dto";
+import { PersonalizedPathDto } from "./dto";
 
 describe("LearningHistoryService", () => {
     //Required classes
@@ -311,7 +311,9 @@ describe("LearningHistoryService", () => {
 
         it("should throw an error when getting a non-existent path", async () => {
             //Act and assert: There should be an error thrown
-            await expect(historyService.getPersonalizedPath("non-existent")).rejects.toThrowError(NotFoundException);
+            await expect(historyService.getPersonalizedPath("non-existent")).rejects.toThrowError(
+                NotFoundException,
+            );
         });
 
         it("return an empty DTO when getting paths of a non-existent user", async () => {

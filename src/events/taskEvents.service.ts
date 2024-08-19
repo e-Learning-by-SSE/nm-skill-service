@@ -1,9 +1,8 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
 import { MLSEvent } from "./dtos/mls-event.dto";
 import { LIFECYCLE } from "@prisma/client";
-import { SearchLearningUnitUpdateDto } from "../learningUnit/dto/learningUnit-update.dto";
+import { SearchLearningUnitUpdateDto, SearchLearningUnitCreationDto } from "../learningUnit/dto";
 import LoggerUtil from "../logger/logger";
-import { SearchLearningUnitCreationDto } from "../learningUnit/dto/learningUnit-creation.dto";
 import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
 import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
 import { LearningUnitMgmtService } from "../learningUnit/learningUnit.service";

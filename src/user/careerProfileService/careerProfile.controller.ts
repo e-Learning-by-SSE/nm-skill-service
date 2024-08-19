@@ -1,9 +1,7 @@
 import { Controller, Get, Post, Body, Param, Delete, Patch } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { CareerProfileService } from "./careerProfile.service";
-import { JobDto } from "./dto/job.dto";
-import { QualificationDto } from "./dto/qualification.dto";
-import { CareerProfileUpdateDto } from "./dto/careerProfileUpdate.dto";
+import { JobDto, QualificationDto, CareerProfileUpdateDto } from "./dto";
 
 /**
  * Controller for managing the career profiles of users

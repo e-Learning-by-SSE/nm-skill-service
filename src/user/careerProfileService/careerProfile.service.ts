@@ -1,9 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { CareerProfileDto } from "./dto/careerProfile.dto";
-import { JobDto } from "./dto/job.dto";
-import { QualificationDto } from "./dto/qualification.dto";
-import { CareerProfileUpdateDto } from "./dto/careerProfileUpdate.dto";
+import { CareerProfileDto, JobDto, QualificationDto, CareerProfileUpdateDto } from "./dto";
 
 /**
  * Service that manages the creation/update/deletion of careerProfiles and their child objects

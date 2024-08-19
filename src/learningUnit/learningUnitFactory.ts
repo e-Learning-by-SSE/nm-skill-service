@@ -10,12 +10,12 @@ import {
     SearchLearningUnitDto,
     SearchLearningUnitListDto,
     SearchLearningUnitUpdateDto,
+    LearningUnitFilterDto,
 } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { LIFECYCLE, Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
 import { LearningUnit } from "../../nm-skill-lib/src";
-import { LearningUnitFilterDto } from "./dto/";
 
 /**
  * This factory is responsible for database-based operations on Learning Units. It is used to:

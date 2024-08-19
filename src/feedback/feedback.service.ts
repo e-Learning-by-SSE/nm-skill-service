@@ -1,14 +1,11 @@
 import { Injectable } from "@nestjs/common/decorators/core/injectable.decorator";
 import { PrismaService } from "../prisma/prisma.service";
-import { FeedbackCreationDto } from "./dto/feedback-creation.dto";
-import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
-import { NotFoundException } from "@nestjs/common/exceptions/not-found.exception";
-import { FeedbackDto } from "./dto/feedback.dto";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
+import { FeedbackDto, FeedbackCreationDto } from "./dto";
 import {
     PrismaClientKnownRequestError,
     PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-import { BadRequestException } from "@nestjs/common";
 
 /**
  * Service that manages the creation/update/deletion of feedback

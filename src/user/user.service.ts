@@ -1,7 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserCreationDto, UserWithoutChildrenDto } from "./dto";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { USERSTATUS } from "@prisma/client";
 import LoggerUtil from "../logger/logger";
 
@@ -107,12 +106,12 @@ export class UserMgmtService {
 
         //If the user does not exist in the DB
         if (!userDAO) {
-            const exception = new NotFoundException('Specified user not found: ${userId}');
+            const exception = new NotFoundException("Specified user not found: ${userId}");
             LoggerUtil.logError("UserService::getUser", exception);
             throw exception;
         } else {
             //Return the DTO
-            LoggerUtil.logInfo("UserService::getUser", "Returning user profile with id: "+userId);
+            LoggerUtil.logInfo("UserService::getUser", "Returning user profile with id: " + userId);
             return UserWithoutChildrenDto.createFromDao(userDAO);
         }
     }

@@ -18,10 +18,10 @@ import {
     SkillRepositorySearchDto,
     SkillRepositoryUpdateDto,
     SkillSearchDto,
+    SkillUpdateDto,
+    UnresolvedSkillRepositoryDto,
 } from "./dto";
 import { Skill, SkillMap } from "@prisma/client";
-import { UnresolvedSkillRepositoryDto } from "./dto/unresolved-skill-repository.dto";
-import { SkillUpdateDto } from "./dto/skill-update.dto";
 
 type SkillWithChildren = Skill & { nestedSkills: { id: string }[] };
 

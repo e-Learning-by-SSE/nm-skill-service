@@ -6,10 +6,10 @@ import {
     SkillRepositoryCreationDto,
     SkillSearchDto,
     SkillRepositoryUpdateDto,
+    SkillUpdateDto,
 } from "./dto";
 import { SkillMgmtService } from "./skill.service";
 import { Prisma } from "@prisma/client";
-import { SkillUpdateDto } from "./dto/skill-update.dto";
 import LoggerUtil from "../logger/logger";
 import { SkillRepositoryService } from "./skill-repository.service";
 @ApiTags("Skill")

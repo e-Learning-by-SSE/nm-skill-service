@@ -11,8 +11,7 @@ import {
     USERSTATUS,
     UserProfile,
 } from "@prisma/client";
-import { ForbiddenException } from "@nestjs/common/exceptions/forbidden.exception";
-import { NotFoundException } from "@nestjs/common";
+import { NotFoundException, ForbiddenException } from "@nestjs/common";
 import { LearningHistoryService } from "./learningHistoryService/learningHistory.service";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 

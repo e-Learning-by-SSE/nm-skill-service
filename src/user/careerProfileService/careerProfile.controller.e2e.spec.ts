@@ -6,8 +6,7 @@ import { ConfigModule } from "@nestjs/config";
 import { UserModule } from "../user.module";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { validate } from "class-validator";
-import { CareerProfileDto } from "./dto/careerProfile.dto";
-import { CareerProfileUpdateDto } from "../dto";
+import { CareerProfileDto, CareerProfileUpdateDto } from "./dto";
 
 describe("Career-Profile Controller Tests", () => {
     let app: INestApplication;
@@ -39,7 +38,7 @@ describe("Career-Profile Controller Tests", () => {
     afterAll(async () => {
         await dbUtils.wipeDb();
         await app.close();
-    }); 
+    });
 
     describe("GET:/career-profiles", () => {
         it("Empty database -> 200", async () => {
@@ -225,9 +224,7 @@ describe("Career-Profile Controller Tests", () => {
                 .expect(201);
 
             //Assert that the new values are returned
-            expect(response.text).toEqual(
-                "Successfully added qualification to career profile"
-            );
+            expect(response.text).toEqual("Successfully added qualification to career profile");
         });
     });
 
@@ -271,7 +268,9 @@ describe("Career-Profile Controller Tests", () => {
             const updatedQualification = await request(app.getHttpServer())
                 .get(`/career-profiles/${userId}`)
                 .expect(200);
-            expect(new Date(updatedQualification.body.qualifications[0].date)).toEqual(updateInput.date);
+            expect(new Date(updatedQualification.body.qualifications[0].date)).toEqual(
+                updateInput.date,
+            );
 
             //Act by sending a delete request
             const responseDelete = await request(app.getHttpServer())
@@ -279,7 +278,9 @@ describe("Career-Profile Controller Tests", () => {
                 .expect(200);
 
             //Assert that the qualification was deleted
-            expect(responseDelete.text).toEqual("Successfully deleted qualification from career profile");
+            expect(responseDelete.text).toEqual(
+                "Successfully deleted qualification from career profile",
+            );
         });
     });
 });

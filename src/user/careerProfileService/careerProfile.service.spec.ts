@@ -3,8 +3,9 @@ import { ConfigService } from "@nestjs/config";
 import { DbTestUtils } from "../../DbTestUtils";
 import { PrismaService } from "../../prisma/prisma.service";
 import { CareerProfileService } from "./careerProfile.service";
-import { UserCreationDto, QualificationDto } from "../dto";
+import { QualificationDto } from "./dto";
 import { UserMgmtService } from "../user.service";
+import { UserCreationDto } from "../dto";
 
 describe("CareerProfileService", () => {
     const config = new ConfigService();
