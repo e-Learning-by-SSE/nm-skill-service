@@ -1,6 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { ApiTags, ApiQuery } from "@nestjs/swagger"; // Import ApiQuery decorator
-import { SearchLearningUnitCreationDto, LearningUnitFilterDto } from "./dto";
+import {
+    SearchLearningUnitCreationDto,
+    LearningUnitFilterDto,
+    SearchLearningUnitUpdateDto,
+} from "./dto";
 import { LearningUnitMgmtService } from "./learningUnit.service";
 
 @ApiTags("Learning-units")
@@ -70,7 +74,7 @@ export class SearchLearningUnitController {
     @Patch(":learningUnitId")
     patchLearningUnit(
         @Param("learningUnitId") learningUnitId: string,
-        @Body() dto: SearchLearningUnitCreationDto,
+        @Body() dto: SearchLearningUnitUpdateDto,
     ) {
         return this.learningUnitService.patchLearningUnit(learningUnitId, dto);
     }
