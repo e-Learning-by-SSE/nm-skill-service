@@ -829,7 +829,7 @@ describe("PathFinder Controller Tests", () => {
                 // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
                     learningUnits: expect.arrayContaining([lu1.id, lu2.id, lu3.id, lu4.id]),
-                    cost: 4.6,
+                    cost: 4.4,
                 };
 
                 // Input
@@ -938,7 +938,7 @@ describe("PathFinder Controller Tests", () => {
                 // Expected result
                 const expectedResult: PathDto = {
                     learningUnits: expect.arrayContaining([lu1.id, lu2.id, lu3.id, lu4.id]),
-                    cost: 4.6,
+                    cost: 4.4,
                 };
 
                 // Input
@@ -970,7 +970,7 @@ describe("PathFinder Controller Tests", () => {
                 // [lu2.id, lu1.id, lu3.id, lu4.id] is a valid result, too
                 const expectedResult: PathDto = {
                     learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
-                    cost: 4.6,
+                    cost: 4.4,
                 };
 
                 // Input
@@ -1045,7 +1045,7 @@ describe("PathFinder Controller Tests", () => {
                 /**
                  * Skill 2 is provided by LU1 and LU3, thus, learning Skill 2 & 4 can be done by two different paths:
                  * Optimal: LU2 -> LU3 -> LU4
-                 * Greedy:
+                 * Greedy (no longer support, must not occur):
                  *   - Skill 2: LU1
                  *   - Skill 4: LU2 -> LU3 -> LU4
                  *   -> LU1 -> LU2 -> LU3 -> LU4
@@ -1079,11 +1079,11 @@ describe("PathFinder Controller Tests", () => {
                     });
             });
 
-            it("Compute Path (Greedy)", async () => {
+            it("Compute Path (Greedy) -> same as optimal", async () => {
                 // Expected result
                 const expectedResult: PathDto = {
-                    learningUnits: [lu1.id, lu2.id, lu3.id, lu4.id],
-                    cost: 4.6,
+                    learningUnits: [lu2.id, lu3.id, lu4.id],
+                    cost: 3.4,
                 };
 
                 // Input
@@ -1184,12 +1184,12 @@ describe("PathFinder Controller Tests", () => {
                 goal: [skill4.id],
             };
 
-            // Expected result (No path to Skill 3)
+            // Expected result (No path to Skill 3 / LU 3)
             const expectedResult: SubPathListDto = {
                 subPaths: [
                     {
                         skill: skill3.id,
-                        learningUnits: [],
+                        learningUnits: [lu3.id],
                     },
                 ],
             };

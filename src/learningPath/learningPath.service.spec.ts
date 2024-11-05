@@ -9,11 +9,12 @@ import {
     LearningPathListDto,
     UpdatePathRequestDto,
 } from "./dto";
-import { LearningUnit, getPath } from "../../nm-skill-lib/src";
+import { DefaultCostParameter, LearningUnit, getPath } from "../../nm-skill-lib/src";
 import { SkillDto } from "../skills/dto";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LIFECYCLE, Skill, SkillMap, LearningUnit as PrismaLearningUnit } from "@prisma/client";
 import "jest-expect-message";
+import { isComposite, isDefined } from "../utils";
 
 describe("LearningPath Service", () => {
     // Auxillary objects
@@ -828,30 +829,33 @@ describe("LearningPath Service", () => {
 
         it("Ordering defined -> LearningPath updated", async () => {
             // Pre-condition: Determine default path produced by the algorithm
-            const path = await getPath({
+            const path = getPath({
                 skills: [skill1Dto, skill2Dto, skill3Dto],
                 learningUnits: await findAll(db),
                 goal: [skill3Dto],
                 knowledge: [],
-                optimalSolution: true,
+                isComposite,
+                costOptions: DefaultCostParameter,
             });
             expect(path).not.toBeNull();
 
             // Test: Exchange first and second unit
-            const unitOrdering = path!.path.map((unit) => unit.id);
+            const unitOrdering = path!.path.map((p) => p.origin?.id).filter(isDefined);
             [unitOrdering[0], unitOrdering[1]] = [unitOrdering[1], unitOrdering[0]];
             await learningPathService.definePreferredPath(unitOrdering, "anyID");
 
             // Post-condition: Check that the path is now different (according to spec of unitOrdering)
-            const newPath = await getPath({
+            const newPath = getPath({
                 skills: [skill1Dto, skill2Dto, skill3Dto],
                 learningUnits: await findAll(db),
                 goal: [skill3Dto],
                 knowledge: [],
-                optimalSolution: true,
+                isComposite,
+                costOptions: DefaultCostParameter,
             });
             expect(newPath).not.toBeNull();
-            expect(newPath!.path.map((unit) => unit.id)).toEqual(unitOrdering);
+            const newOrder = newPath!.path.map((p) => p.origin?.id).filter(isDefined);
+            expect(newOrder).toEqual(unitOrdering);
         });
 
         it("Empty preferred path -> no action", async () => {

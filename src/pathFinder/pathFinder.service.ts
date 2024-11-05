@@ -10,10 +10,17 @@ import {
     SubPathDto,
     SubPathListDto,
 } from "./dto";
-import { Skill, getPath, getSkillAnalysis } from "../../nm-skill-lib/src";
+import {
+    Skill,
+    getPath,
+    getSkillAnalysis,
+    DefaultCostParameter,
+    LearningUnit,
+} from "../../nm-skill-lib/src";
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import { LearningHistoryService } from "../user/learningHistoryService/learningHistory.service";
 import { UserMgmtService } from "../user/user.service";
+import { isComposite, isDefined } from "../utils";
 
 /**
  * Service for Graph requests
@@ -60,12 +67,13 @@ export class PathFinderService {
             // 3. Develop cost function based on UserProfile
         }
 
-        const path = await getPath({
+        const path = getPath({
             skills: skills,
             learningUnits: await this.luFactory.getLearningUnits(),
             goal,
             knowledge,
-            optimalSolution: dto.optimalSolution,
+            isComposite,
+            costOptions: DefaultCostParameter,
         });
 
         if (!path) {
@@ -77,14 +85,11 @@ export class PathFinderService {
         if (path.cost == -1) {
             throw new NotFoundException(
                 `Could not compute a path for the specified goal: ${dto.goal}`,
-                `Missing skills are : ${path.path[0].requiredSkills.map((lu) => lu.id)}`,
             );
         }
+        const luIds = path.path.map((p) => p.origin?.id).filter(isDefined);
 
-        return new PathDto(
-            path.path.map((lu) => lu.id),
-            path.cost,
-        );
+        return new PathDto(luIds, path.cost);
     }
 
     /**
@@ -288,9 +293,10 @@ export class PathFinderService {
             skills: skills,
             learningUnits: await this.luFactory.getLearningUnits(),
             goal,
+            knowledge: [],
         });
 
-        if (!skillAnalyzedPath) {
+        if (!skillAnalyzedPath || skillAnalyzedPath.length === 0) {
             throw new ConflictException(
                 `There is a learning path for the goal: ${dto.goal}, try to use computePath`,
             );
@@ -300,7 +306,7 @@ export class PathFinderService {
         skillAnalyzedPath.forEach((analyzedPath) => {
             const subPath = new SubPathDto(
                 analyzedPath.missingSkill,
-                analyzedPath.subPath.path.map((lu) => lu.id),
+                analyzedPath.path.map((lu) => lu.id),
             );
             subPathDtoList.subPaths.push(subPath);
         });
@@ -354,105 +360,4 @@ export class PathFinderService {
             nestedSkills: skill.nestedSkills.map((skill) => skill.id),
         }));
     }
-
-    // private async createOrLoadLearningHistory(userId: string) {
-    //     // Ensure that a user profile exists
-    //     let user = await this.db.userProfile.findUnique({
-    //         where: {
-    //             id: userId,
-    //         },
-    //     });
-    //     if (!user) {
-    //         user = await this.db.userProfile.create({
-    //             data: {
-    //                 id: userId,
-    //                 status: "ACTIVE",
-    //             },
-    //         });
-    //     }
-
-    //     // Create learning history
-    //     let learningHistory = await this.db.learningHistory.findUnique({
-    //         where: {
-    //             userId: userId,
-    //         },
-    //     });
-    //     if (!learningHistory) {
-    //         learningHistory = await this.db.learningHistory.create({
-    //             data: {
-    //                 userId: userId,
-    //             },
-    //         });
-    //     }
-
-    //     return learningHistory;
-    // }
-
-    // public async storePersonalizedPath(userId: string, dto: PathStorageRequestDto) {
-    //     let goals: string[] = [];
-
-    //     // Load Learning History
-    //     const learningHistory = await this.createOrLoadLearningHistory(userId);
-
-    //     // Load the source of the path (either a pre-defined path or a goal)
-    //     if (dto.originPathId) {
-    //         const path = await this.db.learningPath.findUnique({
-    //             where: {
-    //                 id: dto.originPathId,
-    //             },
-    //             include: {
-    //                 pathTeachingGoals: true,
-    //             },
-    //         });
-    //         if (!path) {
-    //             throw new NotFoundException(`Specified path not found: ${dto.originPathId}`);
-    //         }
-    //         goals = path.pathTeachingGoals.map((goal) => goal.id);
-    //     } else if (dto.goal) {
-    //         goals = dto.goal;
-    //     } else {
-    //         throw new ConflictException(`Either originPathId or goal must be specified: ${dto}`);
-    //     }
-
-    //     // Create the personalized path
-    //     const newPath = await this.db.personalizedLearningPath.create({
-    //         data: {
-    //             learningHistoryId: learningHistory.userId,
-    //             learningPathId: dto.originPathId,
-    //             pathTeachingGoals: {
-    //                 connect: goals.map((goal) => ({ id: goal })),
-    //             },
-    //             unitSequence: {
-    //                 create: dto.units.map((unitId, index) => ({
-    //                     unitInstanceId: unitId, //Is this correct? Shouldn't it be unitId?
-    //                     position: index,
-    //                 })),
-    //             },
-
-    //             lifecycle: "CREATED",
-    //         },
-    //         include: {
-    //             unitSequence: {
-    //                 include: {
-    //                     unitInstance: true,
-    //                 },
-    //                 orderBy: {
-    //                     position: "asc",
-    //                 },
-    //             },
-    //             pathTeachingGoals: true,
-    //             learningHistory: {
-    //                 include: {
-    //                     user: true,
-    //                 },
-    //             },
-    //         },
-    //     });
-
-    //     if (!newPath) {
-    //         throw new NotFoundException(`Could not store path: ${dto}`);
-    //     }
-
-    //     return PathStorageResponseDto.createFromDao(newPath);
-    // }
 }

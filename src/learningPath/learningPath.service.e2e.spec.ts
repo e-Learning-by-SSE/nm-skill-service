@@ -123,8 +123,6 @@ describe("Learning-Path Controller E2E-Tests", () => {
                 .expect(201)
                 .expect((res) => {
                     const result = res.body as LearningPathDto;
-                    console.log(`First: ${JSON.stringify(firstResult)}`);
-                    console.log(`Result: ${JSON.stringify(result)}`);
                     expect(result).toMatchObject(expectedResult);
                     expect(result.id).not.toEqual(firstResult.id);
                 });

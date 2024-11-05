@@ -16,17 +16,19 @@ import {
 import { LearningUnitFactory } from "../learningUnit/learningUnitFactory";
 import {
     LearningUnit,
-    Path,
     Skill,
     computeSuggestedSkills,
     findCycles,
     getPath,
     isLearningUnit,
     isSkill,
+    Path,
+    DefaultCostParameter,
 } from "../../nm-skill-lib/src";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma } from "@prisma/client";
 import { SkillDto } from "../skills/dto";
+import { isComposite } from "../utils";
 
 /**
  * Service that manages the creation/update/deletion of LearningPaths defined by teachers (courses).
@@ -256,26 +258,29 @@ export class LearningPathMgmtService {
         const goal = await this.loadSkills(path.pathGoals);
         const knowledge = await this.loadSkills(path.requirements);
 
-        let computedPath: Path | null = null;
+        let computedPath: Path<LearningUnit> | null = null;
+
         if (path.recommendedUnitSequence.length > 0) {
             // For performance reasons, try compute path only on suggested units
-            computedPath = await getPath({
+            computedPath = getPath({
                 skills,
                 goal,
                 knowledge,
                 learningUnits: units, //allUnits,
-                optimalSolution: false,
+                isComposite,
+                costOptions: DefaultCostParameter,
             });
         }
         if (computedPath === null) {
             // Fall back try path with all available units
             const allUnits = await this.luFactory.getLearningUnits();
-            computedPath = await getPath({
+            computedPath = getPath({
                 skills,
                 goal,
                 knowledge,
                 learningUnits: allUnits,
-                optimalSolution: false,
+                isComposite,
+                costOptions: DefaultCostParameter,
             });
         }
         if (computedPath === null) {
